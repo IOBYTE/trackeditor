@@ -56,6 +56,7 @@ public  class Properties
 	private String				pitEntry;
 	private String				pitStart;
 	private String				pitStartBuildings;
+	private String				pitStopBuildings;
 	private String				pitEnd;
 	private String				pitExit;
 	private double				pitWidth;
@@ -415,6 +416,21 @@ public  class Properties
 	public void setPitStartBuildings(String pitStartBuildings)
 	{
 		this.pitStartBuildings = pitStartBuildings;
+	}
+	/**
+	 * @return Returns the pitStopBuildings.
+	 */
+	public String getPitStopBuildings()
+	{
+		return pitStopBuildings;
+	}
+	/**
+	 * @param pitStopBuildings
+	 *            The pitStopBuildings to set.
+	 */
+	public void setPitStopBuildings(String pitStopBuildings)
+	{
+		this.pitStopBuildings = pitStopBuildings;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)
