@@ -105,6 +105,9 @@ public class XmlReader
         tmp = getAttrStrValue(pits, "start");
         Editor.getProperties().setPitStart(tmp);
 
+        tmp = getAttrStrValue(pits, "start buildings");
+        Editor.getProperties().setPitStartBuildings(tmp);
+
         tmp = getAttrStrValue(pits, "end");
         Editor.getProperties().setPitEnd(tmp);
 

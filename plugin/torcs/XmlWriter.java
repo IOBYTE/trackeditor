@@ -195,6 +195,13 @@ public class XmlWriter
 		el = attstrElement("start", tmp);
 		pits.addContent(el);
 
+		if (Editor.getProperties().getPitStartBuildings() != null)
+		{
+			tmp = Editor.getProperties().getPitStartBuildings();
+			el = attstrElement("start buildings", tmp);
+			pits.addContent(el);
+		}
+
 		if (Editor.getProperties().getPitEnd() != null)
 		{
 			tmp = Editor.getProperties().getPitEnd();
