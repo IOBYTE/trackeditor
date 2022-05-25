@@ -24,6 +24,7 @@ import java.awt.Frame;
 import java.io.File;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -44,6 +45,10 @@ public class NewProjectDialog extends JDialog
 	private JPanel			jPanel					= null;
 	private JTextField		projectNameTextField	= null;
 	private JLabel			projectNameLabel		= null;
+	private JComboBox		trackCategoryComboBox	= null;
+	private JLabel			trackCategoryLabel		= null;
+	private JComboBox		trackVersionComboBox	= null;
+	private JLabel			trackVersionLabel		= null;
 	private JLabel			pathLabel				= null;
 	private JTextField		pathTextField			= null;
 	private JButton			browseButton			= null;
@@ -95,15 +100,21 @@ public class NewProjectDialog extends JDialog
 			descriptionLabel = new JLabel();
 			pathLabel = new JLabel();
 			projectNameLabel = new JLabel();
+			trackCategoryLabel = new JLabel();
+			trackVersionLabel = new JLabel();
 			jPanel = new JPanel();
 			jPanel.setLayout(null);
 			projectNameLabel.setBounds(15, 15, 100, 30);
 			projectNameLabel.setText("Track Name");
-			pathLabel.setBounds(15, 60, 60, 30);
+			trackCategoryLabel.setBounds(15, 60, 100, 30);
+			trackCategoryLabel.setText("Track Category");
+			trackVersionLabel.setBounds(15, 105, 100, 30);
+			trackVersionLabel.setText("Track Version");
+			pathLabel.setBounds(15, 150, 60, 30);
 			pathLabel.setText("Path");
-			authorLabel.setBounds(15, 105, 60, 30);
+			authorLabel.setBounds(15, 195, 60, 30);
 			authorLabel.setText("Author");
-			descriptionLabel.setBounds(15, 150, 80, 30);
+			descriptionLabel.setBounds(15, 240, 80, 30);
 			descriptionLabel.setText("Description");
 			jPanel.add(getPathTextField(), null);
 			jPanel.add(getBrowseButton(), null);
@@ -116,6 +127,10 @@ public class NewProjectDialog extends JDialog
 			jPanel.add(getAuthorTextField(), null);
 			jPanel.add(getDescriptionTextField(), null);
 			jPanel.add(descriptionLabel, null);
+			jPanel.add(trackCategoryLabel, null);
+			jPanel.add(getTrackCategoryComboBox(), null);
+			jPanel.add(trackVersionLabel, null);
+			jPanel.add(getTrackVersionComboBox(), null);
 		}
 		return jPanel;
 	}
@@ -141,6 +156,54 @@ public class NewProjectDialog extends JDialog
 		return projectNameTextField;
 	}
 	/**
+	 * This method initializes trackCategoryComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	public JComboBox getTrackCategoryComboBox()
+	{
+		if (trackCategoryComboBox == null)
+		{
+			String[] items =
+			{"road", "oval", "dirt"};
+			trackCategoryComboBox = new JComboBox(items);
+			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getCategory());
+			trackCategoryComboBox.setBounds(135, 60, 170, 30);
+			trackCategoryComboBox.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+
+				}
+			});
+		}
+		return trackCategoryComboBox;
+	}
+	/**
+	 * This method initializes trackVersionComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	public JComboBox getTrackVersionComboBox()
+	{
+		if (trackVersionComboBox == null)
+		{
+			String[] items =
+			{"3", "4", "5"};
+			trackVersionComboBox = new JComboBox(items);
+			trackVersionComboBox.setSelectedItem(Editor.getProperties().getTrackVersion() + "");
+			trackVersionComboBox.setBounds(135, 105, 170, 30);
+			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+
+				}
+			});
+		}
+		return trackVersionComboBox;
+	}
+	/**
 	 * This method initializes pathTextField
 	 * 
 	 * @return javax.swing.JTextField
@@ -150,7 +213,7 @@ public class NewProjectDialog extends JDialog
 		if (pathTextField == null)
 		{
 			pathTextField = new JTextField();
-			pathTextField.setBounds(65, 60, 240, 30);
+			pathTextField.setBounds(65, 150, 240, 30);
 			pathTextField.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -174,7 +237,7 @@ public class NewProjectDialog extends JDialog
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(320, 60, 95, 30);
+			browseButton.setBounds(320, 150, 95, 30);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -194,7 +257,7 @@ public class NewProjectDialog extends JDialog
 	private JTextField getAuthorTextField() {
 		if (authorTextField == null) {
 			authorTextField = new JTextField();
-			authorTextField.setBounds(65, 105, 240, 30);
+			authorTextField.setBounds(65, 195, 240, 30);
 		}
 		return authorTextField;
 	}
@@ -206,7 +269,7 @@ public class NewProjectDialog extends JDialog
 	private JTextField getDescriptionTextField() {
 		if (descriptionTextField == null) {
 			descriptionTextField = new JTextField();
-			descriptionTextField.setBounds(90, 150, 330, 30);
+			descriptionTextField.setBounds(85, 240, 330, 30);
 		}
 		return descriptionTextField;
 	}
@@ -240,7 +303,7 @@ public class NewProjectDialog extends JDialog
 		if (okButton == null)
 		{
 			okButton = new JButton();
-			okButton.setBounds(105, 390, 78, 30);
+			okButton.setBounds(105, 375, 78, 30);
 			okButton.setText("Ok");
 			okButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -262,7 +325,7 @@ public class NewProjectDialog extends JDialog
 		if (cancelButton == null)
 		{
 			cancelButton = new JButton();
-			cancelButton.setBounds(250, 390, 78, 30);
+			cancelButton.setBounds(250, 375, 78, 30);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -283,7 +346,12 @@ public class NewProjectDialog extends JDialog
 		String tmpName = getProjectNameTextField().getText();
 		Editor.getProperties().setTrackName(tmpName);
 		Editor.getProperties().setPath(tmpPath + sep + tmpName);
-		Editor.getProperties().setCategory(tmpPath.substring(tmpPath.lastIndexOf(sep)+1));
+		int index = tmpPath.lastIndexOf(sep) + 1;
+		String category = tmpPath.substring(index);
+
+		if (category == getTrackCategoryComboBox().getSelectedItem())
+			Editor.getProperties().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
+
 		File path = new File(tmpPath + sep + tmpName);
 		if (!path.exists())
 		{
@@ -291,6 +359,7 @@ public class NewProjectDialog extends JDialog
 		}
 		Editor.getProperties().setAuthor(this.getAuthorTextField().getText());
 		Editor.getProperties().setDescription(this.getDescriptionTextField().getText());
+		Editor.getProperties().setTrackVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
 		APPROVE = true;
 		cancel();
 	}

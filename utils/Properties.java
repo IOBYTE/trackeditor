@@ -39,7 +39,7 @@ public  class Properties
 	//private Vector				trackData;
 	public final String			title				= "Track Editor";
 	public final String			version				= "v0.6.2c";
-	private String				category;
+	private String				category			= "road";
 	private int					trackVersion		= 4;
 	private String				path;
 	private String				trackName;
