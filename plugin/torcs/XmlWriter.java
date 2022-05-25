@@ -451,7 +451,7 @@ public class XmlWriter
 		{
 			tmp = "road";
 		}
-		el = el = attstrElement("category", tmp);
+		el = attstrElement("category", tmp);
 		header.addContent(el);
 
 		el = attnumElement("version", null, Editor.getProperties().getTrackVersion() + "");
@@ -464,7 +464,7 @@ public class XmlWriter
 		{
 			tmp = "Anonymous";
 		}
-		el = el = attstrElement("author", tmp);
+		el = attstrElement("author", tmp);
 		header.addContent(el);
 
 		if (Editor.getProperties().getDescription() != null)
@@ -474,7 +474,7 @@ public class XmlWriter
 		{
 			tmp = "No description provided";
 		}
-		el = el = attstrElement("description", tmp);
+		el = attstrElement("description", tmp);
 		header.addContent(el);
 
 		return header;
