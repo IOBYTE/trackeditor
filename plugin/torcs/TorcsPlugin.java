@@ -51,6 +51,8 @@ public class TorcsPlugin implements Plugin
 	private JMenuItem		importMenuItem;
 	private JMenuItem		exportMenuItem;
 
+	private String sep = System.getProperty("file.separator");
+
 	/**
 	 *  
 	 */
@@ -83,14 +85,14 @@ public class TorcsPlugin implements Plugin
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			tmp = fc.getSelectedFile().toString();
-			Editor.getProperties().setTrackName(tmp.substring(tmp.lastIndexOf("/") + 1, tmp.lastIndexOf(".")));
-			tmp = tmp.substring(0, tmp.lastIndexOf("/"));
+			Editor.getProperties().setTrackName(tmp.substring(tmp.lastIndexOf(sep) + 1, tmp.lastIndexOf(".")));
+			tmp = tmp.substring(0, tmp.lastIndexOf(sep));
 			Editor.getProperties().setPath(tmp);
-			tmp = Editor.getProperties().getPath().substring(0,tmp.lastIndexOf("/"));
-			tmp = tmp.substring(tmp.lastIndexOf("/")+1,tmp.length());
-			Editor.getProperties().setCategory(tmp.substring(tmp.lastIndexOf("/") + 1));
+			tmp = Editor.getProperties().getPath().substring(0,tmp.lastIndexOf(sep));
+			tmp = tmp.substring(tmp.lastIndexOf(sep)+1,tmp.length());
+			Editor.getProperties().setCategory(tmp.substring(tmp.lastIndexOf(sep) + 1));
 			File file;
-			file = new File(Editor.getProperties().getPath() + "/" + Editor.getProperties().getTrackName() + ".xml");
+			file = new File(Editor.getProperties().getPath() + sep + Editor.getProperties().getTrackName() + ".xml");
 			readFile(file);
 			
 		}
