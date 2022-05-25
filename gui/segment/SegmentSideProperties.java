@@ -39,22 +39,11 @@ import bsh.Interpreter;
 public class SegmentSideProperties extends JPanel implements SliderListener
 {
 	private SegmentEditorDlg	editor;
-	//private int side;
 	private SegmentSide			side;
 	private SegmentEditorDlg	parent;
 
 	private String[]			styleItems				=
 														{"plan", "wall", "fence", "curb"};
-	private String[]			roadSurfaceItems		=
-														{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
-			"asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
-			"road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
-			"concrete3", "b-asphalt", "b-asphalt-l1", "b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left",
-			"asphalt2-l-right", "asphalt2-l-both", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3",
-			"sand", "curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l", "tar-grass3-r", "tar-sand", "b-road1-grass6",
-			"b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7",
-			"b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1",
-			"barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private String[]			borderSurfaceItems		=
 														{"curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l",
 			"tar-grass3-r", "tar-sand", "b-road1-grass6", "b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3",
