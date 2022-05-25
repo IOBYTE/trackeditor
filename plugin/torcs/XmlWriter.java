@@ -172,7 +172,7 @@ public class XmlWriter
 		{
 			tmp = "right";
 		}
-		Element el = el = attstrElement("side", tmp);
+		Element el = attstrElement("side", tmp);
 		pits.addContent(el);
 
 		if (Editor.getProperties().getPitEntry() != null)
@@ -182,7 +182,7 @@ public class XmlWriter
 		{
 			tmp = "";
 		}
-		el = el = attstrElement("entry", tmp);
+		el = attstrElement("entry", tmp);
 		pits.addContent(el);
 
 		if (Editor.getProperties().getPitStart() != null)
@@ -192,7 +192,7 @@ public class XmlWriter
 		{
 			tmp = "";
 		}
-		el = el = attstrElement("start", tmp);
+		el = attstrElement("start", tmp);
 		pits.addContent(el);
 
 		if (Editor.getProperties().getPitEnd() != null)
@@ -202,7 +202,7 @@ public class XmlWriter
 		{
 			tmp = "";
 		}
-		el = el = attstrElement("end", tmp);
+		el = attstrElement("end", tmp);
 		pits.addContent(el);
 
 		if (Editor.getProperties().getPitExit() != null)
@@ -212,13 +212,13 @@ public class XmlWriter
 		{
 			tmp = "";
 		}
-		el = el = attstrElement("exit", tmp);
+		el = attstrElement("exit", tmp);
 		pits.addContent(el);
 
-		el = el = attnumElement("length", "m", Editor.getProperties().getPitLength() + "");
+		el = attnumElement("length", "m", Editor.getProperties().getPitLength() + "");
 		pits.addContent(el);
 
-		el = el = attnumElement("width", "m", Editor.getProperties().getPitWidth() + "");
+		el = attnumElement("width", "m", Editor.getProperties().getPitWidth() + "");
 		pits.addContent(el);
 
 		return pits;
