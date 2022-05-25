@@ -84,6 +84,10 @@ public class XmlReader
         Editor.getProperties().setAuthor(tmp);
         tmp = getAttrStrValue(header, "description");
         Editor.getProperties().setDescription(tmp);
+        tmp = getAttrStrValue(header, "category");
+        Editor.getProperties().setCategory(tmp);
+        double version = getAttrNumValue(header, "version");
+        Editor.getProperties().setTrackVersion((int) version);
     }
 
     /**

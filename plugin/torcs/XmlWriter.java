@@ -440,7 +440,7 @@ public class XmlWriter
 		el = el = attstrElement("category", tmp);
 		header.addContent(el);
 
-		el = attnumElement("version", null, "4");
+		el = attnumElement("version", null, Editor.getProperties().getTrackVersion() + "");
 		header.addContent(el);
 
 		if (Editor.getProperties().getAuthor() != null)

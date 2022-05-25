@@ -40,6 +40,7 @@ public  class Properties
 	public final String			title				= "Track Editor";
 	public final String			version				= "v0.6.2c";
 	private String				category;
+	private int					trackVersion		= 4;
 	private String				path;
 	private String				trackName;
 	private String				author;
@@ -142,6 +143,21 @@ public  class Properties
 	public void setCategory(String category)
 	{
 		this.category = category;
+	}
+	/**
+	 * @return Returns the track version.
+	 */
+	public int getTrackVersion()
+	{
+		return trackVersion;
+	}
+	/**
+	 * @param trackVersion
+	 *            The track version to set.
+	 */
+	public void setTrackVersion(int trackVersion)
+	{
+		this.trackVersion = trackVersion;
 	}
 	/**
 	 * @return Returns the description.
