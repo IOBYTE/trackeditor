@@ -45,7 +45,7 @@ public class TorcsPlugin implements Plugin
 {
 	//private Properties		properties	= Properties.getInstance();
 	protected EditorFrame	editor;
-	private Vector			trackData	= new Vector();				;
+	private Vector			trackData	= new Vector();
 	private ImportAction	importAction;
 	private ExportAction	exportAction;
 	private JMenuItem		importMenuItem;
