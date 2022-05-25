@@ -413,7 +413,7 @@ public class XmlWriter
 		String tmp = "\n";
 		tmp += "file                : " + Editor.getProperties().getTrackName() + ".xml\n";
 		tmp += "auto generated      : by Track Editor\n";
-		tmp += "version             : v 0.6.0 24/4/2005\n";
+		tmp += "version             : " + Editor.getProperties().version + "\n";
 		tmp += "copyright           : (C) 2005 by Charalampos Alexopoulos\n";
 		tmp += "email               : \n";
 

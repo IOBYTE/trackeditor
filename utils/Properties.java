@@ -38,7 +38,7 @@ public  class Properties
 	private Vector				propertiesListeners	= new Vector();
 	//private Vector				trackData;
 	public final String			title				= "Track Editor";
-	public final String			version				= "v0.6.2c";
+	public final String			version				= "v0.7.0 alpha";
 	private String				category			= "road";
 	private int					trackVersion		= 4;
 	private String				path;
