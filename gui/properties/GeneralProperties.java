@@ -139,7 +139,7 @@ public class GeneralProperties extends JPanel
 		if (trackCategoryComboBox == null)
 		{
 			String[] items =
-			{"road", "oval", "dirt"};
+			{"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
 			trackCategoryComboBox = new JComboBox(items);
 			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getCategory());
 			trackCategoryComboBox.setBounds(135, 60, 170, 30);
