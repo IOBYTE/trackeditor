@@ -67,6 +67,25 @@ public class Segment implements Cloneable
 	protected double		heightStart;
 	protected double		heightEnd;
 
+	protected double		heightStartLeft;
+	protected double		heightStartRight;
+	protected double		heightEndLeft;
+	protected double		heightEndRight;
+
+	protected double		grade;
+	protected double		bankingStart;
+	protected double		bankingEnd;
+
+	protected String		profil;
+	protected double		profilSteps;
+	protected double		profilStepsLength;
+	protected double		profilStartTangent;
+	protected double		profilEndTangent;
+	protected double		profilStartTangentLeft;
+	protected double		profilEndTangentLeft;
+	protected double		profilStartTangentRight;
+	protected double		profilEndTangentRight;
+
 	// shape to be drawn
 	public Point2D.Double	points[];
 	public Point2D.Double	trPoints[];
@@ -340,6 +359,247 @@ public class Segment implements Cloneable
 	public void setHeightStart(double heightStart)
 	{
 		this.heightStart = heightStart;
+	}
+
+	/**
+	 * @return Returns the heightStartLeft.
+	 */
+	public double getHeightStartLeft()
+	{
+		return heightStartLeft;
+	}
+	/**
+	 * @param heightStartLeft
+	 *            The heightStartLeft to set.
+	 */
+	public void setHeightStartLeft(double heightStartLeft)
+	{
+		this.heightStartLeft = heightStartLeft;
+	}
+	/**
+	 * @return Returns the heightStartRight.
+	 */
+	public double getHeightStartRight()
+	{
+		return heightStartRight;
+	}
+	/**
+	 * @param heightStart
+	 *            The heightStartRight to set.
+	 */
+	public void setHeightStartRight(double heightStartRight)
+	{
+		this.heightStartRight = heightStartRight;
+	}
+	/**
+	 * @return Returns the heightEndLeft.
+	 */
+	public double getHeightEndLeft()
+	{
+		return heightEndLeft;
+	}
+	/**
+	 * @param heightEndLeft
+	 *            The heightEndLeft to set.
+	 */
+	public void setHeightEndLeft(double heightEndLeft)
+	{
+		this.heightEndLeft = heightEndLeft;
+	}
+	/**
+	 * @return Returns the heightEndRight.
+	 */
+	public double getHeightEndRight()
+	{
+		return heightEndRight;
+	}
+	/**
+	 * @param heightEndRight
+	 *            The heightEndRight to set.
+	 */
+	public void setHeightEndRight(double heightEndRight)
+	{
+		this.heightEndRight = heightEndRight;
+	}
+	/**
+	 * @return Returns the grade.
+	 */
+	public double getGrade()
+	{
+		return grade;
+	}
+	/**
+	 * @param grade
+	 *            The grade to set.
+	 */
+	public void setGrade(double grade)
+	{
+		this.grade = grade;
+	}
+	/**
+	 * @return Returns the bankingStart.
+	 */
+	public double geBankingStart()
+	{
+		return bankingStart;
+	}
+	/**
+	 * @param bankingStart
+	 *            The bankingStart to set.
+	 */
+	public void setBankingStart(double bankingStart)
+	{
+		this.bankingStart = bankingStart;
+	}
+	/**
+	 * @return Returns the bankingEnd.
+	 */
+	public double getBankingEnd()
+	{
+		return bankingEnd;
+	}
+	/**
+	 * @param bankingEnd
+	 *            The bankingEnd to set.
+	 */
+	public void setBankingEnd(double bankingEnd)
+	{
+		this.bankingEnd = bankingEnd;
+	}
+	/**
+	 * @return Returns the profil.
+	 */
+	public String getProfil()
+	{
+		return profil;
+	}
+	/**
+	 * @param profil
+	 *            The profil to set.
+	 */
+	public void setProfil(String profil)
+	{
+		this.profil = profil;
+	}
+	/**
+	 * @return Returns the profilSteps.
+	 */
+	public double getProfilSteps()
+	{
+		return profilSteps;
+	}
+	/**
+	 * @param profilSteps
+	 *            The profilSteps to set.
+	 */
+	public void setProfilSteps(double profilSteps)
+	{
+		this.profilSteps = profilSteps;
+	}
+	/**
+	 * @return Returns the profilStepsLength.
+	 */
+	public double getProfilStepsLength()
+	{
+		return profilStepsLength;
+	}
+	/**
+	 * @param profilStepsLength
+	 *            The profilStepsLength to set.
+	 */
+	public void setProfilStepsLength(double profilStepsLength)
+	{
+		this.profilStepsLength = profilStepsLength;
+	}
+	/**
+	 * @return Returns the profilStartTangent.
+	 */
+	public double getProfilStartTangent()
+	{
+		return profilStartTangent;
+	}
+	/**
+	 * @param profilStartTangent
+	 *            The profilStartTangent to set.
+	 */
+	public void setProfilStartTangent(double profilStartTangent)
+	{
+		this.profilStartTangent = profilStartTangent;
+	}
+	/**
+	 * @return Returns the profilEndTangent.
+	 */
+	public double getProfilEndTangent()
+	{
+		return profilEndTangent;
+	}
+	/**
+	 * @param profilEndTangent
+	 *            The profilEndTangent to set.
+	 */
+	public void setProfilEndTangent(double profilEndTangent)
+	{
+		this.profilEndTangent = profilEndTangent;
+	}
+	/**
+	 * @return Returns the profilStartTangentLeft.
+	 */
+	public double getProfilStartTangentLeft()
+	{
+		return profilStartTangentLeft;
+	}
+	/**
+	 * @param profilStartTangentLeft
+	 *            The profilStartTangentLeft to set.
+	 */
+	public void setProfilStartTangentLeft(double profilStartTangentLeft)
+	{
+		this.profilStartTangentLeft = profilStartTangentLeft;
+	}
+	/**
+	 * @return Returns the profilEndTangentLeft.
+	 */
+	public double getProfilEndTangentLeft()
+	{
+		return profilEndTangentLeft;
+	}
+	/**
+	 * @param profilEndTangentLeft
+	 *            The profilEndTangentLeft to set.
+	 */
+	public void setProfilEndTangentLeft(double profilEndTangentLeft)
+	{
+		this.profilEndTangentLeft = profilEndTangentLeft;
+	}
+	/**
+	 * @return Returns the profilStartTangentRight.
+	 */
+	public double getProfilStartTangentRight()
+	{
+		return profilStartTangentRight;
+	}
+	/**
+	 * @param profilStartTangentRight
+	 *            The profilStartTangentRight to set.
+	 */
+	public void setProfilStartTangentRight(double profilStartTangentRight)
+	{
+		this.profilStartTangentRight = profilStartTangentRight;
+	}
+	/**
+	 * @return Returns the profilEndTangentRight.
+	 */
+	public double getProfilEndTangentRight()
+	{
+		return profilEndTangentRight;
+	}
+	/**
+	 * @param profilEndTangentRight
+	 *            The profilEndTangentRight to set.
+	 */
+	public void setProfilEndTangentRight(double profilEndTangentRight)
+	{
+		this.profilEndTangentRight = profilEndTangentRight;
 	}
 
 	/**

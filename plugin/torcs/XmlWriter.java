@@ -312,10 +312,16 @@ public class XmlWriter
 			}
 		}
 
-		el = attnumElement("z start", "m", shape.getHeightStart() + "");
-		segment.addContent(el);
-		el = attnumElement("z end", "m", shape.getHeightEnd() + "");
-		segment.addContent(el);
+		if (shape.getHeightStart() != Double.NaN)
+		{
+			el = attnumElement("z start", "m", shape.getHeightStart() + "");
+			segment.addContent(el);
+		}
+		if (shape.getHeightEnd() != Double.NaN)
+		{
+			el = attnumElement("z end", "m", shape.getHeightEnd() + "");
+			segment.addContent(el);
+		}
 		el = attstrElement("surface", shape.getSurface());
 		segment.addContent(el);
 		com = new Comment("Left part of segment");
