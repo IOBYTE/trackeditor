@@ -53,7 +53,8 @@ public class PitProperties extends JPanel
 	private JTextField	startBuildingsTextField	= null;
 	private JLabel		stopBuildingsLabel		= null;
 	private JTextField	stopBuildingsTextField	= null;
-
+	private JLabel		maxPitsLabel			= null;
+	private JTextField	maxPitsTextField		= null;
 	private JLabel		endLabel				= null;
 	private JTextField	endTextField			= null;
 	private JLabel		exitLabel				= null;
@@ -91,6 +92,7 @@ public class PitProperties extends JPanel
 		lengthLabel = new JLabel();
 		startBuildingsLabel = new JLabel();
 		stopBuildingsLabel = new JLabel();
+		maxPitsLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);
@@ -104,13 +106,15 @@ public class PitProperties extends JPanel
 		startBuildingsLabel.setText("Pit start buildings");
 		stopBuildingsLabel.setBounds(10, 110, 120, 20);
 		stopBuildingsLabel.setText("Pit stop buildings");
-		endLabel.setBounds(10, 135, 70, 20);
+		maxPitsLabel.setBounds(10, 135, 120, 20);
+		maxPitsLabel.setText("Pit max pits");
+		endLabel.setBounds(10, 160, 70, 20);
 		endLabel.setText("Pit end");
-		exitLabel.setBounds(10, 160, 70, 20);
+		exitLabel.setBounds(10, 185, 70, 20);
 		exitLabel.setText("Pit exit");
-		widthLabel.setBounds(10, 185, 70, 20);
+		widthLabel.setBounds(10, 215, 70, 20);
 		widthLabel.setText("Pit width");
-		lengthLabel.setBounds(10, 215, 70, 20);
+		lengthLabel.setBounds(10, 240, 70, 20);
 		lengthLabel.setText("Pit length");
 		generatePitsLabel.setBounds(240, 10, 99, 20);
 		generatePitsLabel.setText("Generate Pits");
@@ -135,6 +139,8 @@ public class PitProperties extends JPanel
 		this.add(getStartBuildingsTextField(), null);
 		this.add(stopBuildingsLabel, null);
 		this.add(getStopBuildingsTextField(), null);
+		this.add(getMaxPitsTextField(), null);
+		this.add(maxPitsLabel, null);
 	}
 	/**
 	 * This method initializes jComboBox
@@ -214,6 +220,22 @@ public class PitProperties extends JPanel
 		return stopBuildingsTextField;
 	}
 	/**
+	 * This method initializes maxPitsTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getMaxPitsTextField()
+	{
+		if (maxPitsTextField == null)
+		{
+			maxPitsTextField = new JTextField();
+			if (Editor.getProperties().getPitMaxPits() > 0)
+				maxPitsTextField.setText(Editor.getProperties().getPitMaxPits() + "");
+			maxPitsTextField.setBounds(100, 135, 100, 20);
+		}
+		return maxPitsTextField;
+	}
+	/**
 	 * This method initializes endTextField
 	 * 
 	 * @return javax.swing.JTextField
@@ -224,7 +246,7 @@ public class PitProperties extends JPanel
 		{
 			endTextField = new JTextField();
 			endTextField.setText(Editor.getProperties().getPitEnd());
-			endTextField.setBounds(100, 135, 100, 20);
+			endTextField.setBounds(100, 160, 100, 20);
 		}
 		return endTextField;
 	}
@@ -239,7 +261,7 @@ public class PitProperties extends JPanel
 		{
 			exitTextField = new JTextField();
 			exitTextField.setText(Editor.getProperties().getPitExit());
-			exitTextField.setBounds(100, 160, 100, 20);
+			exitTextField.setBounds(100, 185, 100, 20);
 		}
 		return exitTextField;
 	}
@@ -254,7 +276,7 @@ public class PitProperties extends JPanel
 		{
 			widthTextField = new JTextField();
 			widthTextField.setText(Double.toString(Editor.getProperties().getPitWidth()));
-			widthTextField.setBounds(100, 185, 40, 20);
+			widthTextField.setBounds(100, 215, 40, 20);
 		}
 		return widthTextField;
 	}
@@ -269,7 +291,7 @@ public class PitProperties extends JPanel
 		{
 			lengthTextField = new JTextField();
 			lengthTextField.setText(Double.toString(Editor.getProperties().getPitLength()));
-			lengthTextField.setBounds(100, 215, 40, 20);
+			lengthTextField.setBounds(100, 240, 40, 20);
 		}
 		return lengthTextField;
 	}
@@ -284,6 +306,17 @@ public class PitProperties extends JPanel
 		Editor.getProperties().setPitStart(this.getStartTextField().getText());
 		Editor.getProperties().setPitStartBuildings(this.getStartBuildingsTextField().getText());
 		Editor.getProperties().setPitStopBuildings(this.getStopBuildingsTextField().getText());
+		try
+		{
+			int maxPits = Integer.parseInt(this.getMaxPitsTextField().getText());
+			if (maxPits > 0)
+				Editor.getProperties().setPitMaxPits(maxPits);
+			else
+				Editor.getProperties().setPitMaxPits(0);
+		} catch (NumberFormatException e)
+		{
+			Editor.getProperties().setPitMaxPits(0);
+		}
 		Editor.getProperties().setPitEnd(this.getEndTextField().getText());
 		Editor.getProperties().setPitExit(this.getExitTextField().getText());
 		try

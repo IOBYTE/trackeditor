@@ -209,6 +209,12 @@ public class XmlWriter
 			pits.addContent(el);
 		}
 
+		if (Editor.getProperties().getPitMaxPits() > 0)
+		{
+			el = attnumElement("max pits", null, Editor.getProperties().getPitMaxPits() + "");
+			pits.addContent(el);
+		}
+
 		if (Editor.getProperties().getPitEnd() != null)
 		{
 			tmp = Editor.getProperties().getPitEnd();

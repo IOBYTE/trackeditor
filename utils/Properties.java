@@ -57,6 +57,7 @@ public  class Properties
 	private String				pitStart;
 	private String				pitStartBuildings;
 	private String				pitStopBuildings;
+	private int					pitMaxPits			= 0;
 	private String				pitEnd;
 	private String				pitExit;
 	private double				pitWidth;
@@ -431,6 +432,21 @@ public  class Properties
 	public void setPitStopBuildings(String pitStopBuildings)
 	{
 		this.pitStopBuildings = pitStopBuildings;
+	}
+	/**
+	 * @return Returns the pitMaxPits.
+	 */
+	public int getPitMaxPits()
+	{
+		return pitMaxPits;
+	}
+	/**
+	 * @param pitMaxPits
+	 *            The pitMaxPits to set.
+	 */
+	public void setPitMaxPits(int pitMaxPits)
+	{
+		this.pitMaxPits = pitMaxPits;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)

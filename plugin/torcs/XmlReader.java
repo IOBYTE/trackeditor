@@ -111,6 +111,10 @@ public class XmlReader
         tmp = getAttrStrValue(pits, "stop buildings");
         Editor.getProperties().setPitStopBuildings(tmp);
 
+        double maxPits = getAttrNumValue(pits, "max pits");
+        if (maxPits != Double.NaN && maxPits == Math.floor(maxPits) && maxPits > 0)
+            Editor.getProperties().setPitMaxPits((int) maxPits);
+
         tmp = getAttrStrValue(pits, "end");
         Editor.getProperties().setPitEnd(tmp);
 
