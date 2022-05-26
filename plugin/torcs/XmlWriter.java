@@ -72,6 +72,7 @@ public class XmlWriter
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
 		entity += "<!ENTITY default-surfaces SYSTEM \"../../../data/tracks/surfaces.xml\">\n";
+		entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n>";
 		type.setInternalSubset(entity);
 		doc = new Document();
 		com = new Comment(getCredit());
