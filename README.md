@@ -6,3 +6,6 @@ The following new attributes can now be set:
 3. Pit start buildings
 4. Pit stop buildings
 5. Pit max pits
+
+The following bugs have been fixed:
+1. Segment z start and z end now read from xml file

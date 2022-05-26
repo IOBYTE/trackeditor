@@ -174,6 +174,14 @@ public class XmlReader
             SegmentSide prevRight = prev.getRight();
         }
 
+        double zStart = getAttrNumValue(seg, "z start");
+        if (zStart != Double.NaN)
+            shape.setHeightStart(zStart);
+
+        double zEnd = getAttrNumValue(seg, "z end");
+        if (zEnd != Double.NaN)
+            shape.setHeightEnd(zEnd);
+
         if (shape.getType().equals("str"))
         {
             shape.setLength(getAttrNumValue(seg, "lg"));
