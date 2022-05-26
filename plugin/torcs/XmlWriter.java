@@ -322,6 +322,87 @@ public class XmlWriter
 			el = attnumElement("z end", "m", shape.getHeightEnd() + "");
 			segment.addContent(el);
 		}
+		if (shape.getHeightStartLeft() != Double.NaN)
+		{
+			el = attnumElement("z start left", "m", shape.getHeightStartLeft() + "");
+			segment.addContent(el);
+		}
+		if (shape.getHeightStartRight() != Double.NaN)
+		{
+			el = attnumElement("z start right", "m", shape.getHeightStartRight() + "");
+			segment.addContent(el);
+		}
+		if (shape.getHeightEndLeft() != Double.NaN)
+		{
+			el = attnumElement("z end left", "m", shape.getHeightEndLeft() + "");
+			segment.addContent(el);
+		}
+		if (shape.getHeightEndRight() != Double.NaN)
+		{
+			el = attnumElement("z end right", "m", shape.getHeightEndRight() + "");
+			segment.addContent(el);
+		}
+		if (shape.getGrade() != Double.NaN)
+		{
+			el = attnumElement("grade", "%", shape.getGrade() + "");
+			segment.addContent(el);
+		}
+		if (shape.getBankingStart() != Double.NaN)
+		{
+			el = attnumElement("banking start", "m", shape.getBankingStart() + "");
+			segment.addContent(el);
+		}
+		if (shape.getBankingEnd() != Double.NaN)
+		{
+			el = attnumElement("banking end", "m", shape.getBankingEnd() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfil() != null)
+		{
+			el = attstrElement("banking end", shape.getProfil());
+			segment.addContent(el);
+		}
+		if (shape.getProfilSteps() != Double.NaN)
+		{
+			el = attnumElement("profil steps", "m", shape.getProfilSteps() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilStepsLength() != Double.NaN)
+		{
+			el = attnumElement("profil steps length", "m", shape.getProfilStepsLength() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilStartTangent() != Double.NaN)
+		{
+			el = attnumElement("profil start tangent", "m", shape.getProfilStartTangent() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilEndTangent() != Double.NaN)
+		{
+			el = attnumElement("profil end tangent", "m", shape.getProfilEndTangent() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilStartTangentLeft() != Double.NaN)
+		{
+			el = attnumElement("profil start tangent left", "m", shape.getProfilStartTangentLeft() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilEndTangentLeft() != Double.NaN)
+		{
+			el = attnumElement("profil end tangent left", "m", shape.getProfilEndTangentLeft() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilStartTangentRight() != Double.NaN)
+		{
+			el = attnumElement("profil start tangent right", "m", shape.getProfilStartTangentRight() + "");
+			segment.addContent(el);
+		}
+		if (shape.getProfilEndTangentRight() != Double.NaN)
+		{
+			el = attnumElement("profil end tangent right", "m", shape.getProfilEndTangentRight() + "");
+			segment.addContent(el);
+		}
+
 		el = attstrElement("surface", shape.getSurface());
 		segment.addContent(el);
 		com = new Comment("Left part of segment");

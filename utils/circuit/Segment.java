@@ -439,7 +439,7 @@ public class Segment implements Cloneable
 	/**
 	 * @return Returns the bankingStart.
 	 */
-	public double geBankingStart()
+	public double getBankingStart()
 	{
 		return bankingStart;
 	}
