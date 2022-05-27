@@ -42,4 +42,5 @@ public interface SegmentSideListener extends ActionListener
 	public void sideEndWidthChanged();
 	public void sideStartWidthChanged();
 	public void sideSurfaceChanged();
+	public void sideBankingTypeChanged();
 }

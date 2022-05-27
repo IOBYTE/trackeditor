@@ -74,6 +74,8 @@ public class XmlReader
                 getAttrStrValue(mainTrack, "surface"));
         Editor.getProperties().setProfileStepLength(
                 getAttrNumValue(mainTrack, "profil steps length"));
+        setSide(mainTrack, Editor.getProperties().getLeft(), "Left");
+        setSide(mainTrack, Editor.getProperties().getRight(), "Right");
         setPits(mainTrack);
         segments = getChildWithName(mainTrack, "Track Segments").getChildren();
         setSegments();
@@ -272,19 +274,33 @@ public class XmlReader
         Element el = getChildWithName(seg, sPart + " Side");
         if (el != null)
         {
-            part.setSideStartWidth(getAttrNumValue(el, "start width"));
-            part.setSideEndWidth(getAttrNumValue(el, "end width"));
+            double width = getAttrNumValue(el, "width");
+            if (Double.isNaN(width))
+            {
+                part.setSideStartWidth(getAttrNumValue(el, "start width"));
+                part.setSideEndWidth(getAttrNumValue(el, "end width"));
+            }
+            else
+            {
+                part.setSideStartWidth(width);
+                part.setSideEndWidth(width);
+            }
             tmp = getAttrStrValue(el, "surface");
             if (tmp != "")
             {
                 part.setSideSurface(tmp);
             }
-
+            tmp = getAttrStrValue(el, "banking type");
+            if (tmp != "")
+            {
+                part.setSideBankingType(tmp);
+            }
         }
 
         el = getChildWithName(seg, sPart + " Border");
         if (el != null)
         {
+            part.setHasBorder(true);
             part.setBorderWidth(getAttrNumValue(el, "width"));
             part.setBorderHeight(getAttrNumValue(el, "height"));
             tmp = getAttrStrValue(el, "surface");
@@ -298,10 +314,13 @@ public class XmlReader
                 part.setBorderStyle(tmp);
             }
         }
+        else
+            part.setHasBorder(false);
 
         el = getChildWithName(seg, sPart + " Barrier");
         if (el != null)
         {
+            part.setHasBarrier(true);
             part.setBarrierWidth(getAttrNumValue(el, "width"));
             part.setBarrierHeight(getAttrNumValue(el, "height"));
             tmp = getAttrStrValue(el, "surface");
@@ -315,6 +334,8 @@ public class XmlReader
                 part.setBarrierStyle(tmp);
             }
         }
+        else
+            part.setHasBarrier(false);
     }
 
     private synchronized static Element getChildWithName(Element element,

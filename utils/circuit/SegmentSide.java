@@ -46,8 +46,12 @@ public class SegmentSide implements Cloneable
 	protected String	sideSurface					= "grass";
 	private boolean		prevSideSurfaceChanged		= false;
 	private boolean		thisSideSurfaceChanged		= false;
+	protected String	sideBankingType				= null;
+	private boolean		prevSideBankingTypeChanged	= false;
+	private boolean		thisSideBankingTypeChanged	= false;
 
 	//	Barrier
+	protected boolean	hasBarrier					= false;
 	protected double	barrierHeight				= 1.0;
 	private boolean		prevBarrierHeightChanged	= false;
 	private boolean		thisBarrierHeightChanged	= false;
@@ -62,6 +66,7 @@ public class SegmentSide implements Cloneable
 	private boolean		thisBarrierStyleChanged		= false;
 
 	// Border
+	protected boolean	hasBorder					= false;
 	protected double	borderWidth					= 0.5;
 	private boolean		prevBorderWidthChanged		= false;
 	private boolean		thisBorderWidthChanged		= false;
@@ -81,6 +86,22 @@ public class SegmentSide implements Cloneable
 	public SegmentSide()
 	{
 
+	}
+
+	/**
+	 * @return Returns the hasBarrier.
+	 */
+	public boolean getHasBarrier()
+	{
+		return hasBarrier;
+	}
+	/**
+	 * @param hasBarrier
+	 *            The hasBarrier to set.
+	 */
+	public void setHasBarrier(boolean hasBarrier)
+	{
+		this.hasBarrier = hasBarrier;
 	}
 
 	/**
@@ -215,6 +236,22 @@ public class SegmentSide implements Cloneable
 				((SegmentSideListener) listeners.elementAt(i)).barrierWidthChanged();
 			}
 		}
+	}
+
+	/**
+	 * @return Returns the hasBorder.
+	 */
+	public boolean getHasBorder()
+	{
+		return hasBorder;
+	}
+	/**
+	 * @param hasBorder
+	 *            The hasBorder to set.
+	 */
+	public void setHasBorder(boolean hasBorder)
+	{
+		this.hasBorder = hasBorder;
 	}
 
 	/**
@@ -450,6 +487,39 @@ public class SegmentSide implements Cloneable
 			for (int i = 0; i < count; i++)
 			{
 				((SegmentSideListener) listeners.elementAt(i)).sideSurfaceChanged();
+			}
+		}
+	}
+
+	/**
+	 * @return Returns the sideBankingType.
+	 */
+	public String getSideBankingType()
+	{
+		return sideBankingType;
+	}
+	/**
+	 * @param sideBankingType
+	 *            The sideBankingType to set.
+	 */
+	public void setSideBankingType(String sideBankingType)
+	{
+		this.sideBankingType = sideBankingType;
+		sideBankingTypeChanged();
+	}
+
+	/**
+	 *
+	 */
+	private void sideBankingTypeChanged()
+	{
+		if (sideListeners != null)
+		{
+			Vector listeners = sideListeners;
+			int count = listeners.size();
+			for (int i = 0; i < count; i++)
+			{
+				((SegmentSideListener) listeners.elementAt(i)).sideBankingTypeChanged();
 			}
 		}
 	}
@@ -707,6 +777,14 @@ public class SegmentSide implements Cloneable
 				}
 			}
 
+			public void sideBankingTypeChanged()
+			{
+				if (!prevSideBankingTypeChanged && !thisSideBankingTypeChanged)
+				{
+					sideBankingType = props.sideBankingType;
+				}
+			}
+
 			public void actionPerformed(ActionEvent arg0)
 			{
 
@@ -733,6 +811,8 @@ public class SegmentSide implements Cloneable
 			s.sideStartWidth = this.sideStartWidth;
 			s.sideSurface = this.sideSurface;
 			s.sideListeners = (Vector) this.sideListeners.clone();
+			s.hasBorder = this.hasBorder;
+			s.hasBarrier = this.hasBarrier;
 			
 		} catch (CloneNotSupportedException e)
 		{

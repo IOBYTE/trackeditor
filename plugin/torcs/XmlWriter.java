@@ -409,15 +409,19 @@ public class XmlWriter
 		com = new Comment("Left part of segment");
 		segment.addContent(com);
 		segment.addContent(getSide(shape.getLeft(), "Left"));
-		segment.addContent(getBorder(shape.getLeft(), "Left"));
-		segment.addContent(getBarrier(shape.getLeft(), "Left"));
+		if (shape.getLeft().getHasBorder())
+			segment.addContent(getBorder(shape.getLeft(), "Left"));
+		if (shape.getLeft().getHasBarrier())
+			segment.addContent(getBarrier(shape.getLeft(), "Left"));
 		com = new Comment("End of left part");
 		segment.addContent(com);
 		com = new Comment("Right part of segment");
 		segment.addContent(com);
 		segment.addContent(getSide(shape.getRight(), "Right"));
-		segment.addContent(getBorder(shape.getRight(), "Right"));
-		segment.addContent(getBarrier(shape.getRight(), "Right"));
+		if (shape.getRight().getHasBorder())
+		    segment.addContent(getBorder(shape.getRight(), "Right"));
+		if (shape.getRight().getHasBarrier())
+		    segment.addContent(getBarrier(shape.getRight(), "Right"));
 		com = new Comment("End of right part");
 		segment.addContent(com);
 
@@ -431,15 +435,10 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBorder(SegmentSide part, String sPart)
 	{
-		Attribute name = null;
-		Attribute unit = null;
-		Attribute val = null;
-		Element el = null;
-
 		Element side = new Element("section");
-		name = new Attribute("name", sPart + " Border");
+		Attribute name = new Attribute("name", sPart + " Border");
 		side.setAttribute(name);
-		el = attnumElement("width", "m", part.getBorderWidth() + "");
+		Element el = attnumElement("width", "m", part.getBorderWidth() + "");
 		side.addContent(el);
 		el = attnumElement("height", "m", part.getBorderHeight() + "");
 		side.addContent(el);
@@ -498,6 +497,11 @@ public class XmlWriter
 		side.addContent(el);
 		el = attstrElement("surface", part.getSideSurface());
 		side.addContent(el);
+		if (part.getSideBankingType() != null)
+		{
+			el = attstrElement("banking type", part.getSideBankingType());
+			side.addContent(el);
+		}
 
 		return side;
 	}
