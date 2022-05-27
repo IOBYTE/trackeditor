@@ -64,7 +64,7 @@ public class TrackProperties extends JPanel
 	{
 		super();
 		initialize();
-}
+	}
 
 	/**
 	 * This method initializes this
@@ -126,18 +126,9 @@ public class TrackProperties extends JPanel
 			surfaceComboBox.setBounds(120, 35, 120, 20);
 			surfaceComboBox.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
-//					shape.setSurface((String) surfaceComboBox.getSelectedItem());
-//					try
-//					{
-//						view.redrawCircuit();
-//					} catch (Exception e1)
-//					{
-//						e1.printStackTrace();
-//					}
-//					frame.documentIsModified = true;
+					Editor.getProperties().setSurface((String) surfaceComboBox.getSelectedItem());
 				}
 			});
 
