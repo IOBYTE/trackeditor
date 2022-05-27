@@ -352,12 +352,12 @@ public class XmlWriter
 		}
 		if (!Double.isNaN(shape.getBankingStart()))
 		{
-			el = attnumElement("banking start", "m", shape.getBankingStart() + "");
+			el = attnumElement("banking start", "deg", shape.getBankingStart() + "");
 			segment.addContent(el);
 		}
 		if (!Double.isNaN(shape.getBankingEnd()))
 		{
-			el = attnumElement("banking end", "m", shape.getBankingEnd() + "");
+			el = attnumElement("banking end", "deg", shape.getBankingEnd() + "");
 			segment.addContent(el);
 		}
 		if (shape.getProfil() != null)
