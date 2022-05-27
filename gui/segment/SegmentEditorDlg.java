@@ -74,7 +74,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 
 	private SegmentSlider			heightStartSlider	= null;
 	private SegmentSlider			heightEndSlider		= null;
-	JComboBox						combo				= null;
+	JComboBox				combo				= null;
 	private SegmentSideProperties	rightPanel			= null;
 	private SegmentSideProperties	leftPanel			= null;
 

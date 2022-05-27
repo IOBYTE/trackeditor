@@ -64,27 +64,27 @@ public class Segment implements Cloneable
 	protected double		length;
 	protected String		surface;
 
-	protected double		heightStart;
-	protected double		heightEnd;
+	protected double		heightStart				= Double.NaN;
+	protected double		heightEnd				= Double.NaN;
 
-	protected double		heightStartLeft;
-	protected double		heightStartRight;
-	protected double		heightEndLeft;
-	protected double		heightEndRight;
+	protected double		heightStartLeft			= Double.NaN;
+	protected double		heightStartRight		= Double.NaN;
+	protected double		heightEndLeft			= Double.NaN;
+	protected double		heightEndRight			= Double.NaN;
 
-	protected double		grade;
-	protected double		bankingStart;
-	protected double		bankingEnd;
+	protected double		grade					= Double.NaN;
+	protected double		bankingStart			= Double.NaN;
+	protected double		bankingEnd				= Double.NaN;
 
 	protected String		profil;
-	protected double		profilSteps;
-	protected double		profilStepsLength;
-	protected double		profilStartTangent;
-	protected double		profilEndTangent;
-	protected double		profilStartTangentLeft;
-	protected double		profilEndTangentLeft;
-	protected double		profilStartTangentRight;
-	protected double		profilEndTangentRight;
+	protected double		profilSteps				= Double.NaN;
+	protected double		profilStepsLength		= Double.NaN;
+	protected double		profilStartTangent		= Double.NaN;
+	protected double		profilEndTangent		= Double.NaN;
+	protected double		profilStartTangentLeft	= Double.NaN;
+	protected double		profilEndTangentLeft	= Double.NaN;
+	protected double		profilStartTangentRight	= Double.NaN;
+	protected double		profilEndTangentRight	= Double.NaN;
 
 	// shape to be drawn
 	public Point2D.Double	points[];
@@ -152,7 +152,7 @@ public class Segment implements Cloneable
 
 		}
 
-		if (name == null || name.equals("") || i > 0)
+		if (name == null || name.equals("")) // || i > 0)
 		{
 			name = String.valueOf(count);
 		}
@@ -716,6 +716,23 @@ public class Segment implements Cloneable
 			s.length = this.length;
 			s.surface = this.surface;
 			
+			s.heightStartLeft = this.heightStartLeft;
+			s.heightStartRight = this.heightStartRight;
+			s.heightEndLeft = this.heightEndLeft;
+			s.heightEndRight = this.heightEndRight;
+			s.grade = this.grade;
+			s.bankingStart= this.bankingStart;
+			s.bankingEnd = this.bankingEnd;
+			s.profil = this.profil;
+			s.profilSteps = this.profilSteps;
+			s.profilStepsLength = this.profilStepsLength;
+			s.profilStartTangent = this.profilEndTangent;
+			s.profilEndTangent = this.profilStartTangent;
+			s.profilStartTangentLeft = this.profilStartTangentLeft;
+			s.profilEndTangentLeft = this.profilEndTangentLeft;
+			s.profilStartTangentRight = this.profilStartTangentRight;
+			s.profilEndTangentRight = this.profilEndTangentRight;
+
 		} catch (CloneNotSupportedException e)
 		{
 			// TODO Auto-generated catch block
