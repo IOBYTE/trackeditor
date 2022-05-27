@@ -55,8 +55,8 @@ public  class Properties
 	private String				pitSide				= "right";
 	private String				pitEntry;
 	private String				pitStart;
-	private String				pitStartBuildings;
-	private String				pitStopBuildings;
+	private String				pitStartBuildings	= null;
+	private String				pitStopBuildings	= null;
 	private int					pitMaxPits			= 0;
 	private String				pitEnd;
 	private String				pitExit;

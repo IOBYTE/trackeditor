@@ -196,14 +196,16 @@ public class XmlWriter
 		el = attstrElement("start", tmp);
 		pits.addContent(el);
 
-		if (Editor.getProperties().getPitStartBuildings() != null)
+		if (Editor.getProperties().getPitStartBuildings() != null &&
+			!Editor.getProperties().getPitStartBuildings().isEmpty())
 		{
 			tmp = Editor.getProperties().getPitStartBuildings();
 			el = attstrElement("start buildings", tmp);
 			pits.addContent(el);
 		}
 
-		if (Editor.getProperties().getPitStopBuildings() != null)
+		if (Editor.getProperties().getPitStopBuildings() != null &&
+			!Editor.getProperties().getPitStopBuildings().isEmpty())
 		{
 			tmp = Editor.getProperties().getPitStopBuildings();
 			el = attstrElement("stop buildings", tmp);
