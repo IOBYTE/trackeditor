@@ -131,7 +131,7 @@ public class XmlWriter
 		track.addContent(el);
 		el = attnumElement("profil steps length", "m", Editor.getProperties().getProfileStepLength() + "");
 		track.addContent(el);
-		el = attstrElement("surface", Editor.getProperties().getSurface() + "");
+		el = attstrElement("surface", Editor.getProperties().getSurface());
 		track.addContent(el);
 
 		com = new Comment("Left part of track");

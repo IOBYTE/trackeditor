@@ -70,6 +70,10 @@ public class XmlReader
         Element mainTrack = getChildWithName(root, "Main Track");
         Editor.getProperties().setTrackWidth(
                 getAttrNumValue(mainTrack, "width"));
+        Editor.getProperties().setSurface(
+                getAttrStrValue(mainTrack, "surface"));
+        Editor.getProperties().setProfileStepLength(
+                getAttrNumValue(mainTrack, "profil steps length"));
         setPits(mainTrack);
         segments = getChildWithName(mainTrack, "Track Segments").getChildren();
         setSegments();
