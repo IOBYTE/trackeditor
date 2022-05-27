@@ -112,7 +112,7 @@ public class XmlReader
         Editor.getProperties().setPitStopBuildings(tmp);
 
         double maxPits = getAttrNumValue(pits, "max pits");
-        if (maxPits != Double.NaN && maxPits == Math.floor(maxPits) && maxPits > 0)
+        if (!Double.isNaN(maxPits) && maxPits == Math.floor(maxPits) && maxPits > 0)
             Editor.getProperties().setPitMaxPits((int) maxPits);
 
         tmp = getAttrStrValue(pits, "end");
@@ -174,25 +174,6 @@ public class XmlReader
             SegmentSide prevRight = prev.getRight();
         }
 
-        shape.setHeightStart(getAttrNumValue(seg, "z start"));
-        shape.setHeightEnd(getAttrNumValue(seg, "z end"));
-        shape.setHeightStartLeft(getAttrNumValue(seg, "z start left"));
-        shape.setHeightStartRight(getAttrNumValue(seg, "z start right"));
-        shape.setHeightEndLeft(getAttrNumValue(seg, "z end left"));
-        shape.setHeightEndRight(getAttrNumValue(seg, "z end right"));
-        shape.setGrade(getAttrNumValue(seg, "grade"));
-        shape.setBankingStart(getAttrNumValue(seg, "banking start"));
-        shape.setBankingEnd(getAttrNumValue(seg, "banking end"));
-        shape.setProfil(getAttrStrValue(seg, "profil"));
-        shape.setProfilSteps(getAttrNumValue(seg, "profil steps"));
-        shape.setProfilStepsLength(getAttrNumValue(seg, "profil steps length"));
-        shape.setProfilStartTangent(getAttrNumValue(seg, "profil start tangent"));
-        shape.setProfilEndTangent(getAttrNumValue(seg, "profil end tangent"));
-        shape.setProfilStartTangentLeft(getAttrNumValue(seg, "profil start tangent left"));
-        shape.setProfilEndTangentLeft(getAttrNumValue(seg, "profil end tangent left"));
-        shape.setProfilStartTangentRight(getAttrNumValue(seg, "profil start tangent right"));
-        shape.setProfilEndTangentRight(getAttrNumValue(seg, "profil end tangent right"));
-
         if (shape.getType().equals("str"))
         {
             shape.setLength(getAttrNumValue(seg, "lg"));
@@ -250,6 +231,25 @@ public class XmlReader
         }
        
         shape.setSurface(getAttrStrValue(seg, "surface"));
+        shape.setHeightStart(getAttrNumValue(seg, "z start"));
+        shape.setHeightEnd(getAttrNumValue(seg, "z end"));
+        shape.setHeightStartLeft(getAttrNumValue(seg, "z start left"));
+        shape.setHeightStartRight(getAttrNumValue(seg, "z start right"));
+        shape.setHeightEndLeft(getAttrNumValue(seg, "z end left"));
+        shape.setHeightEndRight(getAttrNumValue(seg, "z end right"));
+        shape.setGrade(getAttrNumValue(seg, "grade"));
+        shape.setBankingStart(getAttrNumValue(seg, "banking start"));
+        shape.setBankingEnd(getAttrNumValue(seg, "banking end"));
+        shape.setProfil(getAttrStrValue(seg, "profil"));
+        shape.setProfilSteps(getAttrNumValue(seg, "profil steps"));
+        shape.setProfilStepsLength(getAttrNumValue(seg, "profil steps length"));
+        shape.setProfilStartTangent(getAttrNumValue(seg, "profil start tangent"));
+        shape.setProfilEndTangent(getAttrNumValue(seg, "profil end tangent"));
+        shape.setProfilStartTangentLeft(getAttrNumValue(seg, "profil start tangent left"));
+        shape.setProfilEndTangentLeft(getAttrNumValue(seg, "profil end tangent left"));
+        shape.setProfilStartTangentRight(getAttrNumValue(seg, "profil start tangent right"));
+        shape.setProfilEndTangentRight(getAttrNumValue(seg, "profil end tangent right"));
+
         setSide(seg, left, "Left");
         setSide(seg, right, "Right");
 

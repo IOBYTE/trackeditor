@@ -313,92 +313,92 @@ public class XmlWriter
 			}
 		}
 
-		if (shape.getHeightStart() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightStart()))
 		{
 			el = attnumElement("z start", "m", shape.getHeightStart() + "");
 			segment.addContent(el);
 		}
-		if (shape.getHeightEnd() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightEnd()))
 		{
 			el = attnumElement("z end", "m", shape.getHeightEnd() + "");
 			segment.addContent(el);
 		}
-		if (shape.getHeightStartLeft() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightStartLeft()))
 		{
 			el = attnumElement("z start left", "m", shape.getHeightStartLeft() + "");
 			segment.addContent(el);
 		}
-		if (shape.getHeightStartRight() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightStartRight()))
 		{
 			el = attnumElement("z start right", "m", shape.getHeightStartRight() + "");
 			segment.addContent(el);
 		}
-		if (shape.getHeightEndLeft() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightEndLeft()))
 		{
 			el = attnumElement("z end left", "m", shape.getHeightEndLeft() + "");
 			segment.addContent(el);
 		}
-		if (shape.getHeightEndRight() != Double.NaN)
+		if (!Double.isNaN(shape.getHeightEndRight()))
 		{
 			el = attnumElement("z end right", "m", shape.getHeightEndRight() + "");
 			segment.addContent(el);
 		}
-		if (shape.getGrade() != Double.NaN)
+		if (!Double.isNaN(shape.getGrade()))
 		{
 			el = attnumElement("grade", "%", shape.getGrade() + "");
 			segment.addContent(el);
 		}
-		if (shape.getBankingStart() != Double.NaN)
+		if (!Double.isNaN(shape.getBankingStart()))
 		{
 			el = attnumElement("banking start", "m", shape.getBankingStart() + "");
 			segment.addContent(el);
 		}
-		if (shape.getBankingEnd() != Double.NaN)
+		if (!Double.isNaN(shape.getBankingEnd()))
 		{
 			el = attnumElement("banking end", "m", shape.getBankingEnd() + "");
 			segment.addContent(el);
 		}
 		if (shape.getProfil() != null)
 		{
-			el = attstrElement("banking end", shape.getProfil());
+			el = attstrElement("profil", shape.getProfil());
 			segment.addContent(el);
 		}
-		if (shape.getProfilSteps() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilSteps()))
 		{
 			el = attnumElement("profil steps", "m", shape.getProfilSteps() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilStepsLength() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilStepsLength()))
 		{
 			el = attnumElement("profil steps length", "m", shape.getProfilStepsLength() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilStartTangent() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilStartTangent()))
 		{
 			el = attnumElement("profil start tangent", "m", shape.getProfilStartTangent() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilEndTangent() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilEndTangent()))
 		{
-			el = attnumElement("profil end tangent", "m", shape.getProfilEndTangent() + "");
+			el = attnumElement("profil end tangent", "%", shape.getProfilEndTangent() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilStartTangentLeft() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilStartTangentLeft()))
 		{
 			el = attnumElement("profil start tangent left", "m", shape.getProfilStartTangentLeft() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilEndTangentLeft() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilEndTangentLeft()))
 		{
 			el = attnumElement("profil end tangent left", "m", shape.getProfilEndTangentLeft() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilStartTangentRight() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilStartTangentRight()))
 		{
 			el = attnumElement("profil start tangent right", "m", shape.getProfilStartTangentRight() + "");
 			segment.addContent(el);
 		}
-		if (shape.getProfilEndTangentRight() != Double.NaN)
+		if (!Double.isNaN(shape.getProfilEndTangentRight()))
 		{
 			el = attnumElement("profil end tangent right", "m", shape.getProfilEndTangentRight() + "");
 			segment.addContent(el);
