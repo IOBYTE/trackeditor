@@ -167,6 +167,7 @@ public class GroupButton extends JPanel
 		rightLabel.setEnabled(enabled);
 		getLeftButton().setEnabled(enabled);
 		leftLabel.setEnabled(enabled);
-		
+		if (!enabled)
+			group.clearSelection();
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"
