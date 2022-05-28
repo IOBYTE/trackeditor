@@ -274,6 +274,10 @@ public class SegmentSlider extends JPanel
 		this.getSlider().setEnabled(value);
 		this.sectionLabel.setEnabled(value);
 		this.attLabel.setEnabled(value);
+		if (!value)
+		{
+			this.getTextField().setText("");
+		}
 	}
 
 	/**
