@@ -81,13 +81,8 @@ public class XmlWriter
 		doc.addContent(com);
 		doc.addContent(type);
 		doc.setRootElement(root);
-		Element el = new Element("section");
-		Attribute name = new Attribute("name", "Surfaces");
-		el.setAttribute(name);
-		ProcessingInstruction  pi = new ProcessingInstruction("target","test");
-		//el.addContent(pi);
-		el.setText("&default-surfaces;");
-		root.addContent(el);
+		root.addContent(getSurfaces());
+		root.addContent(getObjects());
 		root.addContent(getHeader());
 		root.addContent(getGraphic());
 		root.addContent(getTrack());
@@ -506,6 +501,26 @@ public class XmlWriter
 		}
 
 		return side;
+	}
+
+	private synchronized static Element getSurfaces()
+	{
+		Element surfaces = new Element("section");
+		Attribute name = new Attribute("name", "Surfaces");
+		surfaces.setAttribute(name);
+		surfaces.setText("&default-surfaces;");
+
+		return surfaces;
+	}
+
+	private synchronized static Element getObjects()
+	{
+		Element objects = new Element("section");
+		Attribute name = new Attribute("name", "Objects");
+		objects.setAttribute(name);
+		objects.setText("&default-objects;");
+
+		return objects;
 	}
 
 	private synchronized static String getCredit()
