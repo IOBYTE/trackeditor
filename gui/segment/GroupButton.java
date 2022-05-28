@@ -36,16 +36,16 @@ import javax.swing.JRadioButton;
  */
 public class GroupButton extends JPanel
 {
-	private JRadioButton	leftButton	= null;
-	private JRadioButton	rightButton	= null;
-	Action					leftAction	= null;
-	Action					rightAction	= null;
-	ButtonGroup group = null;
-	private JLabel	rightLabel	= null;
-	private JLabel	leftLabel	= null;
-	private boolean enabled = true;
-	private String			selected;
-	private SegmentEditorDlg parent;
+	private JRadioButton		leftButton	= null;
+	private JRadioButton		rightButton	= null;
+	Action						leftAction	= null;
+	Action						rightAction	= null;
+	ButtonGroup					group		= null;
+	private JLabel				rightLabel	= null;
+	private JLabel				leftLabel	= null;
+	private boolean				enabled 	= true;
+	private String				selected;
+	private SegmentEditorDlg	parent;
 
 	/**
 	 *  
@@ -66,9 +66,9 @@ public class GroupButton extends JPanel
 		this.setBounds(0, 0, 70, 32);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		rightLabel.setText("Right");
-		rightLabel.setBounds(1, 1, 40, 16);
+		rightLabel.setBounds(5, 2, 40, 16);
 		leftLabel.setText("Left");
-		leftLabel.setBounds(1, 16, 40, 15);
+		leftLabel.setBounds(5, 16, 40, 15);
 		this.add(getLeftButton(), null);
 		this.add(getRightButton(), null);
 		this.add(rightLabel, null);
@@ -116,7 +116,7 @@ public class GroupButton extends JPanel
 
 			});
 			//rightButton.setSelected(true);
-			rightButton.setBounds(47, 1, 15, 15);
+			rightButton.setBounds(47, 2, 15, 15);
 		}
 		return rightButton;
 	}
