@@ -277,6 +277,7 @@ public class SegmentSlider extends JPanel
 		if (!value)
 		{
 			this.getTextField().setText("");
+			this.getCheckBox().setSelected(false);
 		}
 	}
 
@@ -315,10 +316,24 @@ public class SegmentSlider extends JPanel
 	 */
 	public void setValue(double val)
 	{
-		this.value = val * this.realToTextCoeff;
-		getTextField().setText(value + "");
-		getSlider().setValue((int) value);
-		
+		if (Double.isNaN(val))
+		{
+			this.value = val;
+			getTextField().setText("");
+			getTextField().setEnabled(false);
+			getSlider().setValue((int) (min * this.realToTextCoeff));
+			getSlider().setEnabled(false);
+			getCheckBox().setSelected(false);
+		}
+		else
+		{
+			this.value = val * this.realToTextCoeff;
+			getTextField().setText(value + "");
+			getTextField().setEnabled(true);
+			getSlider().setValue((int) value);
+			getSlider().setEnabled(true);
+			getCheckBox().setSelected(true);
+		}
 	}
 
 	private void setValueInternal(double val)
@@ -403,7 +418,25 @@ public class SegmentSlider extends JPanel
 
 		public void checkBoxChanged()
 		{
-
+			if (getCheckBox().isSelected())
+			{
+				if (Double.isNaN(value))
+				{
+					value = min * realToTextCoeff;
+				}
+				getTextField().setText(value + "");
+				getTextField().setEnabled(true);
+				getSlider().setValue((int) value);
+				getSlider().setEnabled(true);
+			}
+			else
+			{
+				value = Double.NaN;
+				getTextField().setText("");
+				getTextField().setEnabled(false);
+				getSlider().setValue((int) (min * realToTextCoeff));
+				getSlider().setEnabled(false);
+			}
 		}
 
 		public void sliderChanged()
