@@ -1,4 +1,4 @@
-This is a fork of TORCS TrackEditor v1.6.2c that adds Speed Dreams specific information to the generated xml file.
+This is a fork of TORCS TrackEditor v0.6.2c that adds Speed Dreams specific information to the generated xml file.
 
 The following new attributes can now be set:
 1. Track category: circuit, development, dirt, gprix, karting, oval, road, speedway, or test
