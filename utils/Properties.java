@@ -73,9 +73,9 @@ public  class Properties
 	private double				currentY			= 0;
 	private double				currentZ			= 0;
 	private double				currentA			= 0;
-	private double 				currentBanking		= 0;
+	private double				currentBanking		= 0;
 
-	private double 				showArrows			= 0;
+	private double				showArrows			= 0;
 	private double				trackStartDist		= 0;
 	private double				profileStepLength	= 4;
 	private int					curveNameCount		= 0;
