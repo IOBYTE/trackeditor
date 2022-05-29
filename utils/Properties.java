@@ -65,7 +65,7 @@ public  class Properties
 
 	private double				imageScale			= 1;
 	private String				image				= "";
-	private EditorPoint 		imgOffset						= new EditorPoint();
+	private EditorPoint 		imgOffset			= new EditorPoint();
 	private double				initx;
 	private double				inity;
 	

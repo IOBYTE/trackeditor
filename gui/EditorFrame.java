@@ -340,14 +340,16 @@ public class EditorFrame extends JFrame
     {
         Segment shape;
         Vector track = new Vector();
-        
+
         shape = new Straight();
         shape.setLength(100);
         shape.setProfilStepLength(4);
         shape.setHeightStart(0);
         shape.setHeightEnd(0);
+        shape.getLeft().setNewTrackDefaults();
+        shape.getRight().setNewTrackDefaults();
         track.add(shape);
-        
+
         shape = new Curve();
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
@@ -355,15 +357,19 @@ public class EditorFrame extends JFrame
         shape.setProfilStepLength(4);
         shape.setHeightStart(0);
         shape.setHeightEnd(0);
+        shape.getLeft().setNewTrackDefaults();
+        shape.getRight().setNewTrackDefaults();
         track.add(shape);
-        
+
         shape = new Straight();
         shape.setLength(100);
         shape.setProfilStepLength(4);
         shape.setHeightStart(0);
         shape.setHeightEnd(0);
+        shape.getLeft().setNewTrackDefaults();
+        shape.getRight().setNewTrackDefaults();
         track.add(shape);
-        
+
         shape = new Curve();
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
@@ -371,9 +377,14 @@ public class EditorFrame extends JFrame
         shape.setProfilStepLength(4);
         shape.setHeightStart(0);
         shape.setHeightEnd(0);
+        shape.getLeft().setNewTrackDefaults();
+        shape.getRight().setNewTrackDefaults();
         track.add(shape);
-        
+
         TrackData.setTrackData(track);
+
+        Editor.getProperties().getLeft().setNewTrackDefaults();
+        Editor.getProperties().getRight().setNewTrackDefaults();
     }
 
     /**

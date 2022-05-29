@@ -37,13 +37,13 @@ public class SegmentSide implements Cloneable
 	private SegmentSide	props						= null;
 
 	//	Side
-	protected double	sideStartWidth				= 4.0;
+	protected double	sideStartWidth				= Double.NaN;
 	private boolean		prevSideStartWidthChanged	= false;
 	private boolean		thisSideStartWidthChanged	= false;
-	protected double	sideEndWidth				= 4.0;
+	protected double	sideEndWidth				= Double.NaN;
 	private boolean		prevSideEndWidthChanged		= false;
 	private boolean		thisSideEndWidthChanged		= false;
-	protected String	sideSurface					= "grass";
+	protected String	sideSurface					= null;
 	private boolean		prevSideSurfaceChanged		= false;
 	private boolean		thisSideSurfaceChanged		= false;
 	protected String	sideBankingType				= null;
@@ -52,31 +52,31 @@ public class SegmentSide implements Cloneable
 
 	//	Barrier
 	protected boolean	hasBarrier					= false;
-	protected double	barrierHeight				= 1.0;
+	protected double	barrierHeight				= Double.NaN;
 	private boolean		prevBarrierHeightChanged	= false;
 	private boolean		thisBarrierHeightChanged	= false;
-	protected double	barrierWidth				= 0.1;
+	protected double	barrierWidth				= Double.NaN;
 	private boolean		prevBarrierWidthChanged		= false;
 	private boolean		thisBarrierWidthChanged		= false;
-	protected String	barrierSurface				= "barrier";
+	protected String	barrierSurface				= null;
 	private boolean		prevBarrierSurfaceChanged	= false;
 	private boolean		thisBarrierSurfaceChanged	= false;
-	protected String	barrierStyle				= "curb";
+	protected String	barrierStyle				= null;
 	private boolean		prevBarrierStyleChanged		= false;
 	private boolean		thisBarrierStyleChanged		= false;
 
 	// Border
 	protected boolean	hasBorder					= false;
-	protected double	borderWidth					= 0.5;
+	protected double	borderWidth					= Double.NaN;
 	private boolean		prevBorderWidthChanged		= false;
 	private boolean		thisBorderWidthChanged		= false;
-	protected double	borderHeight				= 0.05;
+	protected double	borderHeight				= Double.NaN;
 	private boolean		prevBorderHeightChanged		= false;
 	private boolean		thisBorderHeightChanged		= false;
-	protected String	borderSurface				= "curb-5cm-r";
+	protected String	borderSurface				= null;
 	private boolean		prevBorderSurfaceChanged	= false;
 	private boolean		thisBorderSurfaceChanged	= false;
-	protected String	borderStyle					= "plan";
+	protected String	borderStyle					= null;
 	private boolean		prevBorderStyleChanged		= false;
 	private boolean		thisBorderStyleChanged		= false;
 
@@ -86,6 +86,25 @@ public class SegmentSide implements Cloneable
 	public SegmentSide()
 	{
 
+	}
+
+	/**
+	 */
+	public void setNewTrackDefaults()
+	{
+        setSideStartWidth(4.0);
+        setSideEndWidth(4.0);
+        setSideSurface("grass");
+        setHasBarrier(true);
+        setBarrierHeight(1.0);
+        setBarrierWidth(0.1);
+        setBarrierSurface("barrier");
+        setBarrierStyle("curb");
+        setHasBorder(true);
+        setBorderWidth(0.5);
+        setBorderHeight(0.05);
+        setBorderSurface("curb-5cm-r");
+        setBorderStyle("plan");
 	}
 
 	/**
