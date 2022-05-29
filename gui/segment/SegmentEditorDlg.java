@@ -539,6 +539,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	 */
 	public void sliderChanged(SegmentSlider slider)
 	{
+		// TODO I don't know if this is the best way to fix this but it works
+		if (slider.getMethod() == null)
+			return;
+
 		Interpreter line = new Interpreter();
 		String command = "";
 
