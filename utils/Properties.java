@@ -65,21 +65,21 @@ public  class Properties
 
 	private double				imageScale			= 1;
 	private String				image				= "";
-	private EditorPoint 		imgOffset			= new EditorPoint();
+	private EditorPoint			imgOffset			= new EditorPoint();
 	private double				initx;
 	private double				inity;
 	
-	private double				currentX	= 0;
-	private double				currentY	= 0;
-	private double				currentZ	= 0;
-	private double				currentA	= 0;
-	private double 				currentBanking = 0;
+	private double				currentX			= 0;
+	private double				currentY			= 0;
+	private double				currentZ			= 0;
+	private double				currentA			= 0;
+	private double 				currentBanking		= 0;
 
-	private double 				showArrows = 0;
-	private double				trackStartDist = 0;
-	private double				profileStepLength = 4;
-	private int					curveNameCount = 0;
-	private int					straightNameCount = 0;
+	private double 				showArrows			= 0;
+	private double				trackStartDist		= 0;
+	private double				profileStepLength	= 4;
+	private int					curveNameCount		= 0;
+	private int					straightNameCount	= 0;
 	
 
 	/**

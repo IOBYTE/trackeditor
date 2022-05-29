@@ -92,19 +92,19 @@ public class SegmentSide implements Cloneable
 	 */
 	public void setNewTrackDefaults()
 	{
-        setSideStartWidth(4.0);
-        setSideEndWidth(4.0);
-        setSideSurface("grass");
-        setHasBarrier(true);
-        setBarrierHeight(1.0);
-        setBarrierWidth(0.1);
-        setBarrierSurface("barrier");
-        setBarrierStyle("curb");
-        setHasBorder(true);
-        setBorderWidth(0.5);
-        setBorderHeight(0.05);
-        setBorderSurface("curb-5cm-r");
-        setBorderStyle("plan");
+		setSideStartWidth(4.0);
+		setSideEndWidth(4.0);
+		setSideSurface("grass");
+		setHasBarrier(true);
+		setBarrierHeight(1.0);
+		setBarrierWidth(0.1);
+		setBarrierSurface("barrier");
+		setBarrierStyle("curb");
+		setHasBorder(true);
+		setBorderWidth(0.5);
+		setBorderHeight(0.05);
+		setBorderSurface("curb-5cm-r");
+		setBorderStyle("plan");
 	}
 
 	/**
