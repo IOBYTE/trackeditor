@@ -344,6 +344,8 @@ public class EditorFrame extends JFrame
         shape = new Straight();
         shape.setLength(100);
         shape.setProfilStepLength(4);
+        shape.setHeightStart(0);
+        shape.setHeightEnd(0);
         track.add(shape);
         
         shape = new Curve();
@@ -351,11 +353,15 @@ public class EditorFrame extends JFrame
         ((Curve)shape).setRadiusEnd(100);
         ((Curve)shape).setArc(Math.PI);
         shape.setProfilStepLength(4);
+        shape.setHeightStart(0);
+        shape.setHeightEnd(0);
         track.add(shape);
         
         shape = new Straight();
         shape.setLength(100);
         shape.setProfilStepLength(4);
+        shape.setHeightStart(0);
+        shape.setHeightEnd(0);
         track.add(shape);
         
         shape = new Curve();
@@ -363,6 +369,8 @@ public class EditorFrame extends JFrame
         ((Curve)shape).setRadiusEnd(100);
         ((Curve)shape).setArc(Math.PI);
         shape.setProfilStepLength(4);
+        shape.setHeightStart(0);
+        shape.setHeightEnd(0);
         track.add(shape);
         
         TrackData.setTrackData(track);
