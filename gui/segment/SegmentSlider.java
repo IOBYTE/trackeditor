@@ -426,7 +426,7 @@ public class SegmentSlider extends JPanel
 				}
 				getTextField().setText(value + "");
 				getTextField().setEnabled(true);
-				getSlider().setValue((int) (value * realToTextCoeff));
+				getSlider().setValue((int) value);
 				getSlider().setEnabled(true);
 			}
 			else
