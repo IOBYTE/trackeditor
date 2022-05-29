@@ -422,11 +422,11 @@ public class SegmentSlider extends JPanel
 			{
 				if (Double.isNaN(value))
 				{
-					value = min * realToTextCoeff;
+					value = min;
 				}
 				getTextField().setText(value + "");
 				getTextField().setEnabled(true);
-				getSlider().setValue((int) value);
+				getSlider().setValue((int) (value * realToTextCoeff));
 				getSlider().setEnabled(true);
 			}
 			else
