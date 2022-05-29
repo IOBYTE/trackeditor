@@ -73,6 +73,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private JComboBox				surfaceComboBox		= null;
 
 	private SegmentSlider			gradeSlider			= null;
+	private SegmentSlider			startTangentSlider	= null;
+	private SegmentSlider			endTangentSlider	= null;
 	private SegmentSlider			heightStartSlider	= null;
 	private SegmentSlider			heightEndSlider		= null;
 	private SegmentSideProperties	rightPanel			= null;
@@ -125,7 +127,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private void initialize()
 	{
 		this.setTitle("Segment Editor");
-		this.setSize(420, 533);
+		this.setSize(520, 533);
 		Point p = frame.getLocation();
 		p.x = frame.getProject().getSegmentEditorX();
 		p.y = frame.getProject().getSegmentEditorY();
@@ -190,6 +192,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(getArcSlider(), null);
 			centerPanel.add(getLengthSlider(), null);
 			centerPanel.add(getGradeSlider(), null);
+			centerPanel.add(getStartTangentSlider(), null);
+			centerPanel.add(getEndTangentSlider(), null);
 			centerPanel.add(getHeightStartSlider(), null);
 			centerPanel.add(getHeightEndSlider(), null);
 			centerPanel.add(getGroupButton(), null);
@@ -324,6 +328,54 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return gradeSlider;
 	}
 	/**
+	 * This method initializes startTangentSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getStartTangentSlider()
+	{
+		if (startTangentSlider == null)
+		{
+			startTangentSlider = new SegmentSlider();
+			startTangentSlider.setBounds(280, 40, 50, 390);
+			startTangentSlider.setSection("Tangent");
+			startTangentSlider.setAttr("Start");
+			startTangentSlider.setMin(-45);
+			startTangentSlider.setMax(45);
+			startTangentSlider.setExtent(2);
+			startTangentSlider.setTickSpacing(0.5);
+			startTangentSlider.setRealToTextCoeff(1);
+			startTangentSlider.setMethod("ProfilStartTangent");
+			startTangentSlider.setValue(shape.getProfilStartTangent());
+			startTangentSlider.addSliderListener(this);
+		}
+		return startTangentSlider;
+	}
+	/**
+	 * This method initializes endTangentSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getEndTangentSlider()
+	{
+		if (endTangentSlider == null)
+		{
+			endTangentSlider = new SegmentSlider();
+			endTangentSlider.setBounds(335, 40, 50, 390);
+			endTangentSlider.setSection("Tangent");
+			endTangentSlider.setAttr("End");
+			endTangentSlider.setMin(-45);
+			endTangentSlider.setMax(45);
+			endTangentSlider.setExtent(2);
+			endTangentSlider.setTickSpacing(0.5);
+			endTangentSlider.setRealToTextCoeff(1);
+			endTangentSlider.setMethod("ProfilEndTangent");
+			endTangentSlider.setValue(shape.getProfilEndTangent());
+			endTangentSlider.addSliderListener(this);
+		}
+		return endTangentSlider;
+	}
+	/**
 	 * This method initializes heightStartSlider
 	 * 
 	 * @return gui.SegmentSlider
@@ -333,7 +385,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightStartSlider == null)
 		{
 			heightStartSlider = new SegmentSlider();
-			heightStartSlider.setBounds(280, 40, 50, 390);
+			heightStartSlider.setBounds(390, 40, 50, 390);
 			heightStartSlider.setSection("Height");
 			heightStartSlider.setAttr("Start");
 			heightStartSlider.setMin(0);
@@ -356,7 +408,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightEndSlider == null)
 		{
 			heightEndSlider = new SegmentSlider();
-			heightEndSlider.setBounds(335, 40, 50, 390);
+			heightEndSlider.setBounds(445, 40, 50, 390);
 			heightEndSlider.setSection("Height");
 			heightEndSlider.setAttr("End");
 			heightEndSlider.setMin(0);
@@ -462,6 +514,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			getNameTextField().setText(shape.getName());
 			getSurfaceComboBox().setSelectedItem(shape.getSurface());
 			this.getGradeSlider().setValue(shape.getGrade());
+			this.getStartTangentSlider().setValue(shape.getProfilStartTangent());
+			this.getEndTangentSlider().setValue(shape.getProfilEndTangent());
 			this.getHeightStartSlider().setValue(shape.getHeightStart());
 			this.getHeightEndSlider().setValue(shape.getHeightEnd());
 		} catch (Exception e)

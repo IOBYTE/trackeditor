@@ -726,8 +726,8 @@ public class Segment implements Cloneable
 			s.profil = this.profil;
 			s.profilSteps = this.profilSteps;
 			s.profilStepsLength = this.profilStepsLength;
-			s.profilStartTangent = this.profilEndTangent;
-			s.profilEndTangent = this.profilStartTangent;
+			s.profilStartTangent = this.profilStartTangent;
+			s.profilEndTangent = this.profilEndTangent;
 			s.profilStartTangentLeft = this.profilStartTangentLeft;
 			s.profilEndTangentLeft = this.profilEndTangentLeft;
 			s.profilStartTangentRight = this.profilStartTangentRight;
