@@ -72,6 +72,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private JTextField				nameTextField		= null;
 	private JComboBox				surfaceComboBox		= null;
 
+	private SegmentSlider			gradeSlider			= null;
 	private SegmentSlider			heightStartSlider	= null;
 	private SegmentSlider			heightEndSlider		= null;
 	private SegmentSideProperties	rightPanel			= null;
@@ -184,11 +185,11 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(nameLabel, null);
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getSurfaceComboBox(), null);
-
 			centerPanel.add(getRadiusStartSlider(), null);
 			centerPanel.add(getRadiusEndSlider(), null);
 			centerPanel.add(getArcSlider(), null);
 			centerPanel.add(getLengthSlider(), null);
+			centerPanel.add(getGradeSlider(), null);
 			centerPanel.add(getHeightStartSlider(), null);
 			centerPanel.add(getHeightEndSlider(), null);
 			centerPanel.add(getGroupButton(), null);
@@ -297,6 +298,30 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			lengthSlider.addSliderListener(this);
 		}
 		return lengthSlider;
+	}
+	/**
+	 * This method initializes gradeSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getGradeSlider()
+	{
+		if (gradeSlider == null)
+		{
+			gradeSlider = new SegmentSlider();
+			gradeSlider.setBounds(225, 40, 50, 390);
+			gradeSlider.setSection("Grade");
+			gradeSlider.setAttr("");
+			gradeSlider.setMin(-45);
+			gradeSlider.setMax(45);
+			gradeSlider.setExtent(2);
+			gradeSlider.setTickSpacing(0.5);
+			gradeSlider.setRealToTextCoeff(1);
+			gradeSlider.setMethod("Grade");
+			gradeSlider.setValue(shape.getGrade());
+			gradeSlider.addSliderListener(this);
+		}
+		return gradeSlider;
 	}
 	/**
 	 * This method initializes heightStartSlider
@@ -436,6 +461,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			}
 			getNameTextField().setText(shape.getName());
 			getSurfaceComboBox().setSelectedItem(shape.getSurface());
+			this.getGradeSlider().setValue(shape.getGrade());
 			this.getHeightStartSlider().setValue(shape.getHeightStart());
 			this.getHeightEndSlider().setValue(shape.getHeightEnd());
 		} catch (Exception e)
