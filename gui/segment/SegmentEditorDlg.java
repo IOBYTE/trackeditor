@@ -323,6 +323,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			gradeSlider.setRealToTextCoeff(1);
 			gradeSlider.setMethod("Grade");
 			gradeSlider.setValue(shape.getGrade());
+			gradeSlider.setOptional(true);
 			gradeSlider.addSliderListener(this);
 		}
 		return gradeSlider;
@@ -347,6 +348,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			startTangentSlider.setRealToTextCoeff(1);
 			startTangentSlider.setMethod("ProfilStartTangent");
 			startTangentSlider.setValue(shape.getProfilStartTangent());
+			startTangentSlider.setOptional(true);
 			startTangentSlider.addSliderListener(this);
 		}
 		return startTangentSlider;
@@ -371,6 +373,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			endTangentSlider.setRealToTextCoeff(1);
 			endTangentSlider.setMethod("ProfilEndTangent");
 			endTangentSlider.setValue(shape.getProfilEndTangent());
+			endTangentSlider.setOptional(true);
 			endTangentSlider.addSliderListener(this);
 		}
 		return endTangentSlider;
@@ -394,6 +397,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			heightStartSlider.setTickSpacing(0.5);
 			heightStartSlider.setRealToTextCoeff(1);
 			heightStartSlider.setMethod("HeightStart");
+			heightStartSlider.setOptional(true);
 			heightStartSlider.addSliderListener(this);
 		}
 		return heightStartSlider;
@@ -417,6 +421,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			heightEndSlider.setTickSpacing(0.5);
 			heightEndSlider.setRealToTextCoeff(1);
 			heightEndSlider.setMethod("HeightEnd");
+			heightEndSlider.setOptional(true);
 			heightEndSlider.addSliderListener(this);
 		}
 		return heightEndSlider;

@@ -49,6 +49,7 @@ public class SegmentSlider extends JPanel
 	private JSlider		slider			= null;
 	private JCheckBox	checkBox		= null;
 	private boolean		enabled			= true;
+	private boolean		optional		= false;
 
 	private String		section;
 	private String		attr;
@@ -131,11 +132,12 @@ public class SegmentSlider extends JPanel
 	 * 
 	 * @return javax.swing.JCheckBox
 	 */
-	public JCheckBox getCheckBox()
+	private JCheckBox getCheckBox()
 	{
 		if (checkBox == null)
 		{
 			checkBox = new JCheckBox();
+			checkBox.setEnabled(false);
 		}
 		return checkBox;
 	}
@@ -269,7 +271,8 @@ public class SegmentSlider extends JPanel
 	public void setEnabled(boolean value)
 	{
 		this.enabled = value;
-		this.getCheckBox().setEnabled(value);
+		if (this.optional)
+			this.checkBox.setEnabled(value);
 		this.getTextField().setEnabled(value);
 		this.getSlider().setEnabled(value);
 		this.sectionLabel.setEnabled(value);
@@ -277,7 +280,18 @@ public class SegmentSlider extends JPanel
 		if (!value)
 		{
 			this.getTextField().setText("");
-			this.getCheckBox().setSelected(false);
+			if (this.optional)
+				this.checkBox.setSelected(false);
+		}
+	}
+
+	public void setOptional(boolean value)
+	{
+		this.optional = value;
+		this.checkBox.setEnabled(value);
+		if (!value)
+		{
+			this.checkBox.setSelected(false);
 		}
 	}
 
@@ -323,7 +337,8 @@ public class SegmentSlider extends JPanel
 			getTextField().setEnabled(false);
 			getSlider().setValue((int) (min * this.realToTextCoeff));
 			getSlider().setEnabled(false);
-			getCheckBox().setSelected(false);
+			if (this.optional)
+				checkBox.setSelected(false);
 		}
 		else
 		{
@@ -332,7 +347,8 @@ public class SegmentSlider extends JPanel
 			getTextField().setEnabled(true);
 			getSlider().setValue((int) value);
 			getSlider().setEnabled(true);
-			getCheckBox().setSelected(true);
+			if (this.optional)
+				checkBox.setSelected(true);
 		}
 	}
 
@@ -389,7 +405,7 @@ public class SegmentSlider extends JPanel
 		{
 			multCoeff = 1;// / tickSpacing;
 
-			getCheckBox().addChangeListener(new ChangeListener()
+			checkBox.addChangeListener(new ChangeListener()
 			{
 				public void stateChanged(ChangeEvent e)
 				{
@@ -418,7 +434,7 @@ public class SegmentSlider extends JPanel
 		public void checkBoxChanged()
 		{
 			double	oldValue = value;
-			if (getCheckBox().isSelected())
+			if (checkBox.isSelected())
 			{
 				if (Double.isNaN(value))
 				{

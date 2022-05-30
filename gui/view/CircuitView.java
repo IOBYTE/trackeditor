@@ -1326,7 +1326,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		
 		for(int i=0; i<size; i++)
 		{
-			Segment obj = (Segment) track.get(i);;
+			Segment obj = (Segment) track.get(i);
 			obj.setCount(i+1);
 			try
 			{
