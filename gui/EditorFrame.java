@@ -1217,6 +1217,9 @@ public class EditorFrame extends JFrame
 
 	void checkButtons(JToggleButton button, int state)
 	{
+		if (button == null)
+			return;
+
 		if (button.isSelected())
 		{
 			view.setState(state);
