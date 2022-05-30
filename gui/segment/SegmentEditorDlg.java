@@ -620,7 +620,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public void sliderChanged(SegmentSlider slider)
 	{
 		// TODO I don't know if this is the best way to fix this but it works
-		if (slider.getMethod() == null)
+		if (slider.getMethod() == null || slider.getMethod().isEmpty())
 			return;
 
 		Interpreter line = new Interpreter();
@@ -638,7 +638,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 
 			String method = slider.getMethod();
 			
-			command = "shape.set" + method + "(" + slider.getValue() + ")";
+			if (Double.isNaN(slider.getValue()))
+				command = "shape.set" + method + "(Double.NaN)";
+			else
+				command = "shape.set" + method + "(" + slider.getValue() + ")";
 
 			line.eval(command);
 			shape = (Segment) line.get("shape");

@@ -389,14 +389,13 @@ public class SegmentSlider extends JPanel
 		{
 			multCoeff = 1;// / tickSpacing;
 
-			if (checkBox != null)
-				checkBox.addChangeListener(new ChangeListener()
+			getCheckBox().addChangeListener(new ChangeListener()
+			{
+				public void stateChanged(ChangeEvent e)
 				{
-					public void stateChanged(ChangeEvent e)
-					{
-						checkBoxChanged();
-					}
-				});
+					checkBoxChanged();
+				}
+			});
 
 			getTextField().setEnabled(true);
 			getTextField().addKeyListener(new KeyAdapter()
@@ -418,24 +417,33 @@ public class SegmentSlider extends JPanel
 
 		public void checkBoxChanged()
 		{
+			double	oldValue = value;
 			if (getCheckBox().isSelected())
 			{
 				if (Double.isNaN(value))
 				{
 					value = min;
 				}
-				getTextField().setText(value + "");
-				getTextField().setEnabled(true);
-				getSlider().setValue((int) value);
-				getSlider().setEnabled(true);
+				if (oldValue != value)
+				{
+					getTextField().setText(value + "");
+					getTextField().setEnabled(true);
+					getSlider().setValue((int) value);
+					getSlider().setEnabled(true);
+					valueChanged();
+				}
 			}
 			else
 			{
 				value = Double.NaN;
-				getTextField().setText("");
-				getTextField().setEnabled(false);
-				getSlider().setValue((int) (min * realToTextCoeff));
-				getSlider().setEnabled(false);
+				if (!Double.isNaN(oldValue))
+				{
+					getTextField().setText("");
+					getTextField().setEnabled(false);
+					getSlider().setValue((int) (min * realToTextCoeff));
+					getSlider().setEnabled(false);
+					valueChanged();
+				}
 			}
 		}
 
