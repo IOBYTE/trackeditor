@@ -627,11 +627,14 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 		try
 		{
-
 			line.set("side", side);
 
-			//String tmp = "((" + shapeType + ")shape)";
-			command = "side.set" + slider.getMethod() + "(" + slider.getValue() + ")";
+			String method = slider.getMethod();
+
+			if (Double.isNaN(slider.getValue()))
+				command = "side.set" + method + "(Double.NaN)";
+			else
+				command = "side.set" + method + "(" + slider.getValue() + ")";
 
 			line.eval(command);
 			side = (SegmentSide) line.get("side");
