@@ -11,6 +11,7 @@ The following attributes can now be edited:
 6. Segment grade
 7. Segment profil start tangent
 8. Segment profil end tangent
+9. Segment z start left, z start right, z end left, z end left
 
 The following bugs have been fixed:
 1. Segment z start and z end now read from xml file
