@@ -102,6 +102,12 @@ public class XmlReader
     private static void setPits(Element track)
     {
         Element pits = getChildWithName(track, "Pits");
+        double style = getAttrNumValue(pits, "style");
+        if (!Double.isNaN(style))
+            Editor.getProperties().setPitStyle((int) style);
+        else
+            Editor.getProperties().setPitStyle(1);
+
         String tmp = getAttrStrValue(pits, "side");
         Editor.getProperties().setPitSide(tmp);
 

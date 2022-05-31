@@ -43,8 +43,10 @@ import utils.circuit.SegmentSide;
 public class PitProperties extends JPanel
 {
 	//private Properties	properties		= Properties.getInstance();
+	private JLabel		styleLabel				= null;
+	private JComboBox	styleComboBox			= null;
 	private JLabel		sideLabel				= null;
-	private JComboBox	jComboBox				= null;
+	private JComboBox	sideComboBox			= null;
 	private JLabel		entryLabel				= null;
 	private JTextField	entryTextField			= null;
 	private JLabel		startLabel				= null;
@@ -92,29 +94,32 @@ public class PitProperties extends JPanel
 		lengthLabel = new JLabel();
 		startBuildingsLabel = new JLabel();
 		stopBuildingsLabel = new JLabel();
+		styleLabel = new JLabel();
 		maxPitsLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);
-		sideLabel.setBounds(10, 10, 70, 20);
+		styleLabel.setBounds(10, 10, 70, 20);
+		styleLabel.setText("Pit type");
+		sideLabel.setBounds(10, 35, 70, 20);
 		sideLabel.setText("Pits side");
-		entryLabel.setBounds(10, 35, 70, 20);
+		entryLabel.setBounds(10, 60, 70, 20);
 		entryLabel.setText("Pit entry");
-		startLabel.setBounds(10, 60, 70, 20);
+		startLabel.setBounds(10, 85, 70, 20);
 		startLabel.setText("Pit start");
-		startBuildingsLabel.setBounds(10, 85, 120, 20);
+		startBuildingsLabel.setBounds(10, 110, 120, 20);
 		startBuildingsLabel.setText("Pit start buildings");
-		stopBuildingsLabel.setBounds(10, 110, 120, 20);
+		stopBuildingsLabel.setBounds(10, 135, 120, 20);
 		stopBuildingsLabel.setText("Pit stop buildings");
-		maxPitsLabel.setBounds(10, 135, 120, 20);
+		maxPitsLabel.setBounds(10, 160, 120, 20);
 		maxPitsLabel.setText("Pit max pits");
-		endLabel.setBounds(10, 160, 70, 20);
+		endLabel.setBounds(10, 185, 70, 20);
 		endLabel.setText("Pit end");
-		exitLabel.setBounds(10, 185, 70, 20);
+		exitLabel.setBounds(10, 210, 70, 20);
 		exitLabel.setText("Pit exit");
-		widthLabel.setBounds(10, 215, 70, 20);
+		widthLabel.setBounds(10, 235, 70, 20);
 		widthLabel.setText("Pit width");
-		lengthLabel.setBounds(10, 240, 70, 20);
+		lengthLabel.setBounds(10, 260, 70, 20);
 		lengthLabel.setText("Pit length");
 		generatePitsLabel.setBounds(240, 10, 99, 20);
 		generatePitsLabel.setText("Generate Pits");
@@ -130,8 +135,10 @@ public class PitProperties extends JPanel
 		this.add(getEndTextField(), null);
 		this.add(exitLabel, null);
 		this.add(sideLabel, null);
-		this.add(getJComboBox(), null);
+		this.add(getSideComboBox(), null);
 		this.add(entryLabel, null);
+		this.add(getStyleComboBox(), null);
+		this.add(styleLabel, null);
 
 		this.add(generatePitsLabel, null);
 		this.add(getGeneratePitsCheckBox(), null);
@@ -143,21 +150,38 @@ public class PitProperties extends JPanel
 		this.add(maxPitsLabel, null);
 	}
 	/**
-	 * This method initializes jComboBox
+	 * This method initializes styleComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	private JComboBox getStyleComboBox()
+	{
+		if (styleComboBox == null)
+		{
+			String[] items =
+			{"none", "on track side", "on separate path", "no building"};
+			styleComboBox = new JComboBox(items);
+			styleComboBox.setSelectedIndex(Editor.getProperties().getPitStyle());
+			styleComboBox.setBounds(100, 10, 100, 20);
+		}
+		return styleComboBox;
+	}
+	/**
+	 * This method initializes sideComboBox
 	 * 
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getJComboBox()
+	private JComboBox getSideComboBox()
 	{
-		if (jComboBox == null)
+		if (sideComboBox == null)
 		{
 			String[] items =
 			{"right", "left"};
-			jComboBox = new JComboBox(items);
-			jComboBox.setSelectedItem(Editor.getProperties().getPitSide());
-			jComboBox.setBounds(100, 10, 80, 20);
+			sideComboBox = new JComboBox(items);
+			sideComboBox.setSelectedItem(Editor.getProperties().getPitSide());
+			sideComboBox.setBounds(100, 35, 80, 20);
 		}
-		return jComboBox;
+		return sideComboBox;
 	}
 	/**
 	 * This method initializes entryTextField
@@ -170,7 +194,7 @@ public class PitProperties extends JPanel
 		{
 			entryTextField = new JTextField();
 			entryTextField.setText(Editor.getProperties().getPitEntry());
-			entryTextField.setBounds(100, 35, 100, 20);
+			entryTextField.setBounds(100, 60, 100, 20);
 		}
 		return entryTextField;
 	}
@@ -185,7 +209,7 @@ public class PitProperties extends JPanel
 		{
 			startTextField = new JTextField();
 			startTextField.setText(Editor.getProperties().getPitStart());
-			startTextField.setBounds(100, 60, 100, 20);
+			startTextField.setBounds(100, 85, 100, 20);
 		}
 		return startTextField;
 	}
@@ -200,7 +224,7 @@ public class PitProperties extends JPanel
 		{
 			startBuildingsTextField = new JTextField();
 			startBuildingsTextField.setText(Editor.getProperties().getPitStartBuildings());
-			startBuildingsTextField.setBounds(100, 85, 100, 20);
+			startBuildingsTextField.setBounds(100, 110, 100, 20);
 		}
 		return startBuildingsTextField;
 	}
@@ -215,7 +239,7 @@ public class PitProperties extends JPanel
 		{
 			stopBuildingsTextField = new JTextField();
 			stopBuildingsTextField.setText(Editor.getProperties().getPitStopBuildings());
-			stopBuildingsTextField.setBounds(100, 110, 100, 20);
+			stopBuildingsTextField.setBounds(100, 135, 100, 20);
 		}
 		return stopBuildingsTextField;
 	}
@@ -231,7 +255,7 @@ public class PitProperties extends JPanel
 			maxPitsTextField = new JTextField();
 			if (Editor.getProperties().getPitMaxPits() > 0)
 				maxPitsTextField.setText(Editor.getProperties().getPitMaxPits() + "");
-			maxPitsTextField.setBounds(100, 135, 100, 20);
+			maxPitsTextField.setBounds(100, 160, 100, 20);
 		}
 		return maxPitsTextField;
 	}
@@ -246,7 +270,7 @@ public class PitProperties extends JPanel
 		{
 			endTextField = new JTextField();
 			endTextField.setText(Editor.getProperties().getPitEnd());
-			endTextField.setBounds(100, 160, 100, 20);
+			endTextField.setBounds(100, 185, 100, 20);
 		}
 		return endTextField;
 	}
@@ -261,7 +285,7 @@ public class PitProperties extends JPanel
 		{
 			exitTextField = new JTextField();
 			exitTextField.setText(Editor.getProperties().getPitExit());
-			exitTextField.setBounds(100, 185, 100, 20);
+			exitTextField.setBounds(100, 210, 100, 20);
 		}
 		return exitTextField;
 	}
@@ -276,7 +300,7 @@ public class PitProperties extends JPanel
 		{
 			widthTextField = new JTextField();
 			widthTextField.setText(Double.toString(Editor.getProperties().getPitWidth()));
-			widthTextField.setBounds(100, 215, 40, 20);
+			widthTextField.setBounds(100, 235, 40, 20);
 		}
 		return widthTextField;
 	}
@@ -291,7 +315,7 @@ public class PitProperties extends JPanel
 		{
 			lengthTextField = new JTextField();
 			lengthTextField.setText(Double.toString(Editor.getProperties().getPitLength()));
-			lengthTextField.setBounds(100, 240, 40, 20);
+			lengthTextField.setBounds(100, 260, 40, 20);
 		}
 		return lengthTextField;
 	}
@@ -301,7 +325,8 @@ public class PitProperties extends JPanel
 	 */
 	public void exit()
 	{
-		Editor.getProperties().setPitSide((String) getJComboBox().getSelectedItem());
+		Editor.getProperties().setPitStyle(getStyleComboBox().getSelectedIndex());
+		Editor.getProperties().setPitSide((String) getSideComboBox().getSelectedItem());
 		Editor.getProperties().setPitEntry(this.getEntryTextField().getText());
 		Editor.getProperties().setPitStart(this.getStartTextField().getText());
 		Editor.getProperties().setPitStartBuildings(this.getStartBuildingsTextField().getText());

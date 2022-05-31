@@ -62,6 +62,7 @@ public  class Properties
 	private String				pitExit;
 	private double				pitWidth;
 	private double				pitLength;
+	private int					pitStyle			= 1;
 
 	private double				imageScale			= 1;
 	private String				image				= "";
@@ -313,6 +314,21 @@ public  class Properties
 	public void setPitWidth(double pitWidth)
 	{
 		this.pitWidth = pitWidth;
+	}
+	/**
+	 * @return Returns the pitStyle.
+	 */
+	public int getPitStyle()
+	{
+		return pitStyle;
+	}
+	/**
+	 * @param pitStyle
+	 *            The pitStyle to set.
+	 */
+	public void setPitStyle(int pitStyle)
+	{
+		this.pitStyle = pitStyle;
 	}
 	/**
 	 * @return Returns the trackWidth.

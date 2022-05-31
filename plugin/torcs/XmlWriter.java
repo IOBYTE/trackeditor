@@ -161,6 +161,12 @@ public class XmlWriter
 		Element pits = new Element("section");
 		pits.setAttribute(name);
 
+		int style = Editor.getProperties().getPitStyle();
+		if (style != 1)
+		{
+			Element el = attnumElement("type", null,  "" + style);
+			pits.addContent(el);
+		}
 		if (Editor.getProperties().getPitSide() != null)
 		{
 			tmp = Editor.getProperties().getPitSide();
