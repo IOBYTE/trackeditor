@@ -41,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
+import utils.Editor;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
@@ -87,6 +88,11 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private GroupButton				groupButton				= null;
 	private ProfileButton			profileButton			= null;
 	
+	private JLabel					profileStepsLabel		= null;
+	private JTextField				profileStepsTextField	= null;
+	private JLabel					profileStepsLengthLabel	= null;
+	private JTextField				profileStepsLengthTextField	= null;
+
 	private String[]			roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
 "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
@@ -184,12 +190,20 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (centerPanel == null)
 		{
 			nameLabel = new JLabel();
+	        profileStepsLabel = new JLabel();
+	        profileStepsLengthLabel = new JLabel();
 			centerPanel = new JPanel();
 			centerPanel.setLayout(null);
 			nameLabel.setBounds(10, 10, 45, 20);
 			nameLabel.setText("Name");
 			nameLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
+	        profileStepsLabel.setText("Profile Steps");
+	        profileStepsLabel.setBounds(480, 2, 110, 20);
+	        profileStepsLengthLabel.setText("Profile Steps Length");
+	        profileStepsLengthLabel.setBounds(480, 27, 110, 20);
 			centerPanel.add(nameLabel, null);
+			centerPanel.add(profileStepsLabel, null);
+			centerPanel.add(profileStepsLengthLabel, null);
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getSurfaceComboBox(), null);
 			centerPanel.add(getRadiusStartSlider(), null);
@@ -207,6 +221,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(getHeightEndRightSlider(), null);
 			centerPanel.add(getGroupButton(), null);
 			centerPanel.add(getProfileButton(), null);
+			centerPanel.add(getProfileStepsTextField(), null);
+			centerPanel.add(getProfileStepsLengthTextField(), null);
 		}
 		return centerPanel;
 	}
@@ -589,6 +605,64 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		}
 		return surfaceComboBox;
 	}
+	/**
+	 * This method initializes profileStepsTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getProfileStepsTextField()
+	{
+		if (profileStepsTextField == null)
+		{
+			profileStepsTextField = new JTextField();
+			profileStepsTextField.setBounds(590, 2, 110, 20);
+			profileStepsTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					try
+					{
+						shape.setProfilSteps(Double.parseDouble(profileStepsTextField.getText()));
+					} catch (NumberFormatException ex)
+					{
+						shape.setProfilSteps(Double.NaN);
+					}
+
+					frame.documentIsModified = true;
+				}
+			});
+		}
+		return profileStepsTextField;
+	}
+	/**
+	 * This method initializes profileStepsLengthTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getProfileStepsLengthTextField()
+	{
+		if (profileStepsLengthTextField == null)
+		{
+			profileStepsLengthTextField = new JTextField();
+			profileStepsLengthTextField.setBounds(590, 27, 110, 20);
+			profileStepsLengthTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					try
+					{
+						shape.setProfilStepsLength(Double.parseDouble(profileStepsLengthTextField.getText()));
+					} catch (NumberFormatException ex)
+					{
+						shape.setProfilStepsLength(Double.NaN);
+					}
+
+					frame.documentIsModified = true;
+				}
+			});
+		}
+		return profileStepsLengthTextField;
+	}
 
 	public void setShape(Segment shape)
 	{
@@ -639,6 +713,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				getProfileButton().setSelected("none");
 			else
 				getProfileButton().setSelected(shape.getProfil());
+			if (!Double.isNaN(shape.getProfilSteps()))
+				this.getProfileStepsTextField().setText(shape.getProfilSteps() + "");
+			if (!Double.isNaN(shape.getProfilStepsLength()))
+				this.getProfileStepsLengthTextField().setText(shape.getProfilStepsLength() + "");
 
 		} catch (Exception e)
 		{
