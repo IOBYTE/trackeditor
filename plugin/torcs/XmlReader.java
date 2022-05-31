@@ -297,6 +297,7 @@ public class XmlReader
         Element el = getChildWithName(seg, sPart + " Side");
         if (el != null)
         {
+            part.setHasSide(true);
             double width = getAttrNumValue(el, "width");
             if (Double.isNaN(width))
             {
@@ -311,6 +312,8 @@ public class XmlReader
             part.setSideSurface(getAttrStrValue(el, "surface"));
             part.setSideBankingType(getAttrStrValue(el, "banking type"));
         }
+        else
+            part.setHasSide(false);
 
         el = getChildWithName(seg, sPart + " Border");
         if (el != null)

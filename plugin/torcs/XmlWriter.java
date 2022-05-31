@@ -131,7 +131,8 @@ public class XmlWriter
 
 		com = new Comment("Left part of track");
 		track.addContent(com);
-		track.addContent(getSide(Editor.getProperties().getLeft(), "Left"));
+		if (Editor.getProperties().getLeft().getHasSide())
+			track.addContent(getSide(Editor.getProperties().getLeft(), "Left"));
 		if (Editor.getProperties().getLeft().getHasBorder())
 			track.addContent(getBorder(Editor.getProperties().getLeft(), "Left"));
 		if (Editor.getProperties().getLeft().getHasBarrier())
@@ -140,7 +141,8 @@ public class XmlWriter
 		track.addContent(com);
 		com = new Comment("Right part of track");
 		track.addContent(com);
-		track.addContent(getSide(Editor.getProperties().getRight(), "Right"));
+		if (Editor.getProperties().getRight().getHasSide())
+			track.addContent(getSide(Editor.getProperties().getRight(), "Right"));
 		if (Editor.getProperties().getRight().getHasBorder())
 			track.addContent(getBorder(Editor.getProperties().getRight(), "Right"));
 		if (Editor.getProperties().getRight().getHasBarrier())
@@ -424,7 +426,8 @@ public class XmlWriter
 		segment.addContent(el);
 		com = new Comment("Left part of segment");
 		segment.addContent(com);
-		segment.addContent(getSide(shape.getLeft(), "Left"));
+		if (shape.getLeft().getHasSide())
+			segment.addContent(getSide(shape.getLeft(), "Left"));
 		if (shape.getLeft().getHasBorder())
 			segment.addContent(getBorder(shape.getLeft(), "Left"));
 		if (shape.getLeft().getHasBarrier())
@@ -433,7 +436,8 @@ public class XmlWriter
 		segment.addContent(com);
 		com = new Comment("Right part of segment");
 		segment.addContent(com);
-		segment.addContent(getSide(shape.getRight(), "Right"));
+		if (shape.getRight().getHasSide())
+			segment.addContent(getSide(shape.getRight(), "Right"));
 		if (shape.getRight().getHasBorder())
 		    segment.addContent(getBorder(shape.getRight(), "Right"));
 		if (shape.getRight().getHasBarrier())

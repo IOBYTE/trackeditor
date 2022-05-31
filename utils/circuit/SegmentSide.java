@@ -37,6 +37,7 @@ public class SegmentSide implements Cloneable
 	private SegmentSide	props						= null;
 
 	//	Side
+	protected boolean	hasSide						= false;
 	protected double	sideStartWidth				= Double.NaN;
 	private boolean		prevSideStartWidthChanged	= false;
 	private boolean		thisSideStartWidthChanged	= false;
@@ -92,6 +93,7 @@ public class SegmentSide implements Cloneable
 	 */
 	public void setNewTrackDefaults()
 	{
+		setHasSide(true);
 		setSideStartWidth(4.0);
 		setSideEndWidth(4.0);
 		setSideSurface("grass");
@@ -407,6 +409,21 @@ public class SegmentSide implements Cloneable
 		}
 	}
 
+	/**
+	 * @return Returns the hasSide.
+	 */
+	public boolean getHasSide()
+	{
+		return hasSide;
+	}
+	/**
+	 * @param hasside
+	 *            The hasSide to set.
+	 */
+	public void setHasSide(boolean hasside)
+	{
+		this.hasSide = hasSide;
+	}
 	/**
 	 * @return Returns the sideEndWidth.
 	 */
@@ -830,6 +847,7 @@ public class SegmentSide implements Cloneable
 			s.sideStartWidth = this.sideStartWidth;
 			s.sideSurface = this.sideSurface;
 			s.sideListeners = (Vector) this.sideListeners.clone();
+			s.hasSide = this.hasSide;
 			s.hasBorder = this.hasBorder;
 			s.hasBarrier = this.hasBarrier;
 			
