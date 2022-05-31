@@ -309,36 +309,45 @@ public class XmlWriter
 				segment.addContent(el);
 			}
 		}
-
-		if (!Double.isNaN(shape.getHeightStart()))
+		if (!Double.isNaN(shape.getHeightStartLeft()) &&
+			!Double.isNaN(shape.getHeightStartRight()) &&
+			shape.getHeightStartLeft() == shape.getHeightStartRight())
 		{
-			el = attnumElement("z start", "m", shape.getHeightStart() + "");
+			el = attnumElement("z start", "m", shape.getHeightStartLeft() + "");
 			segment.addContent(el);
 		}
-		if (!Double.isNaN(shape.getHeightEnd()))
+		else
 		{
-			el = attnumElement("z end", "m", shape.getHeightEnd() + "");
+			if (!Double.isNaN(shape.getHeightStartLeft()))
+			{
+				el = attnumElement("z start left", "m", shape.getHeightStartLeft() + "");
+				segment.addContent(el);
+			}
+			if (!Double.isNaN(shape.getHeightStartRight()))
+			{
+				el = attnumElement("z start right", "m", shape.getHeightStartRight() + "");
+				segment.addContent(el);
+			}
+		}
+		if (!Double.isNaN(shape.getHeightEndLeft()) &&
+			!Double.isNaN(shape.getHeightEndRight()) &&
+			shape.getHeightEndLeft() == shape.getHeightEndRight())
+		{
+			el = attnumElement("z end", "m", shape.getHeightEndLeft() + "");
 			segment.addContent(el);
 		}
-		if (!Double.isNaN(shape.getHeightStartLeft()))
+		else
 		{
-			el = attnumElement("z start left", "m", shape.getHeightStartLeft() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getHeightStartRight()))
-		{
-			el = attnumElement("z start right", "m", shape.getHeightStartRight() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getHeightEndLeft()))
-		{
-			el = attnumElement("z end left", "m", shape.getHeightEndLeft() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getHeightEndRight()))
-		{
-			el = attnumElement("z end right", "m", shape.getHeightEndRight() + "");
-			segment.addContent(el);
+			if (!Double.isNaN(shape.getHeightEndLeft()))
+			{
+				el = attnumElement("z end left", "m", shape.getHeightEndLeft() + "");
+				segment.addContent(el);
+			}
+			if (!Double.isNaN(shape.getHeightEndRight()))
+			{
+				el = attnumElement("z end right", "m", shape.getHeightEndRight() + "");
+				segment.addContent(el);
+			}
 		}
 		if (!Double.isNaN(shape.getGrade()))
 		{

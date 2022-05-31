@@ -64,9 +64,6 @@ public class Segment implements Cloneable
 	protected double		length;
 	protected String		surface;
 
-	protected double		heightStart				= Double.NaN;
-	protected double		heightEnd				= Double.NaN;
-
 	protected double		heightStartLeft			= Double.NaN;
 	protected double		heightStartRight		= Double.NaN;
 	protected double		heightEndLeft			= Double.NaN;
@@ -329,36 +326,6 @@ public class Segment implements Cloneable
 
 	public void drag(Point2D.Double dragDelta)
 	{
-	}
-	/**
-	 * @return Returns the heightEnd.
-	 */
-	public double getHeightEnd()
-	{
-		return heightEnd;
-	}
-	/**
-	 * @param heightEnd
-	 *            The heightEnd to set.
-	 */
-	public void setHeightEnd(double heightEnd)
-	{
-		this.heightEnd = heightEnd;
-	}
-	/**
-	 * @return Returns the heightStart.
-	 */
-	public double getHeightStart()
-	{
-		return heightStart;
-	}
-	/**
-	 * @param heightStart
-	 *            The heightStart to set.
-	 */
-	public void setHeightStart(double heightStart)
-	{
-		this.heightStart = heightStart;
 	}
 
 	/**
@@ -711,11 +678,8 @@ public class Segment implements Cloneable
 			s.right = (SegmentSide) this.right.clone();
 			s.name = this.name;
 			s.type = this.type;
-			s.heightEnd = this.heightEnd;
-			s.heightStart = this.heightStart;
 			s.length = this.length;
 			s.surface = this.surface;
-			
 			s.heightStartLeft = this.heightStartLeft;
 			s.heightStartRight = this.heightStartRight;
 			s.heightEndLeft = this.heightEndLeft;

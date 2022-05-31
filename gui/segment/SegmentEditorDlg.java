@@ -58,31 +58,33 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public Segment					shape;
 	CircuitView						view;
 	EditorFrame						frame;
-	public boolean					dirty				= false;
+	public boolean					dirty					= false;
 
-	private JPanel					jContentPane		= null;	//  @jve:decl-index=0:visual-constraint="377,10"
+	private JPanel					jContentPane			= null;	//  @jve:decl-index=0:visual-constraint="377,10"
 
-	private JTabbedPane				jTabbedPane			= null;
-	private JPanel					centerPanel			= null;	//  @jve:decl-index=0:visual-constraint="394,34"
-	private SegmentSlider			radiusStartSlider	= null;
-	private SegmentSlider			radiusEndSlider		= null;
-	private SegmentSlider			arcSlider			= null;
-	private SegmentSlider			lengthSlider		= null;
-	private JLabel					nameLabel			= null;
-	private JTextField				nameTextField		= null;
-	private JComboBox				surfaceComboBox		= null;
+	private JTabbedPane				jTabbedPane				= null;
+	private JPanel					centerPanel				= null;	//  @jve:decl-index=0:visual-constraint="394,34"
+	private SegmentSlider			radiusStartSlider		= null;
+	private SegmentSlider			radiusEndSlider			= null;
+	private SegmentSlider			arcSlider				= null;
+	private SegmentSlider			lengthSlider			= null;
+	private JLabel					nameLabel				= null;
+	private JTextField				nameTextField			= null;
+	private JComboBox				surfaceComboBox			= null;
 
-	private SegmentSlider			gradeSlider			= null;
-	private SegmentSlider			startTangentSlider	= null;
-	private SegmentSlider			endTangentSlider	= null;
-	private SegmentSlider			heightStartSlider	= null;
-	private SegmentSlider			heightEndSlider		= null;
-	private SegmentSideProperties	rightPanel			= null;
-	private SegmentSideProperties	leftPanel			= null;
+	private SegmentSlider			gradeSlider				= null;
+	private SegmentSlider			startTangentSlider		= null;
+	private SegmentSlider			endTangentSlider		= null;
+	private SegmentSlider			heightStartLeftSlider	= null;
+	private SegmentSlider			heightStartRightSlider	= null;
+	private SegmentSlider			heightEndLeftSlider		= null;
+	private SegmentSlider			heightEndRightSlider	= null;
+	private SegmentSideProperties	rightPanel				= null;
+	private SegmentSideProperties	leftPanel				= null;
 
-	private GroupButton				groupButton			= null;
+	private GroupButton				groupButton				= null;
 	
-	private String[]			roadSurfaceItems		=
+	private String[]			roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
 "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
 "road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
@@ -127,7 +129,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private void initialize()
 	{
 		this.setTitle("Segment Editor");
-		this.setSize(520, 533);
+		this.setSize(630, 533);
 		Point p = frame.getLocation();
 		p.x = frame.getProject().getSegmentEditorX();
 		p.y = frame.getProject().getSegmentEditorY();
@@ -194,8 +196,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(getGradeSlider(), null);
 			centerPanel.add(getStartTangentSlider(), null);
 			centerPanel.add(getEndTangentSlider(), null);
-			centerPanel.add(getHeightStartSlider(), null);
-			centerPanel.add(getHeightEndSlider(), null);
+			centerPanel.add(getHeightStartLeftSlider(), null);
+			centerPanel.add(getHeightStartRightSlider(), null);
+			centerPanel.add(getHeightEndLeftSlider(), null);
+			centerPanel.add(getHeightEndRightSlider(), null);
 			centerPanel.add(getGroupButton(), null);
 		}
 		return centerPanel;
@@ -379,57 +383,105 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return endTangentSlider;
 	}
 	/**
-	 * This method initializes heightStartSlider
-	 * 
+	 * This method initializes heightStartLeftSlider
+	 *
 	 * @return gui.SegmentSlider
 	 */
-	private SegmentSlider getHeightStartSlider()
+	private SegmentSlider getHeightStartLeftSlider()
 	{
-		if (heightStartSlider == null)
+		if (heightStartLeftSlider == null)
 		{
-			heightStartSlider = new SegmentSlider();
-			heightStartSlider.setBounds(390, 40, 50, 390);
-			heightStartSlider.setSection("Height");
-			heightStartSlider.setAttr("Start");
-			heightStartSlider.setMin(0);
-			heightStartSlider.setMax(100);
-			heightStartSlider.setExtent(2);
-			heightStartSlider.setTickSpacing(0.5);
-			heightStartSlider.setRealToTextCoeff(1);
-			heightStartSlider.setMethod("HeightStart");
-			heightStartSlider.setOptional(true);
-			heightStartSlider.addSliderListener(this);
+			heightStartLeftSlider = new SegmentSlider();
+			heightStartLeftSlider.setBounds(390, 40, 50, 390);
+			heightStartLeftSlider.setSection("L Height");
+			heightStartLeftSlider.setAttr("Start");
+			heightStartLeftSlider.setMin(0);
+			heightStartLeftSlider.setMax(100);
+			heightStartLeftSlider.setExtent(2);
+			heightStartLeftSlider.setTickSpacing(0.5);
+			heightStartLeftSlider.setRealToTextCoeff(1);
+			heightStartLeftSlider.setMethod("HeightStartLeft");
+			heightStartLeftSlider.setOptional(true);
+			heightStartLeftSlider.addSliderListener(this);
 		}
-		return heightStartSlider;
+		return heightStartLeftSlider;
 	}
 	/**
-	 * This method initializes heightEndSlider
-	 * 
+	 * This method initializes heightStartRightSlider
+	 *
 	 * @return gui.SegmentSlider
 	 */
-	private SegmentSlider getHeightEndSlider()
+	private SegmentSlider getHeightStartRightSlider()
 	{
-		if (heightEndSlider == null)
+		if (heightStartRightSlider == null)
 		{
-			heightEndSlider = new SegmentSlider();
-			heightEndSlider.setBounds(445, 40, 50, 390);
-			heightEndSlider.setSection("Height");
-			heightEndSlider.setAttr("End");
-			heightEndSlider.setMin(0);
-			heightEndSlider.setMax(100);
-			heightEndSlider.setExtent(2);
-			heightEndSlider.setTickSpacing(0.5);
-			heightEndSlider.setRealToTextCoeff(1);
-			heightEndSlider.setMethod("HeightEnd");
-			heightEndSlider.setOptional(true);
-			heightEndSlider.addSliderListener(this);
+			heightStartRightSlider = new SegmentSlider();
+			heightStartRightSlider.setBounds(445, 40, 50, 390);
+			heightStartRightSlider.setSection("R Height");
+			heightStartRightSlider.setAttr("Start");
+			heightStartRightSlider.setMin(0);
+			heightStartRightSlider.setMax(100);
+			heightStartRightSlider.setExtent(2);
+			heightStartRightSlider.setTickSpacing(0.5);
+			heightStartRightSlider.setRealToTextCoeff(1);
+			heightStartRightSlider.setMethod("HeightStartRight");
+			heightStartRightSlider.setOptional(true);
+			heightStartRightSlider.addSliderListener(this);
 		}
-		return heightEndSlider;
+		return heightStartRightSlider;
+	}
+	/**
+	 * This method initializes heightEndLeftSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getHeightEndLeftSlider()
+	{
+		if (heightEndLeftSlider == null)
+		{
+			heightEndLeftSlider = new SegmentSlider();
+			heightEndLeftSlider.setBounds(500, 40, 50, 390);
+			heightEndLeftSlider.setSection("L Height");
+			heightEndLeftSlider.setAttr("End");
+			heightEndLeftSlider.setMin(0);
+			heightEndLeftSlider.setMax(100);
+			heightEndLeftSlider.setExtent(2);
+			heightEndLeftSlider.setTickSpacing(0.5);
+			heightEndLeftSlider.setRealToTextCoeff(1);
+			heightEndLeftSlider.setMethod("HeightEnd");
+			heightEndLeftSlider.setOptional(true);
+			heightEndLeftSlider.addSliderListener(this);
+		}
+		return heightEndLeftSlider;
+	}
+	/**
+	 * This method initializes heightEndRightSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getHeightEndRightSlider()
+	{
+		if (heightEndRightSlider == null)
+		{
+			heightEndRightSlider = new SegmentSlider();
+			heightEndRightSlider.setBounds(555, 40, 50, 390);
+			heightEndRightSlider.setSection("R Height");
+			heightEndRightSlider.setAttr("End");
+			heightEndRightSlider.setMin(0);
+			heightEndRightSlider.setMax(100);
+			heightEndRightSlider.setExtent(2);
+			heightEndRightSlider.setTickSpacing(0.5);
+			heightEndRightSlider.setRealToTextCoeff(1);
+			heightEndRightSlider.setMethod("HeightEndRight");
+			heightEndRightSlider.setOptional(true);
+			heightEndRightSlider.addSliderListener(this);
+		}
+		return heightEndRightSlider;
 	}
 
 	/**
 	 * This method initializes nameTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getNameTextField()
@@ -451,7 +503,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes surfaceComboBox
-	 * 
+	 *
 	 * @return javax.swing.JComboBox
 	 */
 	private JComboBox getSurfaceComboBox()
@@ -521,8 +573,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			this.getGradeSlider().setValue(shape.getGrade());
 			this.getStartTangentSlider().setValue(shape.getProfilStartTangent());
 			this.getEndTangentSlider().setValue(shape.getProfilEndTangent());
-			this.getHeightStartSlider().setValue(shape.getHeightStart());
-			this.getHeightEndSlider().setValue(shape.getHeightEnd());
+			this.getHeightStartLeftSlider().setValue(shape.getHeightStartLeft());
+			this.getHeightStartRightSlider().setValue(shape.getHeightStartRight());
+			this.getHeightEndLeftSlider().setValue(shape.getHeightEndLeft());
+			this.getHeightEndRightSlider().setValue(shape.getHeightEndRight());
 		} catch (Exception e)
 		{
 			e.printStackTrace();

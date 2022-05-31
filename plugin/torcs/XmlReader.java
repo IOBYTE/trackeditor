@@ -235,14 +235,32 @@ public class XmlReader
                  * is not a number just ignore it */
             }
         }
-       
+
         shape.setSurface(getAttrStrValue(seg, "surface"));
-        shape.setHeightStart(getAttrNumValue(seg, "z start"));
-        shape.setHeightEnd(getAttrNumValue(seg, "z end"));
-        shape.setHeightStartLeft(getAttrNumValue(seg, "z start left"));
-        shape.setHeightStartRight(getAttrNumValue(seg, "z start right"));
-        shape.setHeightEndLeft(getAttrNumValue(seg, "z end left"));
-        shape.setHeightEndRight(getAttrNumValue(seg, "z end right"));
+
+        double z = getAttrNumValue(seg, "z start");
+        if (Double.isNaN(z))
+        {
+            shape.setHeightStartLeft(getAttrNumValue(seg, "z start left"));
+            shape.setHeightStartRight(getAttrNumValue(seg, "z start right"));
+        }
+        else
+        {
+            shape.setHeightStartLeft(z);
+            shape.setHeightStartRight(z);
+        }
+        z = getAttrNumValue(seg, "z end");
+        if (Double.isNaN(z))
+        {
+            shape.setHeightEndLeft(getAttrNumValue(seg, "z end left"));
+            shape.setHeightEndRight(getAttrNumValue(seg, "z end right"));
+        }
+        else
+        {
+            shape.setHeightEndLeft(z);
+            shape.setHeightEndRight(z);
+        }
+
         shape.setGrade(getAttrNumValue(seg, "grade"));
         shape.setBankingStart(getAttrNumValue(seg, "banking start"));
         shape.setBankingEnd(getAttrNumValue(seg, "banking end"));
