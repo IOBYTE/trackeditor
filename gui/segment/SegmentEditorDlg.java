@@ -75,6 +75,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private SegmentSlider			gradeSlider				= null;
 	private SegmentSlider			startTangentSlider		= null;
 	private SegmentSlider			endTangentSlider		= null;
+	private SegmentSlider			bankingStartSlider		= null;
+	private SegmentSlider			bankingEndSlider		= null;
 	private SegmentSlider			heightStartLeftSlider	= null;
 	private SegmentSlider			heightStartRightSlider	= null;
 	private SegmentSlider			heightEndLeftSlider		= null;
@@ -129,7 +131,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private void initialize()
 	{
 		this.setTitle("Segment Editor");
-		this.setSize(630, 533);
+		this.setSize(745, 533);
 		Point p = frame.getLocation();
 		p.x = frame.getProject().getSegmentEditorX();
 		p.y = frame.getProject().getSegmentEditorY();
@@ -195,6 +197,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(getLengthSlider(), null);
 			centerPanel.add(getGradeSlider(), null);
 			centerPanel.add(getStartTangentSlider(), null);
+			centerPanel.add(getBankingStartSlider(), null);
+			centerPanel.add(getBankingEndSlider(), null);
 			centerPanel.add(getEndTangentSlider(), null);
 			centerPanel.add(getHeightStartLeftSlider(), null);
 			centerPanel.add(getHeightStartRightSlider(), null);
@@ -383,6 +387,56 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return endTangentSlider;
 	}
 	/**
+	 * This method initializes bankingStartSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getBankingStartSlider()
+	{
+		if (bankingStartSlider == null)
+		{
+			bankingStartSlider = new SegmentSlider();
+			bankingStartSlider.setBounds(390, 40, 50, 390);
+			bankingStartSlider.setSection("Banking");
+			bankingStartSlider.setAttr("Start");
+			bankingStartSlider.setMin(-45);
+			bankingStartSlider.setMax(45);
+			bankingStartSlider.setExtent(2);
+			bankingStartSlider.setTickSpacing(0.5);
+			bankingStartSlider.setRealToTextCoeff(1);
+			bankingStartSlider.setMethod("BankingStart");
+			bankingStartSlider.setValue(shape.getBankingStart());
+			bankingStartSlider.setOptional(true);
+			bankingStartSlider.addSliderListener(this);
+		}
+		return bankingStartSlider;
+	}
+	/**
+	 * This method initializes bankingEndSlider
+	 *
+	 * @return gui.SegmentSlider
+	 */
+	private SegmentSlider getBankingEndSlider()
+	{
+		if (bankingEndSlider == null)
+		{
+			bankingEndSlider = new SegmentSlider();
+			bankingEndSlider.setBounds(445, 40, 50, 390);
+			bankingEndSlider.setSection("Banking");
+			bankingEndSlider.setAttr("End");
+			bankingEndSlider.setMin(-45);
+			bankingEndSlider.setMax(45);
+			bankingEndSlider.setExtent(2);
+			bankingEndSlider.setTickSpacing(0.5);
+			bankingEndSlider.setRealToTextCoeff(1);
+			bankingEndSlider.setMethod("BankingEnd");
+			bankingEndSlider.setValue(shape.getBankingEnd());
+			bankingEndSlider.setOptional(true);
+			bankingEndSlider.addSliderListener(this);
+		}
+		return bankingEndSlider;
+	}
+	/**
 	 * This method initializes heightStartLeftSlider
 	 *
 	 * @return gui.SegmentSlider
@@ -392,7 +446,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightStartLeftSlider == null)
 		{
 			heightStartLeftSlider = new SegmentSlider();
-			heightStartLeftSlider.setBounds(390, 40, 50, 390);
+			heightStartLeftSlider.setBounds(500, 40, 50, 390);
 			heightStartLeftSlider.setSection("L Height");
 			heightStartLeftSlider.setAttr("Start");
 			heightStartLeftSlider.setMin(0);
@@ -416,7 +470,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightStartRightSlider == null)
 		{
 			heightStartRightSlider = new SegmentSlider();
-			heightStartRightSlider.setBounds(445, 40, 50, 390);
+			heightStartRightSlider.setBounds(555, 40, 50, 390);
 			heightStartRightSlider.setSection("R Height");
 			heightStartRightSlider.setAttr("Start");
 			heightStartRightSlider.setMin(0);
@@ -440,7 +494,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightEndLeftSlider == null)
 		{
 			heightEndLeftSlider = new SegmentSlider();
-			heightEndLeftSlider.setBounds(500, 40, 50, 390);
+			heightEndLeftSlider.setBounds(610, 40, 50, 390);
 			heightEndLeftSlider.setSection("L Height");
 			heightEndLeftSlider.setAttr("End");
 			heightEndLeftSlider.setMin(0);
@@ -464,7 +518,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (heightEndRightSlider == null)
 		{
 			heightEndRightSlider = new SegmentSlider();
-			heightEndRightSlider.setBounds(555, 40, 50, 390);
+			heightEndRightSlider.setBounds(665, 40, 50, 390);
 			heightEndRightSlider.setSection("R Height");
 			heightEndRightSlider.setAttr("End");
 			heightEndRightSlider.setMin(0);
@@ -573,6 +627,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			this.getGradeSlider().setValue(shape.getGrade());
 			this.getStartTangentSlider().setValue(shape.getProfilStartTangent());
 			this.getEndTangentSlider().setValue(shape.getProfilEndTangent());
+			this.getBankingStartSlider().setValue(shape.getBankingStart());
+			this.getBankingEndSlider().setValue(shape.getBankingEnd());
 			this.getHeightStartLeftSlider().setValue(shape.getHeightStartLeft());
 			this.getHeightStartRightSlider().setValue(shape.getHeightStartRight());
 			this.getHeightEndLeftSlider().setValue(shape.getHeightEndLeft());
