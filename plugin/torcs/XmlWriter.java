@@ -458,10 +458,16 @@ public class XmlWriter
 		side.addContent(el);
 		el = attnumElement("height", "m", part.getBorderHeight() + "");
 		side.addContent(el);
-		el = attstrElement("surface", part.getBorderSurface());
-		side.addContent(el);
-		el = attstrElement("style", part.getBorderStyle());
-		side.addContent(el);
+		if (part.getBorderSurface() != null && !part.getBorderSurface().isEmpty())
+		{
+			el = attstrElement("surface", part.getBorderSurface());
+			side.addContent(el);
+		}
+		if (part.getBorderStyle() != null && !part.getBorderStyle().isEmpty())
+		{
+			el = attstrElement("style", part.getBorderStyle());
+			side.addContent(el);
+		}
 
 		return side;
 	}
@@ -473,22 +479,23 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBarrier(SegmentSide part, String sPart)
 	{
-		Attribute name = null;
-		Attribute unit = null;
-		Attribute val = null;
-		Element el = null;
-
 		Element side = new Element("section");
-		name = new Attribute("name", sPart + " Barrier");
+		Attribute name = new Attribute("name", sPart + " Barrier");
 		side.setAttribute(name);
-		el = attnumElement("width", "m", part.getBarrierWidth() + "");
+		Element el = attnumElement("width", "m", part.getBarrierWidth() + "");
 		side.addContent(el);
 		el = attnumElement("height", "m", part.getBarrierHeight() + "");
 		side.addContent(el);
-		el = attstrElement("surface", part.getBarrierSurface());
-		side.addContent(el);
-		el = attstrElement("style", part.getBarrierStyle());
-		side.addContent(el);
+		if (part.getBarrierSurface() != null && !part.getBarrierSurface().isEmpty())
+		{
+			el = attstrElement("surface", part.getBarrierSurface());
+			side.addContent(el);
+		}
+		if (part.getBarrierSurface() != null && !part.getBarrierStyle().isEmpty())
+		{
+			el = attstrElement("style", part.getBarrierStyle());
+			side.addContent(el);
+		}
 
 		return side;
 	}
@@ -499,13 +506,9 @@ public class XmlWriter
 	 */
 	private synchronized static Element getSide(SegmentSide part, String sPart)
 	{
-		Attribute name = null;
-		Attribute unit = null;
-		Attribute val = null;
 		Element el = null;
-
 		Element side = new Element("section");
-		name = new Attribute("name", sPart + " Side");
+		Attribute name = new Attribute("name", sPart + " Side");
 		side.setAttribute(name);
 		if (!Double.isNaN(part.getSideStartWidth()) && !Double.isNaN(part.getSideEndWidth()) &&
 			part.getSideStartWidth() == part.getSideEndWidth())
@@ -526,9 +529,12 @@ public class XmlWriter
 				side.addContent(el);
 			}
 		}
-		el = attstrElement("surface", part.getSideSurface());
-		side.addContent(el);
-		if (part.getSideBankingType() != null)
+		if (part.getSideSurface() != null && !part.getSideSurface().isEmpty())
+		{
+			el = attstrElement("surface", part.getSideSurface());
+			side.addContent(el);
+		}
+		if (part.getSideBankingType() != null && !part.getSideBankingType().isEmpty())
 		{
 			el = attstrElement("banking type", part.getSideBankingType());
 			side.addContent(el);
