@@ -16,3 +16,7 @@ The following attributes can now be edited:
 The following bugs have been fixed:
 1. Segment z start and z end now read from xml file
 2. Fix null button exception for show start point menu item
+
+Progress:
+
+It is now possible to create tracks with grade and camber and edit them.  It is not yet possible to edit optimized hand edited tracks.
