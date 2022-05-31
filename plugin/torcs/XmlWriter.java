@@ -132,15 +132,19 @@ public class XmlWriter
 		com = new Comment("Left part of track");
 		track.addContent(com);
 		track.addContent(getSide(Editor.getProperties().getLeft(), "Left"));
-		track.addContent(getBorder(Editor.getProperties().getLeft(), "Left"));
-		track.addContent(getBarrier(Editor.getProperties().getLeft(), "Left"));
+		if (Editor.getProperties().getLeft().getHasBorder())
+			track.addContent(getBorder(Editor.getProperties().getLeft(), "Left"));
+		if (Editor.getProperties().getLeft().getHasBarrier())
+			track.addContent(getBarrier(Editor.getProperties().getLeft(), "Left"));
 		com = new Comment("End of left part");
 		track.addContent(com);
 		com = new Comment("Right part of track");
 		track.addContent(com);
 		track.addContent(getSide(Editor.getProperties().getRight(), "Right"));
-		track.addContent(getBorder(Editor.getProperties().getRight(), "Right"));
-		track.addContent(getBarrier(Editor.getProperties().getRight(), "Right"));
+		if (Editor.getProperties().getRight().getHasBorder())
+			track.addContent(getBorder(Editor.getProperties().getRight(), "Right"));
+		if (Editor.getProperties().getRight().getHasBarrier())
+			track.addContent(getBarrier(Editor.getProperties().getRight(), "Right"));
 		com = new Comment("End of right part");
 		track.addContent(com);
 
@@ -511,10 +515,16 @@ public class XmlWriter
 		}
 		else
 		{
-			el = attnumElement("start width", "m", part.getSideStartWidth() + "");
-			side.addContent(el);
-			el = attnumElement("end width", "m", part.getSideEndWidth() + "");
-			side.addContent(el);
+			if (!Double.isNaN(part.getSideStartWidth()))
+			{
+				el = attnumElement("start width", "m", part.getSideStartWidth() + "");
+				side.addContent(el);
+			}
+			if (!Double.isNaN(part.getSideEndWidth()))
+			{
+				el = attnumElement("end width", "m", part.getSideEndWidth() + "");
+				side.addContent(el);
+			}
 		}
 		el = attstrElement("surface", part.getSideSurface());
 		side.addContent(el);

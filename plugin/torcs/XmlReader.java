@@ -294,7 +294,6 @@ public class XmlReader
     private synchronized static void setSide(Element seg, SegmentSide part,
             String sPart)
     {
-        String tmp;
         Element el = getChildWithName(seg, sPart + " Side");
         if (el != null)
         {
@@ -309,16 +308,8 @@ public class XmlReader
                 part.setSideStartWidth(width);
                 part.setSideEndWidth(width);
             }
-            tmp = getAttrStrValue(el, "surface");
-            if (tmp != "")
-            {
-                part.setSideSurface(tmp);
-            }
-            tmp = getAttrStrValue(el, "banking type");
-            if (tmp != "")
-            {
-                part.setSideBankingType(tmp);
-            }
+            part.setSideSurface(getAttrStrValue(el, "surface"));
+            part.setSideBankingType(getAttrStrValue(el, "banking type"));
         }
 
         el = getChildWithName(seg, sPart + " Border");
@@ -327,16 +318,8 @@ public class XmlReader
             part.setHasBorder(true);
             part.setBorderWidth(getAttrNumValue(el, "width"));
             part.setBorderHeight(getAttrNumValue(el, "height"));
-            tmp = getAttrStrValue(el, "surface");
-            if (tmp != "")
-            {
-                part.setBorderSurface(tmp);
-            }
-            tmp = getAttrStrValue(el, "style");
-            if (tmp != "")
-            {
-                part.setBorderStyle(tmp);
-            }
+            part.setBorderSurface(getAttrStrValue(el, "surface"));
+            part.setBorderStyle(getAttrStrValue(el, "style"));
         }
         else
             part.setHasBorder(false);
@@ -347,16 +330,8 @@ public class XmlReader
             part.setHasBarrier(true);
             part.setBarrierWidth(getAttrNumValue(el, "width"));
             part.setBarrierHeight(getAttrNumValue(el, "height"));
-            tmp = getAttrStrValue(el, "surface");
-            if (tmp != "")
-            {
-                part.setBarrierSurface(tmp);
-            }
-            tmp = getAttrStrValue(el, "style");
-            if (tmp != "")
-            {
-                part.setBarrierStyle(tmp);
-            }
+            part.setBarrierSurface(getAttrStrValue(el, "surface"));
+            part.setBarrierStyle(getAttrStrValue(el, "style"));
         }
         else
             part.setHasBarrier(false);
