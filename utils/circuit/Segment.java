@@ -732,4 +732,84 @@ public class Segment implements Cloneable
     {
         return dy;
     }
+
+    public double getValidLeftBorderWidth()
+    {
+    	double	leftBorderWidth = left.borderWidth;
+    	if (Double.isNaN(leftBorderWidth))
+    	{
+    		leftBorderWidth = Editor.getProperties().getLeft().getBorderWidth();
+    		if (Double.isNaN(leftBorderWidth))
+    		{
+    			leftBorderWidth = 0.5;
+    		}
+    	}
+    	return leftBorderWidth;
+    }
+    public double getValidRightBorderWidth()
+    {
+    	double	rightBorderWidth = right.borderWidth;
+    	if (Double.isNaN(rightBorderWidth))
+    	{
+    		rightBorderWidth = Editor.getProperties().getRight().getBorderWidth();
+    		if (Double.isNaN(rightBorderWidth))
+    		{
+    			rightBorderWidth = 0.5;
+    		}
+		}
+    	return rightBorderWidth;
+    }
+    public double getValidLeftSideStartWidth()
+    {
+    	double	leftSideStartWidth = left.sideStartWidth;
+    	if (Double.isNaN(leftSideStartWidth))
+    	{
+    		leftSideStartWidth = Editor.getProperties().getLeft().getSideStartWidth();
+    		if (Double.isNaN(leftSideStartWidth))
+    		{
+    			leftSideStartWidth = 4.0;
+    		}
+    	}
+    	return leftSideStartWidth;
+    }
+    public double getValidLeftSideEndWidth()
+    {
+    	double	leftSideEndWidth = left.sideEndWidth;
+    	if (Double.isNaN(leftSideEndWidth))
+    	{
+    		leftSideEndWidth = Editor.getProperties().getLeft().getSideEndWidth();
+    		if (Double.isNaN(leftSideEndWidth))
+    		{
+    			leftSideEndWidth = 4.0;
+    		}
+    	}
+    	return leftSideEndWidth;
+    }
+    public double getValidRightSideStartWidth()
+    {
+    	double	rightSideStartWidth = right.sideStartWidth;
+    	if (Double.isNaN(rightSideStartWidth))
+    	{
+    		rightSideStartWidth = Editor.getProperties().getRight().getSideStartWidth();
+    		if (Double.isNaN(rightSideStartWidth))
+    		{
+    			rightSideStartWidth = 4.0;
+    		}
+    	}
+    	return rightSideStartWidth;
+    }
+    public double getValidRightSideEndWidth()
+    {
+    	double	rightSideEndWidth = right.sideEndWidth;
+    	if (Double.isNaN(rightSideEndWidth))
+    	{
+    		rightSideEndWidth = Editor.getProperties().getRight().getSideEndWidth();
+    		if (Double.isNaN(rightSideEndWidth))
+    		{
+    			rightSideEndWidth = 4.0;
+    		}
+    	}
+    	return rightSideEndWidth;
+	}
+
 }

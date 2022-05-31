@@ -75,14 +75,16 @@ public class Curve extends Segment implements Cloneable
 //		double	currentZ	= Editor.getProperties().getCurrentZ();
 		double	currentA	= Editor.getProperties().getCurrentA();
 		double 	currentBanking = Editor.getProperties().getCurrentBanking();
-//		double	leftBorderWidth = Editor.getProperties().getLeftBorderWidth();
-//		double	rightBorderWidth = Editor.getProperties().getRightBorderWidth();
-//		double	leftSideWidth = Editor.getProperties().getLeftSideWidth();
-//		double	rightSideWidth = Editor.getProperties().getRightSideWidth();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
 //		double	profileStepLength = Editor.getProperties().getProfileStepLength();
 		double	trackWidth = Editor.getProperties().getTrackWidth();
+		double	leftBorderWidth = getValidLeftBorderWidth();
+		double	rightBorderWidth = getValidRightBorderWidth();
+		double	leftSideStartWidth = getValidLeftSideStartWidth();
+		double	leftSideEndWidth = getValidLeftSideEndWidth();
+		double	rightSideStartWidth = getValidRightSideStartWidth();
+		double	rightSideEndWidth = getValidRightSideEndWidth();
 		
 		/**  
 		 * 
@@ -136,8 +138,8 @@ public class Curve extends Segment implements Cloneable
 
 		double curRadius = radiusStart;
 
-		double leftSideDeltaStep = (left.sideEndWidth - left.sideStartWidth) / nbSteps;
-		double rightSideDeltaStep = (right.sideEndWidth - right.sideStartWidth) / nbSteps;
+		double leftSideDeltaStep = (leftSideEndWidth - leftSideStartWidth) / nbSteps;
+		double rightSideDeltaStep = (rightSideEndWidth - rightSideStartWidth) / nbSteps;
 
 		int currentSubSeg = 0;
 
@@ -196,8 +198,8 @@ public class Curve extends Segment implements Cloneable
 
 			// left border
 
-			points[currentSubSeg + 0].x = currentX + cosTransLeft * (trackWidth / 2 + left.borderWidth);
-			points[currentSubSeg + 0].y = currentY + sinTransLeft * (trackWidth / 2 + left.borderWidth);
+			points[currentSubSeg + 0].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
+			points[currentSubSeg + 0].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
 
 			x = points[currentSubSeg + 0].x - xCenter;
 			y = points[currentSubSeg + 0].y - yCenter;
@@ -218,11 +220,11 @@ public class Curve extends Segment implements Cloneable
 
 			points[currentSubSeg + 0].x = currentX
 					+ cosTransLeft
-					* (trackWidth / 2 + left.borderWidth + left.sideStartWidth + leftSideDeltaStep
+					* (trackWidth / 2 + leftBorderWidth + leftSideStartWidth + leftSideDeltaStep
 							* nStep);
 			points[currentSubSeg + 0].y = currentY
 					+ sinTransLeft
-					* (trackWidth / 2 + left.borderWidth + left.sideStartWidth + leftSideDeltaStep
+					* (trackWidth / 2 + leftBorderWidth + leftSideStartWidth + leftSideDeltaStep
 							* nStep);
 
 			x = points[currentSubSeg + 0].x + cosTransLeft * leftSideDeltaStep - xCenter;
@@ -230,8 +232,8 @@ public class Curve extends Segment implements Cloneable
 			points[currentSubSeg + 1].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + 1].y = y * cos + x * sin + yCenter;
 
-			points[currentSubSeg + 3].x = currentX + cosTransLeft * (trackWidth / 2 + left.borderWidth);
-			points[currentSubSeg + 3].y = currentY + sinTransLeft * (trackWidth / 2 + left.borderWidth);
+			points[currentSubSeg + 3].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
+			points[currentSubSeg + 3].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
 
 			x = points[currentSubSeg + 3].x - xCenter;
 			y = points[currentSubSeg + 3].y - yCenter;
@@ -242,8 +244,8 @@ public class Curve extends Segment implements Cloneable
 
 			// right border
 
-			points[currentSubSeg + 0].x = currentX - cosTransLeft * (trackWidth / 2 + right.borderWidth);
-			points[currentSubSeg + 0].y = currentY - sinTransLeft * (trackWidth / 2 + right.borderWidth);
+			points[currentSubSeg + 0].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
+			points[currentSubSeg + 0].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
 
 			x = points[currentSubSeg + 0].x - xCenter;
 			y = points[currentSubSeg + 0].y - yCenter;
@@ -264,11 +266,11 @@ public class Curve extends Segment implements Cloneable
 
 			points[currentSubSeg + 0].x = currentX
 					- cosTransLeft
-					* (trackWidth / 2 + right.borderWidth + right.sideStartWidth + rightSideDeltaStep
+					* (trackWidth / 2 + rightBorderWidth + rightSideStartWidth + rightSideDeltaStep
 							* nStep);
 			points[currentSubSeg + 0].y = currentY
 					- sinTransLeft
-					* (trackWidth / 2 + right.borderWidth + right.sideStartWidth + rightSideDeltaStep
+					* (trackWidth / 2 + rightBorderWidth + rightSideStartWidth + rightSideDeltaStep
 							* nStep);
 
 			x = points[currentSubSeg + 0].x - cosTransLeft * rightSideDeltaStep - xCenter;
@@ -276,8 +278,8 @@ public class Curve extends Segment implements Cloneable
 			points[currentSubSeg + 1].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + 1].y = y * cos + x * sin + yCenter;
 
-			points[currentSubSeg + 3].x = currentX - cosTransLeft * (trackWidth / 2 + right.borderWidth);
-			points[currentSubSeg + 3].y = currentY - sinTransLeft * (trackWidth / 2 + right.borderWidth);
+			points[currentSubSeg + 3].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
+			points[currentSubSeg + 3].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
 
 			x = points[currentSubSeg + 3].x - xCenter;
 			y = points[currentSubSeg + 3].y - yCenter;

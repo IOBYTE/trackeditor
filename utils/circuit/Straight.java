@@ -52,17 +52,16 @@ public class Straight extends Segment implements Cloneable
 		//		double currentZ = Editor.getProperties().getCurrentZ();
 		double currentA = Editor.getProperties().getCurrentA();
 		//		double currentBanking = Editor.getProperties().getCurrentBanking();
-		//		double trackLeftBorderWidth = Editor.getProperties().getLeftBorderWidth();
-		//		double trackRightBorderWidth = Editor.getProperties().getRightBorderWidth();
-		//		double leftSideWidth = Editor.getProperties().getLeftSideWidth();
-		//		double rightSideWidth = Editor.getProperties().getRightSideWidth();
 		double showArrows = Editor.getProperties().getShowArrows();
 		//		double trackStartDist = Editor.getProperties().getTrackStartDist();
 		//		double profileStepLength = Editor.getProperties().getProfileStepLength();
 		double trackWidth = Editor.getProperties().getTrackWidth();
-		// shapes : track, left and right borders, left and right sides
-
-		// shapes : track, left and right borders, left and right sides
+		double	leftBorderWidth = getValidLeftBorderWidth();
+		double	rightBorderWidth = getValidRightBorderWidth();
+		double	leftSideStartWidth = getValidLeftSideStartWidth();
+		double	leftSideEndWidth = getValidLeftSideEndWidth();
+		double	rightSideStartWidth = getValidRightSideStartWidth();
+		double	rightSideEndWidth = getValidRightSideEndWidth();
 
 		if (points == null || points.length != 4 * (5 + (showArrows > 0.0 ? 1 : 0)))
 		{
@@ -95,8 +94,8 @@ public class Straight extends Segment implements Cloneable
 
 		// left border
 
-		points[4].x = currentX + cosTransLeft * (trackWidth / 2 + left.borderWidth);
-		points[4].y = currentY + sinTransLeft * (trackWidth / 2 + left.borderWidth);
+		points[4].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
+		points[4].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
 
 		points[5].x = points[4].x + cos;
 		points[5].y = points[4].y + sin;
@@ -109,22 +108,22 @@ public class Straight extends Segment implements Cloneable
 
 		// left side
 
-		points[8].x = currentX + cosTransLeft * (trackWidth / 2 + left.borderWidth + left.sideStartWidth);
-		points[8].y = currentY + sinTransLeft * (trackWidth / 2 + left.borderWidth + left.sideStartWidth);
+		points[8].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth + leftSideStartWidth);
+		points[8].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth + leftSideStartWidth);
 
-		points[9].x = currentX + cos + cosTransLeft * (trackWidth / 2 + left.borderWidth + left.sideEndWidth);
-		points[9].y = currentY + sin + sinTransLeft * (trackWidth / 2 + left.borderWidth + left.sideEndWidth);
+		points[9].x = currentX + cos + cosTransLeft * (trackWidth / 2 + leftBorderWidth + leftSideEndWidth);
+		points[9].y = currentY + sin + sinTransLeft * (trackWidth / 2 + leftBorderWidth + leftSideEndWidth);
 
-		points[10].x = currentX + cos + cosTransLeft * (trackWidth / 2 + left.borderWidth);
-		points[10].y = currentY + sin + sinTransLeft * (trackWidth / 2 + left.borderWidth);
+		points[10].x = currentX + cos + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
+		points[10].y = currentY + sin + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
 
-		points[11].x = currentX + cosTransLeft * (trackWidth / 2 + left.borderWidth);
-		points[11].y = currentY + sinTransLeft * (trackWidth / 2 + left.borderWidth);
+		points[11].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
+		points[11].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
 
 		// right border
 
-		points[12].x = currentX - cosTransLeft * (trackWidth / 2 + right.borderWidth);
-		points[12].y = currentY - sinTransLeft * (trackWidth / 2 + right.borderWidth);
+		points[12].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
+		points[12].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
 
 		points[13].x = points[12].x + cos;
 		points[13].y = points[12].y + sin;
@@ -137,17 +136,17 @@ public class Straight extends Segment implements Cloneable
 
 		// right side
 
-		points[16].x = currentX - cosTransLeft * (trackWidth / 2 + right.borderWidth + right.sideStartWidth);
-		points[16].y = currentY - sinTransLeft * (trackWidth / 2 + right.borderWidth + right.sideStartWidth);
+		points[16].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth + rightSideStartWidth);
+		points[16].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth + rightSideStartWidth);
 
-		points[17].x = currentX + cos - cosTransLeft * (trackWidth / 2 + right.borderWidth + right.sideEndWidth);
-		points[17].y = currentY + sin - sinTransLeft * (trackWidth / 2 + right.borderWidth + right.sideEndWidth);
+		points[17].x = currentX + cos - cosTransLeft * (trackWidth / 2 + rightBorderWidth + rightSideEndWidth);
+		points[17].y = currentY + sin - sinTransLeft * (trackWidth / 2 + rightBorderWidth + rightSideEndWidth);
 
-		points[18].x = currentX + cos - cosTransLeft * (trackWidth / 2 + right.borderWidth);
-		points[18].y = currentY + sin - sinTransLeft * (trackWidth / 2 + right.borderWidth);
+		points[18].x = currentX + cos - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
+		points[18].y = currentY + sin - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
 
-		points[19].x = currentX - cosTransLeft * (trackWidth / 2 + right.borderWidth);
-		points[19].y = currentY - sinTransLeft * (trackWidth / 2 + right.borderWidth);
+		points[19].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
+		points[19].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
 
 		if (showArrows > 0.0)
 		{
