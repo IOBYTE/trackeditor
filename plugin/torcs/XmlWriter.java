@@ -503,10 +503,19 @@ public class XmlWriter
 		Element side = new Element("section");
 		name = new Attribute("name", sPart + " Side");
 		side.setAttribute(name);
-		el = attnumElement("start width", "m", part.getSideStartWidth() + "");
-		side.addContent(el);
-		el = attnumElement("end width", "m", part.getSideEndWidth() + "");
-		side.addContent(el);
+		if (!Double.isNaN(part.getSideStartWidth()) && !Double.isNaN(part.getSideEndWidth()) &&
+			part.getSideStartWidth() == part.getSideEndWidth())
+		{
+			el = attnumElement("width", "m", part.getSideStartWidth() + "");
+			side.addContent(el);
+		}
+		else
+		{
+			el = attnumElement("start width", "m", part.getSideStartWidth() + "");
+			side.addContent(el);
+			el = attnumElement("end width", "m", part.getSideEndWidth() + "");
+			side.addContent(el);
+		}
 		el = attstrElement("surface", part.getSideSurface());
 		side.addContent(el);
 		if (part.getSideBankingType() != null)
