@@ -451,13 +451,20 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBorder(SegmentSide part, String sPart)
 	{
+		Element el = null;
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Border");
 		side.setAttribute(name);
-		Element el = attnumElement("width", "m", part.getBorderWidth() + "");
-		side.addContent(el);
-		el = attnumElement("height", "m", part.getBorderHeight() + "");
-		side.addContent(el);
+		if (!Double.isNaN(part.getBorderWidth()))
+		{
+			el = attnumElement("width", "m", part.getBorderWidth() + "");
+			side.addContent(el);
+		}
+		if (!Double.isNaN(part.getBorderHeight()))
+		{
+			el = attnumElement("height", "m", part.getBorderHeight() + "");
+			side.addContent(el);
+		}
 		if (part.getBorderSurface() != null && !part.getBorderSurface().isEmpty())
 		{
 			el = attstrElement("surface", part.getBorderSurface());
@@ -479,13 +486,20 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBarrier(SegmentSide part, String sPart)
 	{
+		Element el = null;
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Barrier");
 		side.setAttribute(name);
-		Element el = attnumElement("width", "m", part.getBarrierWidth() + "");
-		side.addContent(el);
-		el = attnumElement("height", "m", part.getBarrierHeight() + "");
-		side.addContent(el);
+		if (!Double.isNaN(part.getBarrierWidth()))
+		{
+			el = attnumElement("width", "m", part.getBarrierWidth() + "");
+			side.addContent(el);
+		}
+		if (!Double.isNaN(part.getBarrierHeight()))
+		{
+			el = attnumElement("height", "m", part.getBarrierHeight() + "");
+			side.addContent(el);
+		}
 		if (part.getBarrierSurface() != null && !part.getBarrierSurface().isEmpty())
 		{
 			el = attstrElement("surface", part.getBarrierSurface());
