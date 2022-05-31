@@ -422,8 +422,11 @@ public class XmlWriter
 			segment.addContent(el);
 		}
 
-		el = attstrElement("surface", shape.getSurface());
-		segment.addContent(el);
+		if (shape.getSurface() != null && !shape.getSurface().isEmpty())
+		{
+			el = attstrElement("surface", shape.getSurface());
+			segment.addContent(el);
+		}
 		com = new Comment("Left part of segment");
 		segment.addContent(com);
 		if (shape.getLeft().getHasSide())

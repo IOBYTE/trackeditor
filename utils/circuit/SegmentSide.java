@@ -417,10 +417,10 @@ public class SegmentSide implements Cloneable
 		return hasSide;
 	}
 	/**
-	 * @param hasside
+	 * @param hasSide
 	 *            The hasSide to set.
 	 */
-	public void setHasSide(boolean hasside)
+	public void setHasSide(boolean hasSide)
 	{
 		this.hasSide = hasSide;
 	}
