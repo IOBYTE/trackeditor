@@ -65,19 +65,24 @@ public class XmlReader
 
     private static synchronized void setTrackData(Element root)
     {
-        Element header = getChildWithName(root, "Header");
-        setHeader(header);
+        setTrackLights(root);
+        setHeader(root);
+        setLocalInfo(root);
         setSurfaces(root);
         setObjects(root);
-        Element graphic = getChildWithName(root, "Graphic");
-        setGraphic(graphic);
+        setEnvironmentMapping(root);
+        setStartingGrid(root);
+        setGraphic(root);
+        setCameras(root);
+        setMainTrack(root);
+    }
+
+    private static synchronized void setMainTrack(Element root)
+    {
         Element mainTrack = getChildWithName(root, "Main Track");
-        Editor.getProperties().setTrackWidth(
-                getAttrNumValue(mainTrack, "width"));
-        Editor.getProperties().setSurface(
-                getAttrStrValue(mainTrack, "surface"));
-        Editor.getProperties().setProfileStepLength(
-                getAttrNumValue(mainTrack, "profil steps length"));
+        Editor.getProperties().setTrackWidth(getAttrNumValue(mainTrack, "width"));
+        Editor.getProperties().setSurface(getAttrStrValue(mainTrack, "surface"));
+        Editor.getProperties().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
         setSide(mainTrack, Editor.getProperties().getLeft(), "Left");
         setSide(mainTrack, Editor.getProperties().getRight(), "Right");
         setPits(mainTrack);
@@ -88,8 +93,13 @@ public class XmlReader
     /**
      * @param header
      */
-    private static void setHeader(Element header)
+    private static void setHeader(Element root)
     {
+        Element header = getChildWithName(root, "Header");
+
+        if (header == null)
+            return;
+
         String tmp = getAttrStrValue(header, "author");
         Editor.getProperties().setAuthor(tmp);
         tmp = getAttrStrValue(header, "description");
@@ -103,9 +113,79 @@ public class XmlReader
     /**
      * @param root
      */
+    private static void setCameras(Element root)
+    {
+        Element cameras = getChildWithName(root, "Cameras");
+
+        if (cameras == null)
+            return;
+
+        // TODO
+    }
+
+    /**
+     * @param root
+     */
+    private static void setTrackLights(Element root)
+    {
+        Element lights = getChildWithName(root, "Track Lights");
+
+        if (lights == null)
+            return;
+
+        // TODO
+    }
+
+    /**
+     * @param root
+     */
+    private static void setEnvironmentMapping(Element root)
+    {
+        Element environment = getChildWithName(root, "Environment Map");
+
+        if (environment == null)
+            return;
+
+        // TODO
+    }
+
+    /**
+     * @param root
+     */
+    private static void setStartingGrid(Element root)
+    {
+        Element grid = getChildWithName(root, "Starting Grid");
+
+        if (grid == null)
+            return;
+
+        // TODO
+    }
+
+    /**
+     * @param root
+     */
+    private static void setLocalInfo(Element root)
+    {
+        Element local = getChildWithName(root, "Local Info");
+
+        if (local == null)
+            return;
+
+        // TODO
+    }
+
+    /**
+     * @param root
+     */
     private static void setSurfaces(Element root)
     {
         Element surfaces = getChildWithName(root, "Surfaces");
+
+        if (surfaces == null)
+            return;
+
+        // TODO
     }
 
     /**
@@ -114,13 +194,23 @@ public class XmlReader
     private static void setObjects(Element root)
     {
         Element objects = getChildWithName(root, "Objects");
+
+        if (objects == null)
+            return;
+
+        // TODO
     }
 
     /**
      *
      */
-    private static void setGraphic(Element graphic)
+    private static void setGraphic(Element root)
     {
+        Element graphic = getChildWithName(root, "Graphic");
+
+        if (graphic == null)
+            return;
+
         double val;
         String str;
         Element marks = getChildWithName(graphic, "Turn Marks");
@@ -185,6 +275,10 @@ public class XmlReader
     private static void setPits(Element track)
     {
         Element pits = getChildWithName(track, "Pits");
+
+        if (pits == null)
+            return;
+
         double style = getAttrNumValue(pits, "style");
         if (!Double.isNaN(style))
             Editor.getProperties().setPitStyle((int) style);

@@ -220,7 +220,9 @@ public class TerrainProperties extends JPanel
 		if (maximumAltitudeTextField == null)
 		{
 			maximumAltitudeTextField = new JTextField();
-			maximumAltitudeTextField.setText(Editor.getProperties().getTerrainMaximumAltitude() + "");
+			double val = Editor.getProperties().getTerrainMaximumAltitude();
+			if (!Double.isNaN(val))
+				maximumAltitudeTextField.setText(val + "");
 			maximumAltitudeTextField.setBounds(120, 135, 100, 20);
 		}
 		return maximumAltitudeTextField;
@@ -235,7 +237,9 @@ public class TerrainProperties extends JPanel
 		if (minimumAltitudeTextField == null)
 		{
 			minimumAltitudeTextField = new JTextField();
-			minimumAltitudeTextField.setText(Editor.getProperties().getTerrainMinimumAltitude() + "");
+			double val = Editor.getProperties().getTerrainMinimumAltitude();
+			if (!Double.isNaN(val))
+				minimumAltitudeTextField.setText(val + "");
 			minimumAltitudeTextField.setBounds(120, 160, 100, 20);
 		}
 		return minimumAltitudeTextField;
@@ -250,7 +254,9 @@ public class TerrainProperties extends JPanel
 		if (groupSizeTextField == null)
 		{
 			groupSizeTextField = new JTextField();
-			groupSizeTextField.setText(Editor.getProperties().getTerrainGroupSize() + "");
+			double val = Editor.getProperties().getTerrainGroupSize();
+			if (!Double.isNaN(val))
+				groupSizeTextField.setText(val + "");
 			groupSizeTextField.setBounds(120, 185, 100, 20);
 		}
 		return groupSizeTextField;
