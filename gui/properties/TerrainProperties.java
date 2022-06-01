@@ -2,7 +2,7 @@
  *   TerrainProperties.java
  *   Created on 31 May 2022
  *
- *    The PitProperties.java is part of TrackEditor-0.7.0.
+ *    The TerrainProperties.java is part of TrackEditor-0.7.0.
  *
  *    TrackEditor-0.7.0 is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by

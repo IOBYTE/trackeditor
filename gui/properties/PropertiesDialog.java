@@ -49,6 +49,7 @@ public class PropertiesDialog extends JDialog
 	private PitProperties		pitProperties		= null;
 	private ImageProperties		imageProperties		= null;
 	private TerrainProperties	terrainProperties	= null;
+	private TurnMarksProperties	turnMarksProperties	= null;
 
 	/**
 	 *  
@@ -88,6 +89,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Pit", null, getPitProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 			tabbedPane.addTab("Terrain", null, getTerrainProperties(), null);
+			tabbedPane.addTab("Turn Marks", null, getTurnMarksProperties(), null);
 		}
 		return tabbedPane;
 	}
@@ -217,6 +219,17 @@ public class PropertiesDialog extends JDialog
 		return imageProperties;
 	}
 	/**
+	 * This method initializes turnMarksProperties
+	 *
+	 * @return gui.properties.TurnMarksProperties
+	 */
+	private TurnMarksProperties getTurnMarksProperties() {
+		if (turnMarksProperties == null) {
+			turnMarksProperties = new TurnMarksProperties();
+		}
+		return turnMarksProperties;
+	}
+	/**
 	 * This method initializes terrainProperties
 	 *
 	 * @return gui.properties.TerrainProperties
@@ -238,6 +251,7 @@ public class PropertiesDialog extends JDialog
 		this.pitProperties.exit();
 		this.imageProperties.exit();
 		this.terrainProperties.exit();
+		this.turnMarksProperties.exit();
 		APPROVE = true;
 		cancel();
 	}

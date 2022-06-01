@@ -34,59 +34,65 @@ import utils.circuit.SegmentSide;
  */
 public  class Properties
 {
-	private static Properties	instance			= new Properties();
-	private Vector				propertiesListeners	= new Vector();
+	private static Properties	instance				= new Properties();
+	private Vector				propertiesListeners		= new Vector();
 	//private Vector				trackData;
-	public final String			title				= "Track Editor";
-	public final String			version				= "v0.7.0 alpha";
-	private String				category			= "road";
-	private int					trackVersion		= 4;
+	public final String			title					= "Track Editor";
+	public final String			version					= "v0.7.0 alpha";
+	private String				category				= "road";
+	private int					trackVersion			= 4;
 	private String				path;
 	private String				trackName;
 	private String				author;
 	private String				description;
 
-	private double				trackWidth			= 10;
-	private String				surface				= "asphalt2-lines";
+	private double				trackWidth				= 10;
+	private String				surface					= "asphalt2-lines";
 	
-	private SegmentSide			left				= new SegmentSide();
-	private SegmentSide			right				= new SegmentSide();
+	private SegmentSide			left					= new SegmentSide();
+	private SegmentSide			right					= new SegmentSide();
 
-	private String				pitSide				= "right";
+	private String				pitSide					= "right";
 	private String				pitEntry;
 	private String				pitStart;
-	private String				pitStartBuildings	= null;
-	private String				pitStopBuildings	= null;
-	private int					pitMaxPits			= 0;
+	private String				pitStartBuildings		= null;
+	private String				pitStopBuildings		= null;
+	private int					pitMaxPits				= 0;
 	private String				pitEnd;
 	private String				pitExit;
 	private double				pitWidth;
 	private double				pitLength;
-	private int					pitStyle			= 1;
+	private int					pitStyle				= 1;
 
-	private double				imageScale			= 1;
-	private String				image				= "";
-	private EditorPoint			imgOffset			= new EditorPoint();
+	private double				imageScale				= 1;
+	private String				image					= "";
+	private EditorPoint			imgOffset				= new EditorPoint();
 	private double				initx;
 	private double				inity;
 	
-	private double				currentX			= 0;
-	private double				currentY			= 0;
-	private double				currentZ			= 0;
-	private double				currentA			= 0;
-	private double				currentBanking		= 0;
+	private double				currentX				= 0;
+	private double				currentY				= 0;
+	private double				currentZ				= 0;
+	private double				currentA				= 0;
+	private double				currentBanking			= 0;
 
-	private double				showArrows			= 0;
-	private double				trackStartDist		= 0;
-	private double				profileStepLength	= 4;
-	private int					curveNameCount		= 0;
-	private int					straightNameCount	= 0;
+	private double				showArrows				= 0;
+	private double				trackStartDist			= 0;
+	private double				profileStepLength		= 4;
+	private int					curveNameCount			= 0;
+	private int					straightNameCount		= 0;
 
-	private double				terrainTrackStep	= 20;
-	private double				terrainBorderMargin	= 50;
-	private double				terrainBorderStep	= 30;
-	private double				terrainBorderHeight	= 15;
-	private String				terrainOrientation	= "clockwise";
+	private double				terrainTrackStep		= 20;
+	private double				terrainBorderMargin		= 50;
+	private double				terrainBorderStep		= 30;
+	private double				terrainBorderHeight		= 15;
+	private String				terrainOrientation		= "clockwise";
+
+	private double				turnMarksWidth			= 1;
+	private double				turnMarksHeight			= 1;
+	private double				turnMarksVerticalSpace	= 0;
+	private double				turnMarksHorizontalSpace= 2;
+
 
 	/**
 	 *  
@@ -543,6 +549,66 @@ public  class Properties
 	public void setTerrainOrientation(String terrainOrientation)
 	{
 		this.terrainOrientation = terrainOrientation;
+	}
+	/**
+	 * @return Returns the turnMarksWidth.
+	 */
+	public double getTurnMarksWidth()
+	{
+		return turnMarksWidth;
+	}
+	/**
+	 * @param turnMarksWidth
+	 *            The turnMarksWidth to set.
+	 */
+	public void setTurnMarksWidth(double turnMarksWidth)
+	{
+		this.turnMarksWidth = turnMarksWidth;
+	}
+	/**
+	 * @return Returns the turnMarksHeight.
+	 */
+	public double getTurnMarksHeight()
+	{
+		return turnMarksHeight;
+	}
+	/**
+	 * @param turnMarksHeight
+	 *            The turnMarksHeight to set.
+	 */
+	public void setTurnMarksHeight(double turnMarksHeight)
+	{
+		this.turnMarksHeight = turnMarksHeight;
+	}
+	/**
+	 * @return Returns the turnMarksVerticalSpace.
+	 */
+	public double getTurnMarksVerticalSpace()
+	{
+		return turnMarksVerticalSpace;
+	}
+	/**
+	 * @param turnMarksVerticalSpace
+	 *            The turnMarksVerticalSpace to set.
+	 */
+	public void setTurnMarksVerticalSpace(double turnMarksVerticalSpace)
+	{
+		this.turnMarksVerticalSpace = turnMarksVerticalSpace;
+	}
+	/**
+	 * @return Returns the turnMarksHorizontalSpace.
+	 */
+	public double getTurnMarksHorizontalSpace()
+	{
+		return turnMarksHorizontalSpace;
+	}
+	/**
+	 * @param turnMarksHorizontalSpace
+	 *            The turnMarksHorizontalSpace to set.
+	 */
+	public void setTurnMarksHorizontalSpace(double turnMarksHorizontalSpace)
+	{
+		this.turnMarksHorizontalSpace = turnMarksHorizontalSpace;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)

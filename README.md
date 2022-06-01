@@ -10,6 +10,7 @@ The following attributes can now be edited:
 5. Segment grade, z start left, z start right, z end left, z end right, banking start, banking end
 6. Segment profil, profil start tangent, profil end tangent, profil steps, profil steps length
 7. Terrain Generation track step, border margin, border step, border height, orientation
+8. Turn Marks width, height, vertical space, horizontal space
 
 The following bugs have been fixed:
 1. Segment z start and z end now read from xml file

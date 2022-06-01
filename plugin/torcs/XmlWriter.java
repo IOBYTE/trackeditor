@@ -669,6 +669,23 @@ public class XmlWriter
 		Element el = attstrElement("3d description", Editor.getProperties().getTrackName() + ".ac");
 		graphic.addContent(el);
 
+		Element marks = new Element("section");
+		name = new Attribute("name", "Turn Marks");
+		marks.setAttribute(name);
+		graphic.addContent(marks);
+
+		el = attnumElement("width", "m", Editor.getProperties().getTurnMarksWidth() + "");
+		marks.addContent(el);
+
+		el = attnumElement("height", "m", Editor.getProperties().getTurnMarksHeight() + "");
+		marks.addContent(el);
+
+		el = attnumElement("vertical space", "m", Editor.getProperties().getTurnMarksVerticalSpace() + "");
+		marks.addContent(el);
+
+		el = attnumElement("horizontal space", "m", Editor.getProperties().getTurnMarksHorizontalSpace() + "");
+		marks.addContent(el);
+
 		Element terrain = new Element("section");
 		name = new Attribute("name", "Terrain Generation");
 		terrain.setAttribute(name);

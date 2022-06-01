@@ -121,9 +121,23 @@ public class XmlReader
      */
     private static void setGraphic(Element graphic)
     {
+        Element marks = getChildWithName(graphic, "Turn Marks");
+
+        double val = getAttrNumValue(marks, "width");
+        Editor.getProperties().setTurnMarksWidth(val);
+
+        val = getAttrNumValue(marks, "height");
+        Editor.getProperties().setTurnMarksHeight(val);
+
+        val = getAttrNumValue(marks, "vertical space");
+        Editor.getProperties().setTurnMarksVerticalSpace(val);
+
+        val = getAttrNumValue(marks, "horizontal space");
+        Editor.getProperties().setTurnMarksHorizontalSpace(val);
+
         Element terrain = getChildWithName(graphic, "Terrain Generation");
 
-        double val = getAttrNumValue(terrain, "track step");
+        val = getAttrNumValue(terrain, "track step");
         Editor.getProperties().setTerrainTrackStep(val);
 
         val = getAttrNumValue(terrain, "border margin");
