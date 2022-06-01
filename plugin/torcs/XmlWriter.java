@@ -251,6 +251,18 @@ public class XmlWriter
 		el = attnumElement("width", "m", Editor.getProperties().getPitWidth() + "");
 		pits.addContent(el);
 
+		if (Editor.getProperties().getPitIndicator() >= 0)
+		{
+			el = attnumElement("pit indicator", null, Editor.getProperties().getPitIndicator() + "");
+			pits.addContent(el);
+		}
+
+		if (!Double.isNaN(Editor.getProperties().getPitSpeedLimit()))
+		{
+			el = attnumElement("speed limit", "m", Editor.getProperties().getPitSpeedLimit() + "");
+			pits.addContent(el);
+		}
+
 		return pits;
 	}
 

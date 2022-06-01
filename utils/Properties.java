@@ -63,6 +63,8 @@ public  class Properties
 	private double				pitWidth;
 	private double				pitLength;
 	private int					pitStyle				= 1;
+	private int					pitIndicator;
+	private double				pitSpeedLimit;
 
 	private double				imageScale				= 1;
 	private String				image					= "";
@@ -346,6 +348,36 @@ public  class Properties
 	public void setPitStyle(int pitStyle)
 	{
 		this.pitStyle = pitStyle;
+	}
+	/**
+	 * @return Returns the pitIndicator.
+	 */
+	public int getPitIndicator()
+	{
+		return pitIndicator;
+	}
+	/**
+	 * @param pitIndicator
+	 *            The pitIndicator to set.
+	 */
+	public void setPitIndicator(int pitIndicator)
+	{
+		this.pitIndicator = pitIndicator;
+	}
+	/**
+	 * @return Returns the pitSpeedLimit.
+	 */
+	public double getPitSpeedLimit()
+	{
+		return pitSpeedLimit;
+	}
+	/**
+	 * @param pitSpeedLimit
+	 *            The pitSpeedLimit to set.
+	 */
+	public void setPitSpeedLimit(double pitSpeedLimit)
+	{
+		this.pitSpeedLimit = pitSpeedLimit;
 	}
 	/**
 	 * @return Returns the trackWidth.

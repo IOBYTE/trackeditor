@@ -65,6 +65,10 @@ public class PitProperties extends JPanel
 	private JTextField	widthTextField			= null;
 	private JLabel		lengthLabel				= null;
 	private JTextField	lengthTextField			= null;
+	private JLabel		indicatorLabel			= null;
+	private JTextField	indicatorTextField		= null;	// TODO replace with JComboBox?
+	private JLabel		speedLimitLabel			= null;
+	private JTextField	speedLimitTextField		= null;
 	private JLabel 		generatePitsLabel 		= null;
 	private JCheckBox 	generatePitsCheckBox 	= null;
 	private boolean 	generatePits			= false;
@@ -96,6 +100,8 @@ public class PitProperties extends JPanel
 		stopBuildingsLabel = new JLabel();
 		styleLabel = new JLabel();
 		maxPitsLabel = new JLabel();
+		indicatorLabel = new JLabel();
+		speedLimitLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);
@@ -121,6 +127,10 @@ public class PitProperties extends JPanel
 		widthLabel.setText("Pit width");
 		lengthLabel.setBounds(10, 260, 70, 20);
 		lengthLabel.setText("Pit length");
+		indicatorLabel.setBounds(10, 285, 70, 20);
+		indicatorLabel.setText("Pit indicator");
+		speedLimitLabel.setBounds(10, 310, 70, 20);
+		speedLimitLabel.setText("Pit speed limit");
 		generatePitsLabel.setBounds(240, 10, 99, 20);
 		generatePitsLabel.setText("Generate Pits");
 		this.add(getLengthTextField(), null);
@@ -139,7 +149,6 @@ public class PitProperties extends JPanel
 		this.add(entryLabel, null);
 		this.add(getStyleComboBox(), null);
 		this.add(styleLabel, null);
-
 		this.add(generatePitsLabel, null);
 		this.add(getGeneratePitsCheckBox(), null);
 		this.add(startBuildingsLabel, null);
@@ -148,6 +157,10 @@ public class PitProperties extends JPanel
 		this.add(getStopBuildingsTextField(), null);
 		this.add(getMaxPitsTextField(), null);
 		this.add(maxPitsLabel, null);
+		this.add(getIndicatorTextField(), null);
+		this.add(indicatorLabel, null);
+		this.add(getSpeedLimitTextField(), null);
+		this.add(speedLimitLabel, null);
 	}
 	/**
 	 * This method initializes styleComboBox
@@ -299,7 +312,9 @@ public class PitProperties extends JPanel
 		if (widthTextField == null)
 		{
 			widthTextField = new JTextField();
-			widthTextField.setText(Double.toString(Editor.getProperties().getPitWidth()));
+			double val = Editor.getProperties().getPitWidth();
+			if (!Double.isNaN(val))
+				widthTextField.setText(Double.toString(val));
 			widthTextField.setBounds(100, 235, 40, 20);
 		}
 		return widthTextField;
@@ -314,10 +329,46 @@ public class PitProperties extends JPanel
 		if (lengthTextField == null)
 		{
 			lengthTextField = new JTextField();
-			lengthTextField.setText(Double.toString(Editor.getProperties().getPitLength()));
+			double val = Editor.getProperties().getPitLength();
+			if (!Double.isNaN(val))
+				lengthTextField.setText(Double.toString(val));
 			lengthTextField.setBounds(100, 260, 40, 20);
 		}
 		return lengthTextField;
+	}
+	/**
+	 * This method initializes indicatorTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getIndicatorTextField()
+	{
+		if (indicatorTextField == null)
+		{
+			indicatorTextField = new JTextField();
+			int val = Editor.getProperties().getPitIndicator();
+			if (val >= 0)
+				indicatorTextField.setText(Integer.toString(val));
+			indicatorTextField.setBounds(100, 285, 40, 20);
+		}
+		return indicatorTextField;
+	}
+	/**
+	 * This method initializes speedLimitTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getSpeedLimitTextField()
+	{
+		if (speedLimitTextField == null)
+		{
+			speedLimitTextField = new JTextField();
+			double val = Editor.getProperties().getPitSpeedLimit();
+			if (!Double.isNaN(val))
+				speedLimitTextField.setText(Double.toString(val));
+			speedLimitTextField.setBounds(100, 310, 40, 20);
+		}
+		return speedLimitTextField;
 	}
 
 	/**
@@ -361,6 +412,24 @@ public class PitProperties extends JPanel
 		if(this.getGeneratePitsCheckBox().isSelected())
 		{
 			createPits();
+		}
+		try
+		{
+			int indicator = Integer.parseInt(this.getIndicatorTextField().getText());
+			if (indicator >= 0)
+				Editor.getProperties().setPitIndicator(indicator);
+			else
+				Editor.getProperties().setPitIndicator(-1);
+		} catch (NumberFormatException e)
+		{
+			Editor.getProperties().setPitIndicator(-1);
+		}
+		try
+		{
+			Editor.getProperties().setPitSpeedLimit(Double.parseDouble(this.getSpeedLimitTextField().getText()));
+		} catch (NumberFormatException e)
+		{
+			Editor.getProperties().setPitSpeedLimit(Double.NaN);
 		}
 		Editor.getProperties().valueChanged();
 	}

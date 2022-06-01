@@ -354,6 +354,15 @@ public class XmlReader
 
         val = getAttrNumValue(pits, "width");
         Editor.getProperties().setPitWidth(val);
+
+        val = getAttrNumValue(pits, "pit indicator");
+        if (!Double.isNaN(val) && val >= 0)
+            Editor.getProperties().setPitIndicator((int)val);
+        else
+            Editor.getProperties().setPitIndicator(-1);
+
+        val = getAttrNumValue(pits, "speed limit");
+        Editor.getProperties().setPitSpeedLimit(val);
     }
 
     private synchronized static void setSegments(Element mainTrack)

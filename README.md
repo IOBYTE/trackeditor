@@ -6,7 +6,7 @@ The following attributes can now be edited:
 1. Track category: circuit, development, dirt, gprix, karting, oval, road, speedway, or test
 2. Track version: 3, 4, or 5
 3. Pit pit style: 0, 1, 2, or 3
-4. Pit start buildings, stop buildings, max pits
+4. Pit start buildings, stop buildings, max pits, pit indicator, speed limit
 5. Segment grade, z start left, z start right, z end left, z end right, banking start, banking end
 6. Segment profil, profil start tangent, profil end tangent, profil steps, profil steps length
 7. Terrain Generation track step, border margin, border step, border height, orientation
