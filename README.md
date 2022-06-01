@@ -5,17 +5,11 @@ The ultimate goal is be able to import and edit existing hand edited tracks and 
 The following attributes can now be edited:
 1. Track category: circuit, development, dirt, gprix, karting, oval, road, speedway, or test
 2. Track version: 3, 4, or 5
-3. Pit style: 0, 1, 2, or 3
-4. Pit start buildings
-5. Pit stop buildings
-6. Pit max pits
-7. Segment grade
-8. Segment profil start tangent
-9. Segment profil end tangent
-10. Segment z start left, z start right, z end left, z end right
-11. Segment banking start, banking end
-12. Segment profil
-13. Segment profil steps, profil steps length
+3. Pit pit style: 0, 1, 2, or 3
+4. Pit start buildings, stop buildings, max pits
+5. Segment grade, z start left, z start right, z end left, z end right, banking start, banking end
+6. Segment profil, profil start tangent, profil end tangent, profil steps, profil steps length
+7. Terrain Generation track step, border margin, border step, border height, orientation
 
 The following bugs have been fixed:
 1. Segment z start and z end now read from xml file
