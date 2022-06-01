@@ -45,9 +45,11 @@ public class PropertiesDialog extends JDialog
 	private JPanel				footerPanel			= null;
 	private JButton				okButton			= null;
 	private JButton				cancelButton		= null;
-	private TrackProperties trackProperties = null;
-	private PitProperties pitProperties = null;
-	private ImageProperties imageProperties = null;
+	private TrackProperties		trackProperties		= null;
+	private PitProperties		pitProperties		= null;
+	private ImageProperties		imageProperties		= null;
+	private TerrainProperties	terrainProperties	= null;
+
 	/**
 	 *  
 	 */
@@ -85,6 +87,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Track", null, getTrackProperties(), null);
 			tabbedPane.addTab("Pit", null, getPitProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
+			tabbedPane.addTab("Terrain", null, getTerrainProperties(), null);
 		}
 		return tabbedPane;
 	}
@@ -192,10 +195,10 @@ public class PropertiesDialog extends JDialog
 		return trackProperties;
 	}
 	/**
-	 * This method initializes pitProperties	
-	 * 	
-	 * @return gui.properties.PitProperties	
-	 */    
+	 * This method initializes pitProperties
+	 *
+	 * @return gui.properties.PitProperties
+	 */
 	private PitProperties getPitProperties() {
 		if (pitProperties == null) {
 			pitProperties = new PitProperties();
@@ -203,15 +206,26 @@ public class PropertiesDialog extends JDialog
 		return pitProperties;
 	}
 	/**
-	 * This method initializes imageProperties	
-	 * 	
-	 * @return gui.properties.ImageProperties	
-	 */    
+	 * This method initializes imageProperties
+	 *
+	 * @return gui.properties.ImageProperties
+	 */
 	private ImageProperties getImageProperties() {
 		if (imageProperties == null) {
 			imageProperties = new ImageProperties();
 		}
 		return imageProperties;
+	}
+	/**
+	 * This method initializes terrainProperties
+	 *
+	 * @return gui.properties.TerrainProperties
+	 */
+	private TerrainProperties getTerrainProperties() {
+		if (terrainProperties == null) {
+			terrainProperties = new TerrainProperties();
+		}
+		return terrainProperties;
 	}
 	
 	/**
@@ -223,6 +237,7 @@ public class PropertiesDialog extends JDialog
 		this.trackProperties.exit();
 		this.pitProperties.exit();
 		this.imageProperties.exit();
+		this.terrainProperties.exit();
 		APPROVE = true;
 		cancel();
 	}

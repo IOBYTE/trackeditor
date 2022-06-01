@@ -674,19 +674,19 @@ public class XmlWriter
 		terrain.setAttribute(name);
 		graphic.addContent(terrain);
 
-		el = attnumElement("track step", "m", "20");
+		el = attnumElement("track step", "m", Editor.getProperties().getTerrainTrackStep() + "");
 		terrain.addContent(el);
 
-		el = attnumElement("border margin", "m", "50");
+		el = attnumElement("border margin", "m", Editor.getProperties().getTerrainBorderMargin() + "");
 		terrain.addContent(el);
 
-		el = attnumElement("border step", "m", "30");
+		el = attnumElement("border step", "m", Editor.getProperties().getTerrainBorderStep() + "");
 		terrain.addContent(el);
 
-		el = attnumElement("border height", "m", "15");
+		el = attnumElement("border height", "m", Editor.getProperties().getTerrainBorderHeight() + "");
 		terrain.addContent(el);
 
-		el = attstrElement("orientation", "clockwise");
+		el = attstrElement("orientation", Editor.getProperties().getTerrainOrientation());
 		terrain.addContent(el);
 
 		return graphic;

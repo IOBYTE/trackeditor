@@ -67,6 +67,8 @@ public class XmlReader
     {
         Element header = getChildWithName(root, "Header");
         setHeader(header);
+        Element graphic = getChildWithName(root, "Graphic");
+        setGraphic(graphic);
         Element mainTrack = getChildWithName(root, "Main Track");
         Editor.getProperties().setTrackWidth(
                 getAttrNumValue(mainTrack, "width"));
@@ -94,6 +96,29 @@ public class XmlReader
         Editor.getProperties().setCategory(tmp);
         double version = getAttrNumValue(header, "version");
         Editor.getProperties().setTrackVersion((int) version);
+    }
+
+    /**
+     *
+     */
+    private static void setGraphic(Element graphic)
+    {
+        Element terrain = getChildWithName(graphic, "Terrain Generation");
+
+        double val = getAttrNumValue(terrain, "track step");
+        Editor.getProperties().setTerrainTrackStep(val);
+
+        val = getAttrNumValue(terrain, "border margin");
+        Editor.getProperties().setTerrainBorderMargin(val);
+
+        val = getAttrNumValue(terrain, "border step");
+        Editor.getProperties().setTerrainBorderStep(val);
+
+        val = getAttrNumValue(terrain, "border height");
+        Editor.getProperties().setTerrainBorderHeight(val);
+
+        String orientation = getAttrStrValue(terrain, "orientation");
+        Editor.getProperties().setTerrainOrientation(orientation);
     }
 
     /**
