@@ -320,6 +320,12 @@ public class XmlWriter
 				el = attnumElement("end radius", "m", radEnd + "");
 				segment.addContent(el);
 			}
+			String marks = ((Curve) shape).getMarks();
+			if (marks != null && !marks.isEmpty())
+			{
+				el = attstrElement("marks", marks);
+				segment.addContent(el);
+			}
 		}
 		if (!Double.isNaN(shape.getHeightStartLeft()) &&
 			!Double.isNaN(shape.getHeightStartRight()) &&

@@ -91,6 +91,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private GroupButton				groupButton					= null;
 	private ProfileButton			profileButton				= null;
 
+	private JLabel					marksLabel					= null;
+	private JTextField				marksTextField				= null;
+
 	private String[]				roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
 "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
@@ -188,13 +191,19 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (centerPanel == null)
 		{
 			nameLabel = new JLabel();
+			marksLabel = new JLabel();
 			centerPanel = new JPanel();
 			centerPanel.setLayout(null);
 			nameLabel.setBounds(10, 10, 45, 20);
 			nameLabel.setText("Name");
 			nameLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
-			centerPanel.add(nameLabel, null);
+	        marksLabel.setText("Marks");
+	        marksLabel.setBounds(480, 10, 60, 20);
+			marksLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
+	        centerPanel.add(nameLabel, null);
+			centerPanel.add(marksLabel, null);
 			centerPanel.add(getNameTextField(), null);
+			centerPanel.add(getMarksTextField(), null);
 			centerPanel.add(getSurfaceComboBox(), null);
 			centerPanel.add(getRadiusStartSlider(), null);
 			centerPanel.add(getRadiusEndSlider(), null);
@@ -436,7 +445,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			profileStepsLengthSlider.setExtent(2);
 			profileStepsLengthSlider.setTickSpacing(0.5);
 			profileStepsLengthSlider.setRealToTextCoeff(1);
-			profileStepsLengthSlider.setMethod("ProfileStepsLength");
+			profileStepsLengthSlider.setMethod("ProfilStepsLength");
 			profileStepsLengthSlider.setOptional(true);
 			profileStepsLengthSlider.addSliderListener(this);
 		}
@@ -612,6 +621,30 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return nameTextField;
 	}
 	/**
+	 * This method initializes marksTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getMarksTextField()
+	{
+		if (marksTextField == null)
+		{
+			marksTextField = new JTextField();
+			marksTextField.setBounds(530, 10, 295, 20);
+			marksTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					if (!shape.getType().equals("str"))
+					{
+						((Curve)shape).setMarks(marksTextField.getText());
+					}
+				}
+			});
+		}
+		return marksTextField;
+	}
+	/**
 	 * This method initializes surfaceComboBox
 	 *
 	 * @return javax.swing.JComboBox
@@ -667,6 +700,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				this.getArcSlider().setValue(curve.getArc());
 				this.getRadiusStartSlider().setValue(curve.getRadiusStart());
 				this.getRadiusEndSlider().setValue(curve.getRadiusEnd());
+				this.getMarksTextField().setEnabled(true);
+				this.getMarksTextField().setText(curve.getMarks());
 				
 			} else
 			{
@@ -677,6 +712,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				getGroupButton().setEnabled(false);
 				
 				this.getLengthSlider().setValue(shape.getLength());
+				this.getMarksTextField().setEnabled(false);
+				this.getMarksTextField().setText("");
 			}
 			getNameTextField().setText(shape.getName());
 			getSurfaceComboBox().setSelectedItem(shape.getSurface());

@@ -35,16 +35,14 @@ import miscel.EPMath;
 
 public class Curve extends Segment implements Cloneable
 {
-	// miscel datas
-//	static public final int	arc			= distFromCircuitStart + 1;
-//	static public final int	radiusStart		= arc + 1;
-//	static public final int	endRadius	= radiusStart + 1;
-	protected double arc;
-	protected double radiusStart;
-	protected double radiusEnd;
-	
+	protected double		arc;
+	protected double		radiusStart;
+	protected double 		radiusEnd;
+
 	int						nbSteps;
-	public Point2D.Double	center		= new Point2D.Double();
+	public Point2D.Double	center = new Point2D.Double();
+
+	protected String		marks;
 
 	public Curve()
 	{
@@ -72,12 +70,10 @@ public class Curve extends Segment implements Cloneable
 	{
 		double	currentX	= Editor.getProperties().getCurrentX();
 		double	currentY	= Editor.getProperties().getCurrentY();
-//		double	currentZ	= Editor.getProperties().getCurrentZ();
 		double	currentA	= Editor.getProperties().getCurrentA();
-		double 	currentBanking = Editor.getProperties().getCurrentBanking();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
-//		double	profileStepLength = Editor.getProperties().getProfileStepLength();
+		double	profileStepLength = getValidProfilStepLength();
 		double	trackWidth = Editor.getProperties().getTrackWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth();
 		double	rightBorderWidth = getValidRightBorderWidth();
@@ -95,7 +91,7 @@ public class Curve extends Segment implements Cloneable
 		
 		// calc turn length
 		length = arc * (radiusStart + radiusEnd) / 2;
-		nbSteps = (int) (length / profilStepLength + 0.5) + 1;
+		nbSteps = (int) (length / profileStepLength + 0.5) + 1;
 
 		trackStartDist += length;
 
@@ -387,6 +383,17 @@ public class Curve extends Segment implements Cloneable
 	public void setRadiusStart(double radiusStart)
 	{
 		this.radiusStart = radiusStart;
+	}
+	public String getMarks()
+	{
+		return marks;
+	}
+	/**
+	 * @param arc The arc to set.
+	 */
+	public void setMarks(String marks)
+	{
+		this.marks = marks;
 	}
 	
 	public Object clone()

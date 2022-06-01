@@ -261,6 +261,7 @@ public class XmlReader
             {
                 ((Curve) shape).setRadiusEnd(endRad);
             }
+            ((Curve) shape).setMarks(getAttrStrValue(seg, "marks"));
         }
         String name = getSegmentName(seg);
         shape.setName(name);

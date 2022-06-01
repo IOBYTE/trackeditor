@@ -733,6 +733,19 @@ public class Segment implements Cloneable
         return dy;
     }
 
+    public double getValidProfilStepLength()
+    {
+        double	length = profilStepLength;
+        if (Double.isNaN(profilStepLength))
+        {
+            length = Editor.getProperties().getProfileStepLength();
+            if (Double.isNaN(length))
+            {
+                length = 0.5;
+            }
+        }
+        return length;
+    }
     public double getValidLeftBorderWidth()
     {
     	double	leftBorderWidth = left.borderWidth;
