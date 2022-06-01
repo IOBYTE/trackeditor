@@ -567,7 +567,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			heightEndLeftSlider.setExtent(2);
 			heightEndLeftSlider.setTickSpacing(0.5);
 			heightEndLeftSlider.setRealToTextCoeff(1);
-			heightEndLeftSlider.setMethod("HeightEnd");
+			heightEndLeftSlider.setMethod("HeightEndLeft");
 			heightEndLeftSlider.setOptional(true);
 			heightEndLeftSlider.addSliderListener(this);
 		}

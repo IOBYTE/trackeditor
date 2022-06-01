@@ -87,6 +87,12 @@ public  class Properties
 	private double				terrainBorderStep		= 30;
 	private double				terrainBorderHeight		= 15;
 	private String				terrainOrientation		= "clockwise";
+	private double				terrainMaximumAltitude	= Double.NaN;
+	private double				terrainMinimumAltitude	= Double.NaN;
+	private double				terrainGroupSize		= Double.NaN;
+	private String				terrainElevationMap		= null;
+	private String				terrainReliefFile		= null;
+	private String				terrainSurface			= null;
 
 	private double				turnMarksWidth			= 1;
 	private double				turnMarksHeight			= 1;
@@ -549,6 +555,96 @@ public  class Properties
 	public void setTerrainOrientation(String terrainOrientation)
 	{
 		this.terrainOrientation = terrainOrientation;
+	}
+	/**
+	 * @return Returns the terrainMaximumAltitude.
+	 */
+	public double getTerrainMaximumAltitude()
+	{
+		return terrainMaximumAltitude;
+	}
+	/**
+	 * @param terrainMaximumAltitude
+	 *            The terrainMaximumAltitude to set.
+	 */
+	public void setTerrainMaximumAltitude(double terrainMaximumAltitude)
+	{
+		this.terrainMaximumAltitude = terrainMaximumAltitude;
+	}
+	/**
+	 * @return Returns the terrainMinimumAltitude.
+	 */
+	public double getTerrainMinimumAltitude()
+	{
+		return terrainMinimumAltitude;
+	}
+	/**
+	 * @param terrainMinimumAltitude
+	 *            The terrainMinimumAltitude to set.
+	 */
+	public void setTerrainMinimumAltitude(double terrainMinimumAltitude)
+	{
+		this.terrainMinimumAltitude = terrainMinimumAltitude;
+	}
+	/**
+	 * @return Returns the terrainGroupSize.
+	 */
+	public double getTerrainGroupSize()
+	{
+		return terrainGroupSize;
+	}
+	/**
+	 * @param terrainGroupSize
+	 *            The terrainGroupSize to set.
+	 */
+	public void setTerrainGroupSize(double terrainGroupSize)
+	{
+		this.terrainGroupSize = terrainGroupSize;
+	}
+	/**
+	 * @return Returns the terrainElevationMap.
+	 */
+	public String getTerrainElevationMap()
+	{
+		return terrainElevationMap;
+	}
+	/**
+	 * @param terrainElevationMap
+	 *            The terrainElevationMap to set.
+	 */
+	public void setTerrainElevationMap(String terrainElevationMap)
+	{
+		this.terrainElevationMap = terrainElevationMap;
+	}
+	/**
+	 * @return Returns the terrainReliefFile.
+	 */
+	public String getTerrainReliefFile()
+	{
+		return terrainReliefFile;
+	}
+	/**
+	 * @param terrainReliefFile
+	 *            The terrainReliefFile to set.
+	 */
+	public void setTerrainReliefFile(String terrainReliefFile)
+	{
+		this.terrainReliefFile = terrainReliefFile;
+	}
+	/**
+	 * @return Returns the terrainSurface.
+	 */
+	public String getTerrainSurface()
+	{
+		return terrainSurface;
+	}
+	/**
+	 * @param terrainSurface
+	 *            The terrainSurface to set.
+	 */
+	public void setTerrainSurface(String terrainSurface)
+	{
+		this.terrainSurface = terrainSurface;
 	}
 	/**
 	 * @return Returns the turnMarksWidth.

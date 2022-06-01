@@ -712,6 +712,45 @@ public class XmlWriter
 		el = attstrElement("orientation", Editor.getProperties().getTerrainOrientation());
 		terrain.addContent(el);
 
+		if (!Double.isNaN(Editor.getProperties().getTerrainMaximumAltitude()))
+		{
+			el = attnumElement("maximum altitude", "m", Editor.getProperties().getTerrainMaximumAltitude() + "");
+			terrain.addContent(el);
+		}
+
+		if (!Double.isNaN(Editor.getProperties().getTerrainMinimumAltitude()))
+		{
+			el = attnumElement("minimum altitude", "m", Editor.getProperties().getTerrainMinimumAltitude() + "");
+			terrain.addContent(el);
+		}
+
+		if (!Double.isNaN(Editor.getProperties().getTerrainGroupSize()))
+		{
+			el = attnumElement("group size", "m", Editor.getProperties().getTerrainGroupSize() + "");
+			terrain.addContent(el);
+		}
+
+		String str = Editor.getProperties().getTerrainElevationMap();
+		if (str != null && !str.isEmpty())
+		{
+			el = attstrElement("elevation map", str);
+			terrain.addContent(el);
+		}
+
+		str = Editor.getProperties().getTerrainReliefFile();
+		if (str != null && !str.isEmpty())
+		{
+			el = attstrElement("relief file", str);
+			terrain.addContent(el);
+		}
+
+		str = Editor.getProperties().getTerrainSurface();
+		if (str != null && !str.isEmpty())
+		{
+			el = attstrElement("surface", str);
+			terrain.addContent(el);
+		}
+
 		return graphic;
 	}
 

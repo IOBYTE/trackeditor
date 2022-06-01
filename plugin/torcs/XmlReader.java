@@ -121,36 +121,62 @@ public class XmlReader
      */
     private static void setGraphic(Element graphic)
     {
+        double val;
+        String str;
         Element marks = getChildWithName(graphic, "Turn Marks");
 
-        double val = getAttrNumValue(marks, "width");
-        Editor.getProperties().setTurnMarksWidth(val);
+        if (marks != null)
+        {
+            val = getAttrNumValue(marks, "width");
+            Editor.getProperties().setTurnMarksWidth(val);
 
-        val = getAttrNumValue(marks, "height");
-        Editor.getProperties().setTurnMarksHeight(val);
+            val = getAttrNumValue(marks, "height");
+            Editor.getProperties().setTurnMarksHeight(val);
 
-        val = getAttrNumValue(marks, "vertical space");
-        Editor.getProperties().setTurnMarksVerticalSpace(val);
+            val = getAttrNumValue(marks, "vertical space");
+            Editor.getProperties().setTurnMarksVerticalSpace(val);
 
-        val = getAttrNumValue(marks, "horizontal space");
-        Editor.getProperties().setTurnMarksHorizontalSpace(val);
+            val = getAttrNumValue(marks, "horizontal space");
+            Editor.getProperties().setTurnMarksHorizontalSpace(val);
+        }
 
         Element terrain = getChildWithName(graphic, "Terrain Generation");
 
-        val = getAttrNumValue(terrain, "track step");
-        Editor.getProperties().setTerrainTrackStep(val);
+        if (terrain != null)
+        {
+	        val = getAttrNumValue(terrain, "track step");
+	        Editor.getProperties().setTerrainTrackStep(val);
 
-        val = getAttrNumValue(terrain, "border margin");
-        Editor.getProperties().setTerrainBorderMargin(val);
+	        val = getAttrNumValue(terrain, "border margin");
+	        Editor.getProperties().setTerrainBorderMargin(val);
 
-        val = getAttrNumValue(terrain, "border step");
-        Editor.getProperties().setTerrainBorderStep(val);
+	        val = getAttrNumValue(terrain, "border step");
+	        Editor.getProperties().setTerrainBorderStep(val);
 
-        val = getAttrNumValue(terrain, "border height");
-        Editor.getProperties().setTerrainBorderHeight(val);
+	        val = getAttrNumValue(terrain, "border height");
+	        Editor.getProperties().setTerrainBorderHeight(val);
 
-        String orientation = getAttrStrValue(terrain, "orientation");
-        Editor.getProperties().setTerrainOrientation(orientation);
+	        str = getAttrStrValue(terrain, "orientation");
+	        Editor.getProperties().setTerrainOrientation(str);
+
+	        val = getAttrNumValue(terrain, "maximum altitude");
+	        Editor.getProperties().setTerrainMaximumAltitude(val);
+
+	        val = getAttrNumValue(terrain, "minimum altitude");
+	        Editor.getProperties().setTerrainMinimumAltitude(val);
+
+	        val = getAttrNumValue(terrain, "group size");
+	        Editor.getProperties().setTerrainGroupSize(val);
+
+	        str = getAttrStrValue(terrain, "elevation map");
+	        Editor.getProperties().setTerrainElevationMap(str);
+
+	        str = getAttrStrValue(terrain, "relief file");
+	        Editor.getProperties().setTerrainReliefFile(str);
+
+	        str = getAttrStrValue(terrain, "surface");
+	        Editor.getProperties().setTerrainSurface(str);
+        }
     }
 
     /**
