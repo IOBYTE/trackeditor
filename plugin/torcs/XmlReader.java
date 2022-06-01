@@ -47,7 +47,7 @@ import utils.circuit.Straight;
 public class XmlReader
 {
     //private static Properties properties = Properties.getInstance();
-    private static List segments;
+    private static List<Element> segments;
 
     public static void readXml(String filename)
     {
@@ -80,14 +80,17 @@ public class XmlReader
     private static synchronized void setMainTrack(Element root)
     {
         Element mainTrack = getChildWithName(root, "Main Track");
+
+        if (mainTrack == null)
+            return;
+
         Editor.getProperties().setTrackWidth(getAttrNumValue(mainTrack, "width"));
         Editor.getProperties().setSurface(getAttrStrValue(mainTrack, "surface"));
         Editor.getProperties().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
         setSide(mainTrack, Editor.getProperties().getLeft(), "Left");
         setSide(mainTrack, Editor.getProperties().getRight(), "Right");
         setPits(mainTrack);
-        segments = getChildWithName(mainTrack, "Track Segments").getChildren();
-        setSegments();
+        setSegments(mainTrack);
     }
 
     /**
@@ -115,12 +118,48 @@ public class XmlReader
      */
     private static void setCameras(Element root)
     {
+        class Camera
+        {
+            String name;
+            String segment;
+            double toRight;
+            double toStart;
+            double height;
+            String fovStart;
+            String fovEnd;
+        }
+
         Element cameras = getChildWithName(root, "Cameras");
 
         if (cameras == null)
             return;
 
-        // TODO
+        Vector<Camera> cameraData = new Vector<Camera>();
+        List<Element> sections = cameras.getChildren();
+        Iterator<Element> it = sections.iterator();
+        while (it.hasNext())
+        {
+            Camera cam = new Camera();
+
+            Element camera = it.next();
+            cam.name = camera.getAttribute("name").getValue();
+            cam.segment = getAttrStrValue(camera, "segment");
+            cam.toRight = getAttrNumValue(camera, "to right");
+            cam.toStart = getAttrNumValue(camera, "to start");
+            cam.height = getAttrNumValue(camera, "height");
+            cam.fovStart = getAttrStrValue(camera, "fov start");
+            cam.fovEnd = getAttrStrValue(camera, "fov end");
+
+            cameraData.add(cam);
+
+//            System.out.println("name        : "+cam.name);
+//            System.out.println("  segment   : "+cam.segment);
+//            System.out.println("  toRight   : "+cam.toRight);
+//            System.out.println("  toLeft    : "+cam.toStart);
+//            System.out.println("  height    : "+cam.height);
+//            System.out.println("  fovStart  : "+cam.fovStart);
+//            System.out.println("  fovEnd    : "+cam.fovEnd);
+        }
     }
 
     /**
@@ -317,17 +356,19 @@ public class XmlReader
         Editor.getProperties().setPitWidth(val);
     }
 
-    private synchronized static void setSegments()
+    private synchronized static void setSegments(Element mainTrack)
     {
-        Vector trackData = new Vector();
-        Iterator it;
+        segments = getChildWithName(mainTrack, "Track Segments").getChildren();
+
+        Vector<Segment> trackData = new Vector<Segment>();
+        Iterator<Element> it;
         Segment prev = null;
         Segment shape = null;
 
         it = segments.iterator();
         while (it.hasNext())
         {
-            Element e = (Element) it.next();
+            Element e = it.next();
             String type = getAttrStrValue(e, "type");
             if (type.equals("str"))
             {
@@ -523,19 +564,19 @@ public class XmlReader
     {
         Element out = null;
         int count = 0;
-        List all = element.getChildren();
-        Iterator it;
+        List<Element> all = element.getChildren();
+        Iterator<Element> it;
         it = all.iterator();
 
         while (it.hasNext()
-                && !((Element) it.next()).getAttribute("name").getValue()
+                && !it.next().getAttribute("name").getValue()
                         .equals(name))
         {
             count++;
         }
         if (count < all.size())
         {
-            out = (Element) all.get(count);
+            out = all.get(count);
         }
         return out;
     }
@@ -594,7 +635,7 @@ public class XmlReader
     /**
      * @return Returns the segments.
      */
-    public List getSegments()
+    public List<Element> getSegments()
     {
         return segments;
     }
