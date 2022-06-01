@@ -67,6 +67,8 @@ public class XmlReader
     {
         Element header = getChildWithName(root, "Header");
         setHeader(header);
+        setSurfaces(root);
+        setObjects(root);
         Element graphic = getChildWithName(root, "Graphic");
         setGraphic(graphic);
         Element mainTrack = getChildWithName(root, "Main Track");
@@ -96,6 +98,22 @@ public class XmlReader
         Editor.getProperties().setCategory(tmp);
         double version = getAttrNumValue(header, "version");
         Editor.getProperties().setTrackVersion((int) version);
+    }
+
+    /**
+     * @param root
+     */
+    private static void setSurfaces(Element root)
+    {
+        Element surfaces = getChildWithName(root, "Surfaces");
+    }
+
+    /**
+     * @param root
+     */
+    private static void setObjects(Element root)
+    {
+        Element objects = getChildWithName(root, "Objects");
     }
 
     /**
