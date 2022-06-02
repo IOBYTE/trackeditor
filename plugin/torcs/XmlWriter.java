@@ -33,6 +33,7 @@ import org.jdom.output.Format;
 
 import utils.Editor;
 import utils.TrackData;
+import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -86,6 +87,7 @@ public class XmlWriter
 		root.addContent(getHeader());
 		root.addContent(getGraphic());
 		root.addContent(getTrack());
+		root.addContent(getCameras());
 	}
 	/**
 	 * @return
@@ -418,6 +420,33 @@ public class XmlWriter
 		}
 
 		return surfaces;
+	}
+
+	private synchronized static Element getCameras()
+	{
+		Element cameras = new Element("section");
+		cameras.setAttribute(new Attribute("name", "Cameras"));
+
+		Vector<Camera> cameraData = TrackData.getCameraData();
+
+		for (int i = 0; i < cameraData.size(); i++)
+		{
+			Camera camera = cameraData.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", camera.getName()));
+
+			addContent(el, "segment", camera.getSegment());
+			addContent(el, "to right", null, camera.getToRight());
+			addContent(el, "to start", null, camera.getToStart());
+			addContent(el, "height", null, camera.getHeight());
+			addContent(el, "fov start", camera.getFovStart());
+			addContent(el, "fov end", camera.getFovEnd());
+
+			cameras.addContent(el);
+		}
+
+		return cameras;
 	}
 
 	private synchronized static Element getObjects()

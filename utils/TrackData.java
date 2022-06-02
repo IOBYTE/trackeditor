@@ -22,6 +22,7 @@ package utils;
 
 import java.util.Vector;
 
+import utils.circuit.Camera;
 import utils.circuit.Segment;
 import utils.circuit.Surface;
 
@@ -35,6 +36,7 @@ public final class TrackData
 {
     private static Vector<Segment>				trackData;
     private static Vector<Surface> 				surfaceData;
+    private static Vector<Camera> 				cameraData;
 
     /**
      * @return Returns the trackData.
@@ -64,6 +66,21 @@ public final class TrackData
     public static void setSurfaceData(Vector<Surface> data)
     {
         surfaceData = data;
+    }
+
+    /**
+     * @return Returns the cameraData.
+     */
+    public static Vector<Camera> getCameraData()
+    {
+        return cameraData;
+    }
+    /**
+     * @param trackData The cameraData to set.
+     */
+    public static void setCameraData(Vector<Camera> data)
+    {
+        cameraData = data;
     }
 
     /**

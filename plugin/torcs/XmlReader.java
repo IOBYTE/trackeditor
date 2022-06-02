@@ -33,6 +33,7 @@ import org.jdom.input.SAXBuilder;
 
 import utils.Editor;
 import utils.TrackData;
+import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -119,28 +120,6 @@ public class XmlReader
      */
     private static void setCameras(Element root)
     {
-        class Camera
-        {
-            String name;
-            String segment;
-            double toRight;
-            double toStart;
-            double height;
-            String fovStart;
-            String fovEnd;
-
-            void dump()
-            {
-              System.out.println("name        : "+name);
-              System.out.println("  segment   : "+segment);
-              System.out.println("  toRight   : "+toRight);
-              System.out.println("  toLeft    : "+toStart);
-              System.out.println("  height    : "+height);
-              System.out.println("  fovStart  : "+fovStart);
-              System.out.println("  fovEnd    : "+fovEnd);
-            }
-        }
-
         Element cameras = getChildWithName(root, "Cameras");
 
         if (cameras == null)
@@ -154,18 +133,17 @@ public class XmlReader
             Camera cam = new Camera();
 
             Element camera = it.next();
-            cam.name = camera.getAttribute("name").getValue();
-            cam.segment = getAttrStrValue(camera, "segment");
-            cam.toRight = getAttrNumValue(camera, "to right");
-            cam.toStart = getAttrNumValue(camera, "to start");
-            cam.height = getAttrNumValue(camera, "height");
-            cam.fovStart = getAttrStrValue(camera, "fov start");
-            cam.fovEnd = getAttrStrValue(camera, "fov end");
+            cam.setName(camera.getAttribute("name").getValue());
+            cam.setSegment(getAttrStrValue(camera, "segment"));
+            cam.setToRight(getAttrNumValue(camera, "to right"));
+            cam.setToStart(getAttrNumValue(camera, "to start"));
+            cam.setHeight(getAttrNumValue(camera, "height"));
+            cam.setFovStart(getAttrStrValue(camera, "fov start"));
+            cam.setFovEnd(getAttrStrValue(camera, "fov end"));
 
             cameraData.add(cam);
-
-            //cam.dump();
         }
+        TrackData.setCameraData(cameraData);
     }
 
     /**
