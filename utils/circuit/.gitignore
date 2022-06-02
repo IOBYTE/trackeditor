@@ -13,3 +13,5 @@
 /Object.class
 /TrackObject.class
 /TrackLight.class
+/TrackLight$Point3D.class
+/TrackLight$Corner.class

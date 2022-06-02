@@ -476,9 +476,31 @@ public class XmlWriter
 			el.setAttribute(new Attribute("name", light.getName()));
 
 			addContent(el, "role", light.getRole());
-			addContent(el, "x", null, light.getX());
-			addContent(el, "y", null, light.getY());
-			addContent(el, "z", null, light.getZ());
+
+			if (light.getTopLeft() != null)
+			{
+				Element corner = new Element("section");
+				corner.setAttribute(new Attribute("name", "topleft"));
+
+				addContent(corner, "x", null, light.getTopLeft().x);
+				addContent(corner, "y", null, light.getTopLeft().y);
+				addContent(corner, "z", null, light.getTopLeft().z);
+
+				el.addContent(corner);
+			}
+
+			if (light.getBottomRight() != null)
+			{
+				Element corner = new Element("section");
+				corner.setAttribute(new Attribute("name", "bottomright"));
+
+				addContent(corner, "x", null, light.getBottomRight().x);
+				addContent(corner, "y", null, light.getBottomRight().y);
+				addContent(corner, "z", null, light.getBottomRight().z);
+
+				el.addContent(corner);
+			}
+
 			addContent(el, "texture on", light.getTextureOn());
 			addContent(el, "texture on", light.getTextureOff());
 			addContent(el, "index", null, light.getIndex());

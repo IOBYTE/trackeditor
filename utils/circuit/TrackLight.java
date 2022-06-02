@@ -1,22 +1,24 @@
 package utils.circuit;
 
-import java.awt.geom.Point2D;
-//import javafx.geometry.Point3D;
-
 public final class TrackLight {
-	private String name						= null;
-	private String role						= null;
-//	private Point3D.Double	topLeft			= null;
-//	private Point3D.Double	bottomRight		= null;
-	private double x						= Double.NaN;
-	private double y						= Double.NaN;
-	private double z						= Double.NaN;
-	private String textureOn				= null;
-	private String textureOff				= null;
-	private int index						= Integer.MAX_VALUE;
-	private double red						= Double.NaN;
-	private double green					= Double.NaN;
-	private double blue						= Double.NaN;
+
+	public class Corner
+	{
+		public double x				= Double.NaN;
+		public double y				= Double.NaN;
+		public double z				= Double.NaN;
+	}
+
+	private String name				= null;
+	private String role				= null;
+	private Corner topLeft			= null;
+	private Corner bottomRight		= null;
+	private String textureOn		= null;
+	private String textureOff		= null;
+	private int index				= Integer.MAX_VALUE;
+	private double red				= Double.NaN;
+	private double green			= Double.NaN;
+	private double blue				= Double.NaN;
 
     public String getName() {
 		return name;
@@ -46,44 +48,36 @@ public final class TrackLight {
 		return textureOff;
 	}
 
-//	public Point3D.Double getTopLeft() {
-//		return topLeft;
-//	}
-
-//	public void setTopLeft(Point3D.Double topLeft) {
-//		this.topLeft = topLeft;
-//	}
-
-//	public Point3D.Double getBottomRight() {
-//		return bottomRight;
-//	}
-
-//	public void setBottomRight(Point3D.Double bottomRight) {
-//		this.bottomRight = bottomRight;
-//	}
-
-	public double getX() {
-		return x;
+	public Corner getTopLeft() {
+		return topLeft;
 	}
 
-	public void setX(double x) {
-		this.x = x;
+	public void setTopLeft(double x, double y, double z) {
+		this.topLeft = new Corner();
+
+		this.topLeft.x = x;
+		this.topLeft.y = y;
+		this.topLeft.z = z;
 	}
 
-	public double getY() {
-		return y;
+	public void setTopLeft(Corner topLeft) {
+		this.topLeft = topLeft;
 	}
 
-	public void setY(double y) {
-		this.y = y;
+	public Corner getBottomRight() {
+		return bottomRight;
 	}
 
-	public double getZ() {
-		return z;
+	public void setBottomRight(double x, double y, double z) {
+		this.bottomRight = new Corner();
+
+		this.bottomRight.x = x;
+		this.bottomRight.y = y;
+		this.bottomRight.z = z;
 	}
 
-	public void setZ(double z) {
-		this.z = z;
+	public void setBottomRight(Corner bottomRight) {
+		this.bottomRight = bottomRight;
 	}
 
 	public int getIndex() {
@@ -121,4 +115,24 @@ public final class TrackLight {
 	public void setTextureOff(String textureOff) {
 		this.textureOff = textureOff;
 	}
+
+	public void dump()
+    {
+		System.out.println("name            : " + name);
+		System.out.println("  role          : " + role);
+		if (topLeft != null)
+			System.out.println("  topLeft       : " + topLeft.x + " " + topLeft.y + " " + topLeft.z);
+		else
+			System.out.println("  topLeft       : null");
+		if (bottomRight != null)
+			System.out.println("  bottomRight   : " + bottomRight.x + " " + bottomRight.y + " " + bottomRight.z);
+		else
+			System.out.println("  bottomRight   : null");
+		System.out.println("  textureOn     : " + textureOn);
+		System.out.println("  textureOff    : " + textureOff);
+		System.out.println("  index         : " + index);
+		System.out.println("  red           : " + red);
+		System.out.println("  green         : " + green);
+		System.out.println("  blue          : " + blue);
+    }
 }

@@ -167,10 +167,26 @@ public class XmlReader
 
             Element light = it.next();
             lit.setName(light.getAttribute("name").getValue());
+
+            Element corner = getChildWithName(light, "topleft");
+
+            if (corner != null)
+            {
+                lit.setTopLeft(getAttrNumValue(corner, "x"),
+                               getAttrNumValue(corner, "y"),
+                               getAttrNumValue(corner, "z"));
+            }
+
+            corner = getChildWithName(light, "bottomright");
+
+            if (corner != null)
+            {
+                lit.setBottomRight(getAttrNumValue(corner, "x"),
+                                   getAttrNumValue(corner, "y"),
+                                   getAttrNumValue(corner, "z"));
+            }
+
             lit.setRole(getAttrStrValue(light, "role"));
-            lit.setX(getAttrNumValue(light, "x"));
-            lit.setY(getAttrNumValue(light, "y"));
-            lit.setZ(getAttrNumValue(light, "z"));
             lit.setTextureOn(getAttrStrValue(light, "texture on"));
             lit.setTextureOff(getAttrStrValue(light, "texture off"));
             lit.setIndex(getAttrIntValue(light, "index"));
