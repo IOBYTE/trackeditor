@@ -122,11 +122,9 @@ public class XmlWriter
 		Element track = new Element("section");
 		Comment com = null;
 		track.setAttribute(name);
-		Element el = attnumElement("width", "m", Editor.getProperties().getTrackWidth() + "");
-		track.addContent(el);
-		el = attnumElement("profil steps length", "m", Editor.getProperties().getProfileStepLength() + "");
-		track.addContent(el);
-		el = attstrElement("surface", Editor.getProperties().getSurface());
+		addContent(track, "width", "m", Editor.getProperties().getTrackWidth());
+		addContent(track, "profil steps length", "m", Editor.getProperties().getProfileStepLength());
+		Element el = attstrElement("surface", Editor.getProperties().getSurface());
 		track.addContent(el);
 
 		com = new Comment("Left part of track");
@@ -170,8 +168,7 @@ public class XmlWriter
 		int style = Editor.getProperties().getPitStyle();
 		if (style != 1)
 		{
-			Element el = attnumElement("type", null,  "" + style);
-			pits.addContent(el);
+			addContent(pits, "type", null, style);
 		}
 		if (Editor.getProperties().getPitSide() != null)
 		{
@@ -180,88 +177,28 @@ public class XmlWriter
 		{
 			tmp = "right";
 		}
-		Element el = attstrElement("side", tmp);
-		pits.addContent(el);
-
-		if (Editor.getProperties().getPitEntry() != null)
-		{
-			tmp = Editor.getProperties().getPitEntry();
-		} else
-		{
-			tmp = "";
-		}
-		el = attstrElement("entry", tmp);
-		pits.addContent(el);
-
-		if (Editor.getProperties().getPitStart() != null)
-		{
-			tmp = Editor.getProperties().getPitStart();
-		} else
-		{
-			tmp = "";
-		}
-		el = attstrElement("start", tmp);
-		pits.addContent(el);
-
-		if (Editor.getProperties().getPitStartBuildings() != null &&
-			!Editor.getProperties().getPitStartBuildings().isEmpty())
-		{
-			tmp = Editor.getProperties().getPitStartBuildings();
-			el = attstrElement("start buildings", tmp);
-			pits.addContent(el);
-		}
-
-		if (Editor.getProperties().getPitStopBuildings() != null &&
-			!Editor.getProperties().getPitStopBuildings().isEmpty())
-		{
-			tmp = Editor.getProperties().getPitStopBuildings();
-			el = attstrElement("stop buildings", tmp);
-			pits.addContent(el);
-		}
+		addContent(pits, "side", tmp);
+		addContent(pits, "entry", Editor.getProperties().getPitEntry());
+		addContent(pits, "start", Editor.getProperties().getPitStart());
+		addContent(pits, "start buildings", Editor.getProperties().getPitStartBuildings());
+		addContent(pits, "stop buildings", Editor.getProperties().getPitStopBuildings());
 
 		if (Editor.getProperties().getPitMaxPits() > 0)
 		{
-			el = attnumElement("max pits", null, Editor.getProperties().getPitMaxPits() + "");
-			pits.addContent(el);
+			addContent(pits, "max pits", null, Editor.getProperties().getPitMaxPits());
 		}
 
-		if (Editor.getProperties().getPitEnd() != null)
-		{
-			tmp = Editor.getProperties().getPitEnd();
-		} else
-		{
-			tmp = "";
-		}
-		el = attstrElement("end", tmp);
-		pits.addContent(el);
-
-		if (Editor.getProperties().getPitExit() != null)
-		{
-			tmp = Editor.getProperties().getPitExit();
-		} else
-		{
-			tmp = "";
-		}
-		el = attstrElement("exit", tmp);
-		pits.addContent(el);
-
-		el = attnumElement("length", "m", Editor.getProperties().getPitLength() + "");
-		pits.addContent(el);
-
-		el = attnumElement("width", "m", Editor.getProperties().getPitWidth() + "");
-		pits.addContent(el);
+		addContent(pits, "end", Editor.getProperties().getPitEnd());
+		addContent(pits, "exit", Editor.getProperties().getPitExit());
+		addContent(pits, "length", "m", Editor.getProperties().getPitLength());
+		addContent(pits, "width", "m", Editor.getProperties().getPitWidth());
 
 		if (Editor.getProperties().getPitIndicator() >= 0)
 		{
-			el = attnumElement("pit indicator", null, Editor.getProperties().getPitIndicator() + "");
-			pits.addContent(el);
+			addContent(pits, "pit indicator", null, Editor.getProperties().getPitIndicator());
 		}
 
-		if (!Double.isNaN(Editor.getProperties().getPitSpeedLimit()))
-		{
-			el = attnumElement("speed limit", "m", Editor.getProperties().getPitSpeedLimit() + "");
-			pits.addContent(el);
-		}
+		addContent(pits, "speed limit", "m", Editor.getProperties().getPitSpeedLimit());
 
 		return pits;
 	}
@@ -313,138 +250,58 @@ public class XmlWriter
 		segment.addContent(el);
 		if (shape.getType().equals("str"))
 		{
-			el = attnumElement("lg", "m", ((Straight) shape).getLength() + "");
-			segment.addContent(el);
+			addContent(segment, "lg", "m", ((Straight) shape).getLength());
 		} else
 		{
 			double arc = ((Curve) shape).getArc();
 			arc = (arc * 180) / Math.PI;
-			el = attnumElement("arc", "deg", arc + "");
-			segment.addContent(el);
+			addContent(segment, "arc", "deg", arc);
 
 			double radStart = ((Curve) shape).getRadiusStart();
-			el = attnumElement("radius", "m", radStart + "");
-			segment.addContent(el);
+			addContent(segment, "radius", "m", radStart);
 
 			double radEnd = ((Curve) shape).getRadiusEnd();
 			if (radStart != radEnd)
 			{
-				el = attnumElement("end radius", "m", radEnd + "");
-				segment.addContent(el);
+				addContent(segment, "end radius", "m", radEnd);
 			}
-			String marks = ((Curve) shape).getMarks();
-			if (marks != null && !marks.isEmpty())
-			{
-				el = attstrElement("marks", marks);
-				segment.addContent(el);
-			}
+			addContent(segment, "marks", ((Curve) shape).getMarks());
 		}
 		if (!Double.isNaN(shape.getHeightStartLeft()) &&
 			!Double.isNaN(shape.getHeightStartRight()) &&
 			shape.getHeightStartLeft() == shape.getHeightStartRight())
 		{
-			el = attnumElement("z start", "m", shape.getHeightStartLeft() + "");
-			segment.addContent(el);
+			addContent(segment, "z start", "m", shape.getHeightStartLeft());
 		}
 		else
 		{
-			if (!Double.isNaN(shape.getHeightStartLeft()))
-			{
-				el = attnumElement("z start left", "m", shape.getHeightStartLeft() + "");
-				segment.addContent(el);
-			}
-			if (!Double.isNaN(shape.getHeightStartRight()))
-			{
-				el = attnumElement("z start right", "m", shape.getHeightStartRight() + "");
-				segment.addContent(el);
-			}
+			addContent(segment, "z start left", "m", shape.getHeightStartLeft());
+			addContent(segment, "z start right", "m", shape.getHeightStartRight());
 		}
 		if (!Double.isNaN(shape.getHeightEndLeft()) &&
 			!Double.isNaN(shape.getHeightEndRight()) &&
 			shape.getHeightEndLeft() == shape.getHeightEndRight())
 		{
-			el = attnumElement("z end", "m", shape.getHeightEndLeft() + "");
-			segment.addContent(el);
+			addContent(segment, "z end", "m", shape.getHeightEndLeft());
 		}
 		else
 		{
-			if (!Double.isNaN(shape.getHeightEndLeft()))
-			{
-				el = attnumElement("z end left", "m", shape.getHeightEndLeft() + "");
-				segment.addContent(el);
-			}
-			if (!Double.isNaN(shape.getHeightEndRight()))
-			{
-				el = attnumElement("z end right", "m", shape.getHeightEndRight() + "");
-				segment.addContent(el);
-			}
+			addContent(segment, "z end left", "m", shape.getHeightEndLeft());
+			addContent(segment, "z end right", "m", shape.getHeightEndRight());
 		}
-		if (!Double.isNaN(shape.getGrade()))
-		{
-			el = attnumElement("grade", "%", shape.getGrade() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getBankingStart()))
-		{
-			el = attnumElement("banking start", "deg", shape.getBankingStart() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getBankingEnd()))
-		{
-			el = attnumElement("banking end", "deg", shape.getBankingEnd() + "");
-			segment.addContent(el);
-		}
-		if (shape.getProfil() != null)
-		{
-			el = attstrElement("profil", shape.getProfil());
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilSteps()))
-		{
-			el = attnumElement("profil steps", "m", shape.getProfilSteps() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilStepsLength()))
-		{
-			el = attnumElement("profil steps length", "m", shape.getProfilStepsLength() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilStartTangent()))
-		{
-			el = attnumElement("profil start tangent", "m", shape.getProfilStartTangent() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilEndTangent()))
-		{
-			el = attnumElement("profil end tangent", "%", shape.getProfilEndTangent() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilStartTangentLeft()))
-		{
-			el = attnumElement("profil start tangent left", "m", shape.getProfilStartTangentLeft() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilEndTangentLeft()))
-		{
-			el = attnumElement("profil end tangent left", "m", shape.getProfilEndTangentLeft() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilStartTangentRight()))
-		{
-			el = attnumElement("profil start tangent right", "m", shape.getProfilStartTangentRight() + "");
-			segment.addContent(el);
-		}
-		if (!Double.isNaN(shape.getProfilEndTangentRight()))
-		{
-			el = attnumElement("profil end tangent right", "m", shape.getProfilEndTangentRight() + "");
-			segment.addContent(el);
-		}
-
-		if (shape.getSurface() != null && !shape.getSurface().isEmpty())
-		{
-			el = attstrElement("surface", shape.getSurface());
-			segment.addContent(el);
-		}
+		addContent(segment, "grade", "%", shape.getGrade());
+		addContent(segment, "banking start", "deg", shape.getBankingStart());
+		addContent(segment, "banking end", "deg", shape.getBankingEnd());
+		addContent(segment, "profil", shape.getProfil());
+		addContent(segment, "profil steps", "m", shape.getProfilSteps());
+		addContent(segment, "profil steps length", "m", shape.getProfilStepsLength());
+		addContent(segment, "profil start tangent", "m", shape.getProfilStartTangent());
+		addContent(segment, "profil end tangent", "%", shape.getProfilEndTangent());
+		addContent(segment, "profil start tangent left", "m", shape.getProfilStartTangentLeft());
+		addContent(segment, "profil end tangent left", "m", shape.getProfilEndTangentLeft());
+		addContent(segment, "profil start tangent right", "m", shape.getProfilStartTangentRight());
+		addContent(segment, "profil end tangent right", "m", shape.getProfilEndTangentRight());
+		addContent(segment, "surface", shape.getSurface());
 		com = new Comment("Left part of segment");
 		segment.addContent(com);
 		if (shape.getLeft().getHasSide())
@@ -476,30 +333,13 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBorder(SegmentSide part, String sPart)
 	{
-		Element el = null;
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Border");
 		side.setAttribute(name);
-		if (!Double.isNaN(part.getBorderWidth()))
-		{
-			el = attnumElement("width", "m", part.getBorderWidth() + "");
-			side.addContent(el);
-		}
-		if (!Double.isNaN(part.getBorderHeight()))
-		{
-			el = attnumElement("height", "m", part.getBorderHeight() + "");
-			side.addContent(el);
-		}
-		if (part.getBorderSurface() != null && !part.getBorderSurface().isEmpty())
-		{
-			el = attstrElement("surface", part.getBorderSurface());
-			side.addContent(el);
-		}
-		if (part.getBorderStyle() != null && !part.getBorderStyle().isEmpty())
-		{
-			el = attstrElement("style", part.getBorderStyle());
-			side.addContent(el);
-		}
+		addContent(side, "width", "m", part.getBorderWidth());
+		addContent(side, "height", "m", part.getBorderHeight());
+		addContent(side, "surface", part.getBorderSurface());
+		addContent(side, "style", part.getBorderStyle());
 
 		return side;
 	}
@@ -511,30 +351,13 @@ public class XmlWriter
 	 */
 	private synchronized static Element getBarrier(SegmentSide part, String sPart)
 	{
-		Element el = null;
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Barrier");
 		side.setAttribute(name);
-		if (!Double.isNaN(part.getBarrierWidth()))
-		{
-			el = attnumElement("width", "m", part.getBarrierWidth() + "");
-			side.addContent(el);
-		}
-		if (!Double.isNaN(part.getBarrierHeight()))
-		{
-			el = attnumElement("height", "m", part.getBarrierHeight() + "");
-			side.addContent(el);
-		}
-		if (part.getBarrierSurface() != null && !part.getBarrierSurface().isEmpty())
-		{
-			el = attstrElement("surface", part.getBarrierSurface());
-			side.addContent(el);
-		}
-		if (part.getBarrierSurface() != null && !part.getBarrierStyle().isEmpty())
-		{
-			el = attstrElement("style", part.getBarrierStyle());
-			side.addContent(el);
-		}
+		addContent(side, "width", "m", part.getBarrierWidth());
+		addContent(side, "height", "m", part.getBarrierHeight());
+		addContent(side, "surface", part.getBarrierSurface());
+		addContent(side, "style", part.getBarrierStyle());
 
 		return side;
 	}
@@ -549,35 +372,19 @@ public class XmlWriter
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Side");
 		side.setAttribute(name);
-		if (!Double.isNaN(part.getSideStartWidth()) && !Double.isNaN(part.getSideEndWidth()) &&
+		if (!Double.isNaN(part.getSideStartWidth()) &&
+			!Double.isNaN(part.getSideEndWidth()) &&
 			part.getSideStartWidth() == part.getSideEndWidth())
 		{
-			el = attnumElement("width", "m", part.getSideStartWidth() + "");
-			side.addContent(el);
+			addContent(side, "width", "m", part.getSideStartWidth());
 		}
 		else
 		{
-			if (!Double.isNaN(part.getSideStartWidth()))
-			{
-				el = attnumElement("start width", "m", part.getSideStartWidth() + "");
-				side.addContent(el);
-			}
-			if (!Double.isNaN(part.getSideEndWidth()))
-			{
-				el = attnumElement("end width", "m", part.getSideEndWidth() + "");
-				side.addContent(el);
-			}
+			addContent(side, "start width", "m", part.getSideStartWidth());
+			addContent(side, "end width", "m", part.getSideEndWidth());
 		}
-		if (part.getSideSurface() != null && !part.getSideSurface().isEmpty())
-		{
-			el = attstrElement("surface", part.getSideSurface());
-			side.addContent(el);
-		}
-		if (part.getSideBankingType() != null && !part.getSideBankingType().isEmpty())
-		{
-			el = attstrElement("banking type", part.getSideBankingType());
-			side.addContent(el);
-		}
+		addContent(side, "surface", part.getSideSurface());
+		addContent(side, "banking type", part.getSideBankingType());
 
 		return side;
 	}
@@ -629,14 +436,12 @@ public class XmlWriter
 	private synchronized static Element getHeader()
 	{
 		Attribute name = new Attribute("name", "Header");
-		Attribute val = null;
 		String tmp = "";
 
 		Element header = new Element("section");
 		header.setAttribute(name);
 
-		Element el = attstrElement("name", Editor.getProperties().getTrackName());
-		header.addContent(el);
+		addContent(header, "name", Editor.getProperties().getTrackName());
 
 		if (Editor.getProperties().getCategory() != null)
 		{
@@ -645,11 +450,8 @@ public class XmlWriter
 		{
 			tmp = "road";
 		}
-		el = attstrElement("category", tmp);
-		header.addContent(el);
-
-		el = attnumElement("version", null, Editor.getProperties().getTrackVersion() + "");
-		header.addContent(el);
+		addContent(header, "category", tmp);
+		addContent(header, "version", null, Editor.getProperties().getTrackVersion());
 
 		if (Editor.getProperties().getAuthor() != null)
 		{
@@ -658,8 +460,7 @@ public class XmlWriter
 		{
 			tmp = "Anonymous";
 		}
-		el = attstrElement("author", tmp);
-		header.addContent(el);
+		addContent(header, "author", tmp);
 
 		if (Editor.getProperties().getDescription() != null)
 		{
@@ -668,8 +469,7 @@ public class XmlWriter
 		{
 			tmp = "No description provided";
 		}
-		el = attstrElement("description", tmp);
-		header.addContent(el);
+		addContent(header, "description", tmp);
 
 		return header;
 	}
@@ -684,84 +484,34 @@ public class XmlWriter
 		Element graphic = new Element("section");
 		graphic.setAttribute(name);
 
-		Element el = attstrElement("3d description", Editor.getProperties().getTrackName() + ".ac");
-		graphic.addContent(el);
+		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
 
 		Element marks = new Element("section");
 		name = new Attribute("name", "Turn Marks");
 		marks.setAttribute(name);
 		graphic.addContent(marks);
 
-		el = attnumElement("width", "m", Editor.getProperties().getTurnMarksWidth() + "");
-		marks.addContent(el);
-
-		el = attnumElement("height", "m", Editor.getProperties().getTurnMarksHeight() + "");
-		marks.addContent(el);
-
-		el = attnumElement("vertical space", "m", Editor.getProperties().getTurnMarksVerticalSpace() + "");
-		marks.addContent(el);
-
-		el = attnumElement("horizontal space", "m", Editor.getProperties().getTurnMarksHorizontalSpace() + "");
-		marks.addContent(el);
+		addContent(marks, "width", "m", Editor.getProperties().getTurnMarksWidth());
+		addContent(marks, "height", "m", Editor.getProperties().getTurnMarksHeight());
+		addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarksVerticalSpace());
+		addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarksHorizontalSpace());
 
 		Element terrain = new Element("section");
 		name = new Attribute("name", "Terrain Generation");
 		terrain.setAttribute(name);
 		graphic.addContent(terrain);
 
-		el = attnumElement("track step", "m", Editor.getProperties().getTerrainTrackStep() + "");
-		terrain.addContent(el);
-
-		el = attnumElement("border margin", "m", Editor.getProperties().getTerrainBorderMargin() + "");
-		terrain.addContent(el);
-
-		el = attnumElement("border step", "m", Editor.getProperties().getTerrainBorderStep() + "");
-		terrain.addContent(el);
-
-		el = attnumElement("border height", "m", Editor.getProperties().getTerrainBorderHeight() + "");
-		terrain.addContent(el);
-
-		el = attstrElement("orientation", Editor.getProperties().getTerrainOrientation());
-		terrain.addContent(el);
-
-		if (!Double.isNaN(Editor.getProperties().getTerrainMaximumAltitude()))
-		{
-			el = attnumElement("maximum altitude", "m", Editor.getProperties().getTerrainMaximumAltitude() + "");
-			terrain.addContent(el);
-		}
-
-		if (!Double.isNaN(Editor.getProperties().getTerrainMinimumAltitude()))
-		{
-			el = attnumElement("minimum altitude", "m", Editor.getProperties().getTerrainMinimumAltitude() + "");
-			terrain.addContent(el);
-		}
-
-		if (!Double.isNaN(Editor.getProperties().getTerrainGroupSize()))
-		{
-			el = attnumElement("group size", "m", Editor.getProperties().getTerrainGroupSize() + "");
-			terrain.addContent(el);
-		}
-
-		String str = Editor.getProperties().getTerrainElevationMap();
-		if (str != null && !str.isEmpty())
-		{
-			el = attstrElement("elevation map", str);
-			terrain.addContent(el);
-		}
-
-		str = Editor.getProperties().getTerrainReliefFile();
-		if (str != null && !str.isEmpty())
-		{
-			el = attstrElement("relief file", str);
-			terrain.addContent(el);
-		}
-
-		str = Editor.getProperties().getTerrainSurface();
-		if (str != null && !str.isEmpty())
-		{
-			el = attstrElement("surface", str);
-			terrain.addContent(el);
-		}
+		addContent(terrain, "track step", "m", Editor.getProperties().getTerrainTrackStep());
+		addContent(terrain, "border margin", "m", Editor.getProperties().getTerrainBorderMargin());
+		addContent(terrain, "border step", "m", Editor.getProperties().getTerrainBorderStep());
+		addContent(terrain, "border height", "m", Editor.getProperties().getTerrainBorderHeight());
+		addContent(terrain, "orientation", Editor.getProperties().getTerrainOrientation());
+		addContent(terrain, "maximum altitude", "m", Editor.getProperties().getTerrainMaximumAltitude());
+		addContent(terrain, "minimum altitude", "m", Editor.getProperties().getTerrainMinimumAltitude());
+		addContent(terrain, "group size", "m", Editor.getProperties().getTerrainGroupSize());
+		addContent(terrain, "elevation map", Editor.getProperties().getTerrainElevationMap());
+		addContent(terrain, "relief file", Editor.getProperties().getTerrainReliefFile());
+		addContent(terrain, "surface", Editor.getProperties().getTerrainSurface());
 
 		return graphic;
 	}
@@ -769,7 +519,6 @@ public class XmlWriter
 	private synchronized static Element attstrElement(String attname, String attval)
 	{
 		Attribute name = null;
-		Attribute unit = null;
 		Attribute val = null;
 
 		Element el = new Element("attstr");
@@ -803,6 +552,27 @@ public class XmlWriter
 		el.setAttribute(val);
 
 		return el;
+	}
+
+	private synchronized static void addContent(Element section, String attribute, String units, double value)
+	{
+		if (!Double.isNaN(value))
+		{
+			section.addContent(attnumElement(attribute, units, value + ""));
+		}
+	}
+
+	private synchronized static void addContent(Element section, String attribute, String units, int value)
+	{
+		section.addContent(attnumElement(attribute, units, value + ""));
+	}
+
+	private synchronized static void addContent(Element section, String attribute, String string)
+	{
+		if (string != null && !string.isEmpty())
+		{
+			section.addContent(attstrElement(attribute, string));
+		}
 	}
 
 	private synchronized static void writeToFile()
