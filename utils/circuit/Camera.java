@@ -1,6 +1,6 @@
 package utils.circuit;
 
-public class Camera {
+public final class Camera {
 	private String name		= null;
 	private String segment	= null;
 	private double toRight	= Double.NaN;

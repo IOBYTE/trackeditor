@@ -39,6 +39,7 @@ import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TrackObject;
 
 /**
  * @author Charalampos Alexopoulos
@@ -254,42 +255,23 @@ public class XmlReader
         if (objects == null)
             return;
 
-        class Object
-        {
-            String name;
-            String object;
-            int color;
-            String orientationType;
-            double orientation;
-
-            void dump()
-            {
-              System.out.println("name              : "+name);
-              System.out.println("  object          : "+object);
-              System.out.println("  color           : 0x"+Integer.toHexString(color).toUpperCase());
-              System.out.println("  orientationType : "+orientationType);
-              System.out.println("  orientation     : "+orientation);
-            }
-        }
-
-        Vector<Object> objectData = new Vector<Object>();
+        Vector<TrackObject> objectData = new Vector<TrackObject>();
         List<Element> sections = objects.getChildren();
         Iterator<Element> it = sections.iterator();
         while (it.hasNext())
         {
-            Object obj = new Object();
+            TrackObject obj = new TrackObject();
 
             Element surface = it.next();
-            obj.name = surface.getAttribute("name").getValue();
-            obj.object = getAttrStrValue(surface, "object");
-            obj.color = getAttrIntValue(surface, "color");	// TODO
-            obj.orientationType = getAttrStrValue(surface, "orientation type");
-            obj.orientation = getAttrNumValue(surface, "orientation");
+            obj.setName(surface.getAttribute("name").getValue());
+            obj.setObject(getAttrStrValue(surface, "object"));
+            obj.setColor(getAttrIntValue(surface, "color"));
+            obj.setOrientationType(getAttrStrValue(surface, "orientation type"));
+            obj.setOrientation(getAttrNumValue(surface, "orientation"));
 
             objectData.add(obj);
-
-            //obj.dump();
         }
+        TrackData.setObjectData(objectData);
     }
 
     /**

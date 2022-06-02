@@ -39,6 +39,7 @@ import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TrackObject;
 
 /**
  * @author Charalampos Alexopoulos
@@ -387,6 +388,9 @@ public class XmlWriter
 
 		Vector<Surface> surfaceData = TrackData.getSurfaceData();
 
+		if (surfaceData == null)
+			return surfaces;
+
 		for (int i = 0; i < surfaceData.size(); i++)
 		{
 			Surface surface = surfaceData.get(i);
@@ -429,6 +433,9 @@ public class XmlWriter
 
 		Vector<Camera> cameraData = TrackData.getCameraData();
 
+		if (cameraData == null)
+			return cameras;
+
 		for (int i = 0; i < cameraData.size(); i++)
 		{
 			Camera camera = cameraData.get(i);
@@ -452,9 +459,28 @@ public class XmlWriter
 	private synchronized static Element getObjects()
 	{
 		Element objects = new Element("section");
-		Attribute name = new Attribute("name", "Objects");
-		objects.setAttribute(name);
+		objects.setAttribute(new Attribute("name", "Objects"));
 		objects.setText("&default-objects;");
+
+		Vector<TrackObject> objectData = TrackData.getObjectData();
+
+		if (objectData == null)
+			return objects;
+
+		for (int i = 0; i < objectData.size(); i++)
+		{
+			TrackObject object = objectData.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", object.getName()));
+
+			addContent(el, "object", object.getObject());
+			addContent(el, "color", null, object.getColor());
+			addContent(el, "orientation type", object.getOrientationType());
+			addContent(el, "orientation", null, object.getOrientation());
+
+			objects.addContent(el);
+		}
 
 		return objects;
 	}

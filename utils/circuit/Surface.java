@@ -1,6 +1,6 @@
 package utils.circuit;
 
-public class Surface {
+public final class Surface {
     private String name						= null;
     private double colorR1					= Double.NaN;
     private double colorG1					= Double.NaN;
