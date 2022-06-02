@@ -127,6 +127,17 @@ public class XmlReader
             double height;
             String fovStart;
             String fovEnd;
+
+            void dump()
+            {
+              System.out.println("name        : "+name);
+              System.out.println("  segment   : "+segment);
+              System.out.println("  toRight   : "+toRight);
+              System.out.println("  toLeft    : "+toStart);
+              System.out.println("  height    : "+height);
+              System.out.println("  fovStart  : "+fovStart);
+              System.out.println("  fovEnd    : "+fovEnd);
+            }
         }
 
         Element cameras = getChildWithName(root, "Cameras");
@@ -152,13 +163,7 @@ public class XmlReader
 
             cameraData.add(cam);
 
-//            System.out.println("name        : "+cam.name);
-//            System.out.println("  segment   : "+cam.segment);
-//            System.out.println("  toRight   : "+cam.toRight);
-//            System.out.println("  toLeft    : "+cam.toStart);
-//            System.out.println("  height    : "+cam.height);
-//            System.out.println("  fovStart  : "+cam.fovStart);
-//            System.out.println("  fovEnd    : "+cam.fovEnd);
+            //cam.dump();
         }
     }
 
@@ -224,7 +229,93 @@ public class XmlReader
         if (surfaces == null)
             return;
 
-        // TODO
+        class Surface
+        {
+            String name;
+            double colorR1;
+            double colorG1;
+            double colorB1;
+            double colorR2;
+            double colorG2;
+            double colorB2;
+            String textureName;
+            String textureType;
+            double textureSize;
+            String textureLinkWithPrevious;
+            String textureStartOnBoundary;
+            double textureMipMap;	// TODO int
+            double friction;
+            double rollingResistance;
+            String bumpName;
+            double bumpSize;
+            double roughness;
+            double roughnessWavelength;
+            String racelineName;
+            double dammage;
+            double rebound;
+
+            void dump()
+            {
+              System.out.println("name                      : "+name);
+              System.out.println("  colorR1                 : "+colorR1);
+              System.out.println("  colorG1                 : "+colorG1);
+              System.out.println("  colorB1                 : "+colorB1);
+              System.out.println("  colorR2                 : "+colorR2);
+              System.out.println("  colorG2                 : "+colorG2);
+              System.out.println("  colorB2                 : "+colorB2);
+              System.out.println("  textureName             : "+textureName);
+              System.out.println("  textureSize             : "+textureSize);
+              System.out.println("  textureType             : "+textureType);
+              System.out.println("  textureLinkWithPrevious : "+textureLinkWithPrevious);
+              System.out.println("  textureStartOnBoundary  : "+textureStartOnBoundary);
+              System.out.println("  textureMipMap           : "+textureMipMap);
+              System.out.println("  friction                : "+friction);
+              System.out.println("  rollingResistance       : "+rollingResistance);
+              System.out.println("  bumpName                : "+bumpName);
+              System.out.println("  bumpSize                : "+bumpSize);
+              System.out.println("  roughness               : "+roughness);
+              System.out.println("  roughnessWavelength     : "+roughnessWavelength);
+              System.out.println("  racelineName            : "+racelineName);
+              System.out.println("  dammage                 : "+dammage);
+              System.out.println("  rebound                 : "+rebound);
+            }
+        }
+
+        Vector<Surface> surfaceData = new Vector<Surface>();
+        List<Element> sections = surfaces.getChildren();
+        Iterator<Element> it = sections.iterator();
+        while (it.hasNext())
+        {
+            Surface surf = new Surface();
+
+            Element surface = it.next();
+            surf.name = surface.getAttribute("name").getValue();
+            surf.colorR1 = getAttrNumValue(surface, "color R1");
+            surf.colorG1 = getAttrNumValue(surface, "color G1");
+            surf.colorB1 = getAttrNumValue(surface, "color B1");
+            surf.colorR2 = getAttrNumValue(surface, "color R2");
+            surf.colorG2 = getAttrNumValue(surface, "color G2");
+            surf.colorB2 = getAttrNumValue(surface, "color B2");
+            surf.textureName = getAttrStrValue(surface, "texture name");
+            surf.textureSize = getAttrNumValue(surface, "texture size");
+            surf.textureType = getAttrStrValue(surface, "texture type");
+            surf.textureLinkWithPrevious = getAttrStrValue(surface, "texture link with previous");
+            surf.textureStartOnBoundary = getAttrStrValue(surface, "texture start on boundary");
+            surf.textureMipMap = getAttrNumValue(surface, "texture mipmap");
+            surf.friction = getAttrNumValue(surface, "friction");
+            surf.rollingResistance = getAttrNumValue(surface, "rolling resistance");
+            surf.bumpName = getAttrStrValue(surface, "bump name");
+            surf.bumpSize = getAttrNumValue(surface, "bump size");
+            surf.roughness = getAttrNumValue(surface, "roughness");
+            surf.roughnessWavelength = getAttrNumValue(surface, "roughness wavelength");
+            surf.racelineName = getAttrStrValue(surface, "raceline name");
+            surf.dammage = getAttrNumValue(surface, "dammage");
+            surf.rebound = getAttrNumValue(surface, "rebound");
+
+            surfaceData.add(surf);
+
+            //surf.dump();
+        }
     }
 
     /**
