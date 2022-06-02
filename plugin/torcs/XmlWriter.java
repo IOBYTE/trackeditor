@@ -39,6 +39,7 @@ import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
 /**
@@ -83,6 +84,7 @@ public class XmlWriter
 		doc.addContent(com);
 		doc.addContent(type);
 		doc.setRootElement(root);
+		root.addContent(getLights());
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
@@ -454,6 +456,40 @@ public class XmlWriter
 		}
 
 		return cameras;
+	}
+
+	private synchronized static Element getLights()
+	{
+		Element lights = new Element("section");
+		lights.setAttribute(new Attribute("name", "Track Lights"));
+
+		Vector<TrackLight> lightData = TrackData.getLightData();
+
+		if (lightData == null)
+			return lights;
+
+		for (int i = 0; i < lightData.size(); i++)
+		{
+			TrackLight light = lightData.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", light.getName()));
+
+			addContent(el, "role", light.getRole());
+			addContent(el, "x", null, light.getX());
+			addContent(el, "y", null, light.getY());
+			addContent(el, "z", null, light.getZ());
+			addContent(el, "texture on", light.getTextureOn());
+			addContent(el, "texture on", light.getTextureOff());
+
+			addContent(el, "red", null, light.getRed());
+			addContent(el, "green", null, light.getGreen());
+			addContent(el, "blue", null, light.getBlue());
+
+			lights.addContent(el);
+		}
+
+		return lights;
 	}
 
 	private synchronized static Element getObjects()

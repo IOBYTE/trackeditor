@@ -25,6 +25,7 @@ import java.util.Vector;
 import utils.circuit.Camera;
 import utils.circuit.Segment;
 import utils.circuit.Surface;
+import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
 /**
@@ -39,6 +40,7 @@ public final class TrackData
     private static Vector<Surface> 				surfaceData;
     private static Vector<Camera> 				cameraData;
     private static Vector<TrackObject> 			objectData;
+    private static Vector<TrackLight> 			lightData;
 
     /**
      * @return Returns the trackData.
@@ -98,6 +100,21 @@ public final class TrackData
     public static void setObjectData(Vector<TrackObject> data)
     {
         objectData = data;
+    }
+
+    /**
+     * @return Returns the lightData.
+     */
+    public static Vector<TrackLight> getLightData()
+    {
+        return lightData;
+    }
+    /**
+     * @param lightData The lightData to set.
+     */
+    public static void setLightData(Vector<TrackLight> data)
+    {
+        lightData = data;
     }
 
     /**

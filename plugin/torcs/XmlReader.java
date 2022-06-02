@@ -39,6 +39,7 @@ import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
 /**
@@ -157,7 +158,30 @@ public class XmlReader
         if (lights == null)
             return;
 
-        // TODO
+        Vector<TrackLight> lightData = new Vector<TrackLight>();
+        List<Element> sections = lights.getChildren();
+        Iterator<Element> it = sections.iterator();
+        while (it.hasNext())
+        {
+            TrackLight lit = new TrackLight();
+
+            Element light = it.next();
+            lit.setName(light.getAttribute("name").getValue());
+            lit.setRole(getAttrStrValue(light, "role"));
+
+            lit.setX(getAttrNumValue(light, "x"));
+            lit.setY(getAttrNumValue(light, "y"));
+            lit.setZ(getAttrNumValue(light, "z"));
+            lit.setTextureOn(getAttrStrValue(light, "texture on"));
+            lit.setTextureOff(getAttrStrValue(light, "texture off"));
+
+            lit.setRed(getAttrNumValue(light, "red"));
+            lit.setGreen(getAttrNumValue(light, "green"));
+            lit.setBlue(getAttrNumValue(light, "blue"));
+
+            lightData.add(lit);
+        }
+        TrackData.setLightData(lightData);
     }
 
     /**
