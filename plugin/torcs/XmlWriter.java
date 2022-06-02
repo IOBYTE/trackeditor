@@ -481,7 +481,7 @@ public class XmlWriter
 			addContent(el, "z", null, light.getZ());
 			addContent(el, "texture on", light.getTextureOn());
 			addContent(el, "texture on", light.getTextureOff());
-
+			addContent(el, "index", null, light.getIndex());
 			addContent(el, "red", null, light.getRed());
 			addContent(el, "green", null, light.getGreen());
 			addContent(el, "blue", null, light.getBlue());
@@ -676,7 +676,10 @@ public class XmlWriter
 
 	private synchronized static void addContent(Element section, String attribute, String units, int value)
 	{
-		section.addContent(attnumElement(attribute, units, value + ""));
+		if (value != Integer.MAX_VALUE)
+		{
+			section.addContent(attnumElement(attribute, units, value + ""));
+		}
 	}
 
 	private synchronized static void addContent(Element section, String attribute, String string)

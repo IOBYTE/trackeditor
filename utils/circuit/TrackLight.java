@@ -4,8 +4,8 @@ import java.awt.geom.Point2D;
 //import javafx.geometry.Point3D;
 
 public final class TrackLight {
-    private String name						= null;  
-	private String role						= null;	
+	private String name						= null;
+	private String role						= null;
 //	private Point3D.Double	topLeft			= null;
 //	private Point3D.Double	bottomRight		= null;
 	private double x						= Double.NaN;
@@ -13,11 +13,11 @@ public final class TrackLight {
 	private double z						= Double.NaN;
 	private String textureOn				= null;
 	private String textureOff				= null;
-//	private int index						= Integer.MAX_VALUE;
+	private int index						= Integer.MAX_VALUE;
 	private double red						= Double.NaN;
 	private double green					= Double.NaN;
 	private double blue						= Double.NaN;
-    
+
     public String getName() {
 		return name;
 	}
