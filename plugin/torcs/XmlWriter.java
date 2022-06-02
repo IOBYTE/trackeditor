@@ -37,6 +37,7 @@ import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
+import utils.circuit.Surface;
 
 /**
  * @author Charalampos Alexopoulos
@@ -379,9 +380,42 @@ public class XmlWriter
 	private synchronized static Element getSurfaces()
 	{
 		Element surfaces = new Element("section");
-		Attribute name = new Attribute("name", "Surfaces");
-		surfaces.setAttribute(name);
+		surfaces.setAttribute(new Attribute("name", "Surfaces"));
 		surfaces.setText("&default-surfaces;");
+
+		Vector<Surface> surfaceData = TrackData.getSurfaceData();
+
+		for (int i = 0; i < surfaceData.size(); i++)
+		{
+			Surface surface = surfaceData.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", surface.getName()));
+
+			addContent(el, "color R1", null, surface.getColorR1());
+			addContent(el, "color G1", null, surface.getColorG1());
+			addContent(el, "color B1", null, surface.getColorB1());
+			addContent(el, "color R2", null, surface.getColorR2());
+			addContent(el, "color G2", null, surface.getColorG2());
+			addContent(el, "color B2", null, surface.getColorB2());
+			addContent(el, "texture name", surface.getTextureName());
+			addContent(el, "texture size", surface.getTextureType());
+			addContent(el, "texture type", null, surface.getTextureSize());
+			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
+			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
+			addContent(el, "texture mipmap", null, surface.getTextureMipMap());
+			addContent(el, "friction", null, surface.getFriction());
+			addContent(el, "rolling resistance", null, surface.getRollingResistance());
+			addContent(el, "bump name", surface.getBumpName());
+			addContent(el, "bump size", null, surface.getBumpSize());
+			addContent(el, "roughness", null, surface.getRoughness());
+			addContent(el, "roughness wavelength", null, surface.getRoughnessWavelength());
+			addContent(el, "raceline name", surface.getRacelineName());
+			addContent(el, "dammage", null, surface.getDammage());
+			addContent(el, "rebound", null, surface.getRebound());
+
+			surfaces.addContent(el);
+		}
 
 		return surfaces;
 	}

@@ -37,6 +37,7 @@ import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
+import utils.circuit.Surface;
 
 /**
  * @author Charalampos Alexopoulos
@@ -229,58 +230,6 @@ public class XmlReader
         if (surfaces == null)
             return;
 
-        class Surface
-        {
-            String name;
-            double colorR1;
-            double colorG1;
-            double colorB1;
-            double colorR2;
-            double colorG2;
-            double colorB2;
-            String textureName;
-            String textureType;
-            double textureSize;
-            String textureLinkWithPrevious;
-            String textureStartOnBoundary;
-            double textureMipMap;	// TODO int
-            double friction;
-            double rollingResistance;
-            String bumpName;
-            double bumpSize;
-            double roughness;
-            double roughnessWavelength;
-            String racelineName;
-            double dammage;
-            double rebound;
-
-            void dump()
-            {
-              System.out.println("name                      : "+name);
-              System.out.println("  colorR1                 : "+colorR1);
-              System.out.println("  colorG1                 : "+colorG1);
-              System.out.println("  colorB1                 : "+colorB1);
-              System.out.println("  colorR2                 : "+colorR2);
-              System.out.println("  colorG2                 : "+colorG2);
-              System.out.println("  colorB2                 : "+colorB2);
-              System.out.println("  textureName             : "+textureName);
-              System.out.println("  textureSize             : "+textureSize);
-              System.out.println("  textureType             : "+textureType);
-              System.out.println("  textureLinkWithPrevious : "+textureLinkWithPrevious);
-              System.out.println("  textureStartOnBoundary  : "+textureStartOnBoundary);
-              System.out.println("  textureMipMap           : "+textureMipMap);
-              System.out.println("  friction                : "+friction);
-              System.out.println("  rollingResistance       : "+rollingResistance);
-              System.out.println("  bumpName                : "+bumpName);
-              System.out.println("  bumpSize                : "+bumpSize);
-              System.out.println("  roughness               : "+roughness);
-              System.out.println("  roughnessWavelength     : "+roughnessWavelength);
-              System.out.println("  racelineName            : "+racelineName);
-              System.out.println("  dammage                 : "+dammage);
-              System.out.println("  rebound                 : "+rebound);
-            }
-        }
-
         Vector<Surface> surfaceData = new Vector<Surface>();
         List<Element> sections = surfaces.getChildren();
         Iterator<Element> it = sections.iterator();
@@ -289,33 +238,32 @@ public class XmlReader
             Surface surf = new Surface();
 
             Element surface = it.next();
-            surf.name = surface.getAttribute("name").getValue();
-            surf.colorR1 = getAttrNumValue(surface, "color R1");
-            surf.colorG1 = getAttrNumValue(surface, "color G1");
-            surf.colorB1 = getAttrNumValue(surface, "color B1");
-            surf.colorR2 = getAttrNumValue(surface, "color R2");
-            surf.colorG2 = getAttrNumValue(surface, "color G2");
-            surf.colorB2 = getAttrNumValue(surface, "color B2");
-            surf.textureName = getAttrStrValue(surface, "texture name");
-            surf.textureSize = getAttrNumValue(surface, "texture size");
-            surf.textureType = getAttrStrValue(surface, "texture type");
-            surf.textureLinkWithPrevious = getAttrStrValue(surface, "texture link with previous");
-            surf.textureStartOnBoundary = getAttrStrValue(surface, "texture start on boundary");
-            surf.textureMipMap = getAttrNumValue(surface, "texture mipmap");
-            surf.friction = getAttrNumValue(surface, "friction");
-            surf.rollingResistance = getAttrNumValue(surface, "rolling resistance");
-            surf.bumpName = getAttrStrValue(surface, "bump name");
-            surf.bumpSize = getAttrNumValue(surface, "bump size");
-            surf.roughness = getAttrNumValue(surface, "roughness");
-            surf.roughnessWavelength = getAttrNumValue(surface, "roughness wavelength");
-            surf.racelineName = getAttrStrValue(surface, "raceline name");
-            surf.dammage = getAttrNumValue(surface, "dammage");
-            surf.rebound = getAttrNumValue(surface, "rebound");
+            surf.setName(surface.getAttribute("name").getValue());
+            surf.setColorR1(getAttrNumValue(surface, "color R1"));
+            surf.setColorG1(getAttrNumValue(surface, "color G1"));
+            surf.setColorB1(getAttrNumValue(surface, "color B1"));
+            surf.setColorR2(getAttrNumValue(surface, "color R2"));
+            surf.setColorG2(getAttrNumValue(surface, "color G2"));
+            surf.setColorB2(getAttrNumValue(surface, "color B2"));
+            surf.setTextureName(getAttrStrValue(surface, "texture name"));
+            surf.setTextureSize(getAttrNumValue(surface, "texture size"));
+            surf.setTextureType(getAttrStrValue(surface, "texture type"));
+            surf.setTextureLinkWithPrevious(getAttrStrValue(surface, "texture link with previous"));
+            surf.setTextureStartOnBoundary(getAttrStrValue(surface, "texture start on boundary"));
+            surf.setTextureMipMap(getAttrNumValue(surface, "texture mipmap"));
+            surf.setFriction(getAttrNumValue(surface, "friction"));
+            surf.setRollingResistance(getAttrNumValue(surface, "rolling resistance"));
+            surf.setBumpName(getAttrStrValue(surface, "bump name"));
+            surf.setBumpSize(getAttrNumValue(surface, "bump size"));
+            surf.setRoughness(getAttrNumValue(surface, "roughness"));
+            surf.setRoughnessWavelength(getAttrNumValue(surface, "roughness wavelength"));
+            surf.setRacelineName(getAttrStrValue(surface, "raceline name"));
+            surf.setDammage(getAttrNumValue(surface, "dammage"));
+            surf.setRebound(getAttrNumValue(surface, "rebound"));
 
             surfaceData.add(surf);
-
-            //surf.dump();
         }
+        TrackData.setSurfaceData(surfaceData);
     }
 
     /**
@@ -340,7 +288,7 @@ public class XmlReader
             {
               System.out.println("name              : "+name);
               System.out.println("  object          : "+object);
-              System.out.println("  color           : "+color);
+              System.out.println("  color           : 0x"+Integer.toHexString(color).toUpperCase());
               System.out.println("  orientationType : "+orientationType);
               System.out.println("  orientation     : "+orientation);
             }
@@ -356,7 +304,7 @@ public class XmlReader
             Element surface = it.next();
             obj.name = surface.getAttribute("name").getValue();
             obj.object = getAttrStrValue(surface, "object");
-            //obj.color = (int)getAttrIntValue(surface, "color");	// TODO
+            obj.color = getAttrIntValue(surface, "color");	// TODO
             obj.orientationType = getAttrStrValue(surface, "orientation type");
             obj.orientation = getAttrNumValue(surface, "orientation");
 
@@ -776,7 +724,7 @@ public class XmlReader
         {
             if (e.getName().equals("attnum"))
             {
-                out = Integer.parseInt(e.getAttributeValue("val"));
+                out = Integer.decode(e.getAttributeValue("val"));
             }
         }
         return out;

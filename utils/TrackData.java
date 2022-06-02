@@ -23,6 +23,7 @@ package utils;
 import java.util.Vector;
 
 import utils.circuit.Segment;
+import utils.circuit.Surface;
 
 /**
  * @author Charalampos Alexopoulos
@@ -33,6 +34,7 @@ import utils.circuit.Segment;
 public final class TrackData
 {
     private static Vector<Segment>				trackData;
+    private static Vector<Surface> 				surfaceData;
 
     /**
      * @return Returns the trackData.
@@ -48,6 +50,22 @@ public final class TrackData
     {
         trackData = data;
     }
+
+    /**
+     * @return Returns the surfaceData.
+     */
+    public static Vector<Surface> getSurfaceData()
+    {
+        return surfaceData;
+    }
+    /**
+     * @param trackData The surfaceData to set.
+     */
+    public static void setSurfaceData(Vector<Surface> data)
+    {
+        surfaceData = data;
+    }
+
     /**
      * 
      */
