@@ -328,7 +328,42 @@ public class XmlReader
         if (objects == null)
             return;
 
-        // TODO
+        class Object
+        {
+            String name;
+            String object;
+            int color;
+            String orientationType;
+            double orientation;
+
+            void dump()
+            {
+              System.out.println("name              : "+name);
+              System.out.println("  object          : "+object);
+              System.out.println("  color           : "+color);
+              System.out.println("  orientationType : "+orientationType);
+              System.out.println("  orientation     : "+orientation);
+            }
+        }
+
+        Vector<Object> objectData = new Vector<Object>();
+        List<Element> sections = objects.getChildren();
+        Iterator<Element> it = sections.iterator();
+        while (it.hasNext())
+        {
+            Object obj = new Object();
+
+            Element surface = it.next();
+            obj.name = surface.getAttribute("name").getValue();
+            obj.object = getAttrStrValue(surface, "object");
+            //obj.color = (int)getAttrIntValue(surface, "color");	// TODO
+            obj.orientationType = getAttrStrValue(surface, "orientation type");
+            obj.orientation = getAttrNumValue(surface, "orientation");
+
+            objectData.add(obj);
+
+            //obj.dump();
+        }
     }
 
     /**
@@ -727,6 +762,21 @@ public class XmlReader
             if (e.getName().equals("attnum"))
             {
                 out = Double.parseDouble(e.getAttributeValue("val"));
+            }
+        }
+        return out;
+    }
+
+    public synchronized static int getAttrIntValue(Element element,
+            String name)
+    {
+        int out = Integer.MAX_VALUE;
+        Element e = getChildWithName(element, name);
+        if (e != null)
+        {
+            if (e.getName().equals("attnum"))
+            {
+                out = Integer.parseInt(e.getAttributeValue("val"));
             }
         }
         return out;
