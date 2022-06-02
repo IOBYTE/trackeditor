@@ -78,7 +78,6 @@ import utils.undo.Undo;
  */
 public class EditorFrame extends JFrame
 {
-	//private Properties			properties							= Properties.getInstance();
 	UndoAction					undoAction							= null;
 	RedoAction					redoAction							= null;
 	DeleteAction				deleteAction						= null;
@@ -339,7 +338,7 @@ public class EditorFrame extends JFrame
     private void createNewCircuit()
     {
         Segment shape;
-        Vector track = new Vector();
+        Vector<Segment> track = new Vector<Segment>();
 
         shape = new Straight();
         shape.setLength(100);
