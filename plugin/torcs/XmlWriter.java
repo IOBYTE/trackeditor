@@ -533,7 +533,7 @@ public class XmlWriter
 			el.setAttribute(new Attribute("name", object.getName()));
 
 			addContent(el, "object", object.getObject());
-			addContent(el, "color", null, object.getColor());
+			addHexContent(el, "color", null, object.getColor());
 			addContent(el, "orientation type", object.getOrientationType());
 			addContent(el, "orientation", null, object.getOrientation());
 
@@ -701,6 +701,14 @@ public class XmlWriter
 		if (value != Integer.MAX_VALUE)
 		{
 			section.addContent(attnumElement(attribute, units, value + ""));
+		}
+	}
+
+	private synchronized static void addHexContent(Element section, String attribute, String units, int value)
+	{
+		if (value != Integer.MAX_VALUE)
+		{
+			section.addContent(attnumElement(attribute, units, "0x"+Integer.toHexString(value).toUpperCase()));
 		}
 	}
 
