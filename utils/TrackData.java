@@ -22,6 +22,8 @@ package utils;
 
 import java.util.Vector;
 
+import utils.circuit.Segment;
+
 /**
  * @author Charalampos Alexopoulos
  *
@@ -30,19 +32,19 @@ import java.util.Vector;
  */
 public final class TrackData
 {
-    private static Vector				trackData;
+    private static Vector<Segment>				trackData;
 
     /**
      * @return Returns the trackData.
      */
-    public static Vector getTrackData()
+    public static Vector<Segment> getTrackData()
     {
         return trackData;
     }
     /**
      * @param trackData The trackData to set.
      */
-    public static void setTrackData(Vector data)
+    public static void setTrackData(Vector<Segment> data)
     {
         trackData = data;
     }

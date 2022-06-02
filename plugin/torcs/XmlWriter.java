@@ -29,7 +29,6 @@ import org.jdom.Comment;
 import org.jdom.DocType;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.ProcessingInstruction;
 import org.jdom.output.Format;
 
 import utils.Editor;
@@ -86,15 +85,6 @@ public class XmlWriter
 		root.addContent(getHeader());
 		root.addContent(getGraphic());
 		root.addContent(getTrack());
-
-//		try
-//		{
-//			XMLOutput outputter = new XMLOutput(Format.getPrettyFormat());
-//			outputter.output(doc, System.out);
-//		} catch (java.io.IOException e)
-//		{
-//			e.printStackTrace();
-//		}
 	}
 	/**
 	 * @return
@@ -208,7 +198,7 @@ public class XmlWriter
 	 */
 	private synchronized static Element getSegments()
 	{
-		Vector segments = TrackData.getTrackData();
+		Vector<Segment> segments = TrackData.getTrackData();
 		Segment prev = null;
 		Attribute name = new Attribute("name", "Track Segments");
 		Comment com = null;
@@ -217,7 +207,7 @@ public class XmlWriter
 
 		for (int i = 0; i < segments.size(); i++)
 		{
-			Segment shape = (Segment) segments.get(i);
+			Segment shape = segments.get(i);
 			shape.previousShape = prev;
 			com = new Comment("******************************");
 			trackSegs.addContent(com);
@@ -239,8 +229,6 @@ public class XmlWriter
 	private synchronized static Element getSegment(Segment shape)
 	{
 		Attribute name = null;
-		Attribute unit = null;
-		Attribute val = null;
 		Comment com = null;
 		Element el = null;
 		Element segment = new Element("section");
@@ -368,7 +356,6 @@ public class XmlWriter
 	 */
 	private synchronized static Element getSide(SegmentSide part, String sPart)
 	{
-		Element el = null;
 		Element side = new Element("section");
 		Attribute name = new Attribute("name", sPart + " Side");
 		side.setAttribute(name);
