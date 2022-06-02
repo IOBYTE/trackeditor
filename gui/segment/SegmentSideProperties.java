@@ -74,8 +74,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"b-road1-grass6", "b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2",
 			"b-asphalt-grass7", "b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3",
 			"b-asphalt-sand3-l1", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3", "sand"};
-	private String[]			surfaceItems			=
-														{};
 
 	public JPanel				panel					= null;
 	private JLabel				borderLabel				= null;
@@ -200,7 +198,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			borderSurfaceComboBox = new SegmentComboBox();
 			borderSurfaceComboBox.setBounds(270, 350, 120, 20);
-			borderSurfaceComboBox.setModel(new DefaultComboBoxModel(borderSurfaceItems));
+			borderSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(borderSurfaceItems));
 			borderSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -224,7 +222,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			borderStyleComboBox = new SegmentComboBox();
 			borderStyleComboBox.setBounds(270, 400, 120, 20);
-			borderStyleComboBox.setModel(new DefaultComboBoxModel(styleItems));
+			borderStyleComboBox.setModel(new DefaultComboBoxModel<String>(styleItems));
 			borderStyleComboBox.addActionListener(new ActionListener()
 					{
 
@@ -249,7 +247,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			sideSurfaceComboBox = new SegmentComboBox();
 			sideSurfaceComboBox.setBounds(137, 350, 120, 20);
-			sideSurfaceComboBox.setModel(new DefaultComboBoxModel(sideSurfaceItems));
+			sideSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(sideSurfaceItems));
 			sideSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -273,7 +271,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			barrierSurfaceComboBox = new SegmentComboBox();
 			barrierSurfaceComboBox.setBounds(5, 350, 120, 20);
-			barrierSurfaceComboBox.setModel(new DefaultComboBoxModel(fenceSurfaceItems));
+			barrierSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(fenceSurfaceItems));
 			barrierSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -297,7 +295,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			barrierStyleComboBox = new SegmentComboBox();
 			barrierStyleComboBox.setBounds(5, 400, 120, 20);
-			barrierStyleComboBox.setModel(new DefaultComboBoxModel(styleItems));
+			barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(styleItems));
 			barrierStyleComboBox.addActionListener(new ActionListener()
 					{
 

@@ -40,28 +40,27 @@ import utils.Editor;
  */
 public class NewProjectDialog extends JDialog
 {
-	//private Properties properties					= Properties.getInstance();
-	public static boolean	APPROVE					= false;
-	private JPanel			jPanel					= null;
-	private JTextField		projectNameTextField	= null;
-	private JLabel			projectNameLabel		= null;
-	private JComboBox		trackCategoryComboBox	= null;
-	private JLabel			trackCategoryLabel		= null;
-	private JComboBox		trackVersionComboBox	= null;
-	private JLabel			trackVersionLabel		= null;
-	private JLabel			pathLabel				= null;
-	private JTextField		pathTextField			= null;
-	private JButton			browseButton			= null;
-	private JButton			okButton				= null;
-	private JButton			cancelButton			= null;
+	public static boolean		APPROVE					= false;
+	private JPanel				jPanel					= null;
+	private JTextField			projectNameTextField	= null;
+	private JLabel				projectNameLabel		= null;
+	private JComboBox<String>	trackCategoryComboBox	= null;
+	private JLabel				trackCategoryLabel		= null;
+	private JComboBox<String>	trackVersionComboBox	= null;
+	private JLabel				trackVersionLabel		= null;
+	private JLabel				pathLabel				= null;
+	private JTextField			pathTextField			= null;
+	private JButton				browseButton			= null;
+	private JButton				okButton				= null;
+	private JButton				cancelButton			= null;
 
-	private EditorFrame		parent;
-	private JLabel authorLabel = null;
-	private JTextField authorTextField = null;
-	private JLabel descriptionLabel = null;
-	private JTextField descriptionTextField = null;
+	private EditorFrame			parent;
+	private JLabel 				authorLabel 			= null;
+	private JTextField 			authorTextField 		= null;
+	private JLabel 				descriptionLabel 		= null;
+	private JTextField 			descriptionTextField	= null;
 	
-	private String sep = System.getProperty("file.separator");
+	private final String sep = System.getProperty("file.separator");
 	
 	/**
 	 *  
@@ -160,13 +159,13 @@ public class NewProjectDialog extends JDialog
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	public JComboBox getTrackCategoryComboBox()
+	public JComboBox<String> getTrackCategoryComboBox()
 	{
 		if (trackCategoryComboBox == null)
 		{
 			String[] items =
 			{"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
-			trackCategoryComboBox = new JComboBox(items);
+			trackCategoryComboBox = new JComboBox<String>(items);
 			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getCategory());
 			trackCategoryComboBox.setBounds(135, 60, 170, 30);
 			trackCategoryComboBox.addActionListener(new java.awt.event.ActionListener()
@@ -184,13 +183,13 @@ public class NewProjectDialog extends JDialog
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	public JComboBox getTrackVersionComboBox()
+	public JComboBox<String> getTrackVersionComboBox()
 	{
 		if (trackVersionComboBox == null)
 		{
 			String[] items =
 			{"3", "4", "5"};
-			trackVersionComboBox = new JComboBox(items);
+			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem(Editor.getProperties().getTrackVersion() + "");
 			trackVersionComboBox.setBounds(135, 105, 170, 30);
 			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()

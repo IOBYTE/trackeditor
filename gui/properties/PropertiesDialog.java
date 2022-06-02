@@ -20,8 +20,6 @@
  */
 package gui.properties;
 
-import gui.EditorFrame;
-
 import java.awt.BorderLayout;
 
 import javax.swing.JButton;
@@ -38,7 +36,6 @@ public class PropertiesDialog extends JDialog
 {
 	//private Properties properties = Properties.getInstance();
 	public static boolean		APPROVE				= false;
-	private EditorFrame			parent;
 	private JTabbedPane			tabbedPane			= null;
 	private GeneralProperties	generalProperties	= null;
 	private JPanel				pane				= null;

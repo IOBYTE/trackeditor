@@ -35,28 +35,28 @@ import utils.Editor;
  */
 public class TerrainProperties extends JPanel
 {
-	private JLabel		trackStepLabel				= null;
-	private JTextField	trackStepTextField			= null;
-	private JLabel		borderMarginLabel			= null;
-	private JTextField	borderMarginTextField		= null;
-	private JLabel		borderStepLabel				= null;
-	private JTextField	borderStepTextField			= null;
-	private JLabel		borderHeightLabel			= null;
-	private JTextField	borderHeightTextField		= null;
-	private JLabel		orientationLabel			= null;
-	private JComboBox	orientationComboBox			= null;
-	private JLabel		maximumAltitudeLabel		= null;
-	private JTextField	maximumAltitudeTextField	= null;
-	private JLabel		minimumAltitudeLabel		= null;
-	private JTextField	minimumAltitudeTextField	= null;
-	private JLabel		groupSizeLabel				= null;
-	private JTextField	groupSizeTextField			= null;
-	private JLabel		elevationMapLabel			= null;
-	private JTextField	elevationMapTextField		= null;		// TODO add button to get file
-	private JLabel		reliefFileLabel				= null;
-	private JTextField	reliefFileTextField			= null;		// TODO add button to get file
-	private JLabel		surfaceLabel				= null;
-	private JTextField	surfaceTextField			= null;		// TODO replace with JComboBox?
+	private JLabel				trackStepLabel				= null;
+	private JTextField			trackStepTextField			= null;
+	private JLabel				borderMarginLabel			= null;
+	private JTextField			borderMarginTextField		= null;
+	private JLabel				borderStepLabel				= null;
+	private JTextField			borderStepTextField			= null;
+	private JLabel				borderHeightLabel			= null;
+	private JTextField			borderHeightTextField		= null;
+	private JLabel				orientationLabel			= null;
+	private JComboBox<String>	orientationComboBox			= null;
+	private JLabel				maximumAltitudeLabel		= null;
+	private JTextField			maximumAltitudeTextField	= null;
+	private JLabel				minimumAltitudeLabel		= null;
+	private JTextField			minimumAltitudeTextField	= null;
+	private JLabel				groupSizeLabel				= null;
+	private JTextField			groupSizeTextField			= null;
+	private JLabel				elevationMapLabel			= null;
+	private JTextField			elevationMapTextField		= null;		// TODO add button to get file
+	private JLabel				reliefFileLabel				= null;
+	private JTextField			reliefFileTextField			= null;		// TODO add button to get file
+	private JLabel				surfaceLabel				= null;
+	private JTextField			surfaceTextField			= null;		// TODO replace with JComboBox?
 	
 	/**
 	 *  
@@ -198,13 +198,13 @@ public class TerrainProperties extends JPanel
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getOrientationComboBox()
+	private JComboBox<String> getOrientationComboBox()
 	{
 		if (orientationComboBox == null)
 		{
 			String[] items =
 			{"clockwise", "counter-clockwise"};
-			orientationComboBox = new JComboBox(items);
+			orientationComboBox = new JComboBox<String>(items);
 			orientationComboBox.setSelectedItem(Editor.getProperties().getTerrainOrientation());
 			orientationComboBox.setBounds(120, 110, 100, 20);
 		}

@@ -30,7 +30,7 @@ import utils.circuit.Segment;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class SegmentComboBox extends JComboBox
+public class SegmentComboBox extends JComboBox<String>
 {
     private SegmentEditorDlg editor;
     private String sectionName;

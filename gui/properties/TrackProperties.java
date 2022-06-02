@@ -38,13 +38,12 @@ import utils.Editor;
  */
 public class TrackProperties extends JPanel
 {
-	//private Properties properties = Properties.getInstance();
-	private JLabel		widthLabel					= null;
-	private JTextField	widthTextField				= null;
-	private JLabel		surfaceLabel				= null;
-	private JComboBox	surfaceComboBox				= null;
-	private JLabel		profileStepsLengthLabel		= null;
-	private JTextField	profileStepsLengthTextField	= null;
+	private JLabel				widthLabel					= null;
+	private JTextField			widthTextField				= null;
+	private JLabel				surfaceLabel				= null;
+	private JComboBox<String>	surfaceComboBox				= null;
+	private JLabel				profileStepsLengthLabel		= null;
+	private JTextField			profileStepsLengthTextField	= null;
 
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -117,12 +116,12 @@ public class TrackProperties extends JPanel
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getSurfaceComboBox()
+	private JComboBox<String> getSurfaceComboBox()
 	{
 		if (surfaceComboBox == null)
 		{
-			surfaceComboBox = new JComboBox();
-			surfaceComboBox.setModel(new DefaultComboBoxModel(roadSurfaceItems));
+			surfaceComboBox = new JComboBox<String>();
+			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
 			surfaceComboBox.setBounds(120, 35, 120, 20);
 			surfaceComboBox.addActionListener(new ActionListener()
 			{

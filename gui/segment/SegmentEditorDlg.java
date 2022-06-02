@@ -71,7 +71,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private SegmentSlider			lengthSlider				= null;
 	private JLabel					nameLabel					= null;
 	private JTextField				nameTextField				= null;
-	private JComboBox				surfaceComboBox				= null;
+	private JComboBox<String>		surfaceComboBox				= null;
 
 	private SegmentSlider			gradeSlider					= null;
 	private SegmentSlider			startTangentSlider			= null;
@@ -649,12 +649,12 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getSurfaceComboBox()
+	private JComboBox<String> getSurfaceComboBox()
 	{
 		if (surfaceComboBox == null)
 		{
-			surfaceComboBox = new JComboBox();
-			surfaceComboBox.setModel(new DefaultComboBoxModel(roadSurfaceItems));
+			surfaceComboBox = new JComboBox<String>();
+			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
 			surfaceComboBox.setBounds(190, 10, 120, 20);
 			surfaceComboBox.addActionListener(new ActionListener()
 			{

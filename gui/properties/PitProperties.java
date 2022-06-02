@@ -43,35 +43,35 @@ import utils.circuit.SegmentSide;
 public class PitProperties extends JPanel
 {
 	//private Properties	properties		= Properties.getInstance();
-	private JLabel		styleLabel				= null;
-	private JComboBox	styleComboBox			= null;
-	private JLabel		sideLabel				= null;
-	private JComboBox	sideComboBox			= null;
-	private JLabel		entryLabel				= null;
-	private JTextField	entryTextField			= null;
-	private JLabel		startLabel				= null;
-	private JTextField	startTextField			= null;
-	private JLabel		startBuildingsLabel		= null;
-	private JTextField	startBuildingsTextField	= null;
-	private JLabel		stopBuildingsLabel		= null;
-	private JTextField	stopBuildingsTextField	= null;
-	private JLabel		maxPitsLabel			= null;
-	private JTextField	maxPitsTextField		= null;
-	private JLabel		endLabel				= null;
-	private JTextField	endTextField			= null;
-	private JLabel		exitLabel				= null;
-	private JTextField	exitTextField			= null;
-	private JLabel		widthLabel				= null;
-	private JTextField	widthTextField			= null;
-	private JLabel		lengthLabel				= null;
-	private JTextField	lengthTextField			= null;
-	private JLabel		indicatorLabel			= null;
-	private JTextField	indicatorTextField		= null;	// TODO replace with JComboBox?
-	private JLabel		speedLimitLabel			= null;
-	private JTextField	speedLimitTextField		= null;
-	private JLabel 		generatePitsLabel 		= null;
-	private JCheckBox 	generatePitsCheckBox 	= null;
-	private boolean 	generatePits			= false;
+	private JLabel				styleLabel				= null;
+	private JComboBox<String>	styleComboBox			= null;
+	private JLabel				sideLabel				= null;
+	private JComboBox<String>	sideComboBox			= null;
+	private JLabel				entryLabel				= null;
+	private JTextField			entryTextField			= null;
+	private JLabel				startLabel				= null;
+	private JTextField			startTextField			= null;
+	private JLabel				startBuildingsLabel		= null;
+	private JTextField			startBuildingsTextField	= null;
+	private JLabel				stopBuildingsLabel		= null;
+	private JTextField			stopBuildingsTextField	= null;
+	private JLabel				maxPitsLabel			= null;
+	private JTextField			maxPitsTextField		= null;
+	private JLabel				endLabel				= null;
+	private JTextField			endTextField			= null;
+	private JLabel				exitLabel				= null;
+	private JTextField			exitTextField			= null;
+	private JLabel				widthLabel				= null;
+	private JTextField			widthTextField			= null;
+	private JLabel				lengthLabel				= null;
+	private JTextField			lengthTextField			= null;
+	private JLabel				indicatorLabel			= null;
+	private JTextField			indicatorTextField		= null;	// TODO replace with JComboBox?
+	private JLabel				speedLimitLabel			= null;
+	private JTextField			speedLimitTextField		= null;
+	private JLabel 				generatePitsLabel 		= null;
+	private JCheckBox 			generatePitsCheckBox 	= null;
+	private boolean 			generatePits			= false;
 	/**
 	 *  
 	 */
@@ -167,13 +167,13 @@ public class PitProperties extends JPanel
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getStyleComboBox()
+	private JComboBox<String> getStyleComboBox()
 	{
 		if (styleComboBox == null)
 		{
 			String[] items =
 			{"none", "on track side", "on separate path", "no building"};
-			styleComboBox = new JComboBox(items);
+			styleComboBox = new JComboBox<String>(items);
 			styleComboBox.setSelectedIndex(Editor.getProperties().getPitStyle());
 			styleComboBox.setBounds(100, 10, 100, 20);
 		}
@@ -184,13 +184,13 @@ public class PitProperties extends JPanel
 	 * 
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getSideComboBox()
+	private JComboBox<String> getSideComboBox()
 	{
 		if (sideComboBox == null)
 		{
 			String[] items =
 			{"right", "left"};
-			sideComboBox = new JComboBox(items);
+			sideComboBox = new JComboBox<String>(items);
 			sideComboBox.setSelectedItem(Editor.getProperties().getPitSide());
 			sideComboBox.setBounds(100, 35, 80, 20);
 		}
