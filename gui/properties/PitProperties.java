@@ -171,10 +171,12 @@ public class PitProperties extends JPanel
 	{
 		if (styleComboBox == null)
 		{
-			String[] items =
-			{"none", "on track side", "on separate path", "no building"};
+			String[] items = {"none", "on track side", "on separate path", "no building"};
 			styleComboBox = new JComboBox<String>(items);
-			styleComboBox.setSelectedIndex(Editor.getProperties().getPits().getStyle());
+			int style = Editor.getProperties().getPits().getStyle();
+			if (style == Integer.MAX_VALUE)
+				style = 0;
+			styleComboBox.setSelectedIndex(style);
 			styleComboBox.setBounds(100, 10, 100, 20);
 		}
 		return styleComboBox;
@@ -188,10 +190,12 @@ public class PitProperties extends JPanel
 	{
 		if (sideComboBox == null)
 		{
-			String[] items =
-			{"right", "left"};
+			String[] items = {"right", "left"};
 			sideComboBox = new JComboBox<String>(items);
-			sideComboBox.setSelectedItem(Editor.getProperties().getPits().getSide());
+			String side = Editor.getProperties().getPits().getSide();
+			if (side == null || side.isEmpty())
+				side = "right";
+			sideComboBox.setSelectedItem(side);
 			sideComboBox.setBounds(100, 35, 80, 20);
 		}
 		return sideComboBox;
@@ -266,7 +270,7 @@ public class PitProperties extends JPanel
 		if (maxPitsTextField == null)
 		{
 			maxPitsTextField = new JTextField();
-			if (Editor.getProperties().getPits().getMaxPits() > 0)
+			if (Editor.getProperties().getPits().getMaxPits() != Integer.MAX_VALUE)
 				maxPitsTextField.setText(Editor.getProperties().getPits().getMaxPits() + "");
 			maxPitsTextField.setBounds(100, 160, 100, 20);
 		}
@@ -347,7 +351,7 @@ public class PitProperties extends JPanel
 		{
 			indicatorTextField = new JTextField();
 			int val = Editor.getProperties().getPits().getIndicator();
-			if (val >= 0)
+			if (val != Integer.MAX_VALUE)
 				indicatorTextField.setText(Integer.toString(val));
 			indicatorTextField.setBounds(100, 285, 40, 20);
 		}
@@ -385,13 +389,11 @@ public class PitProperties extends JPanel
 		try
 		{
 			int maxPits = Integer.parseInt(this.getMaxPitsTextField().getText());
-			if (maxPits > 0)
+			if (maxPits != Integer.MAX_VALUE)
 				Editor.getProperties().getPits().setMaxPits(maxPits);
-			else
-				Editor.getProperties().getPits().setMaxPits(0);
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getPits().setMaxPits(0);
+			Editor.getProperties().getPits().setMaxPits(Integer.MAX_VALUE);
 		}
 		Editor.getProperties().getPits().setEnd(this.getEndTextField().getText());
 		Editor.getProperties().getPits().setExit(this.getExitTextField().getText());
@@ -416,13 +418,11 @@ public class PitProperties extends JPanel
 		try
 		{
 			int indicator = Integer.parseInt(this.getIndicatorTextField().getText());
-			if (indicator >= 0)
+			if (indicator != Integer.MAX_VALUE)
 				Editor.getProperties().getPits().setIndicator(indicator);
-			else
-				Editor.getProperties().getPits().setIndicator(-1);
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getPits().setIndicator(-1);
+			Editor.getProperties().getPits().setIndicator(Integer.MAX_VALUE);
 		}
 		try
 		{

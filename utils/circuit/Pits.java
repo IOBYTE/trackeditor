@@ -1,19 +1,19 @@
 package utils.circuit;
 
 public class Pits {
-	private String				side				= "right";
-	private String				entry;
-	private String				start;
+	private String				side				= null;
+	private String				entry				= null;
+	private String				start				= null;
 	private String				startBuildings		= null;
 	private String				stopBuildings		= null;
-	private int					maxPits				= 0;
-	private String				end;
-	private String				exit;
-	private double				width;
-	private double				length;
-	private int					style				= 1;
-	private int					indicator;
-	private double				speedLimit;
+	private int					maxPits				= Integer.MAX_VALUE;
+	private String				end					= null;
+	private String				exit				= null;
+	private double				width				= Double.NaN;
+	private double				length				= Double.NaN;
+	private int					style				= Integer.MAX_VALUE;
+	private int					indicator			= Integer.MAX_VALUE;
+	private double				speedLimit			= Double.NaN;
 
 	/**
 	 * @return Returns the side.

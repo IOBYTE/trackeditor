@@ -164,45 +164,21 @@ public class XmlWriter
 	 */
 	private synchronized static Element getPits()
 	{
-		Attribute name = new Attribute("name", "Pits");
-		String tmp = "";
-
 		Element pits = new Element("section");
-		pits.setAttribute(name);
+		pits.setAttribute(new Attribute("name", "Pits"));
 
-		int style = Editor.getProperties().getPits().getStyle();
-		if (style != 1)
-		{
-			addContent(pits, "type", null, style);
-		}
-		if (Editor.getProperties().getPits().getSide() != null)
-		{
-			tmp = Editor.getProperties().getPits().getSide();
-		} else
-		{
-			tmp = "right";
-		}
-		addContent(pits, "side", tmp);
+		addContent(pits, "pit style", null, Editor.getProperties().getPits().getStyle());
+		addContent(pits, "side", Editor.getProperties().getPits().getSide());
 		addContent(pits, "entry", Editor.getProperties().getPits().getEntry());
 		addContent(pits, "start", Editor.getProperties().getPits().getStart());
 		addContent(pits, "start buildings", Editor.getProperties().getPits().getStartBuildings());
 		addContent(pits, "stop buildings", Editor.getProperties().getPits().getStopBuildings());
-
-		if (Editor.getProperties().getPits().getMaxPits() > 0)
-		{
-			addContent(pits, "max pits", null, Editor.getProperties().getPits().getMaxPits());
-		}
-
+		addContent(pits, "max pits", null, Editor.getProperties().getPits().getMaxPits());
 		addContent(pits, "end", Editor.getProperties().getPits().getEnd());
 		addContent(pits, "exit", Editor.getProperties().getPits().getExit());
 		addContent(pits, "length", "m", Editor.getProperties().getPits().getLength());
 		addContent(pits, "width", "m", Editor.getProperties().getPits().getWidth());
-
-		if (Editor.getProperties().getPits().getIndicator() >= 0)
-		{
-			addContent(pits, "pit indicator", null, Editor.getProperties().getPits().getIndicator());
-		}
-
+		addContent(pits, "pit indicator", null, Editor.getProperties().getPits().getIndicator());
 		addContent(pits, "speed limit", "m", Editor.getProperties().getPits().getSpeedLimit());
 
 		return pits;

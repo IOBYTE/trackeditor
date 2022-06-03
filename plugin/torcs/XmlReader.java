@@ -409,51 +409,19 @@ public class XmlReader
         if (pits == null)
             return;
 
-        double style = getAttrNumValue(pits, "style");
-        if (!Double.isNaN(style))
-            Editor.getProperties().getPits().setStyle((int) style);
-        else
-            Editor.getProperties().getPits().setStyle(1);
-
-        String tmp = getAttrStrValue(pits, "side");
-        Editor.getProperties().getPits().setSide(tmp);
-
-        tmp = getAttrStrValue(pits, "entry");
-        Editor.getProperties().getPits().setEntry(tmp);
-
-        tmp = getAttrStrValue(pits, "start");
-        Editor.getProperties().getPits().setStart(tmp);
-
-        tmp = getAttrStrValue(pits, "start buildings");
-        Editor.getProperties().getPits().setStartBuildings(tmp);
-
-        tmp = getAttrStrValue(pits, "stop buildings");
-        Editor.getProperties().getPits().setStopBuildings(tmp);
-
-        double maxPits = getAttrNumValue(pits, "max pits");
-        if (!Double.isNaN(maxPits) && maxPits == Math.floor(maxPits) && maxPits > 0)
-            Editor.getProperties().getPits().setMaxPits((int) maxPits);
-
-        tmp = getAttrStrValue(pits, "end");
-        Editor.getProperties().getPits().setEnd(tmp);
-
-        tmp = getAttrStrValue(pits, "exit");
-        Editor.getProperties().getPits().setExit(tmp);
-
-        double val = getAttrNumValue(pits, "length");
-        Editor.getProperties().getPits().setLength(val);
-
-        val = getAttrNumValue(pits, "width");
-        Editor.getProperties().getPits().setWidth(val);
-
-        val = getAttrNumValue(pits, "pit indicator");
-        if (!Double.isNaN(val) && val >= 0)
-            Editor.getProperties().getPits().setIndicator((int)val);
-        else
-            Editor.getProperties().getPits().setIndicator(-1);
-
-        val = getAttrNumValue(pits, "speed limit");
-        Editor.getProperties().getPits().setSpeedLimit(val);
+        Editor.getProperties().getPits().setStyle(getAttrIntValue(pits, "style"));
+        Editor.getProperties().getPits().setSide(getAttrStrValue(pits, "side"));
+        Editor.getProperties().getPits().setEntry(getAttrStrValue(pits, "entry"));
+        Editor.getProperties().getPits().setStart(getAttrStrValue(pits, "start"));
+        Editor.getProperties().getPits().setStartBuildings(getAttrStrValue(pits, "start buildings"));
+        Editor.getProperties().getPits().setStopBuildings(getAttrStrValue(pits, "stop buildings"));
+        Editor.getProperties().getPits().setMaxPits(getAttrIntValue(pits, "max pits"));
+        Editor.getProperties().getPits().setEnd(getAttrStrValue(pits, "end"));
+        Editor.getProperties().getPits().setExit(getAttrStrValue(pits, "exit"));
+        Editor.getProperties().getPits().setLength(getAttrNumValue(pits, "length"));
+        Editor.getProperties().getPits().setWidth(getAttrNumValue(pits, "width"));
+        Editor.getProperties().getPits().setIndicator(getAttrIntValue(pits, "pit indicator"));
+        Editor.getProperties().getPits().setSpeedLimit(getAttrNumValue(pits, "speed limit"));
     }
 
     private synchronized static void setSegments(Element mainTrack)
