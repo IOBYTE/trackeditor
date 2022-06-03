@@ -333,7 +333,7 @@ public class XmlReader
 
         data.setDescription(getAttrStrValue(graphic, "3d description"));
         data.setDescriptionNight(getAttrStrValue(graphic, "3d description night"));
-        data.setDescriptionRaiNight(getAttrStrValue(graphic, "3d description rain+night"));
+        data.setDescriptionRainNight(getAttrStrValue(graphic, "3d description rain+night"));
         data.setBackgroundImage(getAttrStrValue(graphic, "background image"));
         data.setBackgroundType(getAttrIntValue(graphic, "background type"));
         data.setBackgroundColorR(getAttrNumValue(graphic, "background color R"));
