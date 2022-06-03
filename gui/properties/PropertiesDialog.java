@@ -47,6 +47,7 @@ public class PropertiesDialog extends JDialog
 	private ImageProperties		imageProperties		= null;
 	private TerrainProperties	terrainProperties	= null;
 	private TurnMarksProperties	turnMarksProperties	= null;
+	private LocalInfoProperties	localInfoProperties	= null;
 
 	/**
 	 *  
@@ -87,6 +88,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 			tabbedPane.addTab("Terrain", null, getTerrainProperties(), null);
 			tabbedPane.addTab("Turn Marks", null, getTurnMarksProperties(), null);
+			tabbedPane.addTab("Local Info", null, getLocalInfoProperties(), null);
 		}
 		return tabbedPane;
 	}
@@ -237,6 +239,17 @@ public class PropertiesDialog extends JDialog
 		}
 		return terrainProperties;
 	}
+	/**
+	 * This method initializes localInfoProperties
+	 *
+	 * @return gui.properties.LocalInfoProperties
+	 */
+	private LocalInfoProperties getLocalInfoProperties() {
+		if (localInfoProperties == null) {
+			localInfoProperties = new LocalInfoProperties();
+		}
+		return localInfoProperties;
+	}
 	
 	/**
 	 *  
@@ -249,6 +262,7 @@ public class PropertiesDialog extends JDialog
 		this.imageProperties.exit();
 		this.terrainProperties.exit();
 		this.turnMarksProperties.exit();
+		this.localInfoProperties.exit();
 		APPROVE = true;
 		cancel();
 	}
