@@ -23,6 +23,7 @@ package utils;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import utils.circuit.Pits;
 import utils.circuit.SegmentSide;
 import utils.circuit.TerrainGeneration;
 import utils.circuit.TurnMarks;
@@ -54,20 +55,6 @@ public  class Properties
 	private SegmentSide			left					= new SegmentSide();
 	private SegmentSide			right					= new SegmentSide();
 
-	private String				pitSide					= "right";
-	private String				pitEntry;
-	private String				pitStart;
-	private String				pitStartBuildings		= null;
-	private String				pitStopBuildings		= null;
-	private int					pitMaxPits				= 0;
-	private String				pitEnd;
-	private String				pitExit;
-	private double				pitWidth;
-	private double				pitLength;
-	private int					pitStyle				= 1;
-	private int					pitIndicator;
-	private double				pitSpeedLimit;
-
 	private double				imageScale				= 1;
 	private String				image					= "";
 	private EditorPoint			imgOffset				= new EditorPoint();
@@ -88,6 +75,7 @@ public  class Properties
 
     private TerrainGeneration	terrainGeneration;
     private TurnMarks			turnMarks;
+    private Pits				pits;
 
 	/**
 	 *  
@@ -276,97 +264,6 @@ public  class Properties
 	}
 
 	/**
-	 * @return Returns the pitLength.
-	 */
-	public double getPitLength()
-	{
-		return pitLength;
-	}
-	/**
-	 * @param pitLength
-	 *            The pitLength to set.
-	 */
-	public void setPitLength(double pitLength)
-	{
-		this.pitLength = pitLength;
-	}
-	/**
-	 * @return Returns the pitSide.
-	 */
-	public String getPitSide()
-	{
-		return pitSide;
-	}
-	/**
-	 * @param pitSide
-	 *            The pitSide to set.
-	 */
-	public void setPitSide(String pitSide)
-	{
-		this.pitSide = pitSide;
-	}
-
-	/**
-	 * @return Returns the pitWidth.
-	 */
-	public double getPitWidth()
-	{
-		return pitWidth;
-	}
-	/**
-	 * @param pitWidth
-	 *            The pitWidth to set.
-	 */
-	public void setPitWidth(double pitWidth)
-	{
-		this.pitWidth = pitWidth;
-	}
-	/**
-	 * @return Returns the pitStyle.
-	 */
-	public int getPitStyle()
-	{
-		return pitStyle;
-	}
-	/**
-	 * @param pitStyle
-	 *            The pitStyle to set.
-	 */
-	public void setPitStyle(int pitStyle)
-	{
-		this.pitStyle = pitStyle;
-	}
-	/**
-	 * @return Returns the pitIndicator.
-	 */
-	public int getPitIndicator()
-	{
-		return pitIndicator;
-	}
-	/**
-	 * @param pitIndicator
-	 *            The pitIndicator to set.
-	 */
-	public void setPitIndicator(int pitIndicator)
-	{
-		this.pitIndicator = pitIndicator;
-	}
-	/**
-	 * @return Returns the pitSpeedLimit.
-	 */
-	public double getPitSpeedLimit()
-	{
-		return pitSpeedLimit;
-	}
-	/**
-	 * @param pitSpeedLimit
-	 *            The pitSpeedLimit to set.
-	 */
-	public void setPitSpeedLimit(double pitSpeedLimit)
-	{
-		this.pitSpeedLimit = pitSpeedLimit;
-	}
-	/**
 	 * @return Returns the trackWidth.
 	 */
 	public double getTrackWidth()
@@ -394,111 +291,6 @@ public  class Properties
 	public void setSurface(String surface)
 	{
 		this.surface = surface;
-	}
-	/**
-	 * @return Returns the pitEnd.
-	 */
-	public String getPitEnd()
-	{
-		return pitEnd;
-	}
-	/**
-	 * @param pitEnd
-	 *            The pitEnd to set.
-	 */
-	public void setPitEnd(String pitEnd)
-	{
-		this.pitEnd = pitEnd;
-	}
-	/**
-	 * @return Returns the pitEntry.
-	 */
-	public String getPitEntry()
-	{
-		return pitEntry;
-	}
-	/**
-	 * @param pitEntry
-	 *            The pitEntry to set.
-	 */
-	public void setPitEntry(String pitEntry)
-	{
-		this.pitEntry = pitEntry;
-	}
-	/**
-	 * @return Returns the pitExit.
-	 */
-	public String getPitExit()
-	{
-		return pitExit;
-	}
-	/**
-	 * @param pitExit
-	 *            The pitExit to set.
-	 */
-	public void setPitExit(String pitExit)
-	{
-		this.pitExit = pitExit;
-	}
-	/**
-	 * @return Returns the pitStart.
-	 */
-	public String getPitStart()
-	{
-		return pitStart;
-	}
-	/**
-	 * @param pitStart
-	 *            The pitStart to set.
-	 */
-	public void setPitStart(String pitStart)
-	{
-		this.pitStart = pitStart;
-	}
-	/**
-	 * @return Returns the pitStartBuildings.
-	 */
-	public String getPitStartBuildings()
-	{
-		return pitStartBuildings;
-	}
-	/**
-	 * @param pitStartBuildings
-	 *            The pitStartBuildings to set.
-	 */
-	public void setPitStartBuildings(String pitStartBuildings)
-	{
-		this.pitStartBuildings = pitStartBuildings;
-	}
-	/**
-	 * @return Returns the pitStopBuildings.
-	 */
-	public String getPitStopBuildings()
-	{
-		return pitStopBuildings;
-	}
-	/**
-	 * @param pitStopBuildings
-	 *            The pitStopBuildings to set.
-	 */
-	public void setPitStopBuildings(String pitStopBuildings)
-	{
-		this.pitStopBuildings = pitStopBuildings;
-	}
-	/**
-	 * @return Returns the pitMaxPits.
-	 */
-	public int getPitMaxPits()
-	{
-		return pitMaxPits;
-	}
-	/**
-	 * @param pitMaxPits
-	 *            The pitMaxPits to set.
-	 */
-	public void setPitMaxPits(int pitMaxPits)
-	{
-		this.pitMaxPits = pitMaxPits;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)
@@ -727,6 +519,7 @@ public  class Properties
     {
         this.terrainGeneration = terrainGeneration;
     }
+
     /**
      * @return Returns the turnMarks.
      */
@@ -740,5 +533,20 @@ public  class Properties
     public void setTurnMarks(TurnMarks turnMarks)
     {
         this.turnMarks = turnMarks;
+    }
+
+    /**
+     * @return Returns the pits.
+     */
+    public Pits getPits()
+    {
+        return pits;
+    }
+    /**
+     * @param pits The pits to set.
+     */
+    public void setPits(Pits pits)
+    {
+        this.pits = pits;
     }
 }

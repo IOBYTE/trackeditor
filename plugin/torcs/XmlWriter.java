@@ -170,40 +170,40 @@ public class XmlWriter
 		Element pits = new Element("section");
 		pits.setAttribute(name);
 
-		int style = Editor.getProperties().getPitStyle();
+		int style = Editor.getProperties().getPits().getStyle();
 		if (style != 1)
 		{
 			addContent(pits, "type", null, style);
 		}
-		if (Editor.getProperties().getPitSide() != null)
+		if (Editor.getProperties().getPits().getSide() != null)
 		{
-			tmp = Editor.getProperties().getPitSide();
+			tmp = Editor.getProperties().getPits().getSide();
 		} else
 		{
 			tmp = "right";
 		}
 		addContent(pits, "side", tmp);
-		addContent(pits, "entry", Editor.getProperties().getPitEntry());
-		addContent(pits, "start", Editor.getProperties().getPitStart());
-		addContent(pits, "start buildings", Editor.getProperties().getPitStartBuildings());
-		addContent(pits, "stop buildings", Editor.getProperties().getPitStopBuildings());
+		addContent(pits, "entry", Editor.getProperties().getPits().getEntry());
+		addContent(pits, "start", Editor.getProperties().getPits().getStart());
+		addContent(pits, "start buildings", Editor.getProperties().getPits().getStartBuildings());
+		addContent(pits, "stop buildings", Editor.getProperties().getPits().getStopBuildings());
 
-		if (Editor.getProperties().getPitMaxPits() > 0)
+		if (Editor.getProperties().getPits().getMaxPits() > 0)
 		{
-			addContent(pits, "max pits", null, Editor.getProperties().getPitMaxPits());
+			addContent(pits, "max pits", null, Editor.getProperties().getPits().getMaxPits());
 		}
 
-		addContent(pits, "end", Editor.getProperties().getPitEnd());
-		addContent(pits, "exit", Editor.getProperties().getPitExit());
-		addContent(pits, "length", "m", Editor.getProperties().getPitLength());
-		addContent(pits, "width", "m", Editor.getProperties().getPitWidth());
+		addContent(pits, "end", Editor.getProperties().getPits().getEnd());
+		addContent(pits, "exit", Editor.getProperties().getPits().getExit());
+		addContent(pits, "length", "m", Editor.getProperties().getPits().getLength());
+		addContent(pits, "width", "m", Editor.getProperties().getPits().getWidth());
 
-		if (Editor.getProperties().getPitIndicator() >= 0)
+		if (Editor.getProperties().getPits().getIndicator() >= 0)
 		{
-			addContent(pits, "pit indicator", null, Editor.getProperties().getPitIndicator());
+			addContent(pits, "pit indicator", null, Editor.getProperties().getPits().getIndicator());
 		}
 
-		addContent(pits, "speed limit", "m", Editor.getProperties().getPitSpeedLimit());
+		addContent(pits, "speed limit", "m", Editor.getProperties().getPits().getSpeedLimit());
 
 		return pits;
 	}

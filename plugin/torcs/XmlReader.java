@@ -411,49 +411,49 @@ public class XmlReader
 
         double style = getAttrNumValue(pits, "style");
         if (!Double.isNaN(style))
-            Editor.getProperties().setPitStyle((int) style);
+            Editor.getProperties().getPits().setStyle((int) style);
         else
-            Editor.getProperties().setPitStyle(1);
+            Editor.getProperties().getPits().setStyle(1);
 
         String tmp = getAttrStrValue(pits, "side");
-        Editor.getProperties().setPitSide(tmp);
+        Editor.getProperties().getPits().setSide(tmp);
 
         tmp = getAttrStrValue(pits, "entry");
-        Editor.getProperties().setPitEntry(tmp);
+        Editor.getProperties().getPits().setEntry(tmp);
 
         tmp = getAttrStrValue(pits, "start");
-        Editor.getProperties().setPitStart(tmp);
+        Editor.getProperties().getPits().setStart(tmp);
 
         tmp = getAttrStrValue(pits, "start buildings");
-        Editor.getProperties().setPitStartBuildings(tmp);
+        Editor.getProperties().getPits().setStartBuildings(tmp);
 
         tmp = getAttrStrValue(pits, "stop buildings");
-        Editor.getProperties().setPitStopBuildings(tmp);
+        Editor.getProperties().getPits().setStopBuildings(tmp);
 
         double maxPits = getAttrNumValue(pits, "max pits");
         if (!Double.isNaN(maxPits) && maxPits == Math.floor(maxPits) && maxPits > 0)
-            Editor.getProperties().setPitMaxPits((int) maxPits);
+            Editor.getProperties().getPits().setMaxPits((int) maxPits);
 
         tmp = getAttrStrValue(pits, "end");
-        Editor.getProperties().setPitEnd(tmp);
+        Editor.getProperties().getPits().setEnd(tmp);
 
         tmp = getAttrStrValue(pits, "exit");
-        Editor.getProperties().setPitExit(tmp);
+        Editor.getProperties().getPits().setExit(tmp);
 
         double val = getAttrNumValue(pits, "length");
-        Editor.getProperties().setPitLength(val);
+        Editor.getProperties().getPits().setLength(val);
 
         val = getAttrNumValue(pits, "width");
-        Editor.getProperties().setPitWidth(val);
+        Editor.getProperties().getPits().setWidth(val);
 
         val = getAttrNumValue(pits, "pit indicator");
         if (!Double.isNaN(val) && val >= 0)
-            Editor.getProperties().setPitIndicator((int)val);
+            Editor.getProperties().getPits().setIndicator((int)val);
         else
-            Editor.getProperties().setPitIndicator(-1);
+            Editor.getProperties().getPits().setIndicator(-1);
 
         val = getAttrNumValue(pits, "speed limit");
-        Editor.getProperties().setPitSpeedLimit(val);
+        Editor.getProperties().getPits().setSpeedLimit(val);
     }
 
     private synchronized static void setSegments(Element mainTrack)
