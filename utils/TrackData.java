@@ -28,6 +28,7 @@ import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
 import utils.circuit.StartingGrid;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 import utils.circuit.TurnMarks;
@@ -49,6 +50,7 @@ public final class TrackData
     private static LocalInfo					localData;
     private static StartingGrid					gridData;
     private static TurnMarks					turnMarksData;
+    private static TerrainGeneration			terrainData;
 
 	/**
      * @return Returns the trackData.
@@ -183,6 +185,21 @@ public final class TrackData
 	public static void setTurnMarksData(TurnMarks data)
 	{
 		turnMarksData = data;
+	}
+
+    /**
+     * @return Returns the terrainData.
+     */
+    public static TerrainGeneration getTerrainGenerationData()
+    {
+		return terrainData;
+	}
+    /**
+     * @param terrainData The terrainData to set.
+     */
+	public static void setTerrainGenerationData(TerrainGeneration data)
+	{
+		terrainData = data;
 	}
 
 	/**

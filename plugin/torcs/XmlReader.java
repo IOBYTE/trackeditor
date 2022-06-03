@@ -42,6 +42,7 @@ import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 import utils.circuit.TurnMarks;
@@ -380,38 +381,21 @@ public class XmlReader
 
         if (terrain != null)
         {
-	        val = getAttrNumValue(terrain, "track step");
-	        Editor.getProperties().setTerrainTrackStep(val);
+            TerrainGeneration data = new TerrainGeneration();
 
-	        val = getAttrNumValue(terrain, "border margin");
-	        Editor.getProperties().setTerrainBorderMargin(val);
+	        data.setTerrainTrackStep(getAttrNumValue(terrain, "track step"));
+	        data.setTerrainBorderMargin(getAttrNumValue(terrain, "border margin"));
+	        data.setTerrainBorderStep(getAttrNumValue(terrain, "border step"));
+	        data.setTerrainBorderHeight(getAttrNumValue(terrain, "border height"));
+	        data.setTerrainOrientation(getAttrStrValue(terrain, "orientation"));
+	        data.setTerrainMaximumAltitude(getAttrNumValue(terrain, "maximum altitude"));
+	        data.setTerrainMinimumAltitude(getAttrNumValue(terrain, "minimum altitude"));
+	        data.setTerrainGroupSize(getAttrNumValue(terrain, "group size"));
+	        data.setTerrainElevationMap(getAttrStrValue(terrain, "elevation map"));
+	        data.setTerrainReliefFile(getAttrStrValue(terrain, "relief file"));
+	        data.setTerrainSurface(getAttrStrValue(terrain, "surface"));
 
-	        val = getAttrNumValue(terrain, "border step");
-	        Editor.getProperties().setTerrainBorderStep(val);
-
-	        val = getAttrNumValue(terrain, "border height");
-	        Editor.getProperties().setTerrainBorderHeight(val);
-
-	        str = getAttrStrValue(terrain, "orientation");
-	        Editor.getProperties().setTerrainOrientation(str);
-
-	        val = getAttrNumValue(terrain, "maximum altitude");
-	        Editor.getProperties().setTerrainMaximumAltitude(val);
-
-	        val = getAttrNumValue(terrain, "minimum altitude");
-	        Editor.getProperties().setTerrainMinimumAltitude(val);
-
-	        val = getAttrNumValue(terrain, "group size");
-	        Editor.getProperties().setTerrainGroupSize(val);
-
-	        str = getAttrStrValue(terrain, "elevation map");
-	        Editor.getProperties().setTerrainElevationMap(str);
-
-	        str = getAttrStrValue(terrain, "relief file");
-	        Editor.getProperties().setTerrainReliefFile(str);
-
-	        str = getAttrStrValue(terrain, "surface");
-	        Editor.getProperties().setTerrainSurface(str);
+            TrackData.setTerrainGenerationData(data);
         }
     }
 

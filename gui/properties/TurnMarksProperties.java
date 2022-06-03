@@ -35,10 +35,10 @@ import utils.TrackData;
  */
 public class TurnMarksProperties extends JPanel
 {
-	private JLabel		turnMarksWidthLabel			= null;
-	private JTextField	turnMarksWidthTextField		= null;
-	private JLabel		turnMarksHeightLabel		= null;
-	private JTextField	turnMarksHeightTextField	= null;
+	private JLabel		turnMarksWidthLabel					= null;
+	private JTextField	turnMarksWidthTextField				= null;
+	private JLabel		turnMarksHeightLabel				= null;
+	private JTextField	turnMarksHeightTextField			= null;
 	private JLabel		turnMarksVerticalSpaceLabel			= null;
 	private JTextField	turnMarksVerticalSpaceTextField		= null;
 	private JLabel		turnMarksHorizontalSpaceLabel		= null;
@@ -94,7 +94,8 @@ public class TurnMarksProperties extends JPanel
 		if (turnMarksWidthTextField == null)
 		{
 			turnMarksWidthTextField = new JTextField();
-			turnMarksWidthTextField.setText(TrackData.getTurnMarksData().getTurnMarksWidth() + "");
+			if (TrackData.getTurnMarksData() != null)
+				turnMarksWidthTextField.setText(TrackData.getTurnMarksData().getTurnMarksWidth() + "");
 			turnMarksWidthTextField.setBounds(100, 10, 100, 20);
 		}
 		return turnMarksWidthTextField;
@@ -109,7 +110,8 @@ public class TurnMarksProperties extends JPanel
 		if (turnMarksHeightTextField == null)
 		{
 			turnMarksHeightTextField = new JTextField();
-			turnMarksHeightTextField.setText(TrackData.getTurnMarksData().getTurnMarksHeight() + "");
+			if (TrackData.getTurnMarksData() != null)
+				turnMarksHeightTextField.setText(TrackData.getTurnMarksData().getTurnMarksHeight() + "");
 			turnMarksHeightTextField.setBounds(100, 35, 100, 20);
 		}
 		return turnMarksHeightTextField;
@@ -124,7 +126,8 @@ public class TurnMarksProperties extends JPanel
 		if (turnMarksVerticalSpaceTextField == null)
 		{
 			turnMarksVerticalSpaceTextField = new JTextField();
-			turnMarksVerticalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksVerticalSpace() + "");
+			if (TrackData.getTurnMarksData() != null)
+				turnMarksVerticalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksVerticalSpace() + "");
 			turnMarksVerticalSpaceTextField.setBounds(100, 60, 100, 20);
 		}
 		return turnMarksVerticalSpaceTextField;
@@ -139,7 +142,8 @@ public class TurnMarksProperties extends JPanel
 		if (turnMarksHorizontalSpaceTextField == null)
 		{
 			turnMarksHorizontalSpaceTextField = new JTextField();
-			turnMarksHorizontalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksHorizontalSpace() + "");
+			if (TrackData.getTurnMarksData() != null)
+				turnMarksHorizontalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksHorizontalSpace() + "");
 			turnMarksHorizontalSpaceTextField.setBounds(100, 85, 100, 20);
 		}
 		return turnMarksHorizontalSpaceTextField;
