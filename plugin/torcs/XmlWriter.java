@@ -660,6 +660,26 @@ public class XmlWriter
 		graphic.setAttribute(new Attribute("name", "Graphic"));
 
 		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
+		addContent(graphic, "3d description night", Editor.getProperties().getGraphic().getDescriptionNight());
+		addContent(graphic, "3d description rain+night", Editor.getProperties().getGraphic().getDescriptionRainNight());
+		addContent(graphic, "background image", Editor.getProperties().getGraphic().getBackgroundImage());
+		addContent(graphic, "3d description", null, Editor.getProperties().getGraphic().getBackgroundType());
+		addContent(graphic, "background color R", null, Editor.getProperties().getGraphic().getBackgroundColorR());
+		addContent(graphic, "background color G", null, Editor.getProperties().getGraphic().getBackgroundColorG());
+		addContent(graphic, "background color B", null, Editor.getProperties().getGraphic().getBackgroundColorB());
+		addContent(graphic, "ambient color R", null, Editor.getProperties().getGraphic().getAmbientColorR());
+		addContent(graphic, "ambient color G", null, Editor.getProperties().getGraphic().getAmbientColorG());
+		addContent(graphic, "ambient color B", null, Editor.getProperties().getGraphic().getAmbientColorB());
+		addContent(graphic, "diffuse color R", null, Editor.getProperties().getGraphic().getDiffuseColorR());
+		addContent(graphic, "diffuse color G", null, Editor.getProperties().getGraphic().getDiffuseColorG());
+		addContent(graphic, "diffuse color B", null, Editor.getProperties().getGraphic().getDiffuseColorB());
+		addContent(graphic, "specular color R", null, Editor.getProperties().getGraphic().getSpecularColorR());
+		addContent(graphic, "specular color G", null, Editor.getProperties().getGraphic().getSpecularColorG());
+		addContent(graphic, "specular color B", null, Editor.getProperties().getGraphic().getSpecularColorB());
+		addContent(graphic, "light position y", null, Editor.getProperties().getGraphic().getLightPositionX());
+		addContent(graphic, "light position x", null, Editor.getProperties().getGraphic().getLightPositionY());
+		addContent(graphic, "light position z", null, Editor.getProperties().getGraphic().getLightPositionZ());
+		addContent(graphic, "shininess", null, Editor.getProperties().getGraphic().getShininess());
 
 		Element marks = new Element("section");
 		marks.setAttribute(new Attribute("name", "Turn Marks"));

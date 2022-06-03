@@ -3,29 +3,30 @@ package utils.circuit;
 import java.util.Vector;
 
 public class Graphic {
-    private String 						description			= null;
-    private String 						descriptionNight	= null;
-    private String 						descriptionRaiNight	= null;
-    private String 						backgroundImage		= null;
-    private int 						backgroundType		= Integer.MAX_VALUE;
-    private double 						backgroundColorR	= Double.NaN;
-    private double 						backgroundColorG	= Double.NaN;
-    private double 						backgroundColorB	= Double.NaN;
-    private double 						ambientColorR		= Double.NaN;
-    private double 						ambientColorG		= Double.NaN;
-    private double 						ambientColorB		= Double.NaN;
-    private double 						diffuseColorR		= Double.NaN;
-    private double 						diffuseColorG		= Double.NaN;
-    private double 						diffuseColorB		= Double.NaN;
-    private double 						specularColorR		= Double.NaN;
-    private double 						specularColorG		= Double.NaN;
-    private double 						specularColorB		= Double.NaN;
-    private double 						lightPositionX		= Double.NaN;
-    private double 						lightPositionY		= Double.NaN;
-    private double 						lightPositionZ		= Double.NaN;
-    private TurnMarks					turnMarks			= new TurnMarks();  
-    private TerrainGeneration			terrainGeneration	= new TerrainGeneration();
-    private Vector<EnvironmentMapping>	environmentMapping	= new Vector<EnvironmentMapping>();
+    private String 						description				= null;
+    private String 						descriptionNight		= null;
+    private String 						descriptionRainNight	= null;
+    private String 						backgroundImage			= null;
+    private int							backgroundType			= Integer.MAX_VALUE;
+    private double 						backgroundColorR		= Double.NaN;
+    private double 						backgroundColorG		= Double.NaN;
+    private double 						backgroundColorB		= Double.NaN;
+    private double 						ambientColorR			= Double.NaN;
+    private double 						ambientColorG			= Double.NaN;
+    private double 						ambientColorB			= Double.NaN;
+    private double 						diffuseColorR			= Double.NaN;
+    private double 						diffuseColorG			= Double.NaN;
+    private double 						diffuseColorB			= Double.NaN;
+    private double 						specularColorR			= Double.NaN;
+    private double 						specularColorG			= Double.NaN;
+    private double 						specularColorB			= Double.NaN;
+    private double 						lightPositionX			= Double.NaN;
+    private double 						lightPositionY			= Double.NaN;
+    private double						lightPositionZ			= Double.NaN;
+    private double						shininess				= Double.NaN;
+    private TurnMarks					turnMarks				= new TurnMarks();
+    private TerrainGeneration			terrainGeneration		= new TerrainGeneration();
+    private Vector<EnvironmentMapping>	environmentMapping		= new Vector<EnvironmentMapping>();
     
 	public String getDescription() {
 		return description;
@@ -39,11 +40,11 @@ public class Graphic {
 	public void setDescriptionNight(String descriptionNight) {
 		this.descriptionNight = descriptionNight;
 	}
-	public String getDescriptionRaiNight() {
-		return descriptionRaiNight;
+	public String getDescriptionRainNight() {
+		return descriptionRainNight;
 	}
-	public void setDescriptionRaiNight(String descriptionRaiNight) {
-		this.descriptionRaiNight = descriptionRaiNight;
+	public void setDescriptionRainNight(String descriptionRaiNight) {
+		this.descriptionRainNight = descriptionRaiNight;
 	}
 	public String getBackgroundImage() {
 		return backgroundImage;
@@ -164,5 +165,11 @@ public class Graphic {
 	}
 	public void setEnvironmentMapping(Vector<EnvironmentMapping> environmentMapping) {
 		this.environmentMapping = environmentMapping;
+	}
+    public double getShininess() {
+		return shininess;
+	}
+	public void setShininess(double shininess) {
+		this.shininess = shininess;
 	}
 }

@@ -43,10 +43,8 @@ import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
-import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
-import utils.circuit.TurnMarks;
 
 /**
  * @author Charalampos Alexopoulos
@@ -353,6 +351,7 @@ public class XmlReader
         data.setLightPositionX(getAttrNumValue(graphic, "light position x"));
         data.setLightPositionY(getAttrNumValue(graphic, "light position y"));
         data.setLightPositionZ(getAttrNumValue(graphic, "light position z"));
+        data.setShininess(getAttrNumValue(graphic, "shininess"));
 
         Element marks = getChildWithName(graphic, "Turn Marks");
 
