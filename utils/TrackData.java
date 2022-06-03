@@ -23,6 +23,7 @@ package utils;
 import java.util.Vector;
 
 import utils.circuit.Camera;
+import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
@@ -41,8 +42,8 @@ public final class TrackData
     private static Vector<Camera> 				cameraData;
     private static Vector<TrackObject> 			objectData;
     private static Vector<TrackLight> 			lightData;
-
-    /**
+    private static LocalInfo					localData;
+	/**
      * @return Returns the trackData.
      */
     public static Vector<Segment> getTrackData()
@@ -118,6 +119,21 @@ public final class TrackData
     }
 
     /**
+     * @return Returns the localData.
+     */
+    public static LocalInfo getLocalData()
+    {
+		return localData;
+	}
+    /**
+     * @param localData The localData to set.
+     */
+	public static void setLocalData(LocalInfo data)
+	{
+		localData = data;
+	}
+
+	/**
      * 
      */
     public TrackData()
@@ -125,5 +141,4 @@ public final class TrackData
         super();
         // TODO Auto-generated constructor stub
     }
-
 }

@@ -35,6 +35,7 @@ import utils.Editor;
 import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
+import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
@@ -235,7 +236,18 @@ public class XmlReader
         if (local == null)
             return;
 
-        // TODO
+        LocalInfo localData = new LocalInfo();
+
+        localData.setStation(getAttrStrValue(local, "station"));
+        localData.setTimezone(getAttrNumValue(local, "timezone"));
+        localData.setOverallRainLikelyhood(getAttrNumValue(local, "overall rain likelyhood"));
+        localData.setLittleRainLikelyhood(getAttrNumValue(local, "little rain likelyhood"));
+        localData.setMediumRainLikelyhood(getAttrNumValue(local, "medium rain likelyhood"));
+        localData.setTimeOfDay(getAttrNumValue(local, "time of day"));
+        localData.setSunAscension(getAttrNumValue(local, "sun ascension"));
+        localData.setAltitude(getAttrNumValue(local, "altitude"));
+
+        TrackData.setLocalData(localData);
     }
 
     /**

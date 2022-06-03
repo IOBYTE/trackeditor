@@ -88,6 +88,7 @@ public class XmlWriter
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
+		root.addContent(getLocal());
 		root.addContent(getGraphic());
 		root.addContent(getTrack());
 		root.addContent(getCameras());
@@ -606,6 +607,28 @@ public class XmlWriter
 		addContent(header, "description", tmp);
 
 		return header;
+	}
+
+	/**
+	 * @return
+	 */
+	private synchronized static Element getLocal()
+	{
+		Attribute name = new Attribute("name", "Local Info");
+
+		Element local = new Element("section");
+		local.setAttribute(name);
+
+		addContent(local, "station", TrackData.getLocalData().getStation());
+		addContent(local, "timezone", null, TrackData.getLocalData().getTimezone());
+		addContent(local, "overall rain likelyhood", "%", TrackData.getLocalData().getOverallRainLikelyhood());
+		addContent(local, "little rain likelyhood", "%", TrackData.getLocalData().getLittleRainLikelyhood());
+		addContent(local, "medium rain likelyhood", "%", TrackData.getLocalData().getMediumRainLikelyhood());
+		addContent(local, "time of day", "hour", TrackData.getLocalData().getTimeOfDay());
+		addContent(local, "sun ascension", "deg", TrackData.getLocalData().getSunAscension());
+		addContent(local, "altitude", null, TrackData.getLocalData().getAltitude());
+
+		return local;
 	}
 
 	/**
