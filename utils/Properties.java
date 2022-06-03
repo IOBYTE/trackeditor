@@ -23,8 +23,10 @@ package utils;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import utils.circuit.LocalInfo;
 import utils.circuit.Pits;
 import utils.circuit.SegmentSide;
+import utils.circuit.StartingGrid;
 import utils.circuit.TerrainGeneration;
 import utils.circuit.TurnMarks;
 
@@ -76,6 +78,8 @@ public  class Properties
     private TerrainGeneration	terrainGeneration;
     private TurnMarks			turnMarks;
     private Pits				pits;
+    private LocalInfo			localInfo;
+    private StartingGrid		startingGrid;
 
 	/**
 	 *  
@@ -548,5 +552,35 @@ public  class Properties
     public void setPits(Pits pits)
     {
         this.pits = pits;
+    }
+
+    /**
+     * @return Returns the localInfo.
+     */
+    public LocalInfo getLocalInfo()
+    {
+        return localInfo;
+    }
+    /**
+     * @param localInfo The localInfo to set.
+     */
+    public void setLocalInfo(LocalInfo localInfo)
+    {
+        this.localInfo = localInfo;
+    }
+
+    /**
+     * @return Returns the startingGrid.
+     */
+    public StartingGrid getStartingGrid()
+    {
+        return startingGrid;
+    }
+    /**
+     * @param startingGrid The startingGrid to set.
+     */
+    public void setStartingGrid(StartingGrid startingGrid)
+    {
+        this.startingGrid = startingGrid;
     }
 }

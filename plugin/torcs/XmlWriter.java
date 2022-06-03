@@ -90,15 +90,15 @@ public class XmlWriter
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
-		if (TrackData.getLocalData() != null)
+		if (Editor.getProperties().getLocalInfo() != null)
 			root.addContent(getLocal());
 		root.addContent(getGraphic());
 		if (TrackData.getEnvironmentMappingData() != null)
 			root.addContent(getEnvironmentMapping());
-		if (TrackData.getGridData() != null)
+		if (Editor.getProperties().getStartingGrid() != null)
 			root.addContent(getGrid());
 		root.addContent(getTrack());
-		if (TrackData.getLocalData() != null)
+		if (TrackData.getCameraData() != null)
 			root.addContent(getCameras());
 	}
 	/**
@@ -625,14 +625,14 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Local Info"));
 
-		addContent(element, "station", TrackData.getLocalData().getStation());
-		addContent(element, "timezone", null, TrackData.getLocalData().getTimezone());
-		addContent(element, "overall rain likelyhood", "%", TrackData.getLocalData().getOverallRainLikelyhood());
-		addContent(element, "little rain likelyhood", "%", TrackData.getLocalData().getLittleRainLikelyhood());
-		addContent(element, "medium rain likelyhood", "%", TrackData.getLocalData().getMediumRainLikelyhood());
-		addContent(element, "time of day", "hour", TrackData.getLocalData().getTimeOfDay());
-		addContent(element, "sun ascension", "deg", TrackData.getLocalData().getSunAscension());
-		addContent(element, "altitude", null, TrackData.getLocalData().getAltitude());
+		addContent(element, "station", Editor.getProperties().getLocalInfo().getStation());
+		addContent(element, "timezone", null, Editor.getProperties().getLocalInfo().getTimezone());
+		addContent(element, "overall rain likelyhood", "%", Editor.getProperties().getLocalInfo().getOverallRainLikelyhood());
+		addContent(element, "little rain likelyhood", "%", Editor.getProperties().getLocalInfo().getLittleRainLikelyhood());
+		addContent(element, "medium rain likelyhood", "%", Editor.getProperties().getLocalInfo().getMediumRainLikelyhood());
+		addContent(element, "time of day", "hour", Editor.getProperties().getLocalInfo().getTimeOfDay());
+		addContent(element, "sun ascension", "deg", Editor.getProperties().getLocalInfo().getSunAscension());
+		addContent(element, "altitude", null, Editor.getProperties().getLocalInfo().getAltitude());
 
 		return element;
 	}
@@ -667,12 +667,12 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Starting Grid"));
 
-		addContent(element, "rows", null, TrackData.getGridData().getRows());
-		addContent(element, "pole position side", TrackData.getGridData().getPolePositionSide());
-		addContent(element, "distance to start", "m", TrackData.getGridData().getDistanceToStart());
-		addContent(element, "distance between columns", "m", TrackData.getGridData().getDistanceBetweenColumns());
-		addContent(element, "offset within a column", "m", TrackData.getGridData().getOffsetWithinAColumn());
-		addContent(element, "initial height", "m", TrackData.getGridData().getInitialHeight());
+		addContent(element, "rows", null, Editor.getProperties().getStartingGrid().getRows());
+		addContent(element, "pole position side", Editor.getProperties().getStartingGrid().getPolePositionSide());
+		addContent(element, "distance to start", "m", Editor.getProperties().getStartingGrid().getDistanceToStart());
+		addContent(element, "distance between columns", "m", Editor.getProperties().getStartingGrid().getDistanceBetweenColumns());
+		addContent(element, "offset within a column", "m", Editor.getProperties().getStartingGrid().getOffsetWithinAColumn());
+		addContent(element, "initial height", "m", Editor.getProperties().getStartingGrid().getInitialHeight());
 
 		return element;
 	}

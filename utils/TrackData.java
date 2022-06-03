@@ -47,8 +47,6 @@ public final class TrackData
     private static Vector<TrackObject> 			objectData;
     private static Vector<TrackLight> 			lightData;
     private static Vector<EnvironmentMapping>	envMapData;
-    private static LocalInfo					localData;
-    private static StartingGrid					gridData;
 
 	/**
      * @return Returns the trackData.
@@ -124,36 +122,6 @@ public final class TrackData
     {
         lightData = data;
     }
-
-    /**
-     * @return Returns the localData.
-     */
-    public static LocalInfo getLocalData()
-    {
-		return localData;
-	}
-    /**
-     * @param localData The localData to set.
-     */
-	public static void setLocalData(LocalInfo data)
-	{
-		localData = data;
-	}
-
-    /**
-     * @return Returns the gridData.
-     */
-    public static StartingGrid getGridData()
-    {
-		return gridData;
-	}
-    /**
-     * @param gridData The gridData to set.
-     */
-	public static void setGridData(StartingGrid data)
-	{
-		gridData = data;
-	}
 
     /**
      * @return Returns the envMapData.

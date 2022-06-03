@@ -249,7 +249,7 @@ public class XmlReader
         data.setOffsetWithinAColumn(getAttrNumValue(element, "offset within a column"));
         data.setInitialHeight(getAttrNumValue(element, "initial height"));
 
-        TrackData.setGridData(data);
+        Editor.getProperties().setStartingGrid(data);
     }
 
     /**
@@ -273,7 +273,7 @@ public class XmlReader
         data.setSunAscension(getAttrNumValue(element, "sun ascension"));
         data.setAltitude(getAttrNumValue(element, "altitude"));
 
-        TrackData.setLocalData(data);
+        Editor.getProperties().setLocalInfo(data);
     }
 
     /**
