@@ -35,6 +35,7 @@ import utils.Editor;
 import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
+import utils.circuit.EnvironmentMapping;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
@@ -84,14 +85,21 @@ public class XmlWriter
 		doc.addContent(com);
 		doc.addContent(type);
 		doc.setRootElement(root);
-		root.addContent(getLights());
+		if (TrackData.getLightData() != null)
+			root.addContent(getLights());
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
-		root.addContent(getLocal());
+		if (TrackData.getLocalData() != null)
+			root.addContent(getLocal());
 		root.addContent(getGraphic());
+		if (TrackData.getEnvironmentMappingData() != null)
+			root.addContent(getEnvironmentMapping());
+		if (TrackData.getGridData() != null)
+			root.addContent(getGrid());
 		root.addContent(getTrack());
-		root.addContent(getCameras());
+		if (TrackData.getLocalData() != null)
+			root.addContent(getCameras());
 	}
 	/**
 	 * @return
@@ -329,8 +337,8 @@ public class XmlWriter
 	private synchronized static Element getBorder(SegmentSide part, String sPart)
 	{
 		Element side = new Element("section");
-		Attribute name = new Attribute("name", sPart + " Border");
-		side.setAttribute(name);
+		side.setAttribute(new Attribute("name", sPart + " Border"));
+
 		addContent(side, "width", "m", part.getBorderWidth());
 		addContent(side, "height", "m", part.getBorderHeight());
 		addContent(side, "surface", part.getBorderSurface());
@@ -347,8 +355,8 @@ public class XmlWriter
 	private synchronized static Element getBarrier(SegmentSide part, String sPart)
 	{
 		Element side = new Element("section");
-		Attribute name = new Attribute("name", sPart + " Barrier");
-		side.setAttribute(name);
+		side.setAttribute(new Attribute("name", sPart + " Barrier"));
+
 		addContent(side, "width", "m", part.getBarrierWidth());
 		addContent(side, "height", "m", part.getBarrierHeight());
 		addContent(side, "surface", part.getBarrierSurface());
@@ -364,8 +372,8 @@ public class XmlWriter
 	private synchronized static Element getSide(SegmentSide part, String sPart)
 	{
 		Element side = new Element("section");
-		Attribute name = new Attribute("name", sPart + " Side");
-		side.setAttribute(name);
+		side.setAttribute(new Attribute("name", sPart + " Side"));
+
 		if (!Double.isNaN(part.getSideStartWidth()) &&
 			!Double.isNaN(part.getSideEndWidth()) &&
 			part.getSideStartWidth() == part.getSideEndWidth())
@@ -614,21 +622,59 @@ public class XmlWriter
 	 */
 	private synchronized static Element getLocal()
 	{
-		Attribute name = new Attribute("name", "Local Info");
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Local Info"));
 
-		Element local = new Element("section");
-		local.setAttribute(name);
+		addContent(element, "station", TrackData.getLocalData().getStation());
+		addContent(element, "timezone", null, TrackData.getLocalData().getTimezone());
+		addContent(element, "overall rain likelyhood", "%", TrackData.getLocalData().getOverallRainLikelyhood());
+		addContent(element, "little rain likelyhood", "%", TrackData.getLocalData().getLittleRainLikelyhood());
+		addContent(element, "medium rain likelyhood", "%", TrackData.getLocalData().getMediumRainLikelyhood());
+		addContent(element, "time of day", "hour", TrackData.getLocalData().getTimeOfDay());
+		addContent(element, "sun ascension", "deg", TrackData.getLocalData().getSunAscension());
+		addContent(element, "altitude", null, TrackData.getLocalData().getAltitude());
 
-		addContent(local, "station", TrackData.getLocalData().getStation());
-		addContent(local, "timezone", null, TrackData.getLocalData().getTimezone());
-		addContent(local, "overall rain likelyhood", "%", TrackData.getLocalData().getOverallRainLikelyhood());
-		addContent(local, "little rain likelyhood", "%", TrackData.getLocalData().getLittleRainLikelyhood());
-		addContent(local, "medium rain likelyhood", "%", TrackData.getLocalData().getMediumRainLikelyhood());
-		addContent(local, "time of day", "hour", TrackData.getLocalData().getTimeOfDay());
-		addContent(local, "sun ascension", "deg", TrackData.getLocalData().getSunAscension());
-		addContent(local, "altitude", null, TrackData.getLocalData().getAltitude());
+		return element;
+	}
 
-		return local;
+	private synchronized static Element getEnvironmentMapping()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Environment Mapping"));
+
+		Vector<EnvironmentMapping> cameraData = TrackData.getEnvironmentMappingData();
+
+		if (cameraData == null)
+			return element;
+
+		for (int i = 0; i < cameraData.size(); i++)
+		{
+			EnvironmentMapping data = cameraData.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", data.getName()));
+
+			addContent(el, "env map image", data.getEnvMapImage());
+
+			element.addContent(el);
+		}
+
+		return element;
+	}
+
+	private synchronized static Element getGrid()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Starting Grid"));
+
+		addContent(element, "rows", null, TrackData.getGridData().getRows());
+		addContent(element, "pole position side", TrackData.getGridData().getPolePositionSide());
+		addContent(element, "distance to start", "m", TrackData.getGridData().getDistanceToStart());
+		addContent(element, "distance between columns", "m", TrackData.getGridData().getDistanceBetweenColumns());
+		addContent(element, "offset within a column", "m", TrackData.getGridData().getOffsetWithinAColumn());
+		addContent(element, "initial height", "m", TrackData.getGridData().getInitialHeight());
+
+		return element;
 	}
 
 	/**
@@ -636,16 +682,13 @@ public class XmlWriter
 	 */
 	private synchronized static Element getGraphic()
 	{
-		Attribute name = new Attribute("name", "Graphic");
-
 		Element graphic = new Element("section");
-		graphic.setAttribute(name);
+		graphic.setAttribute(new Attribute("name", "Graphic"));
 
 		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
 
 		Element marks = new Element("section");
-		name = new Attribute("name", "Turn Marks");
-		marks.setAttribute(name);
+		marks.setAttribute(new Attribute("name", "Turn Marks"));
 		graphic.addContent(marks);
 
 		addContent(marks, "width", "m", Editor.getProperties().getTurnMarksWidth());
@@ -654,8 +697,7 @@ public class XmlWriter
 		addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarksHorizontalSpace());
 
 		Element terrain = new Element("section");
-		name = new Attribute("name", "Terrain Generation");
-		terrain.setAttribute(name);
+		terrain.setAttribute(new Attribute("name", "Terrain Generation"));
 		graphic.addContent(terrain);
 
 		addContent(terrain, "track step", "m", Editor.getProperties().getTerrainTrackStep());

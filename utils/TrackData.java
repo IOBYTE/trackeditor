@@ -23,8 +23,10 @@ package utils;
 import java.util.Vector;
 
 import utils.circuit.Camera;
+import utils.circuit.EnvironmentMapping;
 import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
+import utils.circuit.StartingGrid;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
@@ -42,7 +44,10 @@ public final class TrackData
     private static Vector<Camera> 				cameraData;
     private static Vector<TrackObject> 			objectData;
     private static Vector<TrackLight> 			lightData;
+    private static Vector<EnvironmentMapping>	envMapData;
     private static LocalInfo					localData;
+    private static StartingGrid					gridData;
+
 	/**
      * @return Returns the trackData.
      */
@@ -131,6 +136,36 @@ public final class TrackData
 	public static void setLocalData(LocalInfo data)
 	{
 		localData = data;
+	}
+
+    /**
+     * @return Returns the gridData.
+     */
+    public static StartingGrid getGridData()
+    {
+		return gridData;
+	}
+    /**
+     * @param gridData The gridData to set.
+     */
+	public static void setGridData(StartingGrid data)
+	{
+		gridData = data;
+	}
+
+    /**
+     * @return Returns the envMapData.
+     */
+    public static Vector<EnvironmentMapping> getEnvironmentMappingData()
+    {
+		return envMapData;
+	}
+    /**
+     * @param envMapData The envMapData to set.
+     */
+	public static void setEnvironmentMappingData(Vector<EnvironmentMapping> data)
+	{
+		envMapData = data;
 	}
 
 	/**

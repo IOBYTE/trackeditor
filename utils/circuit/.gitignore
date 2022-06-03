@@ -16,3 +16,5 @@
 /TrackLight$Point3D.class
 /TrackLight$Corner.class
 /LocalInfo.class
+/StartingGrid.class
+/EnvironmentMapping.class

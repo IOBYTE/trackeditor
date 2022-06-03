@@ -10,7 +10,7 @@ public class LocalInfo {
 	private double timeOfDay				= Double.NaN;
 	private double sunAscension				= Double.NaN;
 	private double altitude					= Double.NaN;
-	
+
 	public String getStation() {
 		return station;
 	}

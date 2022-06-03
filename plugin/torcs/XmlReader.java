@@ -35,9 +35,11 @@ import utils.Editor;
 import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
+import utils.circuit.EnvironmentMapping;
 import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
+import utils.circuit.StartingGrid;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
@@ -205,12 +207,25 @@ public class XmlReader
      */
     private static void setEnvironmentMapping(Element root)
     {
-        Element environment = getChildWithName(root, "Environment Map");
+        Element element = getChildWithName(root, "Environment Mapping");
 
-        if (environment == null)
+        if (element == null)
             return;
 
-        // TODO
+        Vector<EnvironmentMapping> data = new Vector<EnvironmentMapping>();
+        Iterator<Element> it = element.getChildren().iterator();
+        while (it.hasNext())
+        {
+            EnvironmentMapping map = new EnvironmentMapping();
+
+            Element el = it.next();
+            map.setName(el.getAttribute("name").getValue());
+
+            map.setEnvMapImage(getAttrStrValue(el, "env map image"));
+
+            data.add(map);
+        }
+        TrackData.setEnvironmentMappingData(data);
     }
 
     /**
@@ -218,12 +233,21 @@ public class XmlReader
      */
     private static void setStartingGrid(Element root)
     {
-        Element grid = getChildWithName(root, "Starting Grid");
+        Element element = getChildWithName(root, "Starting Grid");
 
-        if (grid == null)
+        if (element == null)
             return;
 
-        // TODO
+        StartingGrid data = new StartingGrid();
+
+        data.setRows(getAttrIntValue(element, "rows"));
+        data.setPolePositionSide(getAttrStrValue(element, "pole position side"));
+        data.setDistanceToStart(getAttrNumValue(element, "distance to start"));
+        data.setDistanceBetweenColumns(getAttrNumValue(element, "distance between columns"));
+        data.setOffsetWithinAColumn(getAttrNumValue(element, "offset within a column"));
+        data.setInitialHeight(getAttrNumValue(element, "initial height"));
+
+        TrackData.setGridData(data);
     }
 
     /**
@@ -231,23 +255,23 @@ public class XmlReader
      */
     private static void setLocalInfo(Element root)
     {
-        Element local = getChildWithName(root, "Local Info");
+        Element element = getChildWithName(root, "Local Info");
 
-        if (local == null)
+        if (element == null)
             return;
 
-        LocalInfo localData = new LocalInfo();
+        LocalInfo data = new LocalInfo();
 
-        localData.setStation(getAttrStrValue(local, "station"));
-        localData.setTimezone(getAttrNumValue(local, "timezone"));
-        localData.setOverallRainLikelyhood(getAttrNumValue(local, "overall rain likelyhood"));
-        localData.setLittleRainLikelyhood(getAttrNumValue(local, "little rain likelyhood"));
-        localData.setMediumRainLikelyhood(getAttrNumValue(local, "medium rain likelyhood"));
-        localData.setTimeOfDay(getAttrNumValue(local, "time of day"));
-        localData.setSunAscension(getAttrNumValue(local, "sun ascension"));
-        localData.setAltitude(getAttrNumValue(local, "altitude"));
+        data.setStation(getAttrStrValue(element, "station"));
+        data.setTimezone(getAttrNumValue(element, "timezone"));
+        data.setOverallRainLikelyhood(getAttrNumValue(element, "overall rain likelyhood"));
+        data.setLittleRainLikelyhood(getAttrNumValue(element, "little rain likelyhood"));
+        data.setMediumRainLikelyhood(getAttrNumValue(element, "medium rain likelyhood"));
+        data.setTimeOfDay(getAttrNumValue(element, "time of day"));
+        data.setSunAscension(getAttrNumValue(element, "sun ascension"));
+        data.setAltitude(getAttrNumValue(element, "altitude"));
 
-        TrackData.setLocalData(localData);
+        TrackData.setLocalData(data);
     }
 
     /**
