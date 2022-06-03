@@ -24,6 +24,8 @@ import java.awt.event.ActionListener;
 import java.util.Vector;
 
 import utils.circuit.SegmentSide;
+import utils.circuit.TerrainGeneration;
+import utils.circuit.TurnMarks;
 
 
 /**
@@ -84,6 +86,8 @@ public  class Properties
 	private int					curveNameCount			= 0;
 	private int					straightNameCount		= 0;
 
+    private TerrainGeneration	terrainGeneration;
+    private TurnMarks			turnMarks;
 
 	/**
 	 *  
@@ -707,5 +711,34 @@ public  class Properties
     public void setStraightNameCount(int straightNameCount)
     {
         this.straightNameCount = straightNameCount;
+    }
+
+    /**
+     * @return Returns the terrainGeneration.
+     */
+    public TerrainGeneration getTerrainGeneration()
+    {
+        return terrainGeneration;
+    }
+    /**
+     * @param terrainGeneration The terrainGeneration to set.
+     */
+    public void setTerrainGeneration(TerrainGeneration terrainGeneration)
+    {
+        this.terrainGeneration = terrainGeneration;
+    }
+    /**
+     * @return Returns the turnMarks.
+     */
+    public TurnMarks getTurnMarks()
+    {
+        return turnMarks;
+    }
+    /**
+     * @param turnMarks The turnMarks to set.
+     */
+    public void setTurnMarks(TurnMarks turnMarks)
+    {
+        this.turnMarks = turnMarks;
     }
 }

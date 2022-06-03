@@ -1,196 +1,196 @@
 package utils.circuit;
 
 public class TerrainGeneration {
-	private double				terrainTrackStep		= 20;
-	private double				terrainBorderMargin		= 50;
-	private double				terrainBorderStep		= 30;
-	private double				terrainBorderHeight		= 15;
-	private String				terrainOrientation		= "clockwise";
-	private double				terrainMaximumAltitude	= Double.NaN;
-	private double				terrainMinimumAltitude	= Double.NaN;
-	private double				terrainGroupSize		= Double.NaN;
-	private String				terrainElevationMap		= null;
-	private String				terrainReliefFile		= null;
-	private String				terrainSurface			= null;
+	private double				trackStep		= 20;
+	private double				borderMargin	= 50;
+	private double				borderStep		= 30;
+	private double				borderHeight	= 15;
+	private String				orientation		= "clockwise";
+	private double				maximumAltitude	= Double.NaN;
+	private double				minimumAltitude	= Double.NaN;
+	private double				groupSize		= Double.NaN;
+	private String				elevationMap	= null;
+	private String				reliefFile		= null;
+	private String				surface			= null;
 
 	/**
 	 * @return Returns the terrainTrackStep.
 	 */
-	public double getTerrainTrackStep()
+	public double getTrackStep()
 	{
-		return terrainTrackStep;
+		return trackStep;
 	}
 	/**
-	 * @param terrainTrackStep
-	 *            The terrainTrackStep to set.
+	 * @param trackStep
+	 *            The trackStep to set.
 	 */
-	public void setTerrainTrackStep(double terrainTrackStep)
+	public void setTrackStep(double trackStep)
 	{
-		this.terrainTrackStep = terrainTrackStep;
+		this.trackStep = trackStep;
 	}
 	/**
-	 * @return Returns the terrainBorderMargin.
+	 * @return Returns the borderMargin.
 	 */
-	public double getTerrainBorderMargin()
+	public double getBorderMargin()
 	{
-		return terrainBorderMargin;
+		return borderMargin;
 	}
 	/**
-	 * @param terrainBorderMargin
-	 *            The terrainBorderMargin to set.
+	 * @param borderMargin
+	 *            The borderMargin to set.
 	 */
-	public void setTerrainBorderMargin(double terrainBorderMargin)
+	public void setBorderMargin(double borderMargin)
 	{
-		this.terrainBorderMargin = terrainBorderMargin;
+		this.borderMargin = borderMargin;
 	}
 	/**
-	 * @return Returns the terrainBorderStep.
+	 * @return Returns the borderStep.
 	 */
-	public double getTerrainBorderStep()
+	public double getBorderStep()
 	{
-		return terrainBorderStep;
+		return borderStep;
 	}
 	/**
-	 * @param terrainBorderStep
+	 * @param borderStep
 	 *            The pitMaxPits to set.
 	 */
-	public void setTerrainBorderStep(double terrainBorderStep)
+	public void setBorderStep(double borderStep)
 	{
-		this.terrainBorderStep = terrainBorderStep;
+		this.borderStep = borderStep;
 	}
 	/**
-	 * @return Returns the terrainBorderHeight.
+	 * @return Returns the borderHeight.
 	 */
-	public double getTerrainBorderHeight()
+	public double getBorderHeight()
 	{
-		return terrainBorderHeight;
+		return borderHeight;
 	}
 	/**
-	 * @param terrainBorderHeight
-	 *            The terrainBorderHeight to set.
+	 * @param borderHeight
+	 *            The borderHeight to set.
 	 */
-	public void setTerrainBorderHeight(double terrainBorderHeight)
+	public void setBorderHeight(double borderHeight)
 	{
-		this.terrainBorderHeight = terrainBorderHeight;
+		this.borderHeight = borderHeight;
 	}
 	/**
-	 * @return Returns the terrainOrientation.
+	 * @return Returns the orientation.
 	 */
-	public String getTerrainOrientation()
+	public String getOrientation()
 	{
-		return terrainOrientation;
+		return orientation;
 	}
 	/**
-	 * @param terrainOrientation
-	 *            The terrainOrientation to set.
+	 * @param orientation
+	 *            The orientation to set.
 	 */
-	public void setTerrainOrientation(String terrainOrientation)
+	public void setOrientation(String orientation)
 	{
-		this.terrainOrientation = terrainOrientation;
+		this.orientation = orientation;
 	}
 	/**
-	 * @return Returns the terrainMaximumAltitude.
+	 * @return Returns the maximumAltitude.
 	 */
-	public double getTerrainMaximumAltitude()
+	public double getMaximumAltitude()
 	{
-		return terrainMaximumAltitude;
+		return maximumAltitude;
 	}
 	/**
-	 * @param terrainMaximumAltitude
-	 *            The terrainMaximumAltitude to set.
+	 * @param maximumAltitude
+	 *            The maximumAltitude to set.
 	 */
-	public void setTerrainMaximumAltitude(double terrainMaximumAltitude)
+	public void setMaximumAltitude(double maximumAltitude)
 	{
-		this.terrainMaximumAltitude = terrainMaximumAltitude;
+		this.maximumAltitude = maximumAltitude;
 	}
 	/**
-	 * @return Returns the terrainMinimumAltitude.
+	 * @return Returns the minimumAltitude.
 	 */
-	public double getTerrainMinimumAltitude()
+	public double getMinimumAltitude()
 	{
-		return terrainMinimumAltitude;
+		return minimumAltitude;
 	}
 	/**
-	 * @param terrainMinimumAltitude
-	 *            The terrainMinimumAltitude to set.
+	 * @param minimumAltitude
+	 *            The minimumAltitude to set.
 	 */
-	public void setTerrainMinimumAltitude(double terrainMinimumAltitude)
+	public void setMinimumAltitude(double minimumAltitude)
 	{
-		this.terrainMinimumAltitude = terrainMinimumAltitude;
+		this.minimumAltitude = minimumAltitude;
 	}
 	/**
-	 * @return Returns the terrainGroupSize.
+	 * @return Returns the groupSize.
 	 */
-	public double getTerrainGroupSize()
+	public double getGroupSize()
 	{
-		return terrainGroupSize;
+		return groupSize;
 	}
 	/**
-	 * @param terrainGroupSize
-	 *            The terrainGroupSize to set.
+	 * @param groupSize
+	 *            The groupSize to set.
 	 */
-	public void setTerrainGroupSize(double terrainGroupSize)
+	public void setGroupSize(double groupSize)
 	{
-		this.terrainGroupSize = terrainGroupSize;
+		this.groupSize = groupSize;
 	}
 	/**
-	 * @return Returns the terrainElevationMap.
+	 * @return Returns the elevationMap.
 	 */
-	public String getTerrainElevationMap()
+	public String getElevationMap()
 	{
-		return terrainElevationMap;
+		return elevationMap;
 	}
 	/**
-	 * @param terrainElevationMap
-	 *            The terrainElevationMap to set.
+	 * @param elevationMap
+	 *            The elevationMap to set.
 	 */
-	public void setTerrainElevationMap(String terrainElevationMap)
+	public void setElevationMap(String elevationMap)
 	{
-		this.terrainElevationMap = terrainElevationMap;
+		this.elevationMap = elevationMap;
 	}
 	/**
-	 * @return Returns the terrainReliefFile.
+	 * @return Returns the reliefFile.
 	 */
-	public String getTerrainReliefFile()
+	public String getReliefFile()
 	{
-		return terrainReliefFile;
+		return reliefFile;
 	}
 	/**
-	 * @param terrainReliefFile
-	 *            The terrainReliefFile to set.
+	 * @param reliefFile
+	 *            The reliefFile to set.
 	 */
-	public void setTerrainReliefFile(String terrainReliefFile)
+	public void setReliefFile(String reliefFile)
 	{
-		this.terrainReliefFile = terrainReliefFile;
+		this.reliefFile = reliefFile;
 	}
 	/**
-	 * @return Returns the terrainSurface.
+	 * @return Returns the surface.
 	 */
-	public String getTerrainSurface()
+	public String getSurface()
 	{
-		return terrainSurface;
+		return surface;
 	}
 	/**
-	 * @param terrainSurface
-	 *            The terrainSurface to set.
+	 * @param surface
+	 *            The surface to set.
 	 */
-	public void setTerrainSurface(String terrainSurface)
+	public void setSurface(String surface)
 	{
-		this.terrainSurface = terrainSurface;
+		this.surface = surface;
 	}
 
 	public void dump()
     {
-		System.out.println("terrainTrackStep       : " + terrainTrackStep);
-		System.out.println("terrainBorderMargin    : " + terrainBorderMargin);
-		System.out.println("terrainBorderStep      : " + terrainBorderStep);
-		System.out.println("terrainBorderHeight    : " + terrainBorderHeight);
-		System.out.println("terrainOrientation     : " + terrainOrientation);
-		System.out.println("terrainMaximumAltitude : " + terrainMaximumAltitude);
-		System.out.println("terrainMinimumAltitude : " + terrainMinimumAltitude);
-		System.out.println("terrainGroupSize       : " + terrainGroupSize);
-		System.out.println("terrainElevationMap    : " + terrainElevationMap);
-		System.out.println("terrainReliefFile      : " + terrainReliefFile);
-		System.out.println("terrainSurface         : " + terrainSurface);
+		System.out.println("trackStep       : " + trackStep);
+		System.out.println("borderMargin    : " + borderMargin);
+		System.out.println("borderStep      : " + borderStep);
+		System.out.println("borderHeight    : " + borderHeight);
+		System.out.println("orientation     : " + orientation);
+		System.out.println("maximumAltitude : " + maximumAltitude);
+		System.out.println("minimumAltitude : " + minimumAltitude);
+		System.out.println("groupSize       : " + groupSize);
+		System.out.println("elevationMap    : " + elevationMap);
+		System.out.println("reliefFile      : " + reliefFile);
+		System.out.println("surface         : " + surface);
     }
 }

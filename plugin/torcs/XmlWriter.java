@@ -687,35 +687,35 @@ public class XmlWriter
 
 		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
 
-		if (TrackData.getTurnMarksData() != null)
+		if (Editor.getProperties().getTurnMarks() != null)
 		{
 			Element marks = new Element("section");
 			marks.setAttribute(new Attribute("name", "Turn Marks"));
 			graphic.addContent(marks);
 
-			addContent(marks, "width", "m", TrackData.getTurnMarksData().getTurnMarksWidth());
-			addContent(marks, "height", "m", TrackData.getTurnMarksData().getTurnMarksHeight());
-			addContent(marks, "vertical space", "m", TrackData.getTurnMarksData().getTurnMarksVerticalSpace());
-			addContent(marks, "horizontal space", "m", TrackData.getTurnMarksData().getTurnMarksHorizontalSpace());
+			addContent(marks, "width", "m", Editor.getProperties().getTurnMarks().getWidth());
+			addContent(marks, "height", "m", Editor.getProperties().getTurnMarks().getHeight());
+			addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarks().getVerticalSpace());
+			addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarks().getHorizontalSpace());
 		}
 
-		if (TrackData.getTurnMarksData() != null)
+		if (Editor.getProperties().getTerrainGeneration() != null)
 		{
 			Element terrain = new Element("section");
 			terrain.setAttribute(new Attribute("name", "Terrain Generation"));
 			graphic.addContent(terrain);
 
-			addContent(terrain, "track step", "m", TrackData.getTerrainGenerationData().getTerrainTrackStep());
-			addContent(terrain, "border margin", "m", TrackData.getTerrainGenerationData().getTerrainBorderMargin());
-			addContent(terrain, "border step", "m", TrackData.getTerrainGenerationData().getTerrainBorderStep());
-			addContent(terrain, "border height", "m", TrackData.getTerrainGenerationData().getTerrainBorderHeight());
-			addContent(terrain, "orientation", TrackData.getTerrainGenerationData().getTerrainOrientation());
-			addContent(terrain, "maximum altitude", "m", TrackData.getTerrainGenerationData().getTerrainMaximumAltitude());
-			addContent(terrain, "minimum altitude", "m", TrackData.getTerrainGenerationData().getTerrainMinimumAltitude());
-			addContent(terrain, "group size", "m", TrackData.getTerrainGenerationData().getTerrainGroupSize());
-			addContent(terrain, "elevation map", TrackData.getTerrainGenerationData().getTerrainElevationMap());
-			addContent(terrain, "relief file", TrackData.getTerrainGenerationData().getTerrainReliefFile());
-			addContent(terrain, "surface", TrackData.getTerrainGenerationData().getTerrainSurface());
+			addContent(terrain, "track step", "m", Editor.getProperties().getTerrainGeneration().getTrackStep());
+			addContent(terrain, "border margin", "m", Editor.getProperties().getTerrainGeneration().getBorderMargin());
+			addContent(terrain, "border step", "m", Editor.getProperties().getTerrainGeneration().getBorderStep());
+			addContent(terrain, "border height", "m", Editor.getProperties().getTerrainGeneration().getBorderHeight());
+			addContent(terrain, "orientation", Editor.getProperties().getTerrainGeneration().getOrientation());
+			addContent(terrain, "maximum altitude", "m", Editor.getProperties().getTerrainGeneration().getMaximumAltitude());
+			addContent(terrain, "minimum altitude", "m", Editor.getProperties().getTerrainGeneration().getMinimumAltitude());
+			addContent(terrain, "group size", "m", Editor.getProperties().getTerrainGeneration().getGroupSize());
+			addContent(terrain, "elevation map", Editor.getProperties().getTerrainGeneration().getElevationMap());
+			addContent(terrain, "relief file", Editor.getProperties().getTerrainGeneration().getReliefFile());
+			addContent(terrain, "surface", Editor.getProperties().getTerrainGeneration().getSurface());
 		}
 
 		return graphic;

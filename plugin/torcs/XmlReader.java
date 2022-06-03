@@ -369,12 +369,12 @@ public class XmlReader
         {
             TurnMarks data = new TurnMarks();
 
-            data.setTurnMarksWidth(getAttrNumValue(marks, "width"));
-            data.setTurnMarksHeight(getAttrNumValue(marks, "height"));
-            data.setTurnMarksVerticalSpace(getAttrNumValue(marks, "vertical space"));
-            data.setTurnMarksHorizontalSpace(getAttrNumValue(marks, "horizontal space"));
+            data.setWidth(getAttrNumValue(marks, "width"));
+            data.setHeight(getAttrNumValue(marks, "height"));
+            data.setVerticalSpace(getAttrNumValue(marks, "vertical space"));
+            data.setHorizontalSpace(getAttrNumValue(marks, "horizontal space"));
 
-            TrackData.setTurnMarksData(data);
+            Editor.getProperties().setTurnMarks(data);
         }
 
         Element terrain = getChildWithName(graphic, "Terrain Generation");
@@ -383,19 +383,19 @@ public class XmlReader
         {
             TerrainGeneration data = new TerrainGeneration();
 
-	        data.setTerrainTrackStep(getAttrNumValue(terrain, "track step"));
-	        data.setTerrainBorderMargin(getAttrNumValue(terrain, "border margin"));
-	        data.setTerrainBorderStep(getAttrNumValue(terrain, "border step"));
-	        data.setTerrainBorderHeight(getAttrNumValue(terrain, "border height"));
-	        data.setTerrainOrientation(getAttrStrValue(terrain, "orientation"));
-	        data.setTerrainMaximumAltitude(getAttrNumValue(terrain, "maximum altitude"));
-	        data.setTerrainMinimumAltitude(getAttrNumValue(terrain, "minimum altitude"));
-	        data.setTerrainGroupSize(getAttrNumValue(terrain, "group size"));
-	        data.setTerrainElevationMap(getAttrStrValue(terrain, "elevation map"));
-	        data.setTerrainReliefFile(getAttrStrValue(terrain, "relief file"));
-	        data.setTerrainSurface(getAttrStrValue(terrain, "surface"));
+	        data.setTrackStep(getAttrNumValue(terrain, "track step"));
+	        data.setBorderMargin(getAttrNumValue(terrain, "border margin"));
+	        data.setBorderStep(getAttrNumValue(terrain, "border step"));
+	        data.setBorderHeight(getAttrNumValue(terrain, "border height"));
+	        data.setOrientation(getAttrStrValue(terrain, "orientation"));
+	        data.setMaximumAltitude(getAttrNumValue(terrain, "maximum altitude"));
+	        data.setMinimumAltitude(getAttrNumValue(terrain, "minimum altitude"));
+	        data.setGroupSize(getAttrNumValue(terrain, "group size"));
+	        data.setElevationMap(getAttrStrValue(terrain, "elevation map"));
+	        data.setReliefFile(getAttrStrValue(terrain, "relief file"));
+	        data.setSurface(getAttrStrValue(terrain, "surface"));
 
-            TrackData.setTerrainGenerationData(data);
+	        Editor.getProperties().setTerrainGeneration(data);
         }
     }
 

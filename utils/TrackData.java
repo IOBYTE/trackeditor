@@ -49,8 +49,6 @@ public final class TrackData
     private static Vector<EnvironmentMapping>	envMapData;
     private static LocalInfo					localData;
     private static StartingGrid					gridData;
-    private static TurnMarks					turnMarksData;
-    private static TerrainGeneration			terrainData;
 
 	/**
      * @return Returns the trackData.
@@ -170,36 +168,6 @@ public final class TrackData
 	public static void setEnvironmentMappingData(Vector<EnvironmentMapping> data)
 	{
 		envMapData = data;
-	}
-
-    /**
-     * @return Returns the turnMarksData.
-     */
-    public static TurnMarks getTurnMarksData()
-    {
-		return turnMarksData;
-	}
-    /**
-     * @param turnMarksData The turnMarksData to set.
-     */
-	public static void setTurnMarksData(TurnMarks data)
-	{
-		turnMarksData = data;
-	}
-
-    /**
-     * @return Returns the terrainData.
-     */
-    public static TerrainGeneration getTerrainGenerationData()
-    {
-		return terrainData;
-	}
-    /**
-     * @param terrainData The terrainData to set.
-     */
-	public static void setTerrainGenerationData(TerrainGeneration data)
-	{
-		terrainData = data;
 	}
 
 	/**

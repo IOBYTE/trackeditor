@@ -1,77 +1,77 @@
 package utils.circuit;
 
 public class TurnMarks {
-	private double				turnMarksWidth			= 1;
-	private double				turnMarksHeight			= 1;
-	private double				turnMarksVerticalSpace	= 0;
-	private double				turnMarksHorizontalSpace= 2;
+	private double				width			= 1;
+	private double				height			= 1;
+	private double				verticalSpace	= 0;
+	private double				horizontalSpace	= 2;
 
 	/**
-	 * @return Returns the turnMarksWidth.
+	 * @return Returns the width.
 	 */
-	public double getTurnMarksWidth()
+	public double getWidth()
 	{
-		return turnMarksWidth;
+		return width;
 	}
 	/**
-	 * @param turnMarksWidth
-	 *            The turnMarksWidth to set.
+	 * @param width
+	 *            The width to set.
 	 */
-	public void setTurnMarksWidth(double turnMarksWidth)
+	public void setWidth(double width)
 	{
-		this.turnMarksWidth = turnMarksWidth;
+		this.width = width;
 	}
 	/**
-	 * @return Returns the turnMarksHeight.
+	 * @return Returns the height.
 	 */
-	public double getTurnMarksHeight()
+	public double getHeight()
 	{
-		return turnMarksHeight;
+		return height;
 	}
 	/**
-	 * @param turnMarksHeight
-	 *            The turnMarksHeight to set.
+	 * @param height
+	 *            The height to set.
 	 */
-	public void setTurnMarksHeight(double turnMarksHeight)
+	public void setHeight(double height)
 	{
-		this.turnMarksHeight = turnMarksHeight;
+		this.height = height;
 	}
 	/**
-	 * @return Returns the turnMarksVerticalSpace.
+	 * @return Returns the verticalSpace.
 	 */
-	public double getTurnMarksVerticalSpace()
+	public double getVerticalSpace()
 	{
-		return turnMarksVerticalSpace;
+		return verticalSpace;
 	}
 	/**
-	 * @param turnMarksVerticalSpace
-	 *            The turnMarksVerticalSpace to set.
+	 * @param verticalSpace
+	 *            The verticalSpace to set.
 	 */
-	public void setTurnMarksVerticalSpace(double turnMarksVerticalSpace)
+	public void setVerticalSpace(double verticalSpace)
 	{
-		this.turnMarksVerticalSpace = turnMarksVerticalSpace;
+		this.verticalSpace = verticalSpace;
 	}
 	/**
-	 * @return Returns the turnMarksHorizontalSpace.
+	 * @return Returns the horizontalSpace.
 	 */
-	public double getTurnMarksHorizontalSpace()
+	public double getHorizontalSpace()
 	{
-		return turnMarksHorizontalSpace;
+		return horizontalSpace;
 	}
 	/**
-	 * @param turnMarksHorizontalSpace
-	 *            The turnMarksHorizontalSpace to set.
+	 * @param horizontalSpace
+	 *            The horizontalSpace to set.
 	 */
-	public void setTurnMarksHorizontalSpace(double turnMarksHorizontalSpace)
+	public void setHorizontalSpace(double horizontalSpace)
 	{
-		this.turnMarksHorizontalSpace = turnMarksHorizontalSpace;
+		this.horizontalSpace = horizontalSpace;
 	}
 
 	public void dump()
     {
-		System.out.println("turnMarksWidth           : " + turnMarksWidth);
-		System.out.println("turnMarksHeight          : " + turnMarksHeight);
-		System.out.println("turnMarksVerticalSpace   : " + turnMarksVerticalSpace);
-		System.out.println("turnMarksHorizontalSpace : " + turnMarksHorizontalSpace);
+		System.out.println("width           : " + width);
+		System.out.println("height          : " + height);
+		System.out.println("verticalSpace   : " + verticalSpace);
+		System.out.println("horizontalSpace : " + horizontalSpace);
     }
 }

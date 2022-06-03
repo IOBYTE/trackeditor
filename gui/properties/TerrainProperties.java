@@ -144,7 +144,7 @@ public class TerrainProperties extends JPanel
 		if (trackStepTextField == null)
 		{
 			trackStepTextField = new JTextField();
-			trackStepTextField.setText(TrackData.getTerrainGenerationData().getTerrainTrackStep() + "");
+			trackStepTextField.setText(Editor.getProperties().getTerrainGeneration().getTrackStep() + "");
 			trackStepTextField.setBounds(120, 10, 100, 20);
 		}
 		return trackStepTextField;
@@ -159,7 +159,7 @@ public class TerrainProperties extends JPanel
 		if (borderMarginTextField == null)
 		{
 			borderMarginTextField = new JTextField();
-			borderMarginTextField.setText(TrackData.getTerrainGenerationData().getTerrainBorderMargin() + "");
+			borderMarginTextField.setText(Editor.getProperties().getTerrainGeneration().getBorderMargin() + "");
 			borderMarginTextField.setBounds(120, 35, 100, 20);
 		}
 		return borderMarginTextField;
@@ -174,7 +174,7 @@ public class TerrainProperties extends JPanel
 		if (borderStepTextField == null)
 		{
 			borderStepTextField = new JTextField();
-			borderStepTextField.setText(TrackData.getTerrainGenerationData().getTerrainBorderStep() + "");
+			borderStepTextField.setText(Editor.getProperties().getTerrainGeneration().getBorderStep() + "");
 			borderStepTextField.setBounds(120, 60, 100, 20);
 		}
 		return borderStepTextField;
@@ -189,7 +189,7 @@ public class TerrainProperties extends JPanel
 		if (borderHeightTextField == null)
 		{
 			borderHeightTextField = new JTextField();
-			borderHeightTextField.setText(TrackData.getTerrainGenerationData().getTerrainBorderHeight() + "");
+			borderHeightTextField.setText(Editor.getProperties().getTerrainGeneration().getBorderHeight() + "");
 			borderHeightTextField.setBounds(120, 85, 100, 20);
 		}
 		return borderHeightTextField;
@@ -206,7 +206,7 @@ public class TerrainProperties extends JPanel
 			String[] items =
 			{"clockwise", "counter-clockwise"};
 			orientationComboBox = new JComboBox<String>(items);
-			orientationComboBox.setSelectedItem(TrackData.getTerrainGenerationData().getTerrainOrientation());
+			orientationComboBox.setSelectedItem(Editor.getProperties().getTerrainGeneration().getOrientation());
 			orientationComboBox.setBounds(120, 110, 100, 20);
 		}
 		return orientationComboBox;
@@ -221,7 +221,7 @@ public class TerrainProperties extends JPanel
 		if (maximumAltitudeTextField == null)
 		{
 			maximumAltitudeTextField = new JTextField();
-			double val = TrackData.getTerrainGenerationData().getTerrainMaximumAltitude();
+			double val = Editor.getProperties().getTerrainGeneration().getMaximumAltitude();
 			if (!Double.isNaN(val))
 				maximumAltitudeTextField.setText(val + "");
 			maximumAltitudeTextField.setBounds(120, 135, 100, 20);
@@ -238,7 +238,7 @@ public class TerrainProperties extends JPanel
 		if (minimumAltitudeTextField == null)
 		{
 			minimumAltitudeTextField = new JTextField();
-			double val = TrackData.getTerrainGenerationData().getTerrainMinimumAltitude();
+			double val = Editor.getProperties().getTerrainGeneration().getMinimumAltitude();
 			if (!Double.isNaN(val))
 				minimumAltitudeTextField.setText(val + "");
 			minimumAltitudeTextField.setBounds(120, 160, 100, 20);
@@ -255,7 +255,7 @@ public class TerrainProperties extends JPanel
 		if (groupSizeTextField == null)
 		{
 			groupSizeTextField = new JTextField();
-			double val = TrackData.getTerrainGenerationData().getTerrainGroupSize();
+			double val = Editor.getProperties().getTerrainGeneration().getGroupSize();
 			if (!Double.isNaN(val))
 				groupSizeTextField.setText(val + "");
 			groupSizeTextField.setBounds(120, 185, 100, 20);
@@ -273,7 +273,7 @@ public class TerrainProperties extends JPanel
 		if (elevationMapTextField == null)
 		{
 			elevationMapTextField = new JTextField();
-			elevationMapTextField.setText(TrackData.getTerrainGenerationData().getTerrainElevationMap());
+			elevationMapTextField.setText(Editor.getProperties().getTerrainGeneration().getElevationMap());
 			elevationMapTextField.setBounds(120, 210, 100, 20);
 		}
 		return elevationMapTextField;
@@ -288,7 +288,7 @@ public class TerrainProperties extends JPanel
 		if (reliefFileTextField == null)
 		{
 			reliefFileTextField = new JTextField();
-			reliefFileTextField.setText(TrackData.getTerrainGenerationData().getTerrainReliefFile());
+			reliefFileTextField.setText(Editor.getProperties().getTerrainGeneration().getReliefFile());
 			reliefFileTextField.setBounds(120, 235, 100, 20);
 		}
 		return reliefFileTextField;
@@ -303,7 +303,7 @@ public class TerrainProperties extends JPanel
 		if (surfaceTextField == null)
 		{
 			surfaceTextField = new JTextField();
-			surfaceTextField.setText(TrackData.getTerrainGenerationData().getTerrainSurface());
+			surfaceTextField.setText(Editor.getProperties().getTerrainGeneration().getSurface());
 			surfaceTextField.setBounds(120, 260, 100, 20);
 		}
 		return surfaceTextField;
@@ -316,34 +316,34 @@ public class TerrainProperties extends JPanel
 	{
 		try
 		{
-			TrackData.getTerrainGenerationData().setTerrainTrackStep(Double.parseDouble(this.getTrackStepTextField().getText()));
+			Editor.getProperties().getTerrainGeneration().setTrackStep(Double.parseDouble(this.getTrackStepTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTerrainGenerationData().setTerrainTrackStep(Double.NaN);
+			Editor.getProperties().getTerrainGeneration().setTrackStep(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderMargin(Double.parseDouble(this.getBorderMarginTextField().getText()));
+			Editor.getProperties().getTerrainGeneration().setBorderMargin(Double.parseDouble(this.getBorderMarginTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderMargin(Double.NaN);
+			Editor.getProperties().getTerrainGeneration().setBorderMargin(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderStep(Double.parseDouble(this.getBorderStepTextField().getText()));
+			Editor.getProperties().getTerrainGeneration().setBorderStep(Double.parseDouble(this.getBorderStepTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderStep(Double.NaN);
+			Editor.getProperties().getTerrainGeneration().setBorderStep(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderHeight(Double.parseDouble(this.getBorderHeightTextField().getText()));
+			Editor.getProperties().getTerrainGeneration().setBorderHeight(Double.parseDouble(this.getBorderHeightTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTerrainGenerationData().setTerrainBorderHeight(Double.NaN);
+			Editor.getProperties().getTerrainGeneration().setBorderHeight(Double.NaN);
 		}
 		
-		TrackData.getTerrainGenerationData().setTerrainOrientation((String) getOrientationComboBox().getSelectedItem());
+		Editor.getProperties().getTerrainGeneration().setOrientation((String) getOrientationComboBox().getSelectedItem());
 		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

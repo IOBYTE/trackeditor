@@ -20,12 +20,16 @@
  */
 package gui.properties;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import utils.Editor;
 import utils.TrackData;
+import utils.circuit.TurnMarks;
 
 /**
  * @author Robert Reif
@@ -35,14 +39,14 @@ import utils.TrackData;
  */
 public class TurnMarksProperties extends JPanel
 {
-	private JLabel		turnMarksWidthLabel					= null;
-	private JTextField	turnMarksWidthTextField				= null;
-	private JLabel		turnMarksHeightLabel				= null;
-	private JTextField	turnMarksHeightTextField			= null;
-	private JLabel		turnMarksVerticalSpaceLabel			= null;
-	private JTextField	turnMarksVerticalSpaceTextField		= null;
-	private JLabel		turnMarksHorizontalSpaceLabel		= null;
-	private JTextField	turnMarksHorizontalSpaceTextField	= null;
+	private JLabel		widthLabel					= null;
+	private JTextField	widthTextField				= null;
+	private JLabel		heightLabel					= null;
+	private JTextField	heightTextField				= null;
+	private JLabel		verticalSpaceLabel			= null;
+	private JTextField	verticalSpaceTextField		= null;
+	private JLabel		horizontalSpaceLabel		= null;
+	private JTextField	horizontalSpaceTextField	= null;
 	
 	/**
 	 *  
@@ -60,93 +64,97 @@ public class TurnMarksProperties extends JPanel
 	 */
 	private void initialize()
 	{
-		turnMarksWidthLabel = new JLabel();
-		turnMarksHeightLabel = new JLabel();
-		turnMarksVerticalSpaceLabel = new JLabel();
-		turnMarksHorizontalSpaceLabel = new JLabel();
+		widthLabel = new JLabel();
+		heightLabel = new JLabel();
+		verticalSpaceLabel = new JLabel();
+		horizontalSpaceLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);		
-		turnMarksWidthLabel.setBounds(10, 10, 70, 20);
-		turnMarksWidthLabel.setText("Track Step");
-		turnMarksHeightLabel.setBounds(10, 35, 70, 20);
-		turnMarksHeightLabel.setText("Border margin");
-		turnMarksVerticalSpaceLabel.setBounds(10, 60, 120, 20);
-		turnMarksVerticalSpaceLabel.setText("Border Step");
-		turnMarksHorizontalSpaceLabel.setBounds(10, 85, 120, 20);
-		turnMarksHorizontalSpaceLabel.setText("Border Height");
-		this.add(turnMarksWidthLabel, null);
-		this.add(turnMarksHeightLabel, null);
-		this.add(turnMarksVerticalSpaceLabel, null);
-		this.add(turnMarksHorizontalSpaceLabel, null);
+		widthLabel.setBounds(10, 10, 70, 20);
+		widthLabel.setText("Track Step");
+		heightLabel.setBounds(10, 35, 70, 20);
+		heightLabel.setText("Border margin");
+		verticalSpaceLabel.setBounds(10, 60, 120, 20);
+		verticalSpaceLabel.setText("Border Step");
+		horizontalSpaceLabel.setBounds(10, 85, 120, 20);
+		horizontalSpaceLabel.setText("Border Height");
+		this.add(widthLabel, null);
+		this.add(heightLabel, null);
+		this.add(verticalSpaceLabel, null);
+		this.add(horizontalSpaceLabel, null);
 		this.add(getTurnMarksWidthTextField(), null);
 		this.add(getTurnMarksHeightTextField(), null);
 		this.add(getTurnMarksVerticalSpaceTextField(), null);
 		this.add(getTurnMarksHorizontalSpaceTextField(), null);
 	}
 	/**
-	 * This method initializes turnMarksWidthTextField
+	 * This method initializes widthTextField
 	 * 
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTurnMarksWidthTextField()
 	{
-		if (turnMarksWidthTextField == null)
+		if (widthTextField == null)
 		{
-			turnMarksWidthTextField = new JTextField();
-			if (TrackData.getTurnMarksData() != null)
-				turnMarksWidthTextField.setText(TrackData.getTurnMarksData().getTurnMarksWidth() + "");
-			turnMarksWidthTextField.setBounds(100, 10, 100, 20);
+			widthTextField = new JTextField();
+			if (Editor.getProperties().getTurnMarks() != null)
+				widthTextField.setText(Editor.getProperties().getTurnMarks().getWidth() + "");
+			widthTextField.setBounds(100, 10, 100, 20);
+			widthTextField.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent le) {
+				}
+			});
 		}
-		return turnMarksWidthTextField;
+		return widthTextField;
 	}
 	/**
-	 * This method initializes turnMarksHeightTextField
+	 * This method initializes heightTextField
 	 * 
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTurnMarksHeightTextField()
 	{
-		if (turnMarksHeightTextField == null)
+		if (heightTextField == null)
 		{
-			turnMarksHeightTextField = new JTextField();
-			if (TrackData.getTurnMarksData() != null)
-				turnMarksHeightTextField.setText(TrackData.getTurnMarksData().getTurnMarksHeight() + "");
-			turnMarksHeightTextField.setBounds(100, 35, 100, 20);
+			heightTextField = new JTextField();
+			if (Editor.getProperties().getTurnMarks() != null)
+				heightTextField.setText(Editor.getProperties().getTurnMarks().getHeight() + "");
+			heightTextField.setBounds(100, 35, 100, 20);
 		}
-		return turnMarksHeightTextField;
+		return heightTextField;
 	}
 	/**
-	 * This method initializes turnMarksVerticalSpaceTextField
+	 * This method initializes verticalSpaceTextField
 	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTurnMarksVerticalSpaceTextField()
 	{
-		if (turnMarksVerticalSpaceTextField == null)
+		if (verticalSpaceTextField == null)
 		{
-			turnMarksVerticalSpaceTextField = new JTextField();
-			if (TrackData.getTurnMarksData() != null)
-				turnMarksVerticalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksVerticalSpace() + "");
-			turnMarksVerticalSpaceTextField.setBounds(100, 60, 100, 20);
+			verticalSpaceTextField = new JTextField();
+			if (Editor.getProperties().getTurnMarks() != null)
+				verticalSpaceTextField.setText(Editor.getProperties().getTurnMarks().getVerticalSpace() + "");
+			verticalSpaceTextField.setBounds(100, 60, 100, 20);
 		}
-		return turnMarksVerticalSpaceTextField;
+		return verticalSpaceTextField;
 	}
 	/**
-	 * This method initializes turnMarksHorizontalSpaceTextField
+	 * This method initializes horizontalSpaceTextField
 	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTurnMarksHorizontalSpaceTextField()
 	{
-		if (turnMarksHorizontalSpaceTextField == null)
+		if (horizontalSpaceTextField == null)
 		{
-			turnMarksHorizontalSpaceTextField = new JTextField();
-			if (TrackData.getTurnMarksData() != null)
-				turnMarksHorizontalSpaceTextField.setText(TrackData.getTurnMarksData().getTurnMarksHorizontalSpace() + "");
-			turnMarksHorizontalSpaceTextField.setBounds(100, 85, 100, 20);
+			horizontalSpaceTextField = new JTextField();
+			if (Editor.getProperties().getTurnMarks() != null)
+				horizontalSpaceTextField.setText(Editor.getProperties().getTurnMarks().getHorizontalSpace() + "");
+			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
 		}
-		return turnMarksHorizontalSpaceTextField;
+		return horizontalSpaceTextField;
 	}	
 
 	/**
@@ -156,31 +164,31 @@ public class TurnMarksProperties extends JPanel
 	{
 		try
 		{
-			TrackData.getTurnMarksData().setTurnMarksWidth(Double.parseDouble(this.getTurnMarksWidthTextField().getText()));
+			Editor.getProperties().getTurnMarks().setWidth(Double.parseDouble(this.getTurnMarksWidthTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTurnMarksData().setTurnMarksWidth(Double.NaN);
+			Editor.getProperties().getTurnMarks().setWidth(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTurnMarksData().setTurnMarksHeight(Double.parseDouble(this.getTurnMarksHeightTextField().getText()));
+			Editor.getProperties().getTurnMarks().setHeight(Double.parseDouble(this.getTurnMarksHeightTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTurnMarksData().setTurnMarksHeight(Double.NaN);
+			Editor.getProperties().getTurnMarks().setHeight(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTurnMarksData().setTurnMarksVerticalSpace(Double.parseDouble(this.getTurnMarksVerticalSpaceTextField().getText()));
+			Editor.getProperties().getTurnMarks().setVerticalSpace(Double.parseDouble(this.getTurnMarksVerticalSpaceTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTurnMarksData().setTurnMarksVerticalSpace(Double.NaN);
+			Editor.getProperties().getTurnMarks().setVerticalSpace(Double.NaN);
 		}
 		try
 		{
-			TrackData.getTurnMarksData().setTurnMarksHorizontalSpace(Double.parseDouble(this.getTurnMarksHorizontalSpaceTextField().getText()));
+			Editor.getProperties().getTurnMarks().setHorizontalSpace(Double.parseDouble(this.getTurnMarksHorizontalSpaceTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			TrackData.getTurnMarksData().setTurnMarksHorizontalSpace(Double.NaN);
+			Editor.getProperties().getTurnMarks().setHorizontalSpace(Double.NaN);
 		}
 		
 		Editor.getProperties().valueChanged();
