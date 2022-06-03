@@ -28,8 +28,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import utils.Editor;
-import utils.TrackData;
-import utils.circuit.TurnMarks;
 
 /**
  * @author Robert Reif

@@ -24,14 +24,10 @@ import java.util.Vector;
 
 import utils.circuit.Camera;
 import utils.circuit.EnvironmentMapping;
-import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
-import utils.circuit.StartingGrid;
 import utils.circuit.Surface;
-import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
-import utils.circuit.TurnMarks;
 
 /**
  * @author Charalampos Alexopoulos

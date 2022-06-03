@@ -26,7 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import utils.Editor;
-import utils.TrackData;
 
 /**
  * @author Robert Reif
