@@ -18,4 +18,6 @@ The following bugs have been fixed:
 
 Progress:
 
-It is now possible to create tracks with grade and camber and edit them.  It is not yet possible to edit optimized hand edited tracks.
+It is now possible to create tracks with grade and camber and edit them.
+
+It is now possible to edit optimized hand edited tracks. Only a few Graphics attributes are not yet supported.
