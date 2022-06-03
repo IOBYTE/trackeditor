@@ -687,14 +687,17 @@ public class XmlWriter
 
 		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
 
-		Element marks = new Element("section");
-		marks.setAttribute(new Attribute("name", "Turn Marks"));
-		graphic.addContent(marks);
+		if (TrackData.getTurnMarksData() != null)
+		{
+			Element marks = new Element("section");
+			marks.setAttribute(new Attribute("name", "Turn Marks"));
+			graphic.addContent(marks);
 
-		addContent(marks, "width", "m", Editor.getProperties().getTurnMarksWidth());
-		addContent(marks, "height", "m", Editor.getProperties().getTurnMarksHeight());
-		addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarksVerticalSpace());
-		addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarksHorizontalSpace());
+			addContent(marks, "width", "m", TrackData.getTurnMarksData().getTurnMarksWidth());
+			addContent(marks, "height", "m", TrackData.getTurnMarksData().getTurnMarksHeight());
+			addContent(marks, "vertical space", "m", TrackData.getTurnMarksData().getTurnMarksVerticalSpace());
+			addContent(marks, "horizontal space", "m", TrackData.getTurnMarksData().getTurnMarksHorizontalSpace());
+		}
 
 		Element terrain = new Element("section");
 		terrain.setAttribute(new Attribute("name", "Terrain Generation"));

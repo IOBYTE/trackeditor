@@ -44,6 +44,7 @@ import utils.circuit.Straight;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
+import utils.circuit.TurnMarks;
 
 /**
  * @author Charalampos Alexopoulos
@@ -365,17 +366,14 @@ public class XmlReader
 
         if (marks != null)
         {
-            val = getAttrNumValue(marks, "width");
-            Editor.getProperties().setTurnMarksWidth(val);
+            TurnMarks data = new TurnMarks();
 
-            val = getAttrNumValue(marks, "height");
-            Editor.getProperties().setTurnMarksHeight(val);
+            data.setTurnMarksWidth(getAttrNumValue(marks, "width"));
+            data.setTurnMarksHeight(getAttrNumValue(marks, "height"));
+            data.setTurnMarksVerticalSpace(getAttrNumValue(marks, "vertical space"));
+            data.setTurnMarksHorizontalSpace(getAttrNumValue(marks, "horizontal space"));
 
-            val = getAttrNumValue(marks, "vertical space");
-            Editor.getProperties().setTurnMarksVerticalSpace(val);
-
-            val = getAttrNumValue(marks, "horizontal space");
-            Editor.getProperties().setTurnMarksHorizontalSpace(val);
+            TrackData.setTurnMarksData(data);
         }
 
         Element terrain = getChildWithName(graphic, "Terrain Generation");
