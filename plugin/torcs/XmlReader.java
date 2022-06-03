@@ -36,6 +36,7 @@ import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
+import utils.circuit.Graphic;
 import utils.circuit.LocalInfo;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -49,7 +50,7 @@ import utils.circuit.TurnMarks;
 
 /**
  * @author Charalampos Alexopoulos
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -79,7 +80,6 @@ public class XmlReader
         setLocalInfo(root);
         setSurfaces(root);
         setObjects(root);
-        setEnvironmentMapping(root);
         setStartingGrid(root);
         setGraphic(root);
         setCameras(root);
@@ -112,14 +112,10 @@ public class XmlReader
         if (header == null)
             return;
 
-        String tmp = getAttrStrValue(header, "author");
-        Editor.getProperties().setAuthor(tmp);
-        tmp = getAttrStrValue(header, "description");
-        Editor.getProperties().setDescription(tmp);
-        tmp = getAttrStrValue(header, "category");
-        Editor.getProperties().setCategory(tmp);
-        double version = getAttrNumValue(header, "version");
-        Editor.getProperties().setTrackVersion((int) version);
+        Editor.getProperties().setAuthor(getAttrStrValue(header, "author"));
+        Editor.getProperties().setDescription(getAttrStrValue(header, "description"));
+        Editor.getProperties().setCategory(getAttrStrValue(header, "category"));
+        Editor.getProperties().setTrackVersion(getAttrIntValue(header, "version"));
     }
 
     /**
@@ -150,7 +146,7 @@ public class XmlReader
 
             cameraData.add(cam);
         }
-        TrackData.setCameraData(cameraData);
+        Editor.getProperties().setCameras(cameraData);
     }
 
     /**
@@ -201,33 +197,7 @@ public class XmlReader
 
             lightData.add(lit);
         }
-        TrackData.setLightData(lightData);
-    }
-
-    /**
-     * @param root
-     */
-    private static void setEnvironmentMapping(Element root)
-    {
-        Element element = getChildWithName(root, "Environment Mapping");
-
-        if (element == null)
-            return;
-
-        Vector<EnvironmentMapping> data = new Vector<EnvironmentMapping>();
-        Iterator<Element> it = element.getChildren().iterator();
-        while (it.hasNext())
-        {
-            EnvironmentMapping map = new EnvironmentMapping();
-
-            Element el = it.next();
-            map.setName(el.getAttribute("name").getValue());
-
-            map.setEnvMapImage(getAttrStrValue(el, "env map image"));
-
-            data.add(map);
-        }
-        TrackData.setEnvironmentMappingData(data);
+        Editor.getProperties().setTrackLights(lightData);
     }
 
     /**
@@ -319,7 +289,7 @@ public class XmlReader
 
             surfaceData.add(surf);
         }
-        TrackData.setSurfaceData(surfaceData);
+        Editor.getProperties().setSurfaces(surfaceData);
     }
 
     /**
@@ -348,7 +318,7 @@ public class XmlReader
 
             objectData.add(obj);
         }
-        TrackData.setObjectData(objectData);
+        Editor.getProperties().setObjects(objectData);
     }
 
     /**
@@ -361,46 +331,88 @@ public class XmlReader
         if (graphic == null)
             return;
 
-        double val;
-        String str;
+        Graphic	data = new Graphic();
+
+        data.setDescription(getAttrStrValue(graphic, "3d description"));
+        data.setDescriptionNight(getAttrStrValue(graphic, "3d description night"));
+        data.setDescriptionRaiNight(getAttrStrValue(graphic, "3d description rain+night"));
+        data.setBackgroundImage(getAttrStrValue(graphic, "background image"));
+        data.setBackgroundType(getAttrIntValue(graphic, "background type"));
+        data.setBackgroundColorR(getAttrNumValue(graphic, "background color R"));
+        data.setBackgroundColorG(getAttrNumValue(graphic, " background color G"));
+        data.setBackgroundColorB(getAttrNumValue(graphic, "background color B"));
+        data.setAmbientColorR(getAttrNumValue(graphic, "ambient color R"));
+        data.setAmbientColorG(getAttrNumValue(graphic, "ambient color G"));
+        data.setAmbientColorB(getAttrNumValue(graphic, "ambient color B"));
+        data.setDiffuseColorR(getAttrNumValue(graphic, "diffuse color R"));
+        data.setDiffuseColorG(getAttrNumValue(graphic, "diffuse color G"));
+        data.setDiffuseColorB(getAttrNumValue(graphic, "diffuse color B"));
+        data.setSpecularColorR(getAttrNumValue(graphic, "specular color R"));
+        data.setSpecularColorG(getAttrNumValue(graphic, "specular color G"));
+        data.setSpecularColorB(getAttrNumValue(graphic, "specular color B"));
+        data.setLightPositionX(getAttrNumValue(graphic, "light position x"));
+        data.setLightPositionY(getAttrNumValue(graphic, "light position y"));
+        data.setLightPositionZ(getAttrNumValue(graphic, "light position z"));
+
         Element marks = getChildWithName(graphic, "Turn Marks");
 
         if (marks != null)
         {
-            TurnMarks data = new TurnMarks();
-
-            data.setWidth(getAttrNumValue(marks, "width"));
-            data.setHeight(getAttrNumValue(marks, "height"));
-            data.setVerticalSpace(getAttrNumValue(marks, "vertical space"));
-            data.setHorizontalSpace(getAttrNumValue(marks, "horizontal space"));
-
-            Editor.getProperties().setTurnMarks(data);
+            data.getTurnMarks().setWidth(getAttrNumValue(marks, "width"));
+            data.getTurnMarks().setHeight(getAttrNumValue(marks, "height"));
+            data.getTurnMarks().setVerticalSpace(getAttrNumValue(marks, "vertical space"));
+            data.getTurnMarks().setHorizontalSpace(getAttrNumValue(marks, "horizontal space"));
         }
 
         Element terrain = getChildWithName(graphic, "Terrain Generation");
 
         if (terrain != null)
         {
-            TerrainGeneration data = new TerrainGeneration();
-
-	        data.setTrackStep(getAttrNumValue(terrain, "track step"));
-	        data.setBorderMargin(getAttrNumValue(terrain, "border margin"));
-	        data.setBorderStep(getAttrNumValue(terrain, "border step"));
-	        data.setBorderHeight(getAttrNumValue(terrain, "border height"));
-	        data.setOrientation(getAttrStrValue(terrain, "orientation"));
-	        data.setMaximumAltitude(getAttrNumValue(terrain, "maximum altitude"));
-	        data.setMinimumAltitude(getAttrNumValue(terrain, "minimum altitude"));
-	        data.setGroupSize(getAttrNumValue(terrain, "group size"));
-	        data.setElevationMap(getAttrStrValue(terrain, "elevation map"));
-	        data.setReliefFile(getAttrStrValue(terrain, "relief file"));
-	        data.setSurface(getAttrStrValue(terrain, "surface"));
-
-	        Editor.getProperties().setTerrainGeneration(data);
+	        data.getTerrainGeneration().setTrackStep(getAttrNumValue(terrain, "track step"));
+	        data.getTerrainGeneration().setBorderMargin(getAttrNumValue(terrain, "border margin"));
+	        data.getTerrainGeneration().setBorderStep(getAttrNumValue(terrain, "border step"));
+	        data.getTerrainGeneration().setBorderHeight(getAttrNumValue(terrain, "border height"));
+	        data.getTerrainGeneration().setOrientation(getAttrStrValue(terrain, "orientation"));
+	        data.getTerrainGeneration().setMaximumAltitude(getAttrNumValue(terrain, "maximum altitude"));
+	        data.getTerrainGeneration().setMinimumAltitude(getAttrNumValue(terrain, "minimum altitude"));
+	        data.getTerrainGeneration().setGroupSize(getAttrNumValue(terrain, "group size"));
+	        data.getTerrainGeneration().setElevationMap(getAttrStrValue(terrain, "elevation map"));
+	        data.getTerrainGeneration().setReliefFile(getAttrStrValue(terrain, "relief file"));
+	        data.getTerrainGeneration().setSurface(getAttrStrValue(terrain, "surface"));
         }
+
+        Element environment = getChildWithName(graphic, "Environment Mapping");
+
+        if (environment != null)
+        {
+            Vector<EnvironmentMapping> envMap = new Vector<EnvironmentMapping>();
+	        Iterator<Element> it = environment.getChildren().iterator();
+	        while (it.hasNext())
+	        {
+	            EnvironmentMapping env = new EnvironmentMapping();
+
+	            Element el = it.next();
+	            env.setName(el.getAttribute("name").getValue());
+
+	            env.setEnvMapImage(getAttrStrValue(el, "env map image"));
+
+	            envMap.add(env);
+	        }
+	        data.setEnvironmentMapping(envMap);
+        }
+
+        Element objects = getChildWithName(graphic, "Object Maps");
+
+        if (objects != null)
+        {
+            // TODO
+        }
+
+	    Editor.getProperties().setGraphic(data);
     }
 
     /**
-     *  
+     *
      */
     private static void setPits(Element track)
     {

@@ -45,7 +45,7 @@ import utils.circuit.TrackObject;
 
 /**
  * @author Charalampos Alexopoulos
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -56,7 +56,7 @@ public class XmlWriter
 	private boolean				optimize	= true;
 	static boolean job;
 	private static String sep = System.getProperty("file.separator");
-	
+
 	public static void writeXml()
 	{
 		job = false;
@@ -85,21 +85,19 @@ public class XmlWriter
 		doc.addContent(com);
 		doc.addContent(type);
 		doc.setRootElement(root);
-		if (TrackData.getLightData() != null)
-			root.addContent(getLights());
+		root.addContent(getLights());
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
-		if (Editor.getProperties().getLocalInfo() != null)
-			root.addContent(getLocal());
+		root.addContent(getLocal());
+
 		root.addContent(getGraphic());
-		if (TrackData.getEnvironmentMappingData() != null)
+		if (Editor.getProperties().getGraphic().getEnvironmentMapping() != null)
 			root.addContent(getEnvironmentMapping());
-		if (Editor.getProperties().getStartingGrid() != null)
-			root.addContent(getGrid());
+
+		root.addContent(getGrid());
 		root.addContent(getTrack());
-		if (TrackData.getCameraData() != null)
-			root.addContent(getCameras());
+		root.addContent(getCameras());
 	}
 	/**
 	 * @return
@@ -373,7 +371,7 @@ public class XmlWriter
 		surfaces.setAttribute(new Attribute("name", "Surfaces"));
 		surfaces.setText("&default-surfaces;");
 
-		Vector<Surface> surfaceData = TrackData.getSurfaceData();
+		Vector<Surface> surfaceData = Editor.getProperties().getSurfaces();
 
 		if (surfaceData == null)
 			return surfaces;
@@ -418,7 +416,7 @@ public class XmlWriter
 		Element cameras = new Element("section");
 		cameras.setAttribute(new Attribute("name", "Cameras"));
 
-		Vector<Camera> cameraData = TrackData.getCameraData();
+		Vector<Camera> cameraData = Editor.getProperties().getCameras();
 
 		if (cameraData == null)
 			return cameras;
@@ -448,7 +446,7 @@ public class XmlWriter
 		Element lights = new Element("section");
 		lights.setAttribute(new Attribute("name", "Track Lights"));
 
-		Vector<TrackLight> lightData = TrackData.getLightData();
+		Vector<TrackLight> lightData = Editor.getProperties().getTrackLights();
 
 		if (lightData == null)
 			return lights;
@@ -505,7 +503,7 @@ public class XmlWriter
 		objects.setAttribute(new Attribute("name", "Objects"));
 		objects.setText("&default-objects;");
 
-		Vector<TrackObject> objectData = TrackData.getObjectData();
+		Vector<TrackObject> objectData = Editor.getProperties().getObjects();
 
 		if (objectData == null)
 			return objects;
@@ -618,7 +616,7 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Environment Mapping"));
 
-		Vector<EnvironmentMapping> cameraData = TrackData.getEnvironmentMappingData();
+		Vector<EnvironmentMapping> cameraData = Editor.getProperties().getGraphic().getEnvironmentMapping();
 
 		if (cameraData == null)
 			return element;
@@ -663,35 +661,46 @@ public class XmlWriter
 
 		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
 
-		if (Editor.getProperties().getTurnMarks() != null)
+		Element marks = new Element("section");
+		marks.setAttribute(new Attribute("name", "Turn Marks"));
+		graphic.addContent(marks);
+
+		addContent(marks, "width", "m", Editor.getProperties().getTurnMarks().getWidth());
+		addContent(marks, "height", "m", Editor.getProperties().getTurnMarks().getHeight());
+		addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarks().getVerticalSpace());
+		addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarks().getHorizontalSpace());
+
+		Element terrain = new Element("section");
+		terrain.setAttribute(new Attribute("name", "Terrain Generation"));
+		graphic.addContent(terrain);
+
+		addContent(terrain, "track step", "m", Editor.getProperties().getTerrainGeneration().getTrackStep());
+		addContent(terrain, "border margin", "m", Editor.getProperties().getTerrainGeneration().getBorderMargin());
+		addContent(terrain, "border step", "m", Editor.getProperties().getTerrainGeneration().getBorderStep());
+		addContent(terrain, "border height", "m", Editor.getProperties().getTerrainGeneration().getBorderHeight());
+		addContent(terrain, "orientation", Editor.getProperties().getTerrainGeneration().getOrientation());
+		addContent(terrain, "maximum altitude", "m", Editor.getProperties().getTerrainGeneration().getMaximumAltitude());
+		addContent(terrain, "minimum altitude", "m", Editor.getProperties().getTerrainGeneration().getMinimumAltitude());
+		addContent(terrain, "group size", "m", Editor.getProperties().getTerrainGeneration().getGroupSize());
+		addContent(terrain, "elevation map", Editor.getProperties().getTerrainGeneration().getElevationMap());
+		addContent(terrain, "relief file", Editor.getProperties().getTerrainGeneration().getReliefFile());
+		addContent(terrain, "surface", Editor.getProperties().getTerrainGeneration().getSurface());
+
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Environment Mapping"));
+
+		Vector<EnvironmentMapping> environment = Editor.getProperties().getGraphic().getEnvironmentMapping();
+
+		for (int i = 0; i < environment.size(); i++)
 		{
-			Element marks = new Element("section");
-			marks.setAttribute(new Attribute("name", "Turn Marks"));
-			graphic.addContent(marks);
+			EnvironmentMapping data = environment.get(i);
 
-			addContent(marks, "width", "m", Editor.getProperties().getTurnMarks().getWidth());
-			addContent(marks, "height", "m", Editor.getProperties().getTurnMarks().getHeight());
-			addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarks().getVerticalSpace());
-			addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarks().getHorizontalSpace());
-		}
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", data.getName()));
 
-		if (Editor.getProperties().getTerrainGeneration() != null)
-		{
-			Element terrain = new Element("section");
-			terrain.setAttribute(new Attribute("name", "Terrain Generation"));
-			graphic.addContent(terrain);
+			addContent(el, "env map image", data.getEnvMapImage());
 
-			addContent(terrain, "track step", "m", Editor.getProperties().getTerrainGeneration().getTrackStep());
-			addContent(terrain, "border margin", "m", Editor.getProperties().getTerrainGeneration().getBorderMargin());
-			addContent(terrain, "border step", "m", Editor.getProperties().getTerrainGeneration().getBorderStep());
-			addContent(terrain, "border height", "m", Editor.getProperties().getTerrainGeneration().getBorderHeight());
-			addContent(terrain, "orientation", Editor.getProperties().getTerrainGeneration().getOrientation());
-			addContent(terrain, "maximum altitude", "m", Editor.getProperties().getTerrainGeneration().getMaximumAltitude());
-			addContent(terrain, "minimum altitude", "m", Editor.getProperties().getTerrainGeneration().getMinimumAltitude());
-			addContent(terrain, "group size", "m", Editor.getProperties().getTerrainGeneration().getGroupSize());
-			addContent(terrain, "elevation map", Editor.getProperties().getTerrainGeneration().getElevationMap());
-			addContent(terrain, "relief file", Editor.getProperties().getTerrainGeneration().getReliefFile());
-			addContent(terrain, "surface", Editor.getProperties().getTerrainGeneration().getSurface());
+			element.addContent(el);
 		}
 
 		return graphic;

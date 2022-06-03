@@ -23,11 +23,16 @@ package utils;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import utils.circuit.Camera;
+import utils.circuit.Graphic;
 import utils.circuit.LocalInfo;
 import utils.circuit.Pits;
 import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
+import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
+import utils.circuit.TrackLight;
+import utils.circuit.TrackObject;
 import utils.circuit.TurnMarks;
 
 
@@ -75,11 +80,16 @@ public  class Properties
 	private int					curveNameCount			= 0;
 	private int					straightNameCount		= 0;
 
-    private TerrainGeneration	terrainGeneration		= new TerrainGeneration();;
+    private TerrainGeneration	terrainGeneration		= new TerrainGeneration();
     private TurnMarks			turnMarks				= new TurnMarks();
     private Pits				pits					= new Pits();
     private LocalInfo			localInfo				= new LocalInfo();
     private StartingGrid		startingGrid			= new StartingGrid();
+    private Graphic				graphic					= new Graphic();
+    private Vector<Surface> 	surfaces				= new Vector<Surface>();
+    private Vector<Camera> 		cameras					= new Vector<Camera>();
+    private Vector<TrackObject> trackObjects			= new Vector<TrackObject>();
+    private Vector<TrackLight> 	trackLights				= new Vector<TrackLight>();
 
 	/**
 	 *  
@@ -583,4 +593,79 @@ public  class Properties
     {
         this.startingGrid = startingGrid;
     }
+
+    /**
+     * @return Returns the surfaces.
+     */
+    public Vector<Surface> getSurfaces()
+    {
+        return surfaces;
+    }
+    /**
+     * @param trackData The surfaces to set.
+     */
+    public void setSurfaces(Vector<Surface> data)
+    {
+        surfaces = data;
+    }
+
+    /**
+     * @return Returns the cameras.
+     */
+    public Vector<Camera> getCameras()
+    {
+        return cameras;
+    }
+    /**
+     * @param cameras The cameras to set.
+     */
+    public void setCameras(Vector<Camera> data)
+    {
+        cameras = data;
+    }
+
+    /**
+     * @return Returns the trackObjects.
+     */
+    public Vector<TrackObject> getObjects()
+    {
+        return trackObjects;
+    }
+    /**
+     * @param objects The trackObjects to set.
+     */
+    public void setObjects(Vector<TrackObject> data)
+    {
+        trackObjects = data;
+    }
+
+    /**
+     * @return Returns the trackLights.
+     */
+    public Vector<TrackLight> getTrackLights()
+    {
+        return trackLights;
+    }
+    /**
+     * @param trackLights The trackLights to set.
+     */
+    public void setTrackLights(Vector<TrackLight> data)
+    {
+        trackLights = data;
+    }
+
+    /**
+     * @return Returns the graphic.
+     */
+    public Graphic getGraphic()
+    {
+		return graphic;
+	}
+    /**
+     * @param graphic The graphics to set.
+     */
+	public void setGraphic(Graphic data)
+	{
+		graphic = data;
+	}
 }

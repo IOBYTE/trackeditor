@@ -22,12 +22,8 @@ package utils;
 
 import java.util.Vector;
 
-import utils.circuit.Camera;
-import utils.circuit.EnvironmentMapping;
 import utils.circuit.Segment;
-import utils.circuit.Surface;
-import utils.circuit.TrackLight;
-import utils.circuit.TrackObject;
+
 
 /**
  * @author Charalampos Alexopoulos
@@ -38,11 +34,6 @@ import utils.circuit.TrackObject;
 public final class TrackData
 {
     private static Vector<Segment>				trackData;
-    private static Vector<Surface> 				surfaceData;
-    private static Vector<Camera> 				cameraData;
-    private static Vector<TrackObject> 			objectData;
-    private static Vector<TrackLight> 			lightData;
-    private static Vector<EnvironmentMapping>	envMapData;
 
 	/**
      * @return Returns the trackData.
@@ -58,81 +49,6 @@ public final class TrackData
     {
         trackData = data;
     }
-
-    /**
-     * @return Returns the surfaceData.
-     */
-    public static Vector<Surface> getSurfaceData()
-    {
-        return surfaceData;
-    }
-    /**
-     * @param trackData The surfaceData to set.
-     */
-    public static void setSurfaceData(Vector<Surface> data)
-    {
-        surfaceData = data;
-    }
-
-    /**
-     * @return Returns the cameraData.
-     */
-    public static Vector<Camera> getCameraData()
-    {
-        return cameraData;
-    }
-    /**
-     * @param trackData The cameraData to set.
-     */
-    public static void setCameraData(Vector<Camera> data)
-    {
-        cameraData = data;
-    }
-
-    /**
-     * @return Returns the objectData.
-     */
-    public static Vector<TrackObject> getObjectData()
-    {
-        return objectData;
-    }
-    /**
-     * @param trackData The objectData to set.
-     */
-    public static void setObjectData(Vector<TrackObject> data)
-    {
-        objectData = data;
-    }
-
-    /**
-     * @return Returns the lightData.
-     */
-    public static Vector<TrackLight> getLightData()
-    {
-        return lightData;
-    }
-    /**
-     * @param lightData The lightData to set.
-     */
-    public static void setLightData(Vector<TrackLight> data)
-    {
-        lightData = data;
-    }
-
-    /**
-     * @return Returns the envMapData.
-     */
-    public static Vector<EnvironmentMapping> getEnvironmentMappingData()
-    {
-		return envMapData;
-	}
-    /**
-     * @param envMapData The envMapData to set.
-     */
-	public static void setEnvironmentMappingData(Vector<EnvironmentMapping> data)
-	{
-		envMapData = data;
-	}
 
 	/**
      * 

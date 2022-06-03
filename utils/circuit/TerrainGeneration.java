@@ -13,6 +13,12 @@ public class TerrainGeneration {
 	private String				reliefFile		= null;
 	private String				surface			= null;
 
+//	<section name="Object Maps">
+//		<section name="map 1">
+//			<attstr name="object map" val="objects-map1.png" />
+//		</section>
+//	</section>
+
 	/**
 	 * @return Returns the terrainTrackStep.
 	 */
