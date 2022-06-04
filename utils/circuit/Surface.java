@@ -13,7 +13,7 @@ public final class Surface {
     private double textureSize				= Double.NaN;
     private String textureLinkWithPrevious	= null;
     private String textureStartOnBoundary	= null;
-    private double textureMipMap			= Double.NaN;	// TODO int
+    private double textureMipMap			= Double.NaN;
     private double friction					= Double.NaN;
     private double rollingResistance		= Double.NaN;
     private String bumpName					= null;

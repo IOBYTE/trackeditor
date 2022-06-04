@@ -390,11 +390,11 @@ public class XmlWriter
 			addContent(el, "color G2", null, surface.getColorG2());
 			addContent(el, "color B2", null, surface.getColorB2());
 			addContent(el, "texture name", surface.getTextureName());
-			addContent(el, "texture size", surface.getTextureSize());
-			addContent(el, "texture type", null, surface.getTextureType());
+			addContent(el, "texture type", surface.getTextureType());
+			addContent(el, "texture size", null, surface.getTextureSize());
 			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
-			addContent(el, "texture mipmap", null, surface.getTextureMipMap());
+			addContent(el, "texture mipmap", "m", surface.getTextureMipMap());
 			addContent(el, "friction", null, surface.getFriction());
 			addContent(el, "rolling resistance", null, surface.getRollingResistance());
 			addContent(el, "bump name", surface.getBumpName());

@@ -275,8 +275,8 @@ public class XmlReader
             surf.setColorG2(getAttrNumValue(surface, "color G2"));
             surf.setColorB2(getAttrNumValue(surface, "color B2"));
             surf.setTextureName(getAttrStrValue(surface, "texture name"));
-            surf.setTextureSize(getAttrNumValue(surface, "texture size"));
             surf.setTextureType(getAttrStrValue(surface, "texture type"));
+            surf.setTextureSize(getAttrNumValue(surface, "texture size"));
             surf.setTextureLinkWithPrevious(getAttrStrValue(surface, "texture link with previous"));
             surf.setTextureStartOnBoundary(getAttrStrValue(surface, "texture start on boundary"));
             surf.setTextureMipMap(getAttrNumValue(surface, "texture mipmap"));
