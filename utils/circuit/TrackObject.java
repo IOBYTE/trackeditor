@@ -6,6 +6,8 @@ public final class TrackObject {
     private int color				= Integer.MAX_VALUE;
     private String orientationType	= null;
     private double orientation		= Double.NaN;
+    private double deltaHeight		= Double.NaN;
+    private double deltaVert		= Double.NaN;
 
     public String getName() {
 		return name;
@@ -47,6 +49,22 @@ public final class TrackObject {
 		this.orientation = orientation;
 	}
 
+	public double getDeltaHeight() {
+		return deltaHeight;
+	}
+
+	public void setDeltaHeight(double deltaHeight) {
+		this.deltaHeight = deltaHeight;
+	}
+
+	public double getDeltaVert() {
+		return deltaVert;
+	}
+
+	public void setDeltaVert(double deltaVert) {
+		this.deltaVert = deltaVert;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "TrackObject");
@@ -55,5 +73,7 @@ public final class TrackObject {
 		System.out.println(indent + "  color           : 0x" + Integer.toHexString(color).toUpperCase());
 		System.out.println(indent + "  orientationType : " + orientationType);
 		System.out.println(indent + "  orientation     : " + orientation);
+		System.out.println(indent + "  deltaHeight     : " + deltaHeight);
+		System.out.println(indent + "  deltaVert       : " + deltaVert);
     }
 }

@@ -92,11 +92,7 @@ public class XmlWriter
 		root.addContent(getObjects());
 		root.addContent(getHeader());
 		root.addContent(getLocal());
-
 		root.addContent(getGraphic());
-		if (Editor.getProperties().getGraphic().getEnvironmentMapping() != null)
-			root.addContent(getEnvironmentMapping());
-
 		root.addContent(getGrid());
 		root.addContent(getTrack());
 		root.addContent(getCameras());
@@ -521,6 +517,8 @@ public class XmlWriter
 			addHexContent(el, "color", null, object.getColor());
 			addContent(el, "orientation type", object.getOrientationType());
 			addContent(el, "orientation", null, object.getOrientation());
+			addContent(el, "delta height",null,  object.getDeltaHeight());
+			addContent(el, "delta vert", null, object.getDeltaVert());
 
 			objects.addContent(el);
 		}
