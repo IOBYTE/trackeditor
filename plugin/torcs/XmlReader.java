@@ -312,14 +312,14 @@ public class XmlReader
         {
             TrackObject obj = new TrackObject();
 
-            Element surface = it.next();
-            obj.setName(surface.getAttribute("name").getValue());
-            obj.setObject(getAttrStrValue(surface, "object"));
-            obj.setColor(getAttrIntValue(surface, "color"));
-            obj.setOrientationType(getAttrStrValue(surface, "orientation type"));
-            obj.setOrientation(getAttrNumValue(surface, "orientation"));
-            obj.setDeltaHeight(getAttrNumValue(surface, "delta height"));
-            obj.setDeltaVert(getAttrNumValue(surface, "delta vert"));
+            Element object = it.next();
+            obj.setName(object.getAttribute("name").getValue());
+            obj.setObject(getAttrStrValue(object, "object"));
+            obj.setColor(getAttrIntValue(object, "color"));
+            obj.setOrientationType(getAttrStrValue(object, "orientation type"));
+            obj.setOrientation(getAttrNumValue(object, "orientation"));
+            obj.setDeltaHeight(getAttrNumValue(object, "delta height"));
+            obj.setDeltaVert(getAttrNumValue(object, "delta vert"));
 
             objectData.add(obj);
         }

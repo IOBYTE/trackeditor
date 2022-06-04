@@ -67,13 +67,13 @@ public class TurnMarksProperties extends JPanel
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);		
 		widthLabel.setBounds(10, 10, 70, 20);
-		widthLabel.setText("Track Step");
+		widthLabel.setText("Width");
 		heightLabel.setBounds(10, 35, 70, 20);
-		heightLabel.setText("Border margin");
+		heightLabel.setText("Height");
 		verticalSpaceLabel.setBounds(10, 60, 120, 20);
-		verticalSpaceLabel.setText("Border Step");
+		verticalSpaceLabel.setText("Vertical Space");
 		horizontalSpaceLabel.setBounds(10, 85, 120, 20);
-		horizontalSpaceLabel.setText("Border Height");
+		horizontalSpaceLabel.setText("Horizontal Space");
 		this.add(widthLabel, null);
 		this.add(heightLabel, null);
 		this.add(verticalSpaceLabel, null);
