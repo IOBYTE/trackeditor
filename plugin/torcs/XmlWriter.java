@@ -687,10 +687,10 @@ public class XmlWriter
 		marks.setAttribute(new Attribute("name", "Turn Marks"));
 		graphic.addContent(marks);
 
-		addContent(marks, "width", "m", Editor.getProperties().getTurnMarks().getWidth());
-		addContent(marks, "height", "m", Editor.getProperties().getTurnMarks().getHeight());
-		addContent(marks, "vertical space", "m", Editor.getProperties().getTurnMarks().getVerticalSpace());
-		addContent(marks, "horizontal space", "m", Editor.getProperties().getTurnMarks().getHorizontalSpace());
+		addContent(marks, "width", "m", Editor.getProperties().getGraphic().getTurnMarks().getWidth());
+		addContent(marks, "height", "m", Editor.getProperties().getGraphic().getTurnMarks().getHeight());
+		addContent(marks, "vertical space", "m", Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace());
+		addContent(marks, "horizontal space", "m", Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace());
 
 		Element terrain = new Element("section");
 		terrain.setAttribute(new Attribute("name", "Terrain Generation"));

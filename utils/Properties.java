@@ -84,7 +84,6 @@ public  class Properties
 	private int					straightNameCount		= 0;
 
     private TerrainGeneration	terrainGeneration		= new TerrainGeneration();
-    private TurnMarks			turnMarks				= new TurnMarks();
     private Pits				pits					= new Pits();
     private LocalInfo			localInfo				= new LocalInfo();
     private StartingGrid		startingGrid			= new StartingGrid();
@@ -535,21 +534,6 @@ public  class Properties
     public void setTerrainGeneration(TerrainGeneration terrainGeneration)
     {
         this.terrainGeneration = terrainGeneration;
-    }
-
-    /**
-     * @return Returns the turnMarks.
-     */
-    public TurnMarks getTurnMarks()
-    {
-        return turnMarks;
-    }
-    /**
-     * @param turnMarks The turnMarks to set.
-     */
-    public void setTurnMarks(TurnMarks turnMarks)
-    {
-        this.turnMarks = turnMarks;
     }
 
     /**

@@ -93,7 +93,7 @@ public class TurnMarksProperties extends JPanel
 		if (widthTextField == null)
 		{
 			widthTextField = new JTextField();
-			double width = Editor.getProperties().getTurnMarks().getWidth();
+			double width = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
 			if (!Double.isNaN(width))
 				widthTextField.setText(width + "");
 			widthTextField.setBounds(100, 10, 100, 20);
@@ -110,7 +110,7 @@ public class TurnMarksProperties extends JPanel
 		if (heightTextField == null)
 		{
 			heightTextField = new JTextField();
-			double height = Editor.getProperties().getTurnMarks().getHeight();
+			double height = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
 			if (!Double.isNaN(height))
 				heightTextField.setText(height + "");
 			heightTextField.setBounds(100, 35, 100, 20);
@@ -127,7 +127,7 @@ public class TurnMarksProperties extends JPanel
 		if (verticalSpaceTextField == null)
 		{
 			verticalSpaceTextField = new JTextField();
-			double space = Editor.getProperties().getTurnMarks().getVerticalSpace();
+			double space = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
 			if (!Double.isNaN(space))
 				verticalSpaceTextField.setText(space + "");
 			verticalSpaceTextField.setBounds(100, 60, 100, 20);
@@ -144,7 +144,7 @@ public class TurnMarksProperties extends JPanel
 		if (horizontalSpaceTextField == null)
 		{
 			horizontalSpaceTextField = new JTextField();
-			double space = Editor.getProperties().getTurnMarks().getHorizontalSpace();
+			double space = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
 			if (!Double.isNaN(space))
 				horizontalSpaceTextField.setText(space + "");
 			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
@@ -159,31 +159,31 @@ public class TurnMarksProperties extends JPanel
 	{
 		try
 		{
-			Editor.getProperties().getTurnMarks().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
+			Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTurnMarks().setWidth(Double.NaN);
+			Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTurnMarks().setHeight(Double.parseDouble(this.getHeightTextField().getText()));
+			Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.parseDouble(this.getHeightTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTurnMarks().setHeight(Double.NaN);
+			Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTurnMarks().setVerticalSpace(Double.parseDouble(this.getVerticalSpaceTextField().getText()));
+			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.parseDouble(this.getVerticalSpaceTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTurnMarks().setVerticalSpace(Double.NaN);
+			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTurnMarks().setHorizontalSpace(Double.parseDouble(this.getHorizontalSpaceTextField().getText()));
+			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.parseDouble(this.getHorizontalSpaceTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTurnMarks().setHorizontalSpace(Double.NaN);
+			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.NaN);
 		}
 		
 		Editor.getProperties().valueChanged();
