@@ -1,7 +1,7 @@
 package utils.circuit;
 
 public class StartingGrid {
-	private int rows						= Integer.MAX_VALUE;
+	private int 	rows					= Integer.MAX_VALUE;
 	private String	polePositionSide		= null;
 	private double	distanceToStart			= Double.NaN;
 	private double	distanceBetweenColumns	= Double.NaN;

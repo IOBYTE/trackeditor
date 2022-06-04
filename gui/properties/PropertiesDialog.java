@@ -35,19 +35,20 @@ import javax.swing.JTabbedPane;
 public class PropertiesDialog extends JDialog
 {
 	//private Properties properties = Properties.getInstance();
-	public static boolean		APPROVE				= false;
-	private JTabbedPane			tabbedPane			= null;
-	private GeneralProperties	generalProperties	= null;
-	private JPanel				pane				= null;
-	private JPanel				footerPanel			= null;
-	private JButton				okButton			= null;
-	private JButton				cancelButton		= null;
-	private TrackProperties		trackProperties		= null;
-	private PitProperties		pitProperties		= null;
-	private ImageProperties		imageProperties		= null;
-	private TerrainProperties	terrainProperties	= null;
-	private TurnMarksProperties	turnMarksProperties	= null;
-	private LocalInfoProperties	localInfoProperties	= null;
+	public static boolean			APPROVE					= false;
+	private JTabbedPane				tabbedPane				= null;
+	private GeneralProperties		generalProperties		= null;
+	private JPanel					pane					= null;
+	private JPanel					footerPanel				= null;
+	private JButton					okButton				= null;
+	private JButton					cancelButton			= null;
+	private TrackProperties			trackProperties			= null;
+	private PitProperties			pitProperties			= null;
+	private ImageProperties			imageProperties			= null;
+	private TerrainProperties		terrainProperties		= null;
+	private TurnMarksProperties		turnMarksProperties		= null;
+	private LocalInfoProperties		localInfoProperties		= null;
+	private StartingGridProperties	startingGridProperties	= null;
 
 	/**
 	 *  
@@ -85,10 +86,11 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("General", null, getGeneralProperties(), null);
 			tabbedPane.addTab("Track", null, getTrackProperties(), null);
 			tabbedPane.addTab("Pit", null, getPitProperties(), null);
-			tabbedPane.addTab("Image", null, getImageProperties(), null);
 			tabbedPane.addTab("Terrain", null, getTerrainProperties(), null);
 			tabbedPane.addTab("Turn Marks", null, getTurnMarksProperties(), null);
 			tabbedPane.addTab("Local Info", null, getLocalInfoProperties(), null);
+			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
+			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
 	}
@@ -250,6 +252,17 @@ public class PropertiesDialog extends JDialog
 		}
 		return localInfoProperties;
 	}
+	/**
+	 * This method initializes startingGridProperties
+	 *
+	 * @return gui.properties.StartingGridProperties
+	 */
+	private StartingGridProperties getStartingGridProperties() {
+		if (startingGridProperties == null) {
+			startingGridProperties = new StartingGridProperties();
+		}
+		return startingGridProperties;
+	}
 	
 	/**
 	 *  
@@ -263,6 +276,7 @@ public class PropertiesDialog extends JDialog
 		this.terrainProperties.exit();
 		this.turnMarksProperties.exit();
 		this.localInfoProperties.exit();
+		this.startingGridProperties.exit();
 		APPROVE = true;
 		cancel();
 	}
