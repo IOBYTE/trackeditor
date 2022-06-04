@@ -17,9 +17,10 @@ public class EnvironmentMapping {
 		this.envMapImage = envMapImage;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("name          : " + name);
-		System.out.println("  envMapImage : " + envMapImage);
+		System.out.println(indent + "EnvironmentMapping");
+		System.out.println(indent + "  name        : " + name);
+		System.out.println(indent + "  envMapImage : " + envMapImage);
     }
 }

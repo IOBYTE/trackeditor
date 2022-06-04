@@ -43,8 +43,10 @@ import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
+import utils.circuit.ObjectMap;
 
 /**
  * @author Charalampos Alexopoulos
@@ -378,6 +380,26 @@ public class XmlReader
 	        data.getTerrainGeneration().setElevationMap(getAttrStrValue(terrain, "elevation map"));
 	        data.getTerrainGeneration().setReliefFile(getAttrStrValue(terrain, "relief file"));
 	        data.getTerrainGeneration().setSurface(getAttrStrValue(terrain, "surface"));
+
+	        Element objects = getChildWithName(terrain, "Object Maps");
+
+	        if (objects != null)
+	        {
+		        Vector<ObjectMap> objMap = new Vector<ObjectMap>();
+		        Iterator<Element> it = objects.getChildren().iterator();
+		        while (it.hasNext())
+		        {
+                    ObjectMap obj = new ObjectMap();
+
+		            Element el = it.next();
+		            obj.setName(el.getAttribute("name").getValue());
+
+		            obj.setObjectMap(getAttrStrValue(el, "object map"));
+
+		            objMap.add(obj);
+		        }
+		        data.getTerrainGeneration().setObjectMaps(objMap);
+	        }
         }
 
         Element environment = getChildWithName(graphic, "Environment Mapping");
@@ -398,13 +420,6 @@ public class XmlReader
 	            envMap.add(env);
 	        }
 	        data.setEnvironmentMapping(envMap);
-        }
-
-        Element objects = getChildWithName(graphic, "Object Maps");
-
-        if (objects != null)
-        {
-            // TODO
         }
 
 	    Editor.getProperties().setGraphic(data);

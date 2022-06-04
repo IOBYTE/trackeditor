@@ -11,8 +11,8 @@ public final class TrackLight {
 
 	private String name				= null;
 	private String role				= null;
-	private Corner topLeft			= null;
-	private Corner bottomRight		= null;
+	private Corner topLeft			= new Corner();
+	private Corner bottomRight		= new Corner();
 	private String textureOn		= null;
 	private String textureOff		= null;
 	private int index				= Integer.MAX_VALUE;
@@ -116,23 +116,18 @@ public final class TrackLight {
 		this.textureOff = textureOff;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("name            : " + name);
-		System.out.println("  role          : " + role);
-		if (topLeft != null)
-			System.out.println("  topLeft       : " + topLeft.x + " " + topLeft.y + " " + topLeft.z);
-		else
-			System.out.println("  topLeft       : null");
-		if (bottomRight != null)
-			System.out.println("  bottomRight   : " + bottomRight.x + " " + bottomRight.y + " " + bottomRight.z);
-		else
-			System.out.println("  bottomRight   : null");
-		System.out.println("  textureOn     : " + textureOn);
-		System.out.println("  textureOff    : " + textureOff);
-		System.out.println("  index         : " + index);
-		System.out.println("  red           : " + red);
-		System.out.println("  green         : " + green);
-		System.out.println("  blue          : " + blue);
+		System.out.println(indent + "Surface");
+		System.out.println(indent + "  name            : " + name);
+		System.out.println(indent + "  role          : " + role);
+		System.out.println(indent + "  topLeft       : " + topLeft.x + " " + topLeft.y + " " + topLeft.z);
+		System.out.println(indent + "  bottomRight   : " + bottomRight.x + " " + bottomRight.y + " " + bottomRight.z);
+		System.out.println(indent + "  textureOn     : " + textureOn);
+		System.out.println(indent + "  textureOff    : " + textureOff);
+		System.out.println(indent + "  index         : " + index);
+		System.out.println(indent + "  red           : " + red);
+		System.out.println(indent + "  green         : " + green);
+		System.out.println(indent + "  blue          : " + blue);
     }
 }

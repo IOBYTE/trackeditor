@@ -36,10 +36,12 @@ import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
+import utils.circuit.ObjectMap;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
@@ -705,6 +707,24 @@ public class XmlWriter
 		addContent(terrain, "elevation map", Editor.getProperties().getTerrainGeneration().getElevationMap());
 		addContent(terrain, "relief file", Editor.getProperties().getTerrainGeneration().getReliefFile());
 		addContent(terrain, "surface", Editor.getProperties().getTerrainGeneration().getSurface());
+
+		Element maps = new Element("section");
+		maps.setAttribute(new Attribute("name", "Object Maps"));
+		terrain.addContent(maps);
+
+		Vector<ObjectMap> objMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
+
+		for (int i = 0; i < objMaps.size(); i++)
+		{
+			ObjectMap data = objMaps.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", data.getName()));
+
+			addContent(el, "object map", data.getObjectMap());
+
+			maps.addContent(el);
+		}
 
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Environment Mapping"));

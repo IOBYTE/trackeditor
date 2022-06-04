@@ -200,29 +200,30 @@ public final class Surface {
 		this.rebound = rebound;
 	}
 
-    public void dump()
+    public void dump(String indent)
     {
-        System.out.println("name                      : "+name);
-        System.out.println("  colorR1                 : "+colorR1);
-        System.out.println("  colorG1                 : "+colorG1);
-        System.out.println("  colorB1                 : "+colorB1);
-        System.out.println("  colorR2                 : "+colorR2);
-        System.out.println("  colorG2                 : "+colorG2);
-        System.out.println("  colorB2                 : "+colorB2);
-        System.out.println("  textureName             : "+textureName);
-        System.out.println("  textureSize             : "+textureSize);
-        System.out.println("  textureType             : "+textureType);
-        System.out.println("  textureLinkWithPrevious : "+textureLinkWithPrevious);
-        System.out.println("  textureStartOnBoundary  : "+textureStartOnBoundary);
-        System.out.println("  textureMipMap           : "+textureMipMap);
-        System.out.println("  friction                : "+friction);
-        System.out.println("  rollingResistance       : "+rollingResistance);
-        System.out.println("  bumpName                : "+bumpName);
-        System.out.println("  bumpSize                : "+bumpSize);
-        System.out.println("  roughness               : "+roughness);
-        System.out.println("  roughnessWavelength     : "+roughnessWavelength);
-        System.out.println("  racelineName            : "+racelineName);
-        System.out.println("  dammage                 : "+dammage);
-        System.out.println("  rebound                 : "+rebound);
+		System.out.println(indent + "Surface");
+        System.out.println(indent + "  name                    : " + name);
+        System.out.println(indent + "  colorR1                 : " + colorR1);
+        System.out.println(indent + "  colorG1                 : " + colorG1);
+        System.out.println(indent + "  colorB1                 : " + colorB1);
+        System.out.println(indent + "  colorR2                 : " + colorR2);
+        System.out.println(indent + "  colorG2                 : " + colorG2);
+        System.out.println(indent + "  colorB2                 : " + colorB2);
+        System.out.println(indent + "  textureName             : " + textureName);
+        System.out.println(indent + "  textureSize             : " + textureSize);
+        System.out.println(indent + "  textureType             : " + textureType);
+        System.out.println(indent + "  textureLinkWithPrevious : " + textureLinkWithPrevious);
+        System.out.println(indent + "  textureStartOnBoundary  : " + textureStartOnBoundary);
+        System.out.println(indent + "  textureMipMap           : " + textureMipMap);
+        System.out.println(indent + "  friction                : " + friction);
+        System.out.println(indent + "  rollingResistance       : " + rollingResistance);
+        System.out.println(indent + "  bumpName                : " + bumpName);
+        System.out.println(indent + "  bumpSize                : " + bumpSize);
+        System.out.println(indent + "  roughness               : " + roughness);
+        System.out.println(indent + "  roughnessWavelength     : " + roughnessWavelength);
+        System.out.println(indent + "  racelineName            : " + racelineName);
+        System.out.println(indent + "  dammage                 : " + dammage);
+        System.out.println(indent + "  rebound                 : " + rebound);
       }
 }

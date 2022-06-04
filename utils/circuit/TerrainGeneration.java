@@ -1,6 +1,9 @@
 package utils.circuit;
 
+import java.util.Vector;
+
 public class TerrainGeneration {
+
 	private double				trackStep		= 20;
 	private double				borderMargin	= 50;
 	private double				borderStep		= 30;
@@ -12,12 +15,7 @@ public class TerrainGeneration {
 	private String				elevationMap	= null;
 	private String				reliefFile		= null;
 	private String				surface			= null;
-
-//	<section name="Object Maps">
-//		<section name="map 1">
-//			<attstr name="object map" val="objects-map1.png" />
-//		</section>
-//	</section>
+	private Vector<ObjectMap>	objectMaps		= new Vector<ObjectMap>();
 
 	/**
 	 * @return Returns the terrainTrackStep.
@@ -185,18 +183,31 @@ public class TerrainGeneration {
 		this.surface = surface;
 	}
 
-	public void dump()
+	public Vector<ObjectMap> getObjectMaps() {
+		return objectMaps;
+	}
+	public void setObjectMaps(Vector<ObjectMap> objectMaps) {
+		this.objectMaps = objectMaps;
+	}
+
+	public void dump(String indent)
     {
-		System.out.println("trackStep       : " + trackStep);
-		System.out.println("borderMargin    : " + borderMargin);
-		System.out.println("borderStep      : " + borderStep);
-		System.out.println("borderHeight    : " + borderHeight);
-		System.out.println("orientation     : " + orientation);
-		System.out.println("maximumAltitude : " + maximumAltitude);
-		System.out.println("minimumAltitude : " + minimumAltitude);
-		System.out.println("groupSize       : " + groupSize);
-		System.out.println("elevationMap    : " + elevationMap);
-		System.out.println("reliefFile      : " + reliefFile);
-		System.out.println("surface         : " + surface);
+		System.out.println(indent + "TerrainGeneration");
+		System.out.println(indent + "  trackStep       : " + trackStep);
+		System.out.println(indent + "  borderMargin    : " + borderMargin);
+		System.out.println(indent + "  borderStep      : " + borderStep);
+		System.out.println(indent + "  borderHeight    : " + borderHeight);
+		System.out.println(indent + "  orientation     : " + orientation);
+		System.out.println(indent + "  maximumAltitude : " + maximumAltitude);
+		System.out.println(indent + "  minimumAltitude : " + minimumAltitude);
+		System.out.println(indent + "  groupSize       : " + groupSize);
+		System.out.println(indent + "  elevationMap    : " + elevationMap);
+		System.out.println(indent + "  reliefFile      : " + reliefFile);
+		System.out.println(indent + "  surface         : " + surface);
+		System.out.println(indent + "  objectMaps[" + objectMaps.size() + "]");
+		for (int i = 0; i < objectMaps.size(); i++)
+		{
+			objectMaps.get(i).dump(indent + "    ");
+		}
     }
 }

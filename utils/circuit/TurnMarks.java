@@ -75,11 +75,12 @@ public class TurnMarks {
 		this.horizontalSpace = horizontalSpace;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("width           : " + width);
-		System.out.println("height          : " + height);
-		System.out.println("verticalSpace   : " + verticalSpace);
-		System.out.println("horizontalSpace : " + horizontalSpace);
+		System.out.println(indent + "Turn Marks");
+		System.out.println(indent + "  width           : " + width);
+		System.out.println(indent + "  height          : " + height);
+		System.out.println(indent + "  verticalSpace   : " + verticalSpace);
+		System.out.println(indent + "  horizontalSpace : " + horizontalSpace);
     }
 }

@@ -223,20 +223,21 @@ public class Pits {
 		this.speedLimit = speedLimit;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("side           : " + side);
-		System.out.println("entry          : " + entry);
-		System.out.println("start          : " + start);
-		System.out.println("startBuildings : " + startBuildings);
-		System.out.println("stopBuildings  : " + stopBuildings);
-		System.out.println("maxPits        : " + maxPits);
-		System.out.println("end            : " + end);
-		System.out.println("exit           : " + exit);
-		System.out.println("width          : " + width);
-		System.out.println("length         : " + length);
-		System.out.println("style          : " + style);
-		System.out.println("indicator      : " + indicator);
-		System.out.println("speedLimit     : " + speedLimit);
+		System.out.println(indent + "Pits");
+		System.out.println(indent + "  side           : " + side);
+		System.out.println(indent + "  entry          : " + entry);
+		System.out.println(indent + "  start          : " + start);
+		System.out.println(indent + "  startBuildings : " + startBuildings);
+		System.out.println(indent + "  stopBuildings  : " + stopBuildings);
+		System.out.println(indent + "  maxPits        : " + maxPits);
+		System.out.println(indent + "  end            : " + end);
+		System.out.println(indent + "  exit           : " + exit);
+		System.out.println(indent + "  width          : " + width);
+		System.out.println(indent + "  length         : " + length);
+		System.out.println(indent + "  style          : " + style);
+		System.out.println(indent + "  indicator      : " + indicator);
+		System.out.println(indent + "  speedLimit     : " + speedLimit);
     }
 }

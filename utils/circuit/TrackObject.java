@@ -47,12 +47,13 @@ public final class TrackObject {
 		this.orientation = orientation;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-      System.out.println("name              : "+name);
-      System.out.println("  object          : "+object);
-      System.out.println("  color           : 0x"+Integer.toHexString(color).toUpperCase());
-      System.out.println("  orientationType : "+orientationType);
-      System.out.println("  orientation     : "+orientation);
+		System.out.println(indent + "TrackObject");
+		System.out.println(indent + "  name            : " + name);
+		System.out.println(indent + "  object          : " + object);
+		System.out.println(indent + "  color           : 0x" + Integer.toHexString(color).toUpperCase());
+		System.out.println(indent + "  orientationType : " + orientationType);
+		System.out.println(indent + "  orientation     : " + orientation);
     }
 }

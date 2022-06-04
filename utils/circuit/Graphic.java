@@ -2,6 +2,8 @@ package utils.circuit;
 
 import java.util.Vector;
 
+import utils.Editor;
+
 public class Graphic {
     private String 						description				= null;
     private String 						descriptionNight		= null;
@@ -172,4 +174,39 @@ public class Graphic {
 	public void setShininess(double shininess) {
 		this.shininess = shininess;
 	}
+
+	public void dump(String indent)
+    {
+		System.out.println(indent + "Graphic");
+		System.out.println(indent + "  description          : " + description);
+		System.out.println(indent + "  descriptionNight     : " + descriptionNight);
+		System.out.println(indent + "  descriptionRainNight : " + descriptionRainNight);
+		System.out.println(indent + "  backgroundImage      : " + backgroundImage);
+		System.out.println(indent + "  backgroundType       : " + backgroundType);
+		System.out.println(indent + "  backgroundColorR     : " + backgroundColorR);
+		System.out.println(indent + "  backgroundColorG     : " + backgroundColorG);
+		System.out.println(indent + "  backgroundColorB     : " + backgroundColorB);
+		System.out.println(indent + "  ambientColorR        : " + ambientColorR);
+		System.out.println(indent + "  ambientColorG        : " + ambientColorG);
+		System.out.println(indent + "  ambientColorB        : " + ambientColorB);
+		System.out.println(indent + "  diffuseColorR        : " + diffuseColorR);
+		System.out.println(indent + "  diffuseColorG        : " + diffuseColorG);
+		System.out.println(indent + "  diffuseColorB        : " + diffuseColorB);
+		System.out.println(indent + "  specularColorR       : " + specularColorR);
+		System.out.println(indent + "  specularColorG       : " + specularColorG);
+		System.out.println(indent + "  specularColorB       : " + specularColorB);
+		System.out.println(indent + "  lightPositionX       : " + lightPositionX);
+		System.out.println(indent + "  lightPositionY       : " + lightPositionY);
+		System.out.println(indent + "  lightPositionZ       : " + lightPositionZ);
+		System.out.println(indent + "  shininess            : " + shininess);
+		System.out.println(indent + "  turnMarks            : ");
+		turnMarks.dump(indent + "    ");
+		System.out.println(indent + "  terrainGeneration    : ");
+		terrainGeneration.dump(indent + "    ");
+		System.out.println(indent + "  environmentMapping[" + environmentMapping.size() + "]");
+		for (int i = 0; i < environmentMapping.size(); i++)
+		{
+			environmentMapping.get(i).dump(indent + "    ");
+		}
+    }
 }

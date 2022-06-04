@@ -60,15 +60,16 @@ public class LocalInfo {
 		this.altitude = altitude;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("station               : " + station);
-		System.out.println("timezone              : " + timezone);
-		System.out.println("overallRainLikelyhood : " + overallRainLikelyhood);
-		System.out.println("littleRainLikelyhood  : " + littleRainLikelyhood);
-		System.out.println("mediumRainLikelyhood  : " + mediumRainLikelyhood);
-		System.out.println("timeOfDay             : " + timeOfDay);
-		System.out.println("sunAscension          : " + sunAscension);
-		System.out.println("altitude              : " + altitude);
+		System.out.println(indent + "LocalInfo");
+		System.out.println(indent + "  station               : " + station);
+		System.out.println(indent + "  timezone              : " + timezone);
+		System.out.println(indent + "  overallRainLikelyhood : " + overallRainLikelyhood);
+		System.out.println(indent + "  littleRainLikelyhood  : " + littleRainLikelyhood);
+		System.out.println(indent + "  mediumRainLikelyhood  : " + mediumRainLikelyhood);
+		System.out.println(indent + "  timeOfDay             : " + timeOfDay);
+		System.out.println(indent + "  sunAscension          : " + sunAscension);
+		System.out.println(indent + "  altitude              : " + altitude);
     }
 }
