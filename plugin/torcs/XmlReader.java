@@ -118,7 +118,9 @@ public class XmlReader
         Editor.getProperties().getHeader().setAuthor(getAttrStrValue(header, "author"));
         Editor.getProperties().getHeader().setDescription(getAttrStrValue(header, "description"));
         Editor.getProperties().getHeader().setCategory(getAttrStrValue(header, "category"));
+        Editor.getProperties().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
         Editor.getProperties().getHeader().setVersion(getAttrIntValue(header, "version"));
+        Editor.getProperties().getHeader().setSkyVersion(getAttrIntValue(header, "sky version"));
     }
 
     /**

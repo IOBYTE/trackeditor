@@ -3,7 +3,9 @@ package utils.circuit;
 public class Header {
 	private String	name		= null;
 	private String	category	= "road";
+	private String	subcategory	= null;
 	private int	version			= 4;
+	private int skyVersion		= Integer.MAX_VALUE;
 	private String	author		= null;
 	private String	description	= null;
 
@@ -23,6 +25,22 @@ public class Header {
 		this.name = name;
 	}
 	/**
+	 * @return Returns the subcategory.
+	 */
+	public String getSubcategory()
+	{
+		return subcategory;
+	}
+	/**
+	 * @param subcategory
+	 *            The subcategory to set.
+	 */
+	public void setSubcategory(String subcategory)
+	{
+		this.subcategory = subcategory;
+	}
+
+	/**
 	 * @return Returns the category.
 	 */
 	public String getCategory()
@@ -37,6 +55,7 @@ public class Header {
 	{
 		this.category = category;
 	}
+
 	/**
 	 * @return Returns the version.
 	 */
@@ -51,6 +70,21 @@ public class Header {
 	public void setVersion(int version)
 	{
 		this.version = version;
+	}
+	/**
+	 * @return Returns the skyVersion.
+	 */
+	public int getSkyVersion()
+	{
+		return skyVersion;
+	}
+	/**
+	 * @param skyVersion
+	 *            The skyVersion to set.
+	 */
+	public void setSkyVersion(int skyVersion)
+	{
+		this.skyVersion = skyVersion;
 	}
 	/**
 	 * @return Returns the author.
@@ -79,7 +113,7 @@ public class Header {
 	 * @param author
 	 *            The description to set.
 	 */
-	public void setDescription(String author)
+	public void setDescription(String description)
 	{
 		this.description = description;
 	}
@@ -89,6 +123,7 @@ public class Header {
 		System.out.println(indent + "Header");
 		System.out.println(indent + "  name        : " + name);
 		System.out.println(indent + "  category    : " + category);
+		System.out.println(indent + "  subcategory : " + subcategory);
 		System.out.println(indent + "  version     : " + version);
 		System.out.println(indent + "  author      : " + author);
 		System.out.println(indent + "  description : " + description);

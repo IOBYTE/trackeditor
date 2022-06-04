@@ -570,7 +570,9 @@ public class XmlWriter
 			tmp = "road";
 		}
 		addContent(header, "category", tmp);
+		addContent(header, "subcategory", Editor.getProperties().getHeader().getSubcategory());
 		addContent(header, "version", null, Editor.getProperties().getHeader().getVersion());
+		addContent(header, "sky version", null, Editor.getProperties().getHeader().getSkyVersion());
 
 		if (Editor.getProperties().getHeader().getAuthor() != null)
 		{
