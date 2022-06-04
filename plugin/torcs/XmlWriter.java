@@ -485,7 +485,7 @@ public class XmlWriter
 			}
 
 			addContent(el, "texture on", light.getTextureOn());
-			addContent(el, "texture on", light.getTextureOff());
+			addContent(el, "texture off", light.getTextureOff());
 			addContent(el, "index", null, light.getIndex());
 			addContent(el, "red", null, light.getRed());
 			addContent(el, "green", null, light.getGreen());
