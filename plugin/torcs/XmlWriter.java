@@ -125,8 +125,10 @@ public class XmlWriter
 		track.setAttribute(name);
 		addContent(track, "width", "m", Editor.getProperties().getTrackWidth());
 		addContent(track, "profil steps length", "m", Editor.getProperties().getProfileStepLength());
-		Element el = attstrElement("surface", Editor.getProperties().getSurface());
-		track.addContent(el);
+		addContent(track, "surface", Editor.getProperties().getSurface());
+		addContent(track, "raceline widthscale", null, Editor.getProperties().getRacelineWidthscale());
+		addContent(track, "raceline int", null, Editor.getProperties().getRacelineInt());
+		addContent(track, "raceline ext", null, Editor.getProperties().getRacelinExt());
 
 		com = new Comment("Left part of track");
 		track.addContent(com);

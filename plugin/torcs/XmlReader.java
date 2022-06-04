@@ -96,6 +96,9 @@ public class XmlReader
         Editor.getProperties().setTrackWidth(getAttrNumValue(mainTrack, "width"));
         Editor.getProperties().setSurface(getAttrStrValue(mainTrack, "surface"));
         Editor.getProperties().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
+        Editor.getProperties().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
+        Editor.getProperties().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
+        Editor.getProperties().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
         setSide(mainTrack, Editor.getProperties().getLeft(), "Left");
         setSide(mainTrack, Editor.getProperties().getRight(), "Right");
         setPits(mainTrack);
@@ -437,7 +440,7 @@ public class XmlReader
         if (pits == null)
             return;
 
-        Editor.getProperties().getPits().setStyle(getAttrIntValue(pits, "style"));
+        Editor.getProperties().getPits().setStyle(getAttrIntValue(pits, "pit style"));
         Editor.getProperties().getPits().setSide(getAttrStrValue(pits, "side"));
         Editor.getProperties().getPits().setEntry(getAttrStrValue(pits, "entry"));
         Editor.getProperties().getPits().setStart(getAttrStrValue(pits, "start"));

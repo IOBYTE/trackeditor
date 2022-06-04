@@ -58,6 +58,9 @@ public  class Properties
 
 	private double				trackWidth				= 10;
 	private String				surface					= "asphalt2-lines";
+	private double				racelineWidthscale		= Double.NaN;
+	private double				racelineInt				= Double.NaN;
+	private double				racelinExt				= Double.NaN;
 	
 	private SegmentSide			left					= new SegmentSide();
 	private SegmentSide			right					= new SegmentSide();
@@ -667,5 +670,29 @@ public  class Properties
 	public void setGraphic(Graphic data)
 	{
 		graphic = data;
+	}
+
+	public double getRacelineWidthscale() {
+		return racelineWidthscale;
+	}
+
+	public void setRacelineWidthscale(double racelineWidthscale) {
+		this.racelineWidthscale = racelineWidthscale;
+	}
+
+	public double getRacelineInt() {
+		return racelineInt;
+	}
+
+	public void setRacelineInt(double racelineInt) {
+		this.racelineInt = racelineInt;
+	}
+
+	public double getRacelinExt() {
+		return racelinExt;
+	}
+
+	public void setRacelinExt(double racelinExt) {
+		this.racelinExt = racelinExt;
 	}
 }
