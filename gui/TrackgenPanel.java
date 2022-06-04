@@ -81,8 +81,8 @@ public class TrackgenPanel extends JDialog implements Runnable
 	}
 	public void run()
 	{
-		String category = " -c " + Editor.getProperties().getCategory();
-		String name = " -n " + Editor.getProperties().getTrackName();
+		String category = " -c " + Editor.getProperties().getHeader().getCategory();
+		String name = " -n " + Editor.getProperties().getHeader().getName();
 		String args = " -a" + category + name;
 
 		System.out.println(args);

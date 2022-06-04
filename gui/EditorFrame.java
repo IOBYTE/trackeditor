@@ -241,10 +241,10 @@ public class EditorFrame extends JFrame
 			tmp = tmp.substring(0, tmp.lastIndexOf(sep));
 			Editor.getProperties().setPath(tmp);
 			tmp = Editor.getProperties().getPath().substring(0, tmp.lastIndexOf(sep));
-			Editor.getProperties().setCategory(tmp.substring(tmp.lastIndexOf(sep) + 1));
+			Editor.getProperties().getHeader().setCategory(tmp.substring(tmp.lastIndexOf(sep) + 1));
 			tmp = Editor.getProperties().getPath();
 			tmp = tmp.substring(tmp.lastIndexOf(sep)+1);
-			Editor.getProperties().setTrackName(tmp);
+			Editor.getProperties().getHeader().setName(tmp);
 			try
 			{
 				XMLDecoder decoder = new XMLDecoder(new FileInputStream(filename));
@@ -258,7 +258,7 @@ public class EditorFrame extends JFrame
 				//e.printStackTrace();
 				System.out.println("This file can't be read");
 			}
-			tmp = Editor.getProperties().getPath()+sep+Editor.getProperties().getTrackName()+".xml";
+			tmp = Editor.getProperties().getPath()+sep+Editor.getProperties().getHeader().getName()+".xml";
 			File file = new File(tmp);
 			torcsPlugin.readFile(file);
 		}
@@ -281,7 +281,7 @@ public class EditorFrame extends JFrame
 //		if (documentIsModified)
 		if(true)
 		{
-			String filename = Editor.getProperties().getPath() + sep + Editor.getProperties().getTrackName() + ".prj.xml";
+			String filename = Editor.getProperties().getPath() + sep + Editor.getProperties().getHeader().getName() + ".prj.xml";
 			try
 			{
 				XMLEncoder encoder = new XMLEncoder(new FileOutputStream(filename));

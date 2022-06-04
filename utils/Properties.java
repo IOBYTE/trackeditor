@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import utils.circuit.Camera;
 import utils.circuit.Graphic;
+import utils.circuit.Header;
 import utils.circuit.LocalInfo;
 import utils.circuit.Pits;
 import utils.circuit.SegmentSide;
@@ -49,19 +50,14 @@ public  class Properties
 	//private Vector				trackData;
 	public final String			title					= "Track Editor";
 	public final String			version					= "v0.7.0 alpha";
-	private String				category				= "road";
-	private int					trackVersion			= 4;
 	private String				path;
-	private String				trackName;
-	private String				author;
-	private String				description;
 
 	private double				trackWidth				= 10;
 	private String				surface					= "asphalt2-lines";
 	private double				racelineWidthscale		= Double.NaN;
 	private double				racelineInt				= Double.NaN;
 	private double				racelinExt				= Double.NaN;
-	
+
 	private SegmentSide			left					= new SegmentSide();
 	private SegmentSide			right					= new SegmentSide();
 
@@ -70,7 +66,7 @@ public  class Properties
 	private EditorPoint			imgOffset				= new EditorPoint();
 	private double				initx;
 	private double				inity;
-	
+
 	private double				currentX				= 0;
 	private double				currentY				= 0;
 	private double				currentZ				= 0;
@@ -83,6 +79,7 @@ public  class Properties
 	private int					curveNameCount			= 0;
 	private int					straightNameCount		= 0;
 
+	private Header				header					= new Header();
     private TerrainGeneration	terrainGeneration		= new TerrainGeneration();
     private Pits				pits					= new Pits();
     private LocalInfo			localInfo				= new LocalInfo();
@@ -129,64 +126,19 @@ public  class Properties
 //		this.valueChanged();
 //	}
 	/**
-	 * @return Returns the author.
+	 * @return Returns the header.
 	 */
-	public String getAuthor()
+	public Header getHeader()
 	{
-		return author;
+		return header;
 	}
 	/**
-	 * @param author
-	 *            The author to set.
+	 * @param header
+	 *            The header to set.
 	 */
-	public void setAuthor(String author)
+	public void setHeader(Header header)
 	{
-		this.author = author;
-	}
-	/**
-	 * @return Returns the category.
-	 */
-	public String getCategory()
-	{
-		return category;
-	}
-	/**
-	 * @param category
-	 *            The category to set.
-	 */
-	public void setCategory(String category)
-	{
-		this.category = category;
-	}
-	/**
-	 * @return Returns the track version.
-	 */
-	public int getTrackVersion()
-	{
-		return trackVersion;
-	}
-	/**
-	 * @param trackVersion
-	 *            The track version to set.
-	 */
-	public void setTrackVersion(int trackVersion)
-	{
-		this.trackVersion = trackVersion;
-	}
-	/**
-	 * @return Returns the description.
-	 */
-	public String getDescription()
-	{
-		return description;
-	}
-	/**
-	 * @param description
-	 *            The description to set.
-	 */
-	public void setDescription(String description)
-	{
-		this.description = description;
+		this.header = header;
 	}
 	/**
 	 * @return Returns the path.
@@ -202,21 +154,6 @@ public  class Properties
 	public void setPath(String path)
 	{
 		this.path = path;
-	}
-	/**
-	 * @return Returns the trackName.
-	 */
-	public String getTrackName()
-	{
-		return trackName;
-	}
-	/**
-	 * @param trackName
-	 *            The trackName to set.
-	 */
-	public void setTrackName(String trackName)
-	{
-		this.trackName = trackName;
 	}
 	/**
 	 * @return Returns the image.

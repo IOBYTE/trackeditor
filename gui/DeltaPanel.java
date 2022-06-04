@@ -108,8 +108,8 @@ public class DeltaPanel extends JDialog implements Runnable
         //while(!finish);
         finish = false;
         waitLabel.setText("Calculating track data. Please wait...");
-        String category = " -c " + Editor.getProperties().getCategory();
-        String name = " -n " + Editor.getProperties().getTrackName();
+        String category = " -c " + Editor.getProperties().getHeader().getCategory();
+        String name = " -n " + Editor.getProperties().getHeader().getName();
         String args = " -z" + category + name;
 
         //System.out.println(args);

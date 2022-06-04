@@ -166,7 +166,7 @@ public class NewProjectDialog extends JDialog
 			String[] items =
 			{"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
 			trackCategoryComboBox = new JComboBox<String>(items);
-			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getCategory());
+			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
 			trackCategoryComboBox.setBounds(135, 60, 170, 30);
 			trackCategoryComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -190,7 +190,7 @@ public class NewProjectDialog extends JDialog
 			String[] items =
 			{"3", "4", "5"};
 			trackVersionComboBox = new JComboBox<String>(items);
-			trackVersionComboBox.setSelectedItem(Editor.getProperties().getTrackVersion() + "");
+			trackVersionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
 			trackVersionComboBox.setBounds(135, 105, 170, 30);
 			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -343,22 +343,22 @@ public class NewProjectDialog extends JDialog
 	{
 		String tmpPath = getPathTextField().getText();
 		String tmpName = getProjectNameTextField().getText();
-		Editor.getProperties().setTrackName(tmpName);
+		Editor.getProperties().getHeader().setName(tmpName);
 		Editor.getProperties().setPath(tmpPath + sep + tmpName);
 		int index = tmpPath.lastIndexOf(sep) + 1;
 		String category = tmpPath.substring(index);
 
 		if (category == getTrackCategoryComboBox().getSelectedItem())
-			Editor.getProperties().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
+			Editor.getProperties().getHeader().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
 
 		File path = new File(tmpPath + sep + tmpName);
 		if (!path.exists())
 		{
 			path.mkdirs();
 		}
-		Editor.getProperties().setAuthor(this.getAuthorTextField().getText());
-		Editor.getProperties().setDescription(this.getDescriptionTextField().getText());
-		Editor.getProperties().setTrackVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
+		Editor.getProperties().getHeader().setAuthor(this.getAuthorTextField().getText());
+		Editor.getProperties().getHeader().setDescription(this.getDescriptionTextField().getText());
+		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
 		APPROVE = true;
 		cancel();
 	}

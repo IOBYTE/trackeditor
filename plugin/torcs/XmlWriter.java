@@ -531,7 +531,7 @@ public class XmlWriter
 	private synchronized static String getCredit()
 	{
 		String tmp = "\n";
-		tmp += "file                : " + Editor.getProperties().getTrackName() + ".xml\n";
+		tmp += "file                : " + Editor.getProperties().getHeader().getName() + ".xml\n";
 		tmp += "auto generated      : by Track Editor\n";
 		tmp += "version             : " + Editor.getProperties().version + "\n";
 		tmp += "copyright           : (C) 2005 by Charalampos Alexopoulos\n";
@@ -560,30 +560,30 @@ public class XmlWriter
 		Element header = new Element("section");
 		header.setAttribute(name);
 
-		addContent(header, "name", Editor.getProperties().getTrackName());
+		addContent(header, "name", Editor.getProperties().getHeader().getName());
 
-		if (Editor.getProperties().getCategory() != null)
+		if (Editor.getProperties().getHeader().getCategory() != null)
 		{
-			tmp = Editor.getProperties().getCategory();
+			tmp = Editor.getProperties().getHeader().getCategory();
 		} else
 		{
 			tmp = "road";
 		}
 		addContent(header, "category", tmp);
-		addContent(header, "version", null, Editor.getProperties().getTrackVersion());
+		addContent(header, "version", null, Editor.getProperties().getHeader().getVersion());
 
-		if (Editor.getProperties().getAuthor() != null)
+		if (Editor.getProperties().getHeader().getAuthor() != null)
 		{
-			tmp = Editor.getProperties().getAuthor();
+			tmp = Editor.getProperties().getHeader().getAuthor();
 		} else
 		{
 			tmp = "Anonymous";
 		}
 		addContent(header, "author", tmp);
 
-		if (Editor.getProperties().getDescription() != null)
+		if (Editor.getProperties().getHeader().getDescription() != null)
 		{
-			tmp = Editor.getProperties().getDescription();
+			tmp = Editor.getProperties().getHeader().getDescription();
 		} else
 		{
 			tmp = "No description provided";
@@ -661,7 +661,7 @@ public class XmlWriter
 		Element graphic = new Element("section");
 		graphic.setAttribute(new Attribute("name", "Graphic"));
 
-		addContent(graphic, "3d description", Editor.getProperties().getTrackName() + ".ac");
+		addContent(graphic, "3d description", Editor.getProperties().getHeader().getName() + ".ac");
 		addContent(graphic, "3d description night", Editor.getProperties().getGraphic().getDescriptionNight());
 		addContent(graphic, "3d description rain+night", Editor.getProperties().getGraphic().getDescriptionRainNight());
 		addContent(graphic, "background image", Editor.getProperties().getGraphic().getBackgroundImage());
@@ -818,7 +818,7 @@ public class XmlWriter
 
 	private synchronized static void writeToFile()
 	{
-		String fileName = Editor.getProperties().getPath() + sep + Editor.getProperties().getTrackName() + ".xml";
+		String fileName = Editor.getProperties().getPath() + sep + Editor.getProperties().getHeader().getName() + ".xml";
 		try
 		{
 			FileOutputStream out = new FileOutputStream(fileName);

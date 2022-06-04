@@ -116,7 +116,7 @@ public class GeneralProperties extends JPanel
 		{
 			projectNameTextField = new JTextField();
 			projectNameTextField.setBounds(135, 15, 170, 30);
-			projectNameTextField.setText(Editor.getProperties().getTrackName());
+			projectNameTextField.setText(Editor.getProperties().getHeader().getName());
 			projectNameTextField.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -140,7 +140,7 @@ public class GeneralProperties extends JPanel
 			String[] items =
 			{"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
 			trackCategoryComboBox = new JComboBox<String>(items);
-			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getCategory());
+			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
 			trackCategoryComboBox.setBounds(135, 60, 170, 30);
 			trackCategoryComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -165,7 +165,7 @@ public class GeneralProperties extends JPanel
 			String[] items =
 			{"3", "4", "5"};
 			trackVersionComboBox = new JComboBox<String>(items);
-			trackVersionComboBox.setSelectedItem(Editor.getProperties().getTrackVersion() + "");
+			trackVersionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
 			trackVersionComboBox.setBounds(135, 105, 170, 30);
 			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -236,7 +236,7 @@ public class GeneralProperties extends JPanel
 		{
 			authorTextField = new JTextField();
 			authorTextField.setBounds(65, 195, 240, 30);
-			authorTextField.setText(Editor.getProperties().getAuthor());
+			authorTextField.setText(Editor.getProperties().getHeader().getAuthor());
 		}
 		return authorTextField;
 	}
@@ -251,7 +251,7 @@ public class GeneralProperties extends JPanel
 		{
 			descriptionTextField = new JTextField();
 			descriptionTextField.setBounds(85, 240, 330, 30);
-			descriptionTextField.setText(Editor.getProperties().getDescription());
+			descriptionTextField.setText(Editor.getProperties().getHeader().getDescription());
 		}
 		return descriptionTextField;
 	}
@@ -280,7 +280,7 @@ public class GeneralProperties extends JPanel
 	{
 		String tmpPath = getPathTextField().getText();
 		String tmpName = getProjectNameTextField().getText();
-		Editor.getProperties().setTrackName(tmpName);
+		Editor.getProperties().getHeader().setName(tmpName);
 		Editor.getProperties().setPath(tmpPath + sep + tmpName);
 		int index = tmpPath.lastIndexOf(sep) + 1;
 		String category = tmpPath.substring(index);
@@ -290,13 +290,13 @@ public class GeneralProperties extends JPanel
 		{
 			path.mkdirs();
 		}
-		Editor.getProperties().setAuthor(getAuthorTextField().getText());
-		Editor.getProperties().setDescription(getDescriptionTextField().getText());
+		Editor.getProperties().getHeader().setAuthor(getAuthorTextField().getText());
+		Editor.getProperties().getHeader().setDescription(getDescriptionTextField().getText());
 
 		if (category == getTrackCategoryComboBox().getSelectedItem())
-			Editor.getProperties().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
+			Editor.getProperties().getHeader().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
 
-		Editor.getProperties().setTrackVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
+		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
 
 		Editor.getProperties().valueChanged();
 	}

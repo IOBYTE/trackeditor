@@ -115,10 +115,10 @@ public class XmlReader
         if (header == null)
             return;
 
-        Editor.getProperties().setAuthor(getAttrStrValue(header, "author"));
-        Editor.getProperties().setDescription(getAttrStrValue(header, "description"));
-        Editor.getProperties().setCategory(getAttrStrValue(header, "category"));
-        Editor.getProperties().setTrackVersion(getAttrIntValue(header, "version"));
+        Editor.getProperties().getHeader().setAuthor(getAttrStrValue(header, "author"));
+        Editor.getProperties().getHeader().setDescription(getAttrStrValue(header, "description"));
+        Editor.getProperties().getHeader().setCategory(getAttrStrValue(header, "category"));
+        Editor.getProperties().getHeader().setVersion(getAttrIntValue(header, "version"));
     }
 
     /**
