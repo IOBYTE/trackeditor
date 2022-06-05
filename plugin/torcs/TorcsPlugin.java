@@ -34,7 +34,6 @@ import javax.swing.JMenuItem;
 import plugin.Plugin;
 import utils.CustomFileFilter;
 import utils.Editor;
-import utils.circuit.Segment;
 
 /**
  * @author Charalampos Alexopoulos
@@ -46,7 +45,6 @@ public class TorcsPlugin implements Plugin
 {
 	//private Properties		properties	= Properties.getInstance();
 	protected EditorFrame	editor;
-	//private Vector<Segment>	trackData	= new Vector<Segment>();
 	private ImportAction	importAction;
 	private ExportAction	exportAction;
 	private JMenuItem		importMenuItem;
