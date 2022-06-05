@@ -456,7 +456,7 @@ public class DeltaPanel extends JDialog implements Runnable
 	        return;
 	    }
 	    co = newLength/length;
-		Vector track = TrackData.getTrackData();
+		Vector<Segment> track = TrackData.getTrackData();
 		int size = track.size();
 
 		for(int i=0; i<size; i++)
@@ -496,7 +496,7 @@ public class DeltaPanel extends JDialog implements Runnable
 	    waitTrackgen();
 	    double co = 360/(360+angle);
 	    
-		Vector track = TrackData.getTrackData();
+		Vector track<Segment> = TrackData.getTrackData();
 		int size = track.size();
 
 		for(int i=0; i<size; i++)

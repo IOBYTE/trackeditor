@@ -45,7 +45,7 @@ public class UndoDeleteSegment implements UndoInterface
 	{
 		this.undo = segment;
 		this.redo = null;
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		pos = data.indexOf(undo);
 	}
 
@@ -54,7 +54,7 @@ public class UndoDeleteSegment implements UndoInterface
 	 */
 	public void undo()
 	{
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		System.out.println(pos);
 		data.insertElementAt(undo,pos);
 		redo = undo;
@@ -66,7 +66,7 @@ public class UndoDeleteSegment implements UndoInterface
 	 */
 	public void redo()
 	{
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		pos = data.indexOf(undo);
 		data.remove(undo);
 		undo = redo;

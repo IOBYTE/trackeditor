@@ -438,7 +438,7 @@ public class PitProperties extends JPanel
 	 */
 	private void createPits()
 	{
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		Segment pitEntry = null;
 		Segment pitStart = null;
 		Segment pitStartBuildings = null;

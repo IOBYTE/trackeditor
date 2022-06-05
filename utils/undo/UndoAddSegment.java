@@ -53,7 +53,7 @@ public class UndoAddSegment implements UndoInterface
 	 */
 	public void undo()
 	{
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		pos = data.indexOf(undo);
 		data.remove(undo);
 		redo = undo;
@@ -65,7 +65,7 @@ public class UndoAddSegment implements UndoInterface
 	 */
 	public void redo()
 	{
-		Vector data = TrackData.getTrackData();
+		Vector<Segment> data = TrackData.getTrackData();
 		data.insertElementAt(redo,pos);
 		undo = redo;
 		redo = null;
