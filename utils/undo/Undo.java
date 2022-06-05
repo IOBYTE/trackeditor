@@ -22,6 +22,8 @@ package utils.undo;
 
 import java.util.Vector;
 
+import utils.circuit.Segment;
+
 
 /**
  * @author Charalampos Alexopoulos
