@@ -460,6 +460,9 @@ public class XmlReader
     {
         segments = getChildWithName(mainTrack, "Track Segments").getChildren();
 
+        if (segments == null)
+            return;
+
         Vector<Segment> trackData = new Vector<Segment>();
         Iterator<Element> it;
         Segment prev = null;
