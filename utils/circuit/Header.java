@@ -125,6 +125,7 @@ public class Header {
 		System.out.println(indent + "  category    : " + category);
 		System.out.println(indent + "  subcategory : " + subcategory);
 		System.out.println(indent + "  version     : " + version);
+		System.out.println(indent + "  skyVersion  : " + skyVersion);
 		System.out.println(indent + "  author      : " + author);
 		System.out.println(indent + "  description : " + description);
     }

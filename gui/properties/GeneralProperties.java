@@ -332,7 +332,7 @@ public class GeneralProperties extends JPanel
 		if (subcategory != "none")
 			Editor.getProperties().getHeader().setSubcategory(subcategory);
 		else
-			Editor.getProperties().getHeader().setSubcategory("");
+			Editor.getProperties().getHeader().setSubcategory(null);
 
 		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
 
