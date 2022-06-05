@@ -98,9 +98,20 @@ public class XmlReader
         Editor.getProperties().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
         Editor.getProperties().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
         Editor.getProperties().getMainTrack().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
-        setSide(mainTrack, Editor.getProperties().getMainTrack().getLeft(), "Left");
-        setSide(mainTrack, Editor.getProperties().getMainTrack().getRight(), "Right");
-        setPits(mainTrack);
+
+        if (Editor.getProperties().getHeader().getVersion() == 3)
+        {
+            setSideV3(mainTrack, Editor.getProperties().getMainTrack().getLeft(), "l");
+            setSideV3(mainTrack, Editor.getProperties().getMainTrack().getRight(), "r");
+            setPitsV3(mainTrack);
+        }
+        else
+        {
+            setSide(mainTrack, Editor.getProperties().getMainTrack().getLeft(), "Left");
+            setSide(mainTrack, Editor.getProperties().getMainTrack().getRight(), "Right");
+            setPits(mainTrack);
+        }
+
         setSegments(mainTrack);
     }
 
@@ -456,9 +467,51 @@ public class XmlReader
         Editor.getProperties().getPits().setSpeedLimit(getAttrNumValue(pits, "speed limit"));
     }
 
+    /**
+    *
+    */
+   private static void setPitsV3(Element mainTrack)
+   {
+       Editor.getProperties().getPits().setStyle(getAttrIntValue(mainTrack, "pit type"));
+       Editor.getProperties().getPits().setSide(getAttrStrValue(mainTrack, "pit side"));
+       Editor.getProperties().getPits().setEntry(getAttrStrValue(mainTrack, "pit entry"));
+       Editor.getProperties().getPits().setStart(getAttrStrValue(mainTrack, "pit start"));
+       Editor.getProperties().getPits().setStartBuildings(getAttrStrValue(mainTrack, "start buildings"));
+       Editor.getProperties().getPits().setStopBuildings(getAttrStrValue(mainTrack, "stop buildings"));
+       Editor.getProperties().getPits().setEnd(getAttrStrValue(mainTrack, "pit end"));
+       Editor.getProperties().getPits().setExit(getAttrStrValue(mainTrack, "pit exit"));
+       Editor.getProperties().getPits().setLength(getAttrNumValue(mainTrack, "pit length"));
+       Editor.getProperties().getPits().setWidth(getAttrNumValue(mainTrack, "pit width"));
+       Editor.getProperties().getPits().setSpeedLimit(getAttrNumValue(mainTrack, "speed limit"));
+   }
+
+    private static void setSideV3(Element seg, SegmentSide part, String sPart)
+    {
+        double width = getAttrNumValue(seg, sPart + "side width");
+        if (Double.isNaN(width))
+        {
+            part.setSideStartWidth(getAttrNumValue(seg, sPart + "side start width"));
+            part.setSideEndWidth(getAttrNumValue(seg, sPart + "side end width"));
+        }
+        else
+        {
+            part.setSideStartWidth(width);
+            part.setSideEndWidth(width);
+        }
+        part.setSideSurface(getAttrStrValue(seg, sPart + "side surface"));
+        part.setSideBankingType(getAttrStrValue(seg, sPart + "side type"));
+        part.setBorderStyle(getAttrStrValue(seg, sPart + "border style"));
+        part.setBorderWidth(getAttrNumValue(seg, sPart + "border width"));
+        part.setBorderHeight(getAttrNumValue(seg, sPart + "border height"));
+        part.setBorderSurface(getAttrStrValue(seg, sPart + "border surface"));
+    }
+
     private synchronized static void setSegments(Element mainTrack)
     {
-        segments = getChildWithName(mainTrack, "Track Segments").getChildren();
+        if (Editor.getProperties().getHeader().getVersion() == 3)
+            segments = getChildWithName(mainTrack, "segments").getChildren();
+        else
+            segments = getChildWithName(mainTrack, "Track Segments").getChildren();
 
         if (segments == null)
             return;
@@ -694,7 +747,11 @@ public class XmlReader
         }
 
         String tmp = element.getParentElement().getAttribute("name").getValue();
-        if (tmp.equals("Track Segments"))
+        if (Editor.getProperties().getHeader().getVersion() == 3 && tmp.equals("segments"))
+        {
+            out = element.getAttribute("name").getValue();
+        }
+        else if (tmp.equals("Track Segments"))
         {
             out = element.getAttribute("name").getValue();
         }
