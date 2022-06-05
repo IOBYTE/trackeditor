@@ -504,6 +504,8 @@ public class XmlReader
         part.setBorderWidth(getAttrNumValue(seg, sPart + "border width"));
         part.setBorderHeight(getAttrNumValue(seg, sPart + "border height"));
         part.setBorderSurface(getAttrStrValue(seg, sPart + "border surface"));
+        part.setBarrierWidth(0);
+        part.setBarrierHeight(0);
     }
 
     private synchronized static void setSegments(Element mainTrack)

@@ -129,28 +129,36 @@ public class XmlWriter
 		addContent(track, "raceline int", null, Editor.getProperties().getMainTrack().getRacelineInt());
 		addContent(track, "raceline ext", null, Editor.getProperties().getMainTrack().getRacelinExt());
 
-		com = new Comment("Left part of track");
-		track.addContent(com);
-		if (Editor.getProperties().getMainTrack().getLeft().getHasSide())
-			track.addContent(getSide(Editor.getProperties().getMainTrack().getLeft(), "Left"));
-		if (Editor.getProperties().getMainTrack().getLeft().getHasBorder())
-			track.addContent(getBorder(Editor.getProperties().getMainTrack().getLeft(), "Left"));
-		if (Editor.getProperties().getMainTrack().getLeft().getHasBarrier())
-			track.addContent(getBarrier(Editor.getProperties().getMainTrack().getLeft(), "Left"));
-		com = new Comment("End of left part");
-		track.addContent(com);
-		com = new Comment("Right part of track");
-		track.addContent(com);
-		if (Editor.getProperties().getMainTrack().getRight().getHasSide())
-			track.addContent(getSide(Editor.getProperties().getMainTrack().getRight(), "Right"));
-		if (Editor.getProperties().getMainTrack().getRight().getHasBorder())
-			track.addContent(getBorder(Editor.getProperties().getMainTrack().getRight(), "Right"));
-		if (Editor.getProperties().getMainTrack().getRight().getHasBarrier())
-			track.addContent(getBarrier(Editor.getProperties().getMainTrack().getRight(), "Right"));
-		com = new Comment("End of right part");
-		track.addContent(com);
-
-		track.addContent(getPits());
+		if (Editor.getProperties().getHeader().getVersion() == 3)
+		{
+			getSideV3(track, Editor.getProperties().getMainTrack().getLeft(), "l");
+			getSideV3(track, Editor.getProperties().getMainTrack().getLeft(), "r");
+			getPitsV3(track);
+		}
+		else
+		{
+			com = new Comment("Left part of track");
+			track.addContent(com);
+			if (Editor.getProperties().getMainTrack().getLeft().getHasSide())
+				track.addContent(getSide(Editor.getProperties().getMainTrack().getLeft(), "Left"));
+			if (Editor.getProperties().getMainTrack().getLeft().getHasBorder())
+				track.addContent(getBorder(Editor.getProperties().getMainTrack().getLeft(), "Left"));
+			if (Editor.getProperties().getMainTrack().getLeft().getHasBarrier())
+				track.addContent(getBarrier(Editor.getProperties().getMainTrack().getLeft(), "Left"));
+			com = new Comment("End of left part");
+			track.addContent(com);
+			com = new Comment("Right part of track");
+			track.addContent(com);
+			if (Editor.getProperties().getMainTrack().getRight().getHasSide())
+				track.addContent(getSide(Editor.getProperties().getMainTrack().getRight(), "Right"));
+			if (Editor.getProperties().getMainTrack().getRight().getHasBorder())
+				track.addContent(getBorder(Editor.getProperties().getMainTrack().getRight(), "Right"));
+			if (Editor.getProperties().getMainTrack().getRight().getHasBarrier())
+				track.addContent(getBarrier(Editor.getProperties().getMainTrack().getRight(), "Right"));
+			com = new Comment("End of right part");
+			track.addContent(com);
+			track.addContent(getPits());
+		}
 		track.addContent(getSegments());
 
 		return track;
@@ -184,11 +192,33 @@ public class XmlWriter
 	/**
 	 * @return
 	 */
+	private synchronized static void getPitsV3(Element pits)
+	{
+		addContent(pits, "pit type", null, Editor.getProperties().getPits().getStyle());
+		addContent(pits, "pit side", Editor.getProperties().getPits().getSide());
+		addContent(pits, "pit entry", Editor.getProperties().getPits().getEntry());
+		addContent(pits, "pit start", Editor.getProperties().getPits().getStart());
+		addContent(pits, "start buildings", Editor.getProperties().getPits().getStartBuildings());
+		addContent(pits, "stop buildings", Editor.getProperties().getPits().getStopBuildings());
+		addContent(pits, "pit end", Editor.getProperties().getPits().getEnd());
+		addContent(pits, "pit exit", Editor.getProperties().getPits().getExit());
+		addContent(pits, "pit length", "m", Editor.getProperties().getPits().getLength());
+		addContent(pits, "pit width", "m", Editor.getProperties().getPits().getWidth());
+		addContent(pits, "speed limit", "m", Editor.getProperties().getPits().getSpeedLimit());
+	}
+
+	/**
+	 * @return
+	 */
 	private synchronized static Element getSegments()
 	{
 		Vector<Segment> segments = TrackData.getTrackData();
 		Segment prev = null;
-		Attribute name = new Attribute("name", "Track Segments");
+		Attribute name = null;
+		if (Editor.getProperties().getHeader().getVersion() == 3)
+			name = new Attribute("name", "segments");
+		else
+			name = new Attribute("name", "Track Segments");
 		Comment com = null;
 		Element trackSegs = new Element("section");
 		trackSegs.setAttribute(name);
@@ -336,6 +366,31 @@ public class XmlWriter
 		addContent(side, "style", part.getBarrierStyle());
 
 		return side;
+	}
+
+	/**
+	 * @param left
+	 * @return
+	 */
+	private synchronized static void getSideV3(Element side, SegmentSide part, String sPart)
+	{
+		if (!Double.isNaN(part.getSideStartWidth()) &&
+			!Double.isNaN(part.getSideEndWidth()) &&
+			part.getSideStartWidth() == part.getSideEndWidth())
+		{
+			addContent(side, sPart + "side width", "m", part.getSideStartWidth());
+		}
+		else
+		{
+			addContent(side, sPart + "side start width", "m", part.getSideStartWidth());
+			addContent(side, sPart + "side end width", "m", part.getSideEndWidth());
+		}
+		addContent(side, sPart + "side surface", part.getSideSurface());
+		addContent(side, sPart + "side type", part.getSideBankingType());
+
+		addContent(side, sPart + "border start width", "m", part.getBorderWidth());
+		addContent(side, sPart + "border surface", part.getBorderSurface());
+		addContent(side, sPart + "border type", part.getBorderStyle());
 	}
 
 	/**
