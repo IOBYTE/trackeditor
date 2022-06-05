@@ -27,6 +27,7 @@ import utils.circuit.Camera;
 import utils.circuit.Graphic;
 import utils.circuit.Header;
 import utils.circuit.LocalInfo;
+import utils.circuit.MainTrack;
 import utils.circuit.Pits;
 import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
@@ -52,15 +53,6 @@ public  class Properties
 	public final String			version					= "v0.7.0 alpha";
 	private String				path;
 
-	private double				trackWidth				= 10;
-	private String				surface					= "asphalt2-lines";
-	private double				racelineWidthscale		= Double.NaN;
-	private double				racelineInt				= Double.NaN;
-	private double				racelinExt				= Double.NaN;
-
-	private SegmentSide			left					= new SegmentSide();
-	private SegmentSide			right					= new SegmentSide();
-
 	private double				imageScale				= 1;
 	private String				image					= "";
 	private EditorPoint			imgOffset				= new EditorPoint();
@@ -75,7 +67,6 @@ public  class Properties
 
 	private double				showArrows				= 0;
 	private double				trackStartDist			= 0;
-	private double				profileStepLength		= 4;
 	private int					curveNameCount			= 0;
 	private int					straightNameCount		= 0;
 
@@ -89,6 +80,7 @@ public  class Properties
     private Vector<Camera> 		cameras					= new Vector<Camera>();
     private Vector<TrackObject> trackObjects			= new Vector<TrackObject>();
     private Vector<TrackLight> 	trackLights				= new Vector<TrackLight>();
+    private MainTrack			mainTrack				= new MainTrack();
 
 	/**
 	 *  
@@ -216,36 +208,6 @@ public  class Properties
 		this.inity = inity;
 	}
 
-	/**
-	 * @return Returns the trackWidth.
-	 */
-	public double getTrackWidth()
-	{
-		return trackWidth;
-	}
-	/**
-	 * @param trackWidth
-	 *            The trackWidth to set.
-	 */
-	public void setTrackWidth(double trackWidth)
-	{
-		this.trackWidth = trackWidth;
-	}
-	/**
-	 * @return Returns the surface.
-	 */
-	public String getSurface()
-	{
-		return surface;
-	}
-	/**
-	 * @param surface The surface to set.
-	 */
-	public void setSurface(String surface)
-	{
-		this.surface = surface;
-	}
-
 	public synchronized void removePropertiesListener(ActionListener l)
 	{
 
@@ -344,20 +306,6 @@ public  class Properties
 		this.currentZ = currentZ;
 	}
 	/**
-	 * @return Returns the profileStepLength.
-	 */
-	public double getProfileStepLength()
-	{
-		return profileStepLength;
-	}
-	/**
-	 * @param profileStepLength The profileStepLength to set.
-	 */
-	public void setProfileStepLength(double profileStepLength)
-	{
-		this.profileStepLength = profileStepLength;
-	}
-	/**
 	 * @return Returns the showArrows.
 	 */
 	public double getShowArrows()
@@ -385,35 +333,6 @@ public  class Properties
 	{
 		this.trackStartDist = trackStartDist;
 	}
-	/**
-	 * @return Returns the left.
-	 */
-	public SegmentSide getLeft()
-	{
-		return left;
-	}
-	/**
-	 * @param left The left to set.
-	 */
-	public void setLeft(SegmentSide left)
-	{
-		this.left = left;
-	}
-	/**
-	 * @return Returns the right.
-	 */
-	public SegmentSide getRight()
-	{
-		return right;
-	}
-	/**
-	 * @param right The right to set.
-	 */
-	public void setRight(SegmentSide right)
-	{
-		this.right = right;
-	}
-
  
     /**
      * @return Returns the imgOffset.
@@ -593,27 +512,18 @@ public  class Properties
 		graphic = data;
 	}
 
-	public double getRacelineWidthscale() {
-		return racelineWidthscale;
+    /**
+     * @return Returns the mainTrack.
+     */
+    public MainTrack getMainTrack()
+    {
+		return mainTrack;
 	}
-
-	public void setRacelineWidthscale(double racelineWidthscale) {
-		this.racelineWidthscale = racelineWidthscale;
-	}
-
-	public double getRacelineInt() {
-		return racelineInt;
-	}
-
-	public void setRacelineInt(double racelineInt) {
-		this.racelineInt = racelineInt;
-	}
-
-	public double getRacelinExt() {
-		return racelinExt;
-	}
-
-	public void setRacelinExt(double racelinExt) {
-		this.racelinExt = racelinExt;
+    /**
+     * @param mainTrack The mainTrack to set.
+     */
+	public void setMainTrack(MainTrack data)
+	{
+		mainTrack = data;
 	}
 }

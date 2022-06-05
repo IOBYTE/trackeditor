@@ -99,7 +99,7 @@ public class TrackProperties extends JPanel
 	private JTextField getWidthTextField() {
 		if (widthTextField == null) {
 			widthTextField = new JTextField();
-			widthTextField.setText(Double.toString(Editor.getProperties().getTrackWidth()));
+			widthTextField.setText(Double.toString(Editor.getProperties().getMainTrack().getWidth()));
 			widthTextField.setBounds(120, 10, 50, 20);
 			widthTextField.addActionListener(new ActionListener()
 			{
@@ -127,7 +127,7 @@ public class TrackProperties extends JPanel
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					Editor.getProperties().setSurface((String) surfaceComboBox.getSelectedItem());
+					Editor.getProperties().getMainTrack().setSurface((String) surfaceComboBox.getSelectedItem());
 				}
 			});
 
@@ -143,7 +143,7 @@ public class TrackProperties extends JPanel
 	private JTextField getProfileStepsLengthTextField() {
 		if (profileStepsLengthTextField == null) {
 			profileStepsLengthTextField = new JTextField();
-			profileStepsLengthTextField.setText(Double.toString(Editor.getProperties().getProfileStepLength()));
+			profileStepsLengthTextField.setText(Double.toString(Editor.getProperties().getMainTrack().getProfileStepLength()));
 			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
 			widthTextField.addActionListener(new ActionListener()
 			{
@@ -162,20 +162,20 @@ public class TrackProperties extends JPanel
 	{
 		try
 		{
-			Editor.getProperties().setTrackWidth(Double.parseDouble(this.getWidthTextField().getText()));
+			Editor.getProperties().getMainTrack().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().setTrackWidth(Double.NaN);
+			Editor.getProperties().getMainTrack().setWidth(Double.NaN);
 		}
 
-		Editor.getProperties().setSurface((String) surfaceComboBox.getSelectedItem());
+		Editor.getProperties().getMainTrack().setSurface((String) surfaceComboBox.getSelectedItem());
 
 		try
 		{
-			Editor.getProperties().setProfileStepLength(Double.parseDouble(this.getProfileStepsLengthTextField().getText()));
+			Editor.getProperties().getMainTrack().setProfileStepLength(Double.parseDouble(this.getProfileStepsLengthTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().setProfileStepLength(Double.NaN);
+			Editor.getProperties().getMainTrack().setProfileStepLength(Double.NaN);
 		}
 
 	}

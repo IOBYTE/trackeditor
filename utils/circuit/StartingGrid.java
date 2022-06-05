@@ -45,13 +45,14 @@ public class StartingGrid {
 		this.initialHeight = initialHeight;
 	}
 
-	public void dump()
+	public void dump(String indent)
     {
-		System.out.println("rows                   : " + rows);
-		System.out.println("polePositionSide       : " + polePositionSide);
-		System.out.println("distanceToStart        : " + distanceToStart);
-		System.out.println("distanceBetweenColumns : " + distanceBetweenColumns);
-		System.out.println("offsetWithinAColumn    : " + offsetWithinAColumn);
-		System.out.println("initialHeight          : " + initialHeight);
+		System.out.println(indent + "StartingGrid");
+		System.out.println(indent + "  rows                   : " + rows);
+		System.out.println(indent + "  polePositionSide       : " + polePositionSide);
+		System.out.println(indent + "  distanceToStart        : " + distanceToStart);
+		System.out.println(indent + "  distanceBetweenColumns : " + distanceBetweenColumns);
+		System.out.println(indent + "  offsetWithinAColumn    : " + offsetWithinAColumn);
+		System.out.println(indent + "  initialHeight          : " + initialHeight);
     }
 }

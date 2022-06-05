@@ -168,7 +168,7 @@ public class Segment implements Cloneable
 	 */
 	public String getSurface()
 	{
-		String tmp = Editor.getProperties().getSurface();
+		String tmp = Editor.getProperties().getMainTrack().getSurface();
 		if (surface != null)
 		{
 			tmp = surface;
@@ -738,7 +738,7 @@ public class Segment implements Cloneable
         double	length = profilStepLength;
         if (Double.isNaN(profilStepLength))
         {
-            length = Editor.getProperties().getProfileStepLength();
+            length = Editor.getProperties().getMainTrack().getProfileStepLength();
             if (Double.isNaN(length))
             {
                 length = 0.5;
@@ -751,7 +751,7 @@ public class Segment implements Cloneable
     	double	leftBorderWidth = left.borderWidth;
     	if (Double.isNaN(leftBorderWidth))
     	{
-    		leftBorderWidth = Editor.getProperties().getLeft().getBorderWidth();
+            leftBorderWidth = Editor.getProperties().getMainTrack().getLeft().getBorderWidth();
     		if (Double.isNaN(leftBorderWidth))
     		{
     			leftBorderWidth = 0.5;
@@ -764,7 +764,7 @@ public class Segment implements Cloneable
     	double	rightBorderWidth = right.borderWidth;
     	if (Double.isNaN(rightBorderWidth))
     	{
-    		rightBorderWidth = Editor.getProperties().getRight().getBorderWidth();
+            rightBorderWidth = Editor.getProperties().getMainTrack().getRight().getBorderWidth();
     		if (Double.isNaN(rightBorderWidth))
     		{
     			rightBorderWidth = 0.5;
@@ -777,7 +777,7 @@ public class Segment implements Cloneable
     	double	leftSideStartWidth = left.sideStartWidth;
     	if (Double.isNaN(leftSideStartWidth))
     	{
-    		leftSideStartWidth = Editor.getProperties().getLeft().getSideStartWidth();
+            leftSideStartWidth = Editor.getProperties().getMainTrack().getLeft().getSideStartWidth();
     		if (Double.isNaN(leftSideStartWidth))
     		{
     			leftSideStartWidth = 4.0;
@@ -790,7 +790,7 @@ public class Segment implements Cloneable
     	double	leftSideEndWidth = left.sideEndWidth;
     	if (Double.isNaN(leftSideEndWidth))
     	{
-    		leftSideEndWidth = Editor.getProperties().getLeft().getSideEndWidth();
+            leftSideEndWidth = Editor.getProperties().getMainTrack().getLeft().getSideEndWidth();
     		if (Double.isNaN(leftSideEndWidth))
     		{
     			leftSideEndWidth = 4.0;
@@ -803,7 +803,7 @@ public class Segment implements Cloneable
     	double	rightSideStartWidth = right.sideStartWidth;
     	if (Double.isNaN(rightSideStartWidth))
     	{
-    		rightSideStartWidth = Editor.getProperties().getRight().getSideStartWidth();
+            rightSideStartWidth = Editor.getProperties().getMainTrack().getRight().getSideStartWidth();
     		if (Double.isNaN(rightSideStartWidth))
     		{
     			rightSideStartWidth = 4.0;
@@ -816,7 +816,7 @@ public class Segment implements Cloneable
     	double	rightSideEndWidth = right.sideEndWidth;
     	if (Double.isNaN(rightSideEndWidth))
     	{
-    		rightSideEndWidth = Editor.getProperties().getRight().getSideEndWidth();
+            rightSideEndWidth = Editor.getProperties().getMainTrack().getRight().getSideEndWidth();
     		if (Double.isNaN(rightSideEndWidth))
     		{
     			rightSideEndWidth = 4.0;

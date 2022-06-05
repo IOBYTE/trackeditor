@@ -390,8 +390,8 @@ public class EditorFrame extends JFrame
 
         TrackData.setTrackData(track);
 
-        Editor.getProperties().getLeft().setNewTrackDefaults();
-        Editor.getProperties().getRight().setNewTrackDefaults();
+        Editor.getProperties().getMainTrack().getLeft().setNewTrackDefaults();
+        Editor.getProperties().getMainTrack().getRight().setNewTrackDefaults();
     }
 
     /**

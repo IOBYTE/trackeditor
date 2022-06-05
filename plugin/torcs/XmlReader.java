@@ -93,14 +93,14 @@ public class XmlReader
         if (mainTrack == null)
             return;
 
-        Editor.getProperties().setTrackWidth(getAttrNumValue(mainTrack, "width"));
-        Editor.getProperties().setSurface(getAttrStrValue(mainTrack, "surface"));
-        Editor.getProperties().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
-        Editor.getProperties().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
-        Editor.getProperties().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
-        Editor.getProperties().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
-        setSide(mainTrack, Editor.getProperties().getLeft(), "Left");
-        setSide(mainTrack, Editor.getProperties().getRight(), "Right");
+        Editor.getProperties().getMainTrack().setWidth(getAttrNumValue(mainTrack, "width"));
+        Editor.getProperties().getMainTrack().setSurface(getAttrStrValue(mainTrack, "surface"));
+        Editor.getProperties().getMainTrack().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
+        Editor.getProperties().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
+        Editor.getProperties().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
+        Editor.getProperties().getMainTrack().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
+        setSide(mainTrack, Editor.getProperties().getMainTrack().getLeft(), "Left");
+        setSide(mainTrack, Editor.getProperties().getMainTrack().getRight(), "Right");
         setPits(mainTrack);
         setSegments(mainTrack);
     }

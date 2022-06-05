@@ -123,31 +123,31 @@ public class XmlWriter
 		Element track = new Element("section");
 		Comment com = null;
 		track.setAttribute(name);
-		addContent(track, "width", "m", Editor.getProperties().getTrackWidth());
-		addContent(track, "profil steps length", "m", Editor.getProperties().getProfileStepLength());
-		addContent(track, "surface", Editor.getProperties().getSurface());
-		addContent(track, "raceline widthscale", null, Editor.getProperties().getRacelineWidthscale());
-		addContent(track, "raceline int", null, Editor.getProperties().getRacelineInt());
-		addContent(track, "raceline ext", null, Editor.getProperties().getRacelinExt());
+		addContent(track, "width", "m", Editor.getProperties().getMainTrack().getWidth());
+		addContent(track, "profil steps length", "m", Editor.getProperties().getMainTrack().getProfileStepLength());
+		addContent(track, "surface", Editor.getProperties().getMainTrack().getSurface());
+		addContent(track, "raceline widthscale", null, Editor.getProperties().getMainTrack().getRacelineWidthscale());
+		addContent(track, "raceline int", null, Editor.getProperties().getMainTrack().getRacelineInt());
+		addContent(track, "raceline ext", null, Editor.getProperties().getMainTrack().getRacelinExt());
 
 		com = new Comment("Left part of track");
 		track.addContent(com);
-		if (Editor.getProperties().getLeft().getHasSide())
-			track.addContent(getSide(Editor.getProperties().getLeft(), "Left"));
-		if (Editor.getProperties().getLeft().getHasBorder())
-			track.addContent(getBorder(Editor.getProperties().getLeft(), "Left"));
-		if (Editor.getProperties().getLeft().getHasBarrier())
-			track.addContent(getBarrier(Editor.getProperties().getLeft(), "Left"));
+		if (Editor.getProperties().getMainTrack().getLeft().getHasSide())
+			track.addContent(getSide(Editor.getProperties().getMainTrack().getLeft(), "Left"));
+		if (Editor.getProperties().getMainTrack().getLeft().getHasBorder())
+			track.addContent(getBorder(Editor.getProperties().getMainTrack().getLeft(), "Left"));
+		if (Editor.getProperties().getMainTrack().getLeft().getHasBarrier())
+			track.addContent(getBarrier(Editor.getProperties().getMainTrack().getLeft(), "Left"));
 		com = new Comment("End of left part");
 		track.addContent(com);
 		com = new Comment("Right part of track");
 		track.addContent(com);
-		if (Editor.getProperties().getRight().getHasSide())
-			track.addContent(getSide(Editor.getProperties().getRight(), "Right"));
-		if (Editor.getProperties().getRight().getHasBorder())
-			track.addContent(getBorder(Editor.getProperties().getRight(), "Right"));
-		if (Editor.getProperties().getRight().getHasBarrier())
-			track.addContent(getBarrier(Editor.getProperties().getRight(), "Right"));
+		if (Editor.getProperties().getMainTrack().getRight().getHasSide())
+			track.addContent(getSide(Editor.getProperties().getMainTrack().getRight(), "Right"));
+		if (Editor.getProperties().getMainTrack().getRight().getHasBorder())
+			track.addContent(getBorder(Editor.getProperties().getMainTrack().getRight(), "Right"));
+		if (Editor.getProperties().getMainTrack().getRight().getHasBarrier())
+			track.addContent(getBarrier(Editor.getProperties().getMainTrack().getRight(), "Right"));
 		com = new Comment("End of right part");
 		track.addContent(com);
 
