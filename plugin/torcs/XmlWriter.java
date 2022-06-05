@@ -423,6 +423,13 @@ public class XmlWriter
 	{
 		Element surfaces = new Element("section");
 		surfaces.setAttribute(new Attribute("name", "Surfaces"));
+
+		if (Editor.getProperties().getHeader().getVersion() == 3)
+		{
+			surfaces = new Element("section");
+			surfaces.setAttribute(new Attribute("name", "List"));
+		}
+
 		surfaces.setText("&default-surfaces;");
 
 		Vector<Surface> surfaceData = Editor.getProperties().getSurfaces();

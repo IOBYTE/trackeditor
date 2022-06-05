@@ -271,6 +271,12 @@ public class XmlReader
         if (surfaces == null)
             return;
 
+        if (Editor.getProperties().getHeader().getVersion() == 3)
+            surfaces = getChildWithName(root, "List");
+
+        if (surfaces == null)
+            return;
+
         Vector<Surface> surfaceData = new Vector<Surface>();
         List<Element> sections = surfaces.getChildren();
         Iterator<Element> it = sections.iterator();
