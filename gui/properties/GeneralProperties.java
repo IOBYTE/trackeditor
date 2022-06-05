@@ -39,19 +39,21 @@ import utils.Editor;
  */
 public class GeneralProperties extends JPanel
 {
-	private JTextField			projectNameTextField	= null;
-	private JLabel				projectNameLabel		= null;
-	private JComboBox<String>	trackCategoryComboBox	= null;
-	private JLabel				trackCategoryLabel		= null;
-	private JComboBox<String>	trackVersionComboBox	= null;
-	private JLabel				trackVersionLabel		= null;
-	private JLabel				pathLabel				= null;
-	private JTextField			pathTextField			= null;
-	private JButton				browseButton			= null;
-	private JLabel				authorLabel				= null;
-	private JTextField			authorTextField			= null;
-	private JLabel				descriptionLabel		= null;
-	private JTextField			descriptionTextField	= null;
+	private JTextField			projectNameTextField		= null;
+	private JLabel				projectNameLabel			= null;
+	private JComboBox<String>	trackCategoryComboBox		= null;
+	private JLabel				trackCategoryLabel			= null;
+	private JComboBox<String>	trackSubcategoryComboBox	= null;
+	private JLabel				trackSubcategoryLabel		= null;
+	private JComboBox<String>	trackVersionComboBox		= null;
+	private JLabel				trackVersionLabel			= null;
+	private JLabel				pathLabel					= null;
+	private JTextField			pathTextField				= null;
+	private JButton				browseButton				= null;
+	private JLabel				authorLabel					= null;
+	private JTextField			authorTextField				= null;
+	private JLabel				descriptionLabel			= null;
+	private JTextField			descriptionTextField		= null;
 	
 	private final String sep = System.getProperty("file.separator");
 	
@@ -74,19 +76,22 @@ public class GeneralProperties extends JPanel
 		pathLabel = new JLabel();
 		projectNameLabel = new JLabel();
 		trackCategoryLabel = new JLabel();
+		trackSubcategoryLabel = new JLabel();
 		trackVersionLabel = new JLabel();
 		this.setLayout(null);
 		projectNameLabel.setBounds(15, 15, 100, 30);
 		projectNameLabel.setText("Track Name");
 		trackCategoryLabel.setBounds(15, 60, 100, 30);
 		trackCategoryLabel.setText("Track Category");
-		trackVersionLabel.setBounds(15, 105, 100, 30);
+		trackSubcategoryLabel.setBounds(15, 105, 100, 30);
+		trackSubcategoryLabel.setText("Track Subcategory");
+		trackVersionLabel.setBounds(15, 150, 100, 30);
 		trackVersionLabel.setText("Track Version");
-		pathLabel.setBounds(15, 150, 60, 30);
+		pathLabel.setBounds(15, 195, 60, 30);
 		pathLabel.setText("Path");
-		authorLabel.setBounds(15, 195, 60, 30);
+		authorLabel.setBounds(15, 240, 60, 30);
 		authorLabel.setText("Author");
-		descriptionLabel.setBounds(15, 240, 80, 30);
+		descriptionLabel.setBounds(15, 285, 80, 30);
 		descriptionLabel.setText("Description");
 		this.setSize(420, 230);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
@@ -101,6 +106,8 @@ public class GeneralProperties extends JPanel
 		this.add(descriptionLabel, null);
 		this.add(trackCategoryLabel, null);
 		this.add(getTrackCategoryComboBox(), null);
+		this.add(trackSubcategoryLabel, null);
+		this.add(getTrackSubcategoryComboBox(), null);
 		this.add(trackVersionLabel, null);
 		this.add(getTrackVersionComboBox(), null);
 	}
@@ -154,6 +161,31 @@ public class GeneralProperties extends JPanel
 	}
 
 	/**
+	 * This method initializes trackSubcategoryComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	public JComboBox<String> getTrackSubcategoryComboBox()
+	{
+		if (trackSubcategoryComboBox == null)
+		{
+			String[] items =
+			{"none", "short", "long"};
+			trackSubcategoryComboBox = new JComboBox<String>(items);
+			trackSubcategoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getSubcategory());
+			trackSubcategoryComboBox.setBounds(135, 105, 170, 30);
+			trackSubcategoryComboBox.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+
+				}
+			});
+		}
+		return trackSubcategoryComboBox;
+	}
+
+	/**
 	 * This method initializes trackVersionComboBox
 	 *
 	 * @return javax.swing.JComboBox
@@ -166,7 +198,7 @@ public class GeneralProperties extends JPanel
 			{"3", "4", "5"};
 			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
-			trackVersionComboBox.setBounds(135, 105, 170, 30);
+			trackVersionComboBox.setBounds(135, 150, 170, 30);
 			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -188,7 +220,7 @@ public class GeneralProperties extends JPanel
 		if (pathTextField == null)
 		{
 			pathTextField = new JTextField();
-			pathTextField.setBounds(65, 150, 240, 30);
+			pathTextField.setBounds(65, 195, 240, 30);
 			pathTextField.setText(Editor.getProperties().getPath().substring(0, Editor.getProperties().getPath().lastIndexOf(sep)));
 			pathTextField.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -213,7 +245,7 @@ public class GeneralProperties extends JPanel
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(320, 150, 95, 30);
+			browseButton.setBounds(320, 195, 95, 30);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -235,7 +267,7 @@ public class GeneralProperties extends JPanel
 		if (authorTextField == null)
 		{
 			authorTextField = new JTextField();
-			authorTextField.setBounds(65, 195, 240, 30);
+			authorTextField.setBounds(65, 240, 240, 30);
 			authorTextField.setText(Editor.getProperties().getHeader().getAuthor());
 		}
 		return authorTextField;
@@ -250,7 +282,7 @@ public class GeneralProperties extends JPanel
 		if (descriptionTextField == null)
 		{
 			descriptionTextField = new JTextField();
-			descriptionTextField.setBounds(85, 240, 330, 30);
+			descriptionTextField.setBounds(85, 285, 330, 30);
 			descriptionTextField.setText(Editor.getProperties().getHeader().getDescription());
 		}
 		return descriptionTextField;
@@ -295,6 +327,12 @@ public class GeneralProperties extends JPanel
 
 		if (category == getTrackCategoryComboBox().getSelectedItem())
 			Editor.getProperties().getHeader().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
+
+		String subcategory = (String) getTrackSubcategoryComboBox().getSelectedItem();
+		if (subcategory != "none")
+			Editor.getProperties().getHeader().setSubcategory(subcategory);
+		else
+			Editor.getProperties().getHeader().setSubcategory("");
 
 		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
 
