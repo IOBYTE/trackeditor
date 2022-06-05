@@ -40,25 +40,27 @@ import utils.Editor;
  */
 public class NewProjectDialog extends JDialog
 {
-	public static boolean		APPROVE					= false;
-	private JPanel				jPanel					= null;
-	private JTextField			projectNameTextField	= null;
-	private JLabel				projectNameLabel		= null;
-	private JComboBox<String>	trackCategoryComboBox	= null;
-	private JLabel				trackCategoryLabel		= null;
-	private JComboBox<String>	trackVersionComboBox	= null;
-	private JLabel				trackVersionLabel		= null;
-	private JLabel				pathLabel				= null;
-	private JTextField			pathTextField			= null;
-	private JButton				browseButton			= null;
-	private JButton				okButton				= null;
-	private JButton				cancelButton			= null;
+	public static boolean		APPROVE						= false;
+	private JPanel				jPanel						= null;
+	private JTextField			projectNameTextField		= null;
+	private JLabel				projectNameLabel			= null;
+	private JComboBox<String>	trackCategoryComboBox		= null;
+	private JLabel				trackCategoryLabel			= null;
+	private JComboBox<String>	trackSubcategoryComboBox	= null;
+	private JLabel				trackSubcategoryLabel		= null;
+	private JComboBox<String>	trackVersionComboBox		= null;
+	private JLabel				trackVersionLabel			= null;
+	private JLabel				pathLabel					= null;
+	private JTextField			pathTextField				= null;
+	private JButton				browseButton				= null;
+	private JButton				okButton					= null;
+	private JButton				cancelButton				= null;
 
 	private EditorFrame			parent;
-	private JLabel 				authorLabel 			= null;
-	private JTextField 			authorTextField 		= null;
-	private JLabel 				descriptionLabel 		= null;
-	private JTextField 			descriptionTextField	= null;
+	private JLabel 				authorLabel 				= null;
+	private JTextField 			authorTextField 			= null;
+	private JLabel 				descriptionLabel 			= null;
+	private JTextField 			descriptionTextField		= null;
 	
 	private final String sep = System.getProperty("file.separator");
 	
@@ -100,6 +102,7 @@ public class NewProjectDialog extends JDialog
 			pathLabel = new JLabel();
 			projectNameLabel = new JLabel();
 			trackCategoryLabel = new JLabel();
+			trackSubcategoryLabel = new JLabel();
 			trackVersionLabel = new JLabel();
 			jPanel = new JPanel();
 			jPanel.setLayout(null);
@@ -107,13 +110,15 @@ public class NewProjectDialog extends JDialog
 			projectNameLabel.setText("Track Name");
 			trackCategoryLabel.setBounds(15, 60, 100, 30);
 			trackCategoryLabel.setText("Track Category");
-			trackVersionLabel.setBounds(15, 105, 100, 30);
+			trackSubcategoryLabel.setBounds(15, 105, 100, 30);
+			trackSubcategoryLabel.setText("Track Subcategory");
+			trackVersionLabel.setBounds(15, 150, 100, 30);
 			trackVersionLabel.setText("Track Version");
-			pathLabel.setBounds(15, 150, 60, 30);
+			pathLabel.setBounds(15, 195, 60, 30);
 			pathLabel.setText("Path");
-			authorLabel.setBounds(15, 195, 60, 30);
+			authorLabel.setBounds(15, 240, 60, 30);
 			authorLabel.setText("Author");
-			descriptionLabel.setBounds(15, 240, 80, 30);
+			descriptionLabel.setBounds(15, 285, 80, 30);
 			descriptionLabel.setText("Description");
 			jPanel.add(getPathTextField(), null);
 			jPanel.add(getBrowseButton(), null);
@@ -130,6 +135,8 @@ public class NewProjectDialog extends JDialog
 			jPanel.add(getTrackCategoryComboBox(), null);
 			jPanel.add(trackVersionLabel, null);
 			jPanel.add(getTrackVersionComboBox(), null);
+			jPanel.add(trackSubcategoryLabel, null);
+			jPanel.add(getTrackSubcategoryComboBox(), null);
 		}
 		return jPanel;
 	}
@@ -179,6 +186,33 @@ public class NewProjectDialog extends JDialog
 		return trackCategoryComboBox;
 	}
 	/**
+	 * This method initializes trackSubcategoryComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	public JComboBox<String> getTrackSubcategoryComboBox()
+	{
+		if (trackSubcategoryComboBox == null)
+		{
+			String[] items =
+			{"none", "short", "long"};
+			trackSubcategoryComboBox = new JComboBox<String>(items);
+			String subcategory = Editor.getProperties().getHeader().getSubcategory();
+			if (subcategory == null)
+				subcategory = "none";
+			trackSubcategoryComboBox.setSelectedItem(subcategory);
+			trackSubcategoryComboBox.setBounds(135, 105, 170, 30);
+			trackSubcategoryComboBox.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+
+				}
+			});
+		}
+		return trackSubcategoryComboBox;
+	}
+	/**
 	 * This method initializes trackVersionComboBox
 	 *
 	 * @return javax.swing.JComboBox
@@ -191,7 +225,7 @@ public class NewProjectDialog extends JDialog
 			{"3", "4", "5"};
 			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
-			trackVersionComboBox.setBounds(135, 105, 170, 30);
+			trackVersionComboBox.setBounds(135, 150, 170, 30);
 			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -212,7 +246,7 @@ public class NewProjectDialog extends JDialog
 		if (pathTextField == null)
 		{
 			pathTextField = new JTextField();
-			pathTextField.setBounds(65, 150, 240, 30);
+			pathTextField.setBounds(65, 195, 240, 30);
 			pathTextField.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -236,7 +270,7 @@ public class NewProjectDialog extends JDialog
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(320, 150, 95, 30);
+			browseButton.setBounds(320, 195, 95, 30);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -256,7 +290,7 @@ public class NewProjectDialog extends JDialog
 	private JTextField getAuthorTextField() {
 		if (authorTextField == null) {
 			authorTextField = new JTextField();
-			authorTextField.setBounds(65, 195, 240, 30);
+			authorTextField.setBounds(65, 240, 240, 30);
 		}
 		return authorTextField;
 	}
@@ -268,7 +302,7 @@ public class NewProjectDialog extends JDialog
 	private JTextField getDescriptionTextField() {
 		if (descriptionTextField == null) {
 			descriptionTextField = new JTextField();
-			descriptionTextField.setBounds(85, 240, 330, 30);
+			descriptionTextField.setBounds(85, 285, 330, 30);
 		}
 		return descriptionTextField;
 	}
@@ -356,6 +390,11 @@ public class NewProjectDialog extends JDialog
 		{
 			path.mkdirs();
 		}
+		String subcategory = (String) getTrackSubcategoryComboBox().getSelectedItem();
+		if (subcategory != "none")
+			Editor.getProperties().getHeader().setSubcategory(subcategory);
+		else
+			Editor.getProperties().getHeader().setSubcategory(null);
 		Editor.getProperties().getHeader().setAuthor(this.getAuthorTextField().getText());
 		Editor.getProperties().getHeader().setDescription(this.getDescriptionTextField().getText());
 		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));

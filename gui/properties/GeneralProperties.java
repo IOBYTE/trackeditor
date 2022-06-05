@@ -172,7 +172,10 @@ public class GeneralProperties extends JPanel
 			String[] items =
 			{"none", "short", "long"};
 			trackSubcategoryComboBox = new JComboBox<String>(items);
-			trackSubcategoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getSubcategory());
+			String subcategory = Editor.getProperties().getHeader().getSubcategory();
+			if (subcategory == null)
+				subcategory = "none";
+			trackSubcategoryComboBox.setSelectedItem(subcategory);
 			trackSubcategoryComboBox.setBounds(135, 105, 170, 30);
 			trackSubcategoryComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
