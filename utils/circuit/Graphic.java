@@ -2,8 +2,6 @@ package utils.circuit;
 
 import java.util.Vector;
 
-import utils.Editor;
-
 public class Graphic {
     private String 						description				= null;
     private String 						descriptionNight		= null;

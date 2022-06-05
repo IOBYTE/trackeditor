@@ -43,7 +43,6 @@ import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
-import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 import utils.circuit.ObjectMap;
