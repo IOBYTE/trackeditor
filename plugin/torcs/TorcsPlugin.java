@@ -24,8 +24,6 @@ import gui.EditorFrame;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.Vector;
-
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;

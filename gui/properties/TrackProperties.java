@@ -99,7 +99,9 @@ public class TrackProperties extends JPanel
 	private JTextField getWidthTextField() {
 		if (widthTextField == null) {
 			widthTextField = new JTextField();
-			widthTextField.setText(Double.toString(Editor.getProperties().getMainTrack().getWidth()));
+			double width = Editor.getProperties().getMainTrack().getWidth();
+			if (!Double.isNaN(width))
+				widthTextField.setText(width + "");
 			widthTextField.setBounds(120, 10, 50, 20);
 			widthTextField.addActionListener(new ActionListener()
 			{
@@ -143,9 +145,11 @@ public class TrackProperties extends JPanel
 	private JTextField getProfileStepsLengthTextField() {
 		if (profileStepsLengthTextField == null) {
 			profileStepsLengthTextField = new JTextField();
-			profileStepsLengthTextField.setText(Double.toString(Editor.getProperties().getMainTrack().getProfileStepLength()));
+			double length = Editor.getProperties().getMainTrack().getProfileStepLength();
+			if (!Double.isNaN(length))
+				profileStepsLengthTextField.setText(length + "");
 			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
-			widthTextField.addActionListener(new ActionListener()
+			profileStepsLengthTextField.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
 				{

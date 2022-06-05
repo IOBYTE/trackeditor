@@ -109,7 +109,7 @@ public class StartingGridProperties extends JPanel
 		{
 			rowsTextField = new JTextField();
 			double rows = Editor.getProperties().getStartingGrid().getRows();
-			if (!Double.isNaN(rows))
+			if (rows != Integer.MAX_VALUE)
 				rowsTextField.setText(rows + "");
 			rowsTextField.setBounds(150, 10, 100, 20);
 		}
