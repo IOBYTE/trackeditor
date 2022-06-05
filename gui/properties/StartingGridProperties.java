@@ -75,7 +75,7 @@ public class StartingGridProperties extends JPanel
 		this.setSize(362, 251);
 		rowsLabel.setBounds(10, 10, 70, 20);
 		rowsLabel.setText("Rows");
-		polePositionSideLabel.setBounds(10, 35, 70, 20);
+		polePositionSideLabel.setBounds(10, 35, 120, 20);
 		polePositionSideLabel.setText("Pole Position Side");
 		distanceToStartLabel.setBounds(10, 60, 120, 20);
 		distanceToStartLabel.setText("Distance To Start");
