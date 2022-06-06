@@ -423,11 +423,13 @@ public class XmlWriter
 	{
 		Element surfaces = new Element("section");
 		surfaces.setAttribute(new Attribute("name", "Surfaces"));
+		Element root = surfaces;
 
 		if (Editor.getProperties().getHeader().getVersion() == 3)
 		{
 			surfaces = new Element("section");
 			surfaces.setAttribute(new Attribute("name", "List"));
+			root.addContent(surfaces);
 		}
 
 		surfaces.setText("&default-surfaces;");
@@ -469,7 +471,7 @@ public class XmlWriter
 			surfaces.addContent(el);
 		}
 
-		return surfaces;
+		return root;
 	}
 
 	private synchronized static Element getCameras()

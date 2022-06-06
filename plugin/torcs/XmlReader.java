@@ -272,7 +272,7 @@ public class XmlReader
             return;
 
         if (Editor.getProperties().getHeader().getVersion() == 3)
-            surfaces = getChildWithName(root, "List");
+            surfaces = getChildWithName(surfaces, "List");
 
         if (surfaces == null)
             return;
