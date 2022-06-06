@@ -20,4 +20,4 @@ Progress:
 
 It is now possible to create tracks with grade and camber and edit them.
 
-It is now possible to edit optimized hand edited tracks.
+It is now possible to edit optimized hand edited tracks without loosing any information.
