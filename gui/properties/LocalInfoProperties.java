@@ -31,7 +31,7 @@ import utils.Editor;
 
 /**
  * @author Robert Reif
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -53,9 +53,9 @@ public class LocalInfoProperties extends JPanel
 	private JTextField	sunAscensionTextField				= null;
 	private JLabel		altitudeLabel						= null;
 	private JTextField	altitudeTextField					= null;
-	
+
 	/**
-	 *  
+	 *
 	 */
 	public LocalInfoProperties()
 	{
@@ -65,7 +65,7 @@ public class LocalInfoProperties extends JPanel
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -80,7 +80,7 @@ public class LocalInfoProperties extends JPanel
 		altitudeLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);		
+		this.setSize(362, 251);
 		stationLabel.setBounds(10, 10, 70, 20);
 		stationLabel.setText("Station");
 		timezoneLabel.setBounds(10, 35, 70, 20);
@@ -113,10 +113,11 @@ public class LocalInfoProperties extends JPanel
 		this.add(getTimeOfDayTextField(), null);
 		this.add(getSunAscensionTextField(), null);
 		this.add(getAltitudeTextField(), null);
+		update();
 	}
 	/**
 	 * This method initializes stationTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getStationTextField()
@@ -124,18 +125,13 @@ public class LocalInfoProperties extends JPanel
 		if (stationTextField == null)
 		{
 			stationTextField = new JTextField();
-			stationTextField.setText(Editor.getProperties().getLocalInfo().getStation());
 			stationTextField.setBounds(150, 10, 100, 20);
-			stationTextField.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent le) {
-				}
-			});
 		}
 		return stationTextField;
 	}
 	/**
 	 * This method initializes timezoneTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTimezoneTextField()
@@ -143,9 +139,6 @@ public class LocalInfoProperties extends JPanel
 		if (timezoneTextField == null)
 		{
 			timezoneTextField = new JTextField();
-			double timezone = Editor.getProperties().getLocalInfo().getTimezone();
-			if (!Double.isNaN(timezone))
-				timezoneTextField.setText(timezone + "");
 			timezoneTextField.setBounds(150, 35, 100, 20);
 		}
 		return timezoneTextField;
@@ -160,9 +153,6 @@ public class LocalInfoProperties extends JPanel
 		if (overallRainLikelyhoodSpaceTextField == null)
 		{
 			overallRainLikelyhoodSpaceTextField = new JTextField();
-			double overall = Editor.getProperties().getLocalInfo().getOverallRainLikelyhood();
-			if (!Double.isNaN(overall))
-				overallRainLikelyhoodSpaceTextField.setText(overall + "");
 			overallRainLikelyhoodSpaceTextField.setBounds(150, 60, 100, 20);
 		}
 		return overallRainLikelyhoodSpaceTextField;
@@ -177,13 +167,10 @@ public class LocalInfoProperties extends JPanel
 		if (littleRainLikelyhoodTextField == null)
 		{
 			littleRainLikelyhoodTextField = new JTextField();
-			double little = Editor.getProperties().getLocalInfo().getLittleRainLikelyhood();
-			if (!Double.isNaN(little))
-				littleRainLikelyhoodTextField.setText(little + "");
 			littleRainLikelyhoodTextField.setBounds(150, 85, 100, 20);
 		}
 		return littleRainLikelyhoodTextField;
-	}	
+	}
 	/**
 	 * This method initializes mediumRainLikelyhoodTextField
 	 *
@@ -194,13 +181,10 @@ public class LocalInfoProperties extends JPanel
 		if (mediumRainLikelyhoodTextField == null)
 		{
 			mediumRainLikelyhoodTextField = new JTextField();
-			double medium = Editor.getProperties().getLocalInfo().getMediumRainLikelyhood();
-			if (!Double.isNaN(medium))
-				mediumRainLikelyhoodTextField.setText(medium + "");
 			mediumRainLikelyhoodTextField.setBounds(150, 110, 100, 20);
 		}
 		return mediumRainLikelyhoodTextField;
-	}	
+	}
 
 	/**
 	 * This method initializes timeOfDayTextField
@@ -212,13 +196,10 @@ public class LocalInfoProperties extends JPanel
 		if (timeOfDayTextField == null)
 		{
 			timeOfDayTextField = new JTextField();
-			double timeOfDay = Editor.getProperties().getLocalInfo().getTimeOfDay();
-			if (!Double.isNaN(timeOfDay))
-				timeOfDayTextField.setText(timeOfDay + "");
 			timeOfDayTextField.setBounds(150, 135, 100, 20);
 		}
 		return timeOfDayTextField;
-	}	
+	}
 
 	/**
 	 * This method initializes sunAscensionTextField
@@ -230,13 +211,10 @@ public class LocalInfoProperties extends JPanel
 		if (sunAscensionTextField == null)
 		{
 			sunAscensionTextField = new JTextField();
-			double sunAscension = Editor.getProperties().getLocalInfo().getSunAscension();
-			if (!Double.isNaN(sunAscension))
-				sunAscensionTextField.setText(sunAscension + "");
 			sunAscensionTextField.setBounds(150, 160, 100, 20);
 		}
 		return sunAscensionTextField;
-	}	
+	}
 
 	/**
 	 * This method initializes altitudeTextField
@@ -248,16 +226,60 @@ public class LocalInfoProperties extends JPanel
 		if (altitudeTextField == null)
 		{
 			altitudeTextField = new JTextField();
-			double altitude = Editor.getProperties().getLocalInfo().getAltitude();
-			if (!Double.isNaN(altitude))
-				altitudeTextField.setText(altitude + "");
 			altitudeTextField.setBounds(150, 185, 100, 20);
 		}
 		return altitudeTextField;
-	}	
+	}
+
+	private void update()
+	{
+		stationTextField.setText(Editor.getProperties().getLocalInfo().getStation());
+
+		double value = Editor.getProperties().getLocalInfo().getTimezone();
+		if (!Double.isNaN(value))
+			timezoneTextField.setText(value + "");
+		else
+			timezoneTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getOverallRainLikelyhood();
+		if (!Double.isNaN(value))
+			overallRainLikelyhoodSpaceTextField.setText(value + "");
+		else
+			overallRainLikelyhoodSpaceTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getLittleRainLikelyhood();
+		if (!Double.isNaN(value))
+			littleRainLikelyhoodTextField.setText(value + "");
+		else
+			littleRainLikelyhoodTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getMediumRainLikelyhood();
+		if (!Double.isNaN(value))
+			mediumRainLikelyhoodTextField.setText(value + "");
+		else
+			mediumRainLikelyhoodTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getTimeOfDay();
+		if (!Double.isNaN(value))
+			timeOfDayTextField.setText(value + "");
+		else
+			timeOfDayTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getSunAscension();
+		if (!Double.isNaN(value))
+			sunAscensionTextField.setText(value + "");
+		else
+			sunAscensionTextField.setText("");
+
+		value = Editor.getProperties().getLocalInfo().getAltitude();
+		if (!Double.isNaN(value))
+			altitudeTextField.setText(value + "");
+		else
+			altitudeTextField.setText("");
+	}
 
 	/**
-	 *  
+	 *
 	 */
 	public void exit()
 	{
