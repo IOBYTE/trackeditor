@@ -32,6 +32,21 @@ public class TerrainGeneration {
 		surface			= null;
 	}
 
+	public void setDelete()
+	{
+		trackStep		= Double.NaN;
+		borderMargin	= Double.NaN;
+		borderStep		= Double.NaN;
+		borderHeight	= Double.NaN;
+		orientation		= null;
+		maximumAltitude	= Double.NaN;
+		minimumAltitude	= Double.NaN;
+		groupSize		= Double.NaN;
+		elevationMap	= null;
+		reliefFile		= null;
+		surface			= null;
+	}
+
 	/**
 	 * @return Returns the terrainTrackStep.
 	 */

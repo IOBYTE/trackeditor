@@ -20,6 +20,7 @@
  */
 package gui.properties;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,6 +58,8 @@ public class TerrainProperties extends JPanel
 	private JTextField			reliefFileTextField			= null;		// TODO add button to get file
 	private JLabel				surfaceLabel				= null;
 	private JTextField			surfaceTextField			= null;		// TODO replace with JComboBox?
+	private JButton				defaultButton				= null;
+	private JButton				deleteButton				= null;
 	
 	/**
 	 *  
@@ -132,7 +135,11 @@ public class TerrainProperties extends JPanel
 		this.add(getElevationMapTextField(), null);
 		this.add(getReliefFileTextField(), null);
 		this.add(getSurfaceTextField(), null);
+		this.add(getDefaultButton(), null);
+		this.add(getDeleteButton(), null);
+		update();
 	}
+
 	/**
 	 * This method initializes trackStepTextField
 	 * 
@@ -143,9 +150,6 @@ public class TerrainProperties extends JPanel
 		if (trackStepTextField == null)
 		{
 			trackStepTextField = new JTextField();
-			double step = Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep();
-			if (!Double.isNaN(step))
-				trackStepTextField.setText(step + "");
 			trackStepTextField.setBounds(120, 10, 100, 20);
 		}
 		return trackStepTextField;
@@ -160,9 +164,6 @@ public class TerrainProperties extends JPanel
 		if (borderMarginTextField == null)
 		{
 			borderMarginTextField = new JTextField();
-			double margin = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin();
-			if (!Double.isNaN(margin))
-				borderMarginTextField.setText(margin + "");
 			borderMarginTextField.setBounds(120, 35, 100, 20);
 		}
 		return borderMarginTextField;
@@ -177,9 +178,6 @@ public class TerrainProperties extends JPanel
 		if (borderStepTextField == null)
 		{
 			borderStepTextField = new JTextField();
-			double step = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep();
-			if (!Double.isNaN(step))
-				borderStepTextField.setText(step + "");
 			borderStepTextField.setBounds(120, 60, 100, 20);
 		}
 		return borderStepTextField;
@@ -194,9 +192,6 @@ public class TerrainProperties extends JPanel
 		if (borderHeightTextField == null)
 		{
 			borderHeightTextField = new JTextField();
-			double height = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight();
-			if (!Double.isNaN(height))
-				borderHeightTextField.setText(height + "");
 			borderHeightTextField.setBounds(120, 85, 100, 20);
 		}
 		return borderHeightTextField;
@@ -213,10 +208,6 @@ public class TerrainProperties extends JPanel
 			String[] items =
 			{"none", "clockwise", "counter-clockwise"};
 			orientationComboBox = new JComboBox<String>(items);
-			String orientation = Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation();
-			if (orientation == null)
-				orientation = "none";
-			orientationComboBox.setSelectedItem(orientation);
 			orientationComboBox.setBounds(120, 110, 100, 20);
 		}
 		return orientationComboBox;
@@ -231,9 +222,6 @@ public class TerrainProperties extends JPanel
 		if (maximumAltitudeTextField == null)
 		{
 			maximumAltitudeTextField = new JTextField();
-			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude();
-			if (!Double.isNaN(val))
-				maximumAltitudeTextField.setText(val + "");
 			maximumAltitudeTextField.setBounds(120, 135, 100, 20);
 		}
 		return maximumAltitudeTextField;
@@ -248,9 +236,6 @@ public class TerrainProperties extends JPanel
 		if (minimumAltitudeTextField == null)
 		{
 			minimumAltitudeTextField = new JTextField();
-			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude();
-			if (!Double.isNaN(val))
-				minimumAltitudeTextField.setText(val + "");
 			minimumAltitudeTextField.setBounds(120, 160, 100, 20);
 		}
 		return minimumAltitudeTextField;
@@ -265,9 +250,6 @@ public class TerrainProperties extends JPanel
 		if (groupSizeTextField == null)
 		{
 			groupSizeTextField = new JTextField();
-			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize();
-			if (!Double.isNaN(val))
-				groupSizeTextField.setText(val + "");
 			groupSizeTextField.setBounds(120, 185, 100, 20);
 		}
 		return groupSizeTextField;
@@ -283,7 +265,6 @@ public class TerrainProperties extends JPanel
 		if (elevationMapTextField == null)
 		{
 			elevationMapTextField = new JTextField();
-			elevationMapTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
 			elevationMapTextField.setBounds(120, 210, 100, 20);
 		}
 		return elevationMapTextField;
@@ -298,7 +279,6 @@ public class TerrainProperties extends JPanel
 		if (reliefFileTextField == null)
 		{
 			reliefFileTextField = new JTextField();
-			reliefFileTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
 			reliefFileTextField.setBounds(120, 235, 100, 20);
 		}
 		return reliefFileTextField;
@@ -313,10 +293,109 @@ public class TerrainProperties extends JPanel
 		if (surfaceTextField == null)
 		{
 			surfaceTextField = new JTextField();
-			surfaceTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getSurface());
 			surfaceTextField.setBounds(120, 260, 100, 20);
 		}
 		return surfaceTextField;
+	}
+	/**
+	 * This method initializes defaultButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getDefaultButton()
+	{
+		if (defaultButton == null)
+		{
+			defaultButton = new JButton();
+			defaultButton.setBounds(300, 15, 80, 25);
+			defaultButton.setText("Default");
+			defaultButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					Editor.getProperties().getGraphic().getTerrainGeneration().setDefault();
+					update();
+				}
+			});
+		}
+		return defaultButton;
+	}
+	/**
+	 * This method initializes deleteButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getDeleteButton()
+	{
+		if (deleteButton == null)
+		{
+			deleteButton = new JButton();
+			deleteButton.setBounds(300, 50, 80, 25);
+			deleteButton.setText("Delete");
+			deleteButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					Editor.getProperties().getGraphic().getTerrainGeneration().setDelete();
+					update();
+				}
+			});
+		}
+		return deleteButton;
+	}
+
+	private void update()
+	{
+		double value = Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep();
+		if (!Double.isNaN(value))
+			trackStepTextField.setText(value + "");
+		else
+			trackStepTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin();
+		if (!Double.isNaN(value))
+			borderMarginTextField.setText(value + "");
+		else
+			borderMarginTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep();
+		if (!Double.isNaN(value))
+			borderStepTextField.setText(value + "");
+		else
+			borderStepTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight();
+		if (!Double.isNaN(value))
+			borderHeightTextField.setText(value + "");
+		else
+			borderHeightTextField.setText("");
+
+		String orientation = Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation();
+		if (orientation == null || orientation.isEmpty())
+			orientation = "none";
+		orientationComboBox.setSelectedItem(orientation);
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude();
+		if (!Double.isNaN(value))
+			maximumAltitudeTextField.setText(value + "");
+		else
+			maximumAltitudeTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude();
+		if (!Double.isNaN(value))
+			minimumAltitudeTextField.setText(value + "");
+		else
+			minimumAltitudeTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize();
+		if (!Double.isNaN(value))
+			groupSizeTextField.setText(value + "");
+		else
+			groupSizeTextField.setText("");
+
+		elevationMapTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
+		reliefFileTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
+		surfaceTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getSurface());
 	}
 
 	/**
