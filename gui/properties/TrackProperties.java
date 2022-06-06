@@ -20,9 +20,6 @@
  */
 package gui.properties;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -90,6 +87,7 @@ public class TrackProperties extends JPanel
         this.add(getSurfaceComboBox(), null);
         this.add(profileStepsLengthLabel, null);
         this.add(getProfileStepsLengthTextField(), null);
+        update();
 	}
 	/**
 	 * This method initializes widthTextField
@@ -99,16 +97,7 @@ public class TrackProperties extends JPanel
 	private JTextField getWidthTextField() {
 		if (widthTextField == null) {
 			widthTextField = new JTextField();
-			double width = Editor.getProperties().getMainTrack().getWidth();
-			if (!Double.isNaN(width))
-				widthTextField.setText(width + "");
 			widthTextField.setBounds(120, 10, 50, 20);
-			widthTextField.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-				}
-			});
 		}
 		return widthTextField;
 	}
@@ -125,14 +114,6 @@ public class TrackProperties extends JPanel
 			surfaceComboBox = new JComboBox<String>();
 			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
 			surfaceComboBox.setBounds(120, 35, 120, 20);
-			surfaceComboBox.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-					Editor.getProperties().getMainTrack().setSurface((String) surfaceComboBox.getSelectedItem());
-				}
-			});
-
 		}
 		return surfaceComboBox;
 	}
@@ -145,18 +126,24 @@ public class TrackProperties extends JPanel
 	private JTextField getProfileStepsLengthTextField() {
 		if (profileStepsLengthTextField == null) {
 			profileStepsLengthTextField = new JTextField();
-			double length = Editor.getProperties().getMainTrack().getProfileStepLength();
-			if (!Double.isNaN(length))
-				profileStepsLengthTextField.setText(length + "");
 			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
-			profileStepsLengthTextField.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-				}
-			});
 		}
 		return profileStepsLengthTextField;
+	}
+
+	private void update()
+	{
+		double width = Editor.getProperties().getMainTrack().getWidth();
+		if (!Double.isNaN(width))
+			widthTextField.setText(width + "");
+		else
+			widthTextField.setText("");
+
+		double length = Editor.getProperties().getMainTrack().getProfileStepLength();
+		if (!Double.isNaN(length))
+			profileStepsLengthTextField.setText(length + "");
+		else
+			profileStepsLengthTextField.setText("");
 	}
 
 	/**
@@ -181,6 +168,5 @@ public class TrackProperties extends JPanel
 		{
 			Editor.getProperties().getMainTrack().setProfileStepLength(Double.NaN);
 		}
-
 	}
  }  //  @jve:decl-index=0:visual-constraint="10,10"
