@@ -671,7 +671,7 @@ public class XmlWriter
 		addContent(element, "medium rain likelyhood", "%", Editor.getProperties().getLocalInfo().getMediumRainLikelyhood());
 		addContent(element, "time of day", "hour", Editor.getProperties().getLocalInfo().getTimeOfDay());
 		addContent(element, "sun ascension", "deg", Editor.getProperties().getLocalInfo().getSunAscension());
-		addContent(element, "altitude", null, Editor.getProperties().getLocalInfo().getAltitude());
+		addContent(element, "altitude", "m", Editor.getProperties().getLocalInfo().getAltitude());
 
 		return element;
 	}
@@ -728,7 +728,7 @@ public class XmlWriter
 		addContent(graphic, "3d description night", Editor.getProperties().getGraphic().getDescriptionNight());
 		addContent(graphic, "3d description rain+night", Editor.getProperties().getGraphic().getDescriptionRainNight());
 		addContent(graphic, "background image", Editor.getProperties().getGraphic().getBackgroundImage());
-		addContent(graphic, "3d description", null, Editor.getProperties().getGraphic().getBackgroundType());
+		addContent(graphic, "background type", null, Editor.getProperties().getGraphic().getBackgroundType());
 		addContent(graphic, "background color R", null, Editor.getProperties().getGraphic().getBackgroundColorR());
 		addContent(graphic, "background color G", null, Editor.getProperties().getGraphic().getBackgroundColorG());
 		addContent(graphic, "background color B", null, Editor.getProperties().getGraphic().getBackgroundColorB());

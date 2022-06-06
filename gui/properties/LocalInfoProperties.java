@@ -194,7 +194,7 @@ public class LocalInfoProperties extends JPanel
 		if (mediumRainLikelyhoodTextField == null)
 		{
 			mediumRainLikelyhoodTextField = new JTextField();
-			double medium = Editor.getProperties().getLocalInfo().getLittleRainLikelyhood();
+			double medium = Editor.getProperties().getLocalInfo().getMediumRainLikelyhood();
 			if (!Double.isNaN(medium))
 				mediumRainLikelyhoodTextField.setText(medium + "");
 			mediumRainLikelyhoodTextField.setBounds(150, 110, 100, 20);
@@ -214,7 +214,7 @@ public class LocalInfoProperties extends JPanel
 			timeOfDayTextField = new JTextField();
 			double timeOfDay = Editor.getProperties().getLocalInfo().getTimeOfDay();
 			if (!Double.isNaN(timeOfDay))
-				mediumRainLikelyhoodTextField.setText(timeOfDay + "");
+				timeOfDayTextField.setText(timeOfDay + "");
 			timeOfDayTextField.setBounds(150, 135, 100, 20);
 		}
 		return timeOfDayTextField;

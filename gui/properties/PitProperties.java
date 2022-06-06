@@ -190,11 +190,11 @@ public class PitProperties extends JPanel
 	{
 		if (sideComboBox == null)
 		{
-			String[] items = {"right", "left"};
+			String[] items = {"none", "right", "left"};
 			sideComboBox = new JComboBox<String>(items);
 			String side = Editor.getProperties().getPits().getSide();
 			if (side == null || side.isEmpty())
-				side = "right";
+				side = "none";
 			sideComboBox.setSelectedItem(side);
 			sideComboBox.setBounds(100, 35, 80, 20);
 		}
@@ -380,8 +380,11 @@ public class PitProperties extends JPanel
 	 */
 	public void exit()
 	{
-		Editor.getProperties().getPits().setStyle(getStyleComboBox().getSelectedIndex());
-		Editor.getProperties().getPits().setSide((String) getSideComboBox().getSelectedItem());
+		Editor.getProperties().getPits().setStyle(getStyleComboBox().getSelectedIndex());	// TODO handle missing
+		String side = (String) getSideComboBox().getSelectedItem();
+		if (side == "none")
+			side = null;
+		Editor.getProperties().getPits().setSide(side);
 		Editor.getProperties().getPits().setEntry(this.getEntryTextField().getText());
 		Editor.getProperties().getPits().setStart(this.getStartTextField().getText());
 		Editor.getProperties().getPits().setStartBuildings(this.getStartBuildingsTextField().getText());

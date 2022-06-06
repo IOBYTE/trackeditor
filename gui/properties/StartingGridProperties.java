@@ -124,11 +124,11 @@ public class StartingGridProperties extends JPanel
 	{
 		if (polePositionSideComboBox == null)
 		{
-			String[] items = {"right", "left"};
+			String[] items = {"none", "right", "left"};
 			polePositionSideComboBox = new JComboBox<String>(items);
 			String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
 			if (side == null || side.isEmpty())
-				side = "right";
+				side = "none";
 			polePositionSideComboBox.setSelectedItem(side);
 			polePositionSideComboBox.setBounds(150, 35, 80, 20);
 		}
@@ -217,7 +217,10 @@ public class StartingGridProperties extends JPanel
 		{
 			Editor.getProperties().getStartingGrid().setRows(Integer.MAX_VALUE);
 		}
-		Editor.getProperties().getStartingGrid().setPolePositionSide((String) getPolePositionSideComboBox().getSelectedItem());
+		String side = (String) getPolePositionSideComboBox().getSelectedItem();
+		if (side == "none")
+			side = null;
+		Editor.getProperties().getStartingGrid().setPolePositionSide(side);
 		try
 		{
 			Editor.getProperties().getStartingGrid().setDistanceToStart(Double.parseDouble(this.getDistanceToStartTextField().getText()));

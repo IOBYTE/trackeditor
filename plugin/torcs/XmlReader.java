@@ -362,7 +362,7 @@ public class XmlReader
         data.setBackgroundImage(getAttrStrValue(graphic, "background image"));
         data.setBackgroundType(getAttrIntValue(graphic, "background type"));
         data.setBackgroundColorR(getAttrNumValue(graphic, "background color R"));
-        data.setBackgroundColorG(getAttrNumValue(graphic, " background color G"));
+        data.setBackgroundColorG(getAttrNumValue(graphic, "background color G"));
         data.setBackgroundColorB(getAttrNumValue(graphic, "background color B"));
         data.setAmbientColorR(getAttrNumValue(graphic, "ambient color R"));
         data.setAmbientColorG(getAttrNumValue(graphic, "ambient color G"));
