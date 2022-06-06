@@ -97,6 +97,7 @@ public class StartingGridProperties extends JPanel
 		this.add(getDistanceBetweenColumnsTextField(), null);
 		this.add(getOffsetWithinAColumnTextField(), null);
 		this.add(getInitialHeightTextField(), null);
+		update();
 	}
 	/**
 	 * This method initializes rowsTextField
@@ -108,9 +109,6 @@ public class StartingGridProperties extends JPanel
 		if (rowsTextField == null)
 		{
 			rowsTextField = new JTextField();
-			double rows = Editor.getProperties().getStartingGrid().getRows();
-			if (rows != Integer.MAX_VALUE)
-				rowsTextField.setText(rows + "");
 			rowsTextField.setBounds(150, 10, 100, 20);
 		}
 		return rowsTextField;
@@ -126,10 +124,6 @@ public class StartingGridProperties extends JPanel
 		{
 			String[] items = {"none", "right", "left"};
 			polePositionSideComboBox = new JComboBox<String>(items);
-			String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
-			if (side == null || side.isEmpty())
-				side = "none";
-			polePositionSideComboBox.setSelectedItem(side);
 			polePositionSideComboBox.setBounds(150, 35, 80, 20);
 		}
 		return polePositionSideComboBox;
@@ -144,9 +138,6 @@ public class StartingGridProperties extends JPanel
 		if (distanceToStartTextField == null)
 		{
 			distanceToStartTextField = new JTextField();
-			double space = Editor.getProperties().getStartingGrid().getDistanceToStart();
-			if (!Double.isNaN(space))
-				distanceToStartTextField.setText(space + "");
 			distanceToStartTextField.setBounds(150, 60, 100, 20);
 		}
 		return distanceToStartTextField;
@@ -161,9 +152,6 @@ public class StartingGridProperties extends JPanel
 		if (distanceBetweenColumnsTextField == null)
 		{
 			distanceBetweenColumnsTextField = new JTextField();
-			double space = Editor.getProperties().getStartingGrid().getDistanceBetweenColumns();
-			if (!Double.isNaN(space))
-				distanceBetweenColumnsTextField.setText(space + "");
 			distanceBetweenColumnsTextField.setBounds(150, 85, 100, 20);
 		}
 		return distanceBetweenColumnsTextField;
@@ -179,9 +167,6 @@ public class StartingGridProperties extends JPanel
 		if (offsetWithinAColumnTextField == null)
 		{
 			offsetWithinAColumnTextField = new JTextField();
-			double space = Editor.getProperties().getStartingGrid().getOffsetWithinAColumn();
-			if (!Double.isNaN(space))
-				offsetWithinAColumnTextField.setText(space + "");
 			offsetWithinAColumnTextField.setBounds(150, 110, 100, 20);
 		}
 		return offsetWithinAColumnTextField;
@@ -203,6 +188,38 @@ public class StartingGridProperties extends JPanel
 			initialHeightTextField.setBounds(150, 135, 100, 20);
 		}
 		return initialHeightTextField;
+	}
+
+	private void update()
+	{
+		int rows = Editor.getProperties().getStartingGrid().getRows();
+		if (rows != Integer.MAX_VALUE)
+			rowsTextField.setText(rows + "");
+		else
+			rowsTextField.setText("");
+
+		String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
+		if (side == null || side.isEmpty())
+			side = "none";
+		polePositionSideComboBox.setSelectedItem(side);
+
+		double value = Editor.getProperties().getStartingGrid().getDistanceToStart();
+		if (!Double.isNaN(value))
+			distanceToStartTextField.setText(value + "");
+		else
+			distanceToStartTextField.setText("");
+
+		value = Editor.getProperties().getStartingGrid().getDistanceBetweenColumns();
+		if (!Double.isNaN(value))
+			distanceBetweenColumnsTextField.setText(value + "");
+		else
+			distanceBetweenColumnsTextField.setText("");
+
+		value = Editor.getProperties().getStartingGrid().getOffsetWithinAColumn();
+		if (!Double.isNaN(value))
+			offsetWithinAColumnTextField.setText(value + "");
+		else
+			offsetWithinAColumnTextField.setText("");
 	}
 
 	/**
