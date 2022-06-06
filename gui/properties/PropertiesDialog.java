@@ -49,6 +49,7 @@ public class PropertiesDialog extends JDialog
 	private TurnMarksProperties		turnMarksProperties		= null;
 	private LocalInfoProperties		localInfoProperties		= null;
 	private StartingGridProperties	startingGridProperties	= null;
+	private GraphicProperties		graphicProperties		= null;
 
 	/**
 	 *  
@@ -90,6 +91,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Turn Marks", null, getTurnMarksProperties(), null);
 			tabbedPane.addTab("Local Info", null, getLocalInfoProperties(), null);
 			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
+			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -134,8 +136,7 @@ public class PropertiesDialog extends JDialog
 		{
 			footerPanel = new JPanel();
 			footerPanel.setLayout(null);
-			footerPanel
-					.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+			footerPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 			footerPanel.setPreferredSize(new java.awt.Dimension(14, 35));
 			footerPanel.add(getOkButton(), null);
 			footerPanel.add(getCancelButton(), null);
@@ -263,6 +264,17 @@ public class PropertiesDialog extends JDialog
 		}
 		return startingGridProperties;
 	}
+	/**
+	 * This method initializes graphicProperties
+	 *
+	 * @return gui.properties.GraphicProperties
+	 */
+	private GraphicProperties getGraphicProperties() {
+		if (graphicProperties == null) {
+			graphicProperties = new GraphicProperties();
+		}
+		return graphicProperties;
+	}
 	
 	/**
 	 *  
@@ -277,6 +289,7 @@ public class PropertiesDialog extends JDialog
 		this.turnMarksProperties.exit();
 		this.localInfoProperties.exit();
 		this.startingGridProperties.exit();
+		this.graphicProperties.exit();
 		APPROVE = true;
 		cancel();
 	}

@@ -377,6 +377,7 @@ public class XmlReader
         data.setLightPositionY(getAttrNumValue(graphic, "light position y"));
         data.setLightPositionZ(getAttrNumValue(graphic, "light position z"));
         data.setShininess(getAttrNumValue(graphic, "shininess"));
+        data.setFovFactor(getAttrNumValue(graphic, "fov factor"));
 
         Element marks = getChildWithName(graphic, "Turn Marks");
 

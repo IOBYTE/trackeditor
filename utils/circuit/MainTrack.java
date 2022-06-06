@@ -7,8 +7,7 @@ public class MainTrack {
 	private double				racelineInt			= Double.NaN;
 	private double				racelinExt			= Double.NaN;
 	private double				profileStepLength	= 4;
-    private Pits				pits				= new Pits();
-
+	private Pits				pits				= new Pits();
 	private SegmentSide			left				= new SegmentSide();
 	private SegmentSide			right				= new SegmentSide();
 

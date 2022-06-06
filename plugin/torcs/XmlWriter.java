@@ -722,6 +722,7 @@ public class XmlWriter
 		addContent(element, "light position y", null, Editor.getProperties().getGraphic().getLightPositionY());
 		addContent(element, "light position z", null, Editor.getProperties().getGraphic().getLightPositionZ());
 		addContent(element, "shininess", null, Editor.getProperties().getGraphic().getShininess());
+		addContent(element, "fov factor", null, Editor.getProperties().getGraphic().getFovFactor());
 
 		element.addContent(getTurnMarks());
 		element.addContent(getTerrainGeneration());

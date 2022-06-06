@@ -24,6 +24,7 @@ public class Graphic {
     private double 						lightPositionY			= Double.NaN;
     private double						lightPositionZ			= Double.NaN;
     private double						shininess				= Double.NaN;
+    private double						fovFactor				= Double.NaN;
     private TurnMarks					turnMarks				= new TurnMarks();
     private TerrainGeneration			terrainGeneration		= new TerrainGeneration();
     private Vector<EnvironmentMapping>	environmentMapping		= new Vector<EnvironmentMapping>();
@@ -172,6 +173,12 @@ public class Graphic {
 	public void setShininess(double shininess) {
 		this.shininess = shininess;
 	}
+	public double getFovFactor() {
+		return fovFactor;
+	}
+	public void setFovFactor(double fovFactor) {
+		this.fovFactor = fovFactor;
+	}
 
 	public void dump(String indent)
     {
@@ -197,6 +204,7 @@ public class Graphic {
 		System.out.println(indent + "  lightPositionY       : " + lightPositionY);
 		System.out.println(indent + "  lightPositionZ       : " + lightPositionZ);
 		System.out.println(indent + "  shininess            : " + shininess);
+		System.out.println(indent + "  fovFactor            : " + fovFactor);
 		System.out.println(indent + "  turnMarks            : ");
 		turnMarks.dump(indent + "    ");
 		System.out.println(indent + "  terrainGeneration    : ");
