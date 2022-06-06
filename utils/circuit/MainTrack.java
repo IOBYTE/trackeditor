@@ -7,6 +7,7 @@ public class MainTrack {
 	private double				racelineInt			= Double.NaN;
 	private double				racelinExt			= Double.NaN;
 	private double				profileStepLength	= 4;
+    private Pits				pits				= new Pits();
 
 	private SegmentSide			left				= new SegmentSide();
 	private SegmentSide			right				= new SegmentSide();
@@ -54,6 +55,21 @@ public class MainTrack {
 	{
 		this.profileStepLength = profileStepLength;
 	}
+
+    /**
+     * @return Returns the pits.
+     */
+    public Pits getPits()
+    {
+        return pits;
+    }
+    /**
+     * @param pits The pits to set.
+     */
+    public void setPits(Pits pits)
+    {
+        this.pits = pits;
+    }
 
 	/**
 	 * @return Returns the left.
@@ -117,5 +133,6 @@ public class MainTrack {
 		System.out.println(indent + "  racelineInt        : " + racelineInt);
 		System.out.println(indent + "  racelinExt         : " + racelinExt);
 		System.out.println(indent + "  profileStepLength  : " + profileStepLength);
+		pits.dump(indent + "    ");
     }
 }

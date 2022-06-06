@@ -68,7 +68,6 @@ public  class Properties
 	private int					straightNameCount		= 0;
 
 	private Header				header					= new Header();
-    private Pits				pits					= new Pits();
     private LocalInfo			localInfo				= new LocalInfo();
     private StartingGrid		startingGrid			= new StartingGrid();
     private Graphic				graphic					= new Graphic();
@@ -371,21 +370,6 @@ public  class Properties
     public void setStraightNameCount(int straightNameCount)
     {
         this.straightNameCount = straightNameCount;
-    }
-
-    /**
-     * @return Returns the pits.
-     */
-    public Pits getPits()
-    {
-        return pits;
-    }
-    /**
-     * @param pits The pits to set.
-     */
-    public void setPits(Pits pits)
-    {
-        this.pits = pits;
     }
 
     /**

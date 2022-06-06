@@ -172,19 +172,19 @@ public class XmlWriter
 		Element pits = new Element("section");
 		pits.setAttribute(new Attribute("name", "Pits"));
 
-		addContent(pits, "pit style", null, Editor.getProperties().getPits().getStyle());
-		addContent(pits, "side", Editor.getProperties().getPits().getSide());
-		addContent(pits, "entry", Editor.getProperties().getPits().getEntry());
-		addContent(pits, "start", Editor.getProperties().getPits().getStart());
-		addContent(pits, "start buildings", Editor.getProperties().getPits().getStartBuildings());
-		addContent(pits, "stop buildings", Editor.getProperties().getPits().getStopBuildings());
-		addContent(pits, "max pits", null, Editor.getProperties().getPits().getMaxPits());
-		addContent(pits, "end", Editor.getProperties().getPits().getEnd());
-		addContent(pits, "exit", Editor.getProperties().getPits().getExit());
-		addContent(pits, "length", "m", Editor.getProperties().getPits().getLength());
-		addContent(pits, "width", "m", Editor.getProperties().getPits().getWidth());
-		addContent(pits, "pit indicator", null, Editor.getProperties().getPits().getIndicator());
-		addContent(pits, "speed limit", "m", Editor.getProperties().getPits().getSpeedLimit());
+		addContent(pits, "pit style", null, Editor.getProperties().getMainTrack().getPits().getStyle());
+		addContent(pits, "side", Editor.getProperties().getMainTrack().getPits().getSide());
+		addContent(pits, "entry", Editor.getProperties().getMainTrack().getPits().getEntry());
+		addContent(pits, "start", Editor.getProperties().getMainTrack().getPits().getStart());
+		addContent(pits, "start buildings", Editor.getProperties().getMainTrack().getPits().getStartBuildings());
+		addContent(pits, "stop buildings", Editor.getProperties().getMainTrack().getPits().getStopBuildings());
+		addContent(pits, "max pits", null, Editor.getProperties().getMainTrack().getPits().getMaxPits());
+		addContent(pits, "end", Editor.getProperties().getMainTrack().getPits().getEnd());
+		addContent(pits, "exit", Editor.getProperties().getMainTrack().getPits().getExit());
+		addContent(pits, "length", "m", Editor.getProperties().getMainTrack().getPits().getLength());
+		addContent(pits, "width", "m", Editor.getProperties().getMainTrack().getPits().getWidth());
+		addContent(pits, "pit indicator", null, Editor.getProperties().getMainTrack().getPits().getIndicator());
+		addContent(pits, "speed limit", "m", Editor.getProperties().getMainTrack().getPits().getSpeedLimit());
 
 		return pits;
 	}
@@ -194,17 +194,17 @@ public class XmlWriter
 	 */
 	private synchronized static void getPitsV3(Element pits)
 	{
-		addContent(pits, "pit type", null, Editor.getProperties().getPits().getStyle());
-		addContent(pits, "pit side", Editor.getProperties().getPits().getSide());
-		addContent(pits, "pit entry", Editor.getProperties().getPits().getEntry());
-		addContent(pits, "pit start", Editor.getProperties().getPits().getStart());
-		addContent(pits, "start buildings", Editor.getProperties().getPits().getStartBuildings());
-		addContent(pits, "stop buildings", Editor.getProperties().getPits().getStopBuildings());
-		addContent(pits, "pit end", Editor.getProperties().getPits().getEnd());
-		addContent(pits, "pit exit", Editor.getProperties().getPits().getExit());
-		addContent(pits, "pit length", "m", Editor.getProperties().getPits().getLength());
-		addContent(pits, "pit width", "m", Editor.getProperties().getPits().getWidth());
-		addContent(pits, "speed limit", "m", Editor.getProperties().getPits().getSpeedLimit());
+		addContent(pits, "pit type", null, Editor.getProperties().getMainTrack().getPits().getStyle());
+		addContent(pits, "pit side", Editor.getProperties().getMainTrack().getPits().getSide());
+		addContent(pits, "pit entry", Editor.getProperties().getMainTrack().getPits().getEntry());
+		addContent(pits, "pit start", Editor.getProperties().getMainTrack().getPits().getStart());
+		addContent(pits, "start buildings", Editor.getProperties().getMainTrack().getPits().getStartBuildings());
+		addContent(pits, "stop buildings", Editor.getProperties().getMainTrack().getPits().getStopBuildings());
+		addContent(pits, "pit end", Editor.getProperties().getMainTrack().getPits().getEnd());
+		addContent(pits, "pit exit", Editor.getProperties().getMainTrack().getPits().getExit());
+		addContent(pits, "pit length", "m", Editor.getProperties().getMainTrack().getPits().getLength());
+		addContent(pits, "pit width", "m", Editor.getProperties().getMainTrack().getPits().getWidth());
+		addContent(pits, "speed limit", "m", Editor.getProperties().getMainTrack().getPits().getSpeedLimit());
 	}
 
 	/**
