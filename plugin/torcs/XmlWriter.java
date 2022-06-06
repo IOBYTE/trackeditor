@@ -678,31 +678,6 @@ public class XmlWriter
 		return element;
 	}
 
-	private synchronized static Element getEnvironmentMapping()
-	{
-		Element element = new Element("section");
-		element.setAttribute(new Attribute("name", "Environment Mapping"));
-
-		Vector<EnvironmentMapping> cameraData = Editor.getProperties().getGraphic().getEnvironmentMapping();
-
-		if (cameraData == null)
-			return element;
-
-		for (int i = 0; i < cameraData.size(); i++)
-		{
-			EnvironmentMapping data = cameraData.get(i);
-
-			Element el = new Element("section");
-			el.setAttribute(new Attribute("name", data.getName()));
-
-			addContent(el, "env map image", data.getEnvMapImage());
-
-			element.addContent(el);
-		}
-
-		return element;
-	}
-
 	private synchronized static Element getGrid()
 	{
 		Element element = new Element("section");
@@ -723,74 +698,75 @@ public class XmlWriter
 	 */
 	private synchronized static Element getGraphic()
 	{
-		Element graphic = new Element("section");
-		graphic.setAttribute(new Attribute("name", "Graphic"));
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Graphic"));
 
-		addContent(graphic, "3d description", Editor.getProperties().getHeader().getName() + ".ac");
-		addContent(graphic, "3d description night", Editor.getProperties().getGraphic().getDescriptionNight());
-		addContent(graphic, "3d description rain+night", Editor.getProperties().getGraphic().getDescriptionRainNight());
-		addContent(graphic, "background image", Editor.getProperties().getGraphic().getBackgroundImage());
-		addContent(graphic, "background type", null, Editor.getProperties().getGraphic().getBackgroundType());
-		addContent(graphic, "background color R", null, Editor.getProperties().getGraphic().getBackgroundColorR());
-		addContent(graphic, "background color G", null, Editor.getProperties().getGraphic().getBackgroundColorG());
-		addContent(graphic, "background color B", null, Editor.getProperties().getGraphic().getBackgroundColorB());
-		addContent(graphic, "ambient color R", null, Editor.getProperties().getGraphic().getAmbientColorR());
-		addContent(graphic, "ambient color G", null, Editor.getProperties().getGraphic().getAmbientColorG());
-		addContent(graphic, "ambient color B", null, Editor.getProperties().getGraphic().getAmbientColorB());
-		addContent(graphic, "diffuse color R", null, Editor.getProperties().getGraphic().getDiffuseColorR());
-		addContent(graphic, "diffuse color G", null, Editor.getProperties().getGraphic().getDiffuseColorG());
-		addContent(graphic, "diffuse color B", null, Editor.getProperties().getGraphic().getDiffuseColorB());
-		addContent(graphic, "specular color R", null, Editor.getProperties().getGraphic().getSpecularColorR());
-		addContent(graphic, "specular color G", null, Editor.getProperties().getGraphic().getSpecularColorG());
-		addContent(graphic, "specular color B", null, Editor.getProperties().getGraphic().getSpecularColorB());
-		addContent(graphic, "light position y", null, Editor.getProperties().getGraphic().getLightPositionX());
-		addContent(graphic, "light position x", null, Editor.getProperties().getGraphic().getLightPositionY());
-		addContent(graphic, "light position z", null, Editor.getProperties().getGraphic().getLightPositionZ());
-		addContent(graphic, "shininess", null, Editor.getProperties().getGraphic().getShininess());
+		addContent(element, "3d description", Editor.getProperties().getHeader().getName() + ".ac");	// TODO
+		addContent(element, "3d description night", Editor.getProperties().getGraphic().getDescriptionNight());
+		addContent(element, "3d description rain+night", Editor.getProperties().getGraphic().getDescriptionRainNight());
+		addContent(element, "background image", Editor.getProperties().getGraphic().getBackgroundImage());
+		addContent(element, "background type", null, Editor.getProperties().getGraphic().getBackgroundType());
+		addContent(element, "background color R", null, Editor.getProperties().getGraphic().getBackgroundColorR());
+		addContent(element, "background color G", null, Editor.getProperties().getGraphic().getBackgroundColorG());
+		addContent(element, "background color B", null, Editor.getProperties().getGraphic().getBackgroundColorB());
+		addContent(element, "ambient color R", null, Editor.getProperties().getGraphic().getAmbientColorR());
+		addContent(element, "ambient color G", null, Editor.getProperties().getGraphic().getAmbientColorG());
+		addContent(element, "ambient color B", null, Editor.getProperties().getGraphic().getAmbientColorB());
+		addContent(element, "diffuse color R", null, Editor.getProperties().getGraphic().getDiffuseColorR());
+		addContent(element, "diffuse color G", null, Editor.getProperties().getGraphic().getDiffuseColorG());
+		addContent(element, "diffuse color B", null, Editor.getProperties().getGraphic().getDiffuseColorB());
+		addContent(element, "specular color R", null, Editor.getProperties().getGraphic().getSpecularColorR());
+		addContent(element, "specular color G", null, Editor.getProperties().getGraphic().getSpecularColorG());
+		addContent(element, "specular color B", null, Editor.getProperties().getGraphic().getSpecularColorB());
+		addContent(element, "light position x", null, Editor.getProperties().getGraphic().getLightPositionX());
+		addContent(element, "light position y", null, Editor.getProperties().getGraphic().getLightPositionY());
+		addContent(element, "light position z", null, Editor.getProperties().getGraphic().getLightPositionZ());
+		addContent(element, "shininess", null, Editor.getProperties().getGraphic().getShininess());
 
-		Element marks = new Element("section");
-		marks.setAttribute(new Attribute("name", "Turn Marks"));
-		graphic.addContent(marks);
+		element.addContent(getTurnMarks());
+		element.addContent(getTerrainGeneration());
+		element.addContent(getEnvironmentMapping());
 
-		addContent(marks, "width", "m", Editor.getProperties().getGraphic().getTurnMarks().getWidth());
-		addContent(marks, "height", "m", Editor.getProperties().getGraphic().getTurnMarks().getHeight());
-		addContent(marks, "vertical space", "m", Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace());
-		addContent(marks, "horizontal space", "m", Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace());
+		return element;
+	}
 
-		Element terrain = new Element("section");
-		terrain.setAttribute(new Attribute("name", "Terrain Generation"));
-		graphic.addContent(terrain);
+	private synchronized static Element getTurnMarks()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Turn Marks"));
 
-		addContent(terrain, "track step", "m", Editor.getProperties().getTerrainGeneration().getTrackStep());
-		addContent(terrain, "border margin", "m", Editor.getProperties().getTerrainGeneration().getBorderMargin());
-		addContent(terrain, "border step", "m", Editor.getProperties().getTerrainGeneration().getBorderStep());
-		addContent(terrain, "border height", "m", Editor.getProperties().getTerrainGeneration().getBorderHeight());
-		addContent(terrain, "orientation", Editor.getProperties().getTerrainGeneration().getOrientation());
-		addContent(terrain, "maximum altitude", "m", Editor.getProperties().getTerrainGeneration().getMaximumAltitude());
-		addContent(terrain, "minimum altitude", "m", Editor.getProperties().getTerrainGeneration().getMinimumAltitude());
-		addContent(terrain, "group size", "m", Editor.getProperties().getTerrainGeneration().getGroupSize());
-		addContent(terrain, "elevation map", Editor.getProperties().getTerrainGeneration().getElevationMap());
-		addContent(terrain, "relief file", Editor.getProperties().getTerrainGeneration().getReliefFile());
-		addContent(terrain, "surface", Editor.getProperties().getTerrainGeneration().getSurface());
+		addContent(element, "width", "m", Editor.getProperties().getGraphic().getTurnMarks().getWidth());
+		addContent(element, "height", "m", Editor.getProperties().getGraphic().getTurnMarks().getHeight());
+		addContent(element, "vertical space", "m", Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace());
+		addContent(element, "horizontal space", "m", Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace());
 
-		Element maps = new Element("section");
-		maps.setAttribute(new Attribute("name", "Object Maps"));
-		terrain.addContent(maps);
+		return element;
+	}
 
-		Vector<ObjectMap> objMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
+	private synchronized static Element getTerrainGeneration()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Terrain Generation"));
 
-		for (int i = 0; i < objMaps.size(); i++)
-		{
-			ObjectMap data = objMaps.get(i);
+		addContent(element, "track step", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep());
+		addContent(element, "border margin", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin());
+		addContent(element, "border step", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep());
+		addContent(element, "border height", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight());
+		addContent(element, "orientation", Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation());
+		addContent(element, "maximum altitude", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude());
+		addContent(element, "minimum altitude", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude());
+		addContent(element, "group size", "m", Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize());
+		addContent(element, "elevation map", Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
+		addContent(element, "relief file", Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
+		addContent(element, "surface", Editor.getProperties().getGraphic().getTerrainGeneration().getSurface());
 
-			Element el = new Element("section");
-			el.setAttribute(new Attribute("name", data.getName()));
+		element.addContent(getObjectMaps());
 
-			addContent(el, "object map", data.getObjectMap());
+		return element;
+	}
 
-			maps.addContent(el);
-		}
-
+	private synchronized static Element getEnvironmentMapping()
+	{
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Environment Mapping"));
 
@@ -808,7 +784,29 @@ public class XmlWriter
 			element.addContent(el);
 		}
 
-		return graphic;
+		return element;
+	}
+
+	private synchronized static Element getObjectMaps()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Object Maps"));
+
+		Vector<ObjectMap> objMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
+
+		for (int i = 0; i < objMaps.size(); i++)
+		{
+			ObjectMap data = objMaps.get(i);
+
+			Element el = new Element("section");
+			el.setAttribute(new Attribute("name", data.getName()));
+
+			addContent(el, "object map", data.getObjectMap());
+
+			element.addContent(el);
+		}
+
+		return element;
 	}
 
 	private synchronized static Element attstrElement(String attname, String attval)

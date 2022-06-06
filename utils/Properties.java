@@ -69,7 +69,6 @@ public  class Properties
 	private int					straightNameCount		= 0;
 
 	private Header				header					= new Header();
-    private TerrainGeneration	terrainGeneration		= new TerrainGeneration();
     private Pits				pits					= new Pits();
     private LocalInfo			localInfo				= new LocalInfo();
     private StartingGrid		startingGrid			= new StartingGrid();
@@ -373,21 +372,6 @@ public  class Properties
     public void setStraightNameCount(int straightNameCount)
     {
         this.straightNameCount = straightNameCount;
-    }
-
-    /**
-     * @return Returns the terrainGeneration.
-     */
-    public TerrainGeneration getTerrainGeneration()
-    {
-        return terrainGeneration;
-    }
-    /**
-     * @param terrainGeneration The terrainGeneration to set.
-     */
-    public void setTerrainGeneration(TerrainGeneration terrainGeneration)
-    {
-        this.terrainGeneration = terrainGeneration;
     }
 
     /**

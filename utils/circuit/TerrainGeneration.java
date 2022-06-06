@@ -4,11 +4,11 @@ import java.util.Vector;
 
 public class TerrainGeneration {
 
-	private double				trackStep		= 20;
-	private double				borderMargin	= 50;
-	private double				borderStep		= 30;
-	private double				borderHeight	= 15;
-	private String				orientation		= "clockwise";
+	private double				trackStep		= Double.NaN;
+	private double				borderMargin	= Double.NaN;
+	private double				borderStep		= Double.NaN;
+	private double				borderHeight	= Double.NaN;
+	private String				orientation		= null;
 	private double				maximumAltitude	= Double.NaN;
 	private double				minimumAltitude	= Double.NaN;
 	private double				groupSize		= Double.NaN;
@@ -16,6 +16,21 @@ public class TerrainGeneration {
 	private String				reliefFile		= null;
 	private String				surface			= null;
 	private Vector<ObjectMap>	objectMaps		= new Vector<ObjectMap>();
+
+	public void setDefault()
+	{
+		trackStep		= 20;
+		borderMargin	= 50;
+		borderStep		= 30;
+		borderHeight	= 15;
+		orientation		= "clockwise";
+		maximumAltitude	= Double.NaN;
+		minimumAltitude	= Double.NaN;
+		groupSize		= Double.NaN;
+		elevationMap	= null;
+		reliefFile		= null;
+		surface			= null;
+	}
 
 	/**
 	 * @return Returns the terrainTrackStep.

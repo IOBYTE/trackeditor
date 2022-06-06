@@ -143,7 +143,7 @@ public class TerrainProperties extends JPanel
 		if (trackStepTextField == null)
 		{
 			trackStepTextField = new JTextField();
-			double step = Editor.getProperties().getTerrainGeneration().getTrackStep();
+			double step = Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep();
 			if (!Double.isNaN(step))
 				trackStepTextField.setText(step + "");
 			trackStepTextField.setBounds(120, 10, 100, 20);
@@ -160,7 +160,7 @@ public class TerrainProperties extends JPanel
 		if (borderMarginTextField == null)
 		{
 			borderMarginTextField = new JTextField();
-			double margin = Editor.getProperties().getTerrainGeneration().getBorderMargin();
+			double margin = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin();
 			if (!Double.isNaN(margin))
 				borderMarginTextField.setText(margin + "");
 			borderMarginTextField.setBounds(120, 35, 100, 20);
@@ -177,7 +177,7 @@ public class TerrainProperties extends JPanel
 		if (borderStepTextField == null)
 		{
 			borderStepTextField = new JTextField();
-			double step = Editor.getProperties().getTerrainGeneration().getBorderStep();
+			double step = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep();
 			if (!Double.isNaN(step))
 				borderStepTextField.setText(step + "");
 			borderStepTextField.setBounds(120, 60, 100, 20);
@@ -194,7 +194,7 @@ public class TerrainProperties extends JPanel
 		if (borderHeightTextField == null)
 		{
 			borderHeightTextField = new JTextField();
-			double height = Editor.getProperties().getTerrainGeneration().getBorderHeight();
+			double height = Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight();
 			if (!Double.isNaN(height))
 				borderHeightTextField.setText(height + "");
 			borderHeightTextField.setBounds(120, 85, 100, 20);
@@ -213,7 +213,7 @@ public class TerrainProperties extends JPanel
 			String[] items =
 			{"none", "clockwise", "counter-clockwise"};
 			orientationComboBox = new JComboBox<String>(items);
-			String orientation = Editor.getProperties().getTerrainGeneration().getOrientation();
+			String orientation = Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation();
 			if (orientation == null)
 				orientation = "none";
 			orientationComboBox.setSelectedItem(orientation);
@@ -231,7 +231,7 @@ public class TerrainProperties extends JPanel
 		if (maximumAltitudeTextField == null)
 		{
 			maximumAltitudeTextField = new JTextField();
-			double val = Editor.getProperties().getTerrainGeneration().getMaximumAltitude();
+			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude();
 			if (!Double.isNaN(val))
 				maximumAltitudeTextField.setText(val + "");
 			maximumAltitudeTextField.setBounds(120, 135, 100, 20);
@@ -248,7 +248,7 @@ public class TerrainProperties extends JPanel
 		if (minimumAltitudeTextField == null)
 		{
 			minimumAltitudeTextField = new JTextField();
-			double val = Editor.getProperties().getTerrainGeneration().getMinimumAltitude();
+			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude();
 			if (!Double.isNaN(val))
 				minimumAltitudeTextField.setText(val + "");
 			minimumAltitudeTextField.setBounds(120, 160, 100, 20);
@@ -265,7 +265,7 @@ public class TerrainProperties extends JPanel
 		if (groupSizeTextField == null)
 		{
 			groupSizeTextField = new JTextField();
-			double val = Editor.getProperties().getTerrainGeneration().getGroupSize();
+			double val = Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize();
 			if (!Double.isNaN(val))
 				groupSizeTextField.setText(val + "");
 			groupSizeTextField.setBounds(120, 185, 100, 20);
@@ -283,7 +283,7 @@ public class TerrainProperties extends JPanel
 		if (elevationMapTextField == null)
 		{
 			elevationMapTextField = new JTextField();
-			elevationMapTextField.setText(Editor.getProperties().getTerrainGeneration().getElevationMap());
+			elevationMapTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
 			elevationMapTextField.setBounds(120, 210, 100, 20);
 		}
 		return elevationMapTextField;
@@ -298,7 +298,7 @@ public class TerrainProperties extends JPanel
 		if (reliefFileTextField == null)
 		{
 			reliefFileTextField = new JTextField();
-			reliefFileTextField.setText(Editor.getProperties().getTerrainGeneration().getReliefFile());
+			reliefFileTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
 			reliefFileTextField.setBounds(120, 235, 100, 20);
 		}
 		return reliefFileTextField;
@@ -313,7 +313,7 @@ public class TerrainProperties extends JPanel
 		if (surfaceTextField == null)
 		{
 			surfaceTextField = new JTextField();
-			surfaceTextField.setText(Editor.getProperties().getTerrainGeneration().getSurface());
+			surfaceTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getSurface());
 			surfaceTextField.setBounds(120, 260, 100, 20);
 		}
 		return surfaceTextField;
@@ -326,61 +326,61 @@ public class TerrainProperties extends JPanel
 	{
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setTrackStep(Double.parseDouble(this.getTrackStepTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(Double.parseDouble(this.getTrackStepTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setTrackStep(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderMargin(Double.parseDouble(this.getBorderMarginTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(Double.parseDouble(this.getBorderMarginTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderMargin(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderStep(Double.parseDouble(this.getBorderStepTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(Double.parseDouble(this.getBorderStepTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderStep(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderHeight(Double.parseDouble(this.getBorderHeightTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(Double.parseDouble(this.getBorderHeightTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setBorderHeight(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setMaximumAltitude(Double.parseDouble(this.getMaximumAltitudeTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(Double.parseDouble(this.getMaximumAltitudeTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setMaximumAltitude(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setMinimumAltitude(Double.parseDouble(this.getMinimumAltitudeTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(Double.parseDouble(this.getMinimumAltitudeTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setMinimumAltitude(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(Double.NaN);
 		}
 		try
 		{
-			Editor.getProperties().getTerrainGeneration().setGroupSize(Double.parseDouble(this.getGroupSizeTextField().getText()));
+			Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(Double.parseDouble(this.getGroupSizeTextField().getText()));
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getTerrainGeneration().setGroupSize(Double.NaN);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(Double.NaN);
 		}
 
 		String orientation = (String) getOrientationComboBox().getSelectedItem();
 		if (orientation == "none")
 			orientation = null;
-		Editor.getProperties().getTerrainGeneration().setOrientation(orientation);
-		Editor.getProperties().getTerrainGeneration().setElevationMap((String) getElevationMapTextField().getText());
-		Editor.getProperties().getTerrainGeneration().setReliefFile((String) getReliefFileTextField().getText());
-		Editor.getProperties().getTerrainGeneration().setSurface((String) getSurfaceTextField().getText());
+		Editor.getProperties().getGraphic().getTerrainGeneration().setOrientation(orientation);
+		Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap((String) getElevationMapTextField().getText());
+		Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile((String) getReliefFileTextField().getText());
+		Editor.getProperties().getGraphic().getTerrainGeneration().setSurface((String) getSurfaceTextField().getText());
 		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"
