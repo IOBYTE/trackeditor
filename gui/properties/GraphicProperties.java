@@ -196,25 +196,25 @@ public class GraphicProperties extends JPanel
 	private void update()
 	{
 		String value = Editor.getProperties().getGraphic().getDescription();
-		if (value == null || value.isEmpty())
+		if (value != null && !value.isEmpty())
 			descriptionTextField.setText(value);
 		else
 			descriptionTextField.setText("");
 
 		value = Editor.getProperties().getGraphic().getDescriptionNight();
-		if (value == null || value.isEmpty())
+		if (value != null && !value.isEmpty())
 			descriptionNightTextField.setText(value);
 		else
 			descriptionNightTextField.setText("");
 
 		value = Editor.getProperties().getGraphic().getDescriptionRainNight();
-		if (value == null || value.isEmpty())
+		if (value != null && !value.isEmpty())
 			descriptionRainNightTextField.setText(value);
 		else
 			descriptionRainNightTextField.setText("");
 
 		value = Editor.getProperties().getGraphic().getBackgroundImage();
-		if (value == null || value.isEmpty())
+		if (value != null && !value.isEmpty())
 			backgroundImageTextField.setText(value);
 		else
 			backgroundImageTextField.setText("");
