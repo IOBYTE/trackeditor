@@ -161,6 +161,7 @@ public class PitProperties extends JPanel
 		this.add(indicatorLabel, null);
 		this.add(getSpeedLimitTextField(), null);
 		this.add(speedLimitLabel, null);
+		update();
 	}
 	/**
 	 * This method initializes styleComboBox
@@ -173,10 +174,6 @@ public class PitProperties extends JPanel
 		{
 			String[] items = {"none", "on track side", "on separate path", "no building"};
 			styleComboBox = new JComboBox<String>(items);
-			int style = Editor.getProperties().getMainTrack().getPits().getStyle();
-			if (style == Integer.MAX_VALUE)
-				style = 0;
-			styleComboBox.setSelectedIndex(style);
 			styleComboBox.setBounds(100, 10, 100, 20);
 		}
 		return styleComboBox;
@@ -192,10 +189,6 @@ public class PitProperties extends JPanel
 		{
 			String[] items = {"none", "right", "left"};
 			sideComboBox = new JComboBox<String>(items);
-			String side = Editor.getProperties().getMainTrack().getPits().getSide();
-			if (side == null || side.isEmpty())
-				side = "none";
-			sideComboBox.setSelectedItem(side);
 			sideComboBox.setBounds(100, 35, 80, 20);
 		}
 		return sideComboBox;
@@ -210,7 +203,6 @@ public class PitProperties extends JPanel
 		if (entryTextField == null)
 		{
 			entryTextField = new JTextField();
-			entryTextField.setText(Editor.getProperties().getMainTrack().getPits().getEntry());
 			entryTextField.setBounds(100, 60, 100, 20);
 		}
 		return entryTextField;
@@ -225,7 +217,6 @@ public class PitProperties extends JPanel
 		if (startTextField == null)
 		{
 			startTextField = new JTextField();
-			startTextField.setText(Editor.getProperties().getMainTrack().getPits().getStart());
 			startTextField.setBounds(100, 85, 100, 20);
 		}
 		return startTextField;
@@ -240,7 +231,6 @@ public class PitProperties extends JPanel
 		if (startBuildingsTextField == null)
 		{
 			startBuildingsTextField = new JTextField();
-			startBuildingsTextField.setText(Editor.getProperties().getMainTrack().getPits().getStartBuildings());
 			startBuildingsTextField.setBounds(100, 110, 100, 20);
 		}
 		return startBuildingsTextField;
@@ -255,7 +245,6 @@ public class PitProperties extends JPanel
 		if (stopBuildingsTextField == null)
 		{
 			stopBuildingsTextField = new JTextField();
-			stopBuildingsTextField.setText(Editor.getProperties().getMainTrack().getPits().getStopBuildings());
 			stopBuildingsTextField.setBounds(100, 135, 100, 20);
 		}
 		return stopBuildingsTextField;
@@ -270,8 +259,6 @@ public class PitProperties extends JPanel
 		if (maxPitsTextField == null)
 		{
 			maxPitsTextField = new JTextField();
-			if (Editor.getProperties().getMainTrack().getPits().getMaxPits() != Integer.MAX_VALUE)
-				maxPitsTextField.setText(Editor.getProperties().getMainTrack().getPits().getMaxPits() + "");
 			maxPitsTextField.setBounds(100, 160, 100, 20);
 		}
 		return maxPitsTextField;
@@ -286,7 +273,6 @@ public class PitProperties extends JPanel
 		if (endTextField == null)
 		{
 			endTextField = new JTextField();
-			endTextField.setText(Editor.getProperties().getMainTrack().getPits().getEnd());
 			endTextField.setBounds(100, 185, 100, 20);
 		}
 		return endTextField;
@@ -301,7 +287,6 @@ public class PitProperties extends JPanel
 		if (exitTextField == null)
 		{
 			exitTextField = new JTextField();
-			exitTextField.setText(Editor.getProperties().getMainTrack().getPits().getExit());
 			exitTextField.setBounds(100, 210, 100, 20);
 		}
 		return exitTextField;
@@ -316,9 +301,6 @@ public class PitProperties extends JPanel
 		if (widthTextField == null)
 		{
 			widthTextField = new JTextField();
-			double val = Editor.getProperties().getMainTrack().getPits().getWidth();
-			if (!Double.isNaN(val))
-				widthTextField.setText(Double.toString(val));
 			widthTextField.setBounds(100, 235, 40, 20);
 		}
 		return widthTextField;
@@ -333,9 +315,6 @@ public class PitProperties extends JPanel
 		if (lengthTextField == null)
 		{
 			lengthTextField = new JTextField();
-			double val = Editor.getProperties().getMainTrack().getPits().getLength();
-			if (!Double.isNaN(val))
-				lengthTextField.setText(Double.toString(val));
 			lengthTextField.setBounds(100, 260, 40, 20);
 		}
 		return lengthTextField;
@@ -350,9 +329,6 @@ public class PitProperties extends JPanel
 		if (indicatorTextField == null)
 		{
 			indicatorTextField = new JTextField();
-			int val = Editor.getProperties().getMainTrack().getPits().getIndicator();
-			if (val != Integer.MAX_VALUE)
-				indicatorTextField.setText(Integer.toString(val));
 			indicatorTextField.setBounds(100, 285, 40, 20);
 		}
 		return indicatorTextField;
@@ -367,12 +343,60 @@ public class PitProperties extends JPanel
 		if (speedLimitTextField == null)
 		{
 			speedLimitTextField = new JTextField();
-			double val = Editor.getProperties().getMainTrack().getPits().getSpeedLimit();
-			if (!Double.isNaN(val))
-				speedLimitTextField.setText(Double.toString(val));
 			speedLimitTextField.setBounds(100, 310, 40, 20);
 		}
 		return speedLimitTextField;
+	}
+
+	private void update()
+	{
+		int style = Editor.getProperties().getMainTrack().getPits().getStyle();
+		if (style == Integer.MAX_VALUE)
+			style = 0;
+		styleComboBox.setSelectedIndex(style);
+
+		String side = Editor.getProperties().getMainTrack().getPits().getSide();
+		if (side == null || side.isEmpty())
+			side = "none";
+		sideComboBox.setSelectedItem(side);
+
+		entryTextField.setText(Editor.getProperties().getMainTrack().getPits().getEntry());
+		startTextField.setText(Editor.getProperties().getMainTrack().getPits().getStart());
+		startBuildingsTextField.setText(Editor.getProperties().getMainTrack().getPits().getStartBuildings());
+		stopBuildingsTextField.setText(Editor.getProperties().getMainTrack().getPits().getStopBuildings());
+
+		int pits = Editor.getProperties().getMainTrack().getPits().getMaxPits();
+		if (pits != Integer.MAX_VALUE)
+			maxPitsTextField.setText(pits + "");
+		else
+			maxPitsTextField.setText("");
+
+		endTextField.setText(Editor.getProperties().getMainTrack().getPits().getEnd());
+		exitTextField.setText(Editor.getProperties().getMainTrack().getPits().getExit());
+
+		double value = Editor.getProperties().getMainTrack().getPits().getWidth();
+		if (!Double.isNaN(value))
+			widthTextField.setText(value + "");
+		else
+			widthTextField.setText("");
+
+		value = Editor.getProperties().getMainTrack().getPits().getLength();
+		if (!Double.isNaN(value))
+			lengthTextField.setText(value + "");
+		else
+			lengthTextField.setText("");
+
+		int val = Editor.getProperties().getMainTrack().getPits().getIndicator();
+		if (val != Integer.MAX_VALUE)
+			indicatorTextField.setText(val + "");
+		else
+			indicatorTextField.setText("");
+
+		value = Editor.getProperties().getMainTrack().getPits().getSpeedLimit();
+		if (!Double.isNaN(value))
+			speedLimitTextField.setText(value + "");
+		else
+			speedLimitTextField.setText("");
 	}
 
 	/**

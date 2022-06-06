@@ -28,7 +28,6 @@ import utils.circuit.Graphic;
 import utils.circuit.Header;
 import utils.circuit.LocalInfo;
 import utils.circuit.MainTrack;
-import utils.circuit.Pits;
 import utils.circuit.StartingGrid;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
