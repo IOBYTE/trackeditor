@@ -31,7 +31,6 @@ import utils.circuit.MainTrack;
 import utils.circuit.Pits;
 import utils.circuit.StartingGrid;
 import utils.circuit.Surface;
-import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
