@@ -14,6 +14,14 @@ public class TurnMarks {
 		horizontalSpace	= 2;
 	}
 
+	public void setDelete()
+	{
+		width = Double.NaN;
+		height = Double.NaN;
+		verticalSpace = Double.NaN;
+		horizontalSpace	= Double.NaN;
+	}
+
 	/**
 	 * @return Returns the width.
 	 */

@@ -20,6 +20,7 @@
  */
 package gui.properties;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -42,6 +43,8 @@ public class TurnMarksProperties extends JPanel
 	private JTextField	verticalSpaceTextField		= null;
 	private JLabel		horizontalSpaceLabel		= null;
 	private JTextField	horizontalSpaceTextField	= null;
+	private JButton		defaultButton				= null;
+	private JButton		deleteButton				= null;
 	
 	/**
 	 *  
@@ -82,7 +85,11 @@ public class TurnMarksProperties extends JPanel
 		this.add(getHeightTextField(), null);
 		this.add(getVerticalSpaceTextField(), null);
 		this.add(getHorizontalSpaceTextField(), null);
+		this.add(getDefaultButton(), null);
+		this.add(getDeleteButton(), null);
+		update();
 	}
+
 	/**
 	 * This method initializes widthTextField
 	 * 
@@ -93,9 +100,6 @@ public class TurnMarksProperties extends JPanel
 		if (widthTextField == null)
 		{
 			widthTextField = new JTextField();
-			double width = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
-			if (!Double.isNaN(width))
-				widthTextField.setText(width + "");
 			widthTextField.setBounds(100, 10, 100, 20);
 		}
 		return widthTextField;
@@ -110,9 +114,6 @@ public class TurnMarksProperties extends JPanel
 		if (heightTextField == null)
 		{
 			heightTextField = new JTextField();
-			double height = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
-			if (!Double.isNaN(height))
-				heightTextField.setText(height + "");
 			heightTextField.setBounds(100, 35, 100, 20);
 		}
 		return heightTextField;
@@ -127,9 +128,6 @@ public class TurnMarksProperties extends JPanel
 		if (verticalSpaceTextField == null)
 		{
 			verticalSpaceTextField = new JTextField();
-			double space = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
-			if (!Double.isNaN(space))
-				verticalSpaceTextField.setText(space + "");
 			verticalSpaceTextField.setBounds(100, 60, 100, 20);
 		}
 		return verticalSpaceTextField;
@@ -144,13 +142,83 @@ public class TurnMarksProperties extends JPanel
 		if (horizontalSpaceTextField == null)
 		{
 			horizontalSpaceTextField = new JTextField();
-			double space = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
-			if (!Double.isNaN(space))
-				horizontalSpaceTextField.setText(space + "");
 			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
 		}
 		return horizontalSpaceTextField;
 	}	
+	/**
+	 * This method initializes defaultButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getDefaultButton()
+	{
+		if (defaultButton == null)
+		{
+			defaultButton = new JButton();
+			defaultButton.setBounds(300, 15, 80, 25);
+			defaultButton.setText("Default");
+			defaultButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					Editor.getProperties().getGraphic().getTurnMarks().setDefault();
+					update();
+				}
+			});
+		}
+		return defaultButton;
+	}
+	/**
+	 * This method initializes deleteButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getDeleteButton()
+	{
+		if (deleteButton == null)
+		{
+			deleteButton = new JButton();
+			deleteButton.setBounds(300, 50, 80, 25);
+			deleteButton.setText("Delete");
+			deleteButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					Editor.getProperties().getGraphic().getTurnMarks().setDelete();
+					update();
+				}
+			});
+		}
+		return deleteButton;
+	}
+
+	private void update()
+	{
+		double value = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
+		if (!Double.isNaN(value))
+			widthTextField.setText(value + "");
+		else
+			widthTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
+		if (!Double.isNaN(value))
+			heightTextField.setText(value + "");
+		else
+			heightTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
+		if (!Double.isNaN(value))
+			verticalSpaceTextField.setText(value + "");
+		else
+			verticalSpaceTextField.setText("");
+
+		value = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
+		if (!Double.isNaN(value))
+			horizontalSpaceTextField.setText(value + "");
+		else
+			horizontalSpaceTextField.setText("");
+	}
 
 	/**
 	 *  
