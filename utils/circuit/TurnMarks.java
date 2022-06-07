@@ -1,26 +1,15 @@
 package utils.circuit;
 
 public class TurnMarks {
-	private double				width			= Double.NaN;
-	private double				height			= Double.NaN;
-	private double				verticalSpace	= Double.NaN;
-	private double				horizontalSpace	= Double.NaN;
+	public static final	double	DEFAULT_WIDTH				= 1;
+	public static final	double	DEFAULT_HEIGHT				= 1;
+	public static final	double	DEFAULT_VERTICAL_SPACE		= 0;
+	public static final	double	DEFAULT_HORIZONTAL_SPACE	= 2;
 
-	public void setDefault()
-	{
-		width = 1;
-		height = 1;
-		verticalSpace = 0;
-		horizontalSpace	= 2;
-	}
-
-	public void setDelete()
-	{
-		width = Double.NaN;
-		height = Double.NaN;
-		verticalSpace = Double.NaN;
-		horizontalSpace	= Double.NaN;
-	}
+	private double				width						= Double.NaN;
+	private double				height						= Double.NaN;
+	private double				verticalSpace				= Double.NaN;
+	private double				horizontalSpace				= Double.NaN;
 
 	/**
 	 * @return Returns the width.

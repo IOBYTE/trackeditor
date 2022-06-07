@@ -93,13 +93,6 @@ public class ImageProperties extends JPanel
 			pathTextField = new JTextField();
 			pathTextField.setBounds(75, 10, 240, 30);
 			pathTextField.setText(Editor.getProperties().getImage());
-			pathTextField.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-				
-				}
-			});
 		}
 		return pathTextField;
 	}

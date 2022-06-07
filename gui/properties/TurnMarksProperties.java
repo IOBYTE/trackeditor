@@ -27,10 +27,11 @@ import javax.swing.JTextField;
 
 import gui.EditorFrame;
 import utils.Editor;
+import utils.circuit.TurnMarks;
 
 /**
  * @author Robert Reif
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -47,9 +48,9 @@ public class TurnMarksProperties extends JPanel
 	private JTextField	horizontalSpaceTextField	= null;
 	private JButton		defaultButton				= null;
 	private JButton		deleteButton				= null;
-	
+
 	/**
-	 *  
+	 *
 	 */
 	public TurnMarksProperties(EditorFrame frame)
 	{
@@ -60,7 +61,7 @@ public class TurnMarksProperties extends JPanel
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -71,7 +72,7 @@ public class TurnMarksProperties extends JPanel
 		horizontalSpaceLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);		
+		this.setSize(362, 251);
 		widthLabel.setBounds(10, 10, 70, 20);
 		widthLabel.setText("Width");
 		heightLabel.setBounds(10, 35, 70, 20);
@@ -90,12 +91,11 @@ public class TurnMarksProperties extends JPanel
 		this.add(getHorizontalSpaceTextField(), null);
 		this.add(getDefaultButton(), null);
 		this.add(getDeleteButton(), null);
-		update();
 	}
 
 	/**
 	 * This method initializes widthTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getWidthTextField()
@@ -104,12 +104,15 @@ public class TurnMarksProperties extends JPanel
 		{
 			widthTextField = new JTextField();
 			widthTextField.setBounds(100, 10, 100, 20);
+			double value = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
+			if (!Double.isNaN(value))
+				widthTextField.setText(value + "");
 		}
 		return widthTextField;
 	}
 	/**
 	 * This method initializes heightTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getHeightTextField()
@@ -118,6 +121,9 @@ public class TurnMarksProperties extends JPanel
 		{
 			heightTextField = new JTextField();
 			heightTextField.setBounds(100, 35, 100, 20);
+			double value = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
+			if (!Double.isNaN(value))
+				heightTextField.setText(value + "");
 		}
 		return heightTextField;
 	}
@@ -132,6 +138,9 @@ public class TurnMarksProperties extends JPanel
 		{
 			verticalSpaceTextField = new JTextField();
 			verticalSpaceTextField.setBounds(100, 60, 100, 20);
+			double value = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
+			if (!Double.isNaN(value))
+				verticalSpaceTextField.setText(value + "");
 		}
 		return verticalSpaceTextField;
 	}
@@ -146,9 +155,12 @@ public class TurnMarksProperties extends JPanel
 		{
 			horizontalSpaceTextField = new JTextField();
 			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
+			double value = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
+			if (!Double.isNaN(value))
+				horizontalSpaceTextField.setText(value + "");
 		}
 		return horizontalSpaceTextField;
-	}	
+	}
 	/**
 	 * This method initializes defaultButton
 	 *
@@ -165,8 +177,10 @@ public class TurnMarksProperties extends JPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					Editor.getProperties().getGraphic().getTurnMarks().setDefault();
-					update();
+					widthTextField.setText("");
+					heightTextField.setText("");
+					verticalSpaceTextField.setText("");
+					horizontalSpaceTextField.setText("");
 				}
 			});
 		}
@@ -188,75 +202,89 @@ public class TurnMarksProperties extends JPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					Editor.getProperties().getGraphic().getTurnMarks().setDelete();
-					update();
+					widthTextField.setText(TurnMarks.DEFAULT_WIDTH + "");
+					heightTextField.setText(TurnMarks.DEFAULT_HEIGHT + "");
+					verticalSpaceTextField.setText(TurnMarks.DEFAULT_VERTICAL_SPACE + "");
+					horizontalSpaceTextField.setText(TurnMarks.DEFAULT_HORIZONTAL_SPACE + "");
 				}
 			});
 		}
 		return deleteButton;
 	}
 
-	private void update()
-	{
-		double value = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
-		if (!Double.isNaN(value))
-			widthTextField.setText(value + "");
-		else
-			widthTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
-		if (!Double.isNaN(value))
-			heightTextField.setText(value + "");
-		else
-			heightTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
-		if (!Double.isNaN(value))
-			verticalSpaceTextField.setText(value + "");
-		else
-			verticalSpaceTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
-		if (!Double.isNaN(value))
-			horizontalSpaceTextField.setText(value + "");
-		else
-			horizontalSpaceTextField.setText("");
-	}
-
 	/**
-	 *  
+	 *
 	 */
 	public void exit()
 	{
 		try
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
+			double value = Double.parseDouble(getWidthTextField().getText());
+			if (value != Editor.getProperties().getGraphic().getTurnMarks().getWidth())
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setWidth(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getWidth()))
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.parseDouble(this.getHeightTextField().getText()));
+			double value = Double.parseDouble(getHeightTextField().getText());
+			if (value != Editor.getProperties().getGraphic().getTurnMarks().getHeight())
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setHeight(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getHeight()))
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.parseDouble(this.getVerticalSpaceTextField().getText()));
+			double value = Double.parseDouble(getVerticalSpaceTextField().getText());
+			if (value != Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace())
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace()))
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.parseDouble(this.getHorizontalSpaceTextField().getText()));
+			double value = Double.parseDouble(getHorizontalSpaceTextField().getText());
+			if (value != Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace())
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace()))
+			{
+				Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
-		
+
 		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"
