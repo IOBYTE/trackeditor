@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 import utils.TrackData;
 import utils.circuit.Segment;
@@ -42,7 +43,7 @@ import utils.circuit.SegmentSide;
  */
 public class PitProperties extends JPanel
 {
-	//private Properties	properties		= Properties.getInstance();
+	private EditorFrame			frame;
 	private JLabel				styleLabel				= null;
 	private JComboBox<String>	styleComboBox			= null;
 	private JLabel				sideLabel				= null;
@@ -75,9 +76,10 @@ public class PitProperties extends JPanel
 	/**
 	 *  
 	 */
-	public PitProperties()
+	public PitProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 

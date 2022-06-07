@@ -26,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 /**
  * @author babis
@@ -35,6 +36,7 @@ import utils.Editor;
  */
 public class TrackProperties extends JPanel
 {
+	private EditorFrame			frame;
 	private JLabel				widthLabel					= null;
 	private JTextField			widthTextField				= null;
 	private JLabel				surfaceLabel				= null;
@@ -56,9 +58,10 @@ public class TrackProperties extends JPanel
 	/**
 	 * 
 	 */
-	public TrackProperties()
+	public TrackProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 

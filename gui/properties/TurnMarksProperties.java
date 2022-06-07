@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -35,6 +36,7 @@ import utils.Editor;
  */
 public class TurnMarksProperties extends JPanel
 {
+	private EditorFrame	frame;
 	private JLabel		widthLabel					= null;
 	private JTextField	widthTextField				= null;
 	private JLabel		heightLabel					= null;
@@ -49,9 +51,10 @@ public class TurnMarksProperties extends JPanel
 	/**
 	 *  
 	 */
-	public TurnMarksProperties()
+	public TurnMarksProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 

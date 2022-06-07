@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -39,7 +40,7 @@ import utils.Editor;
  */
 public class ImageProperties extends JPanel
 {
-	//private Properties		properties				= Properties.getInstance();
+	private EditorFrame		frame;
 	private JLabel			pathLabel				= null;
 	private JTextField		pathTextField			= null;
 	private JButton			browseButton			= null;
@@ -52,9 +53,10 @@ public class ImageProperties extends JPanel
 	/**
 	 * 
 	 */
-	public ImageProperties()
+	public ImageProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 	

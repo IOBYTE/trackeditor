@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -35,6 +36,7 @@ import utils.Editor;
  */
 public class StartingGridProperties extends JPanel
 {
+	private EditorFrame			frame;
 	private JLabel				rowsLabel						= null;
 	private JTextField			rowsTextField					= null;
 	private JLabel				polePositionSideLabel			= null;
@@ -51,9 +53,10 @@ public class StartingGridProperties extends JPanel
 	/**
 	 *
 	 */
-	public StartingGridProperties()
+	public StartingGridProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 

@@ -36,7 +36,6 @@ import gui.EditorFrame;
  */
 public class PropertiesDialog extends JDialog
 {
-	//private Properties properties = Properties.getInstance();
 	private EditorFrame				frame;
 	public static boolean			APPROVE					= false;
 	private JTabbedPane				tabbedPane				= null;
@@ -198,7 +197,7 @@ public class PropertiesDialog extends JDialog
 	 */    
 	private TrackProperties getTrackProperties() {
 		if (trackProperties == null) {
-			trackProperties = new TrackProperties();
+			trackProperties = new TrackProperties(frame);
 		}
 		return trackProperties;
 	}
@@ -209,7 +208,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private PitProperties getPitProperties() {
 		if (pitProperties == null) {
-			pitProperties = new PitProperties();
+			pitProperties = new PitProperties(frame);
 		}
 		return pitProperties;
 	}
@@ -220,7 +219,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private ImageProperties getImageProperties() {
 		if (imageProperties == null) {
-			imageProperties = new ImageProperties();
+			imageProperties = new ImageProperties(frame);
 		}
 		return imageProperties;
 	}
@@ -231,7 +230,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private TurnMarksProperties getTurnMarksProperties() {
 		if (turnMarksProperties == null) {
-			turnMarksProperties = new TurnMarksProperties();
+			turnMarksProperties = new TurnMarksProperties(frame);
 		}
 		return turnMarksProperties;
 	}
@@ -242,7 +241,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private TerrainProperties getTerrainProperties() {
 		if (terrainProperties == null) {
-			terrainProperties = new TerrainProperties();
+			terrainProperties = new TerrainProperties(frame);
 		}
 		return terrainProperties;
 	}
@@ -264,7 +263,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private StartingGridProperties getStartingGridProperties() {
 		if (startingGridProperties == null) {
-			startingGridProperties = new StartingGridProperties();
+			startingGridProperties = new StartingGridProperties(frame);
 		}
 		return startingGridProperties;
 	}

@@ -26,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -36,6 +37,7 @@ import utils.Editor;
  */
 public class TerrainProperties extends JPanel
 {
+	private EditorFrame			frame;
 	private JLabel				trackStepLabel				= null;
 	private JTextField			trackStepTextField			= null;
 	private JLabel				borderMarginLabel			= null;
@@ -64,9 +66,10 @@ public class TerrainProperties extends JPanel
 	/**
 	 *  
 	 */
-	public TerrainProperties()
+	public TerrainProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 
