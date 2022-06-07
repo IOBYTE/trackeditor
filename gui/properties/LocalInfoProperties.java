@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -34,6 +35,7 @@ import utils.Editor;
  */
 public class LocalInfoProperties extends JPanel
 {
+	private EditorFrame	frame;
 	private JLabel		stationLabel						= null;
 	private JTextField	stationTextField					= null;
 	private JLabel		timezoneLabel						= null;
@@ -54,9 +56,10 @@ public class LocalInfoProperties extends JPanel
 	/**
 	 *
 	 */
-	public LocalInfoProperties()
+	public LocalInfoProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 
@@ -280,55 +283,130 @@ public class LocalInfoProperties extends JPanel
 	 */
 	public void exit()
 	{
-		Editor.getProperties().getLocalInfo().setStation(this.getStationTextField().getText());
-		try
+		String station = getStationTextField().getText();
+		if (!station.equals(Editor.getProperties().getLocalInfo().getStation()))
 		{
-			Editor.getProperties().getLocalInfo().setTimezone(Double.parseDouble(this.getTimezoneTextField().getText()));
-		} catch (NumberFormatException e)
-		{
-			Editor.getProperties().getLocalInfo().setTimezone(Double.NaN);
+			Editor.getProperties().getLocalInfo().setStation(station);
+			frame.documentIsModified = true;
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setOverallRainLikelyhood(Double.parseDouble(this.getOverallRainLikelyhoodTextField().getText()));
+			double value = Double.parseDouble(this.getTimezoneTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getTimezone())
+			{
+				Editor.getProperties().getLocalInfo().setTimezone(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setOverallRainLikelyhood(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getTimezone()))
+			{
+				Editor.getProperties().getLocalInfo().setTimezone(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setLittleRainLikelyhood(Double.parseDouble(this.getLittleRainLikelyhoodTextField().getText()));
+			double value = Double.parseDouble(this.getOverallRainLikelyhoodTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getOverallRainLikelyhood())
+			{
+				Editor.getProperties().getLocalInfo().setOverallRainLikelyhood(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setLittleRainLikelyhood(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getOverallRainLikelyhood()))
+			{
+				Editor.getProperties().getLocalInfo().setOverallRainLikelyhood(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setMediumRainLikelyhood(Double.parseDouble(this.getMediumRainLikelyhoodTextField().getText()));
+			double value = Double.parseDouble(this.getLittleRainLikelyhoodTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getLittleRainLikelyhood())
+			{
+				Editor.getProperties().getLocalInfo().setLittleRainLikelyhood(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setMediumRainLikelyhood(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getLittleRainLikelyhood()))
+			{
+				Editor.getProperties().getLocalInfo().setLittleRainLikelyhood(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setTimeOfDay(Double.parseDouble(this.getTimeOfDayTextField().getText()));
+			double value = Double.parseDouble(this.getMediumRainLikelyhoodTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getMediumRainLikelyhood())
+			{
+				Editor.getProperties().getLocalInfo().setMediumRainLikelyhood(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setTimeOfDay(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getMediumRainLikelyhood()))
+			{
+				Editor.getProperties().getLocalInfo().setMediumRainLikelyhood(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setSunAscension(Double.parseDouble(this.getSunAscensionTextField().getText()));
+			double value = Double.parseDouble(this.getTimeOfDayTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getTimeOfDay())
+			{
+				Editor.getProperties().getLocalInfo().setTimeOfDay(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setSunAscension(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getTimeOfDay()))
+			{
+				Editor.getProperties().getLocalInfo().setTimeOfDay(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getLocalInfo().setAltitude(Double.parseDouble(this.getAltitudeTextField().getText()));
+			double value = Double.parseDouble(this.getSunAscensionTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getSunAscension())
+			{
+				Editor.getProperties().getLocalInfo().setSunAscension(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getLocalInfo().setAltitude(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getSunAscension()))
+			{
+				Editor.getProperties().getLocalInfo().setSunAscension(Double.NaN);
+				frame.documentIsModified = true;
+			}
+		}
+
+		try
+		{
+			double value = Double.parseDouble(this.getAltitudeTextField().getText());
+			if (value != Editor.getProperties().getLocalInfo().getAltitude())
+			{
+				Editor.getProperties().getLocalInfo().setAltitude(value);
+				frame.documentIsModified = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (!Double.isNaN(Editor.getProperties().getLocalInfo().getAltitude()))
+			{
+				Editor.getProperties().getLocalInfo().setAltitude(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
 
 		Editor.getProperties().valueChanged();

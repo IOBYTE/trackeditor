@@ -253,7 +253,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private LocalInfoProperties getLocalInfoProperties() {
 		if (localInfoProperties == null) {
-			localInfoProperties = new LocalInfoProperties();
+			localInfoProperties = new LocalInfoProperties(frame);
 		}
 		return localInfoProperties;
 	}
