@@ -29,64 +29,67 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
  * @author babis
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
 public class GeneralProperties extends JPanel
 {
-	private JTextField			projectNameTextField		= null;
-	private JLabel				projectNameLabel			= null;
-	private JComboBox<String>	trackCategoryComboBox		= null;
-	private JLabel				trackCategoryLabel			= null;
-	private JComboBox<String>	trackSubcategoryComboBox	= null;
-	private JLabel				trackSubcategoryLabel		= null;
-	private JComboBox<String>	trackVersionComboBox		= null;
-	private JLabel				trackVersionLabel			= null;
-	private JLabel				pathLabel					= null;
-	private JTextField			pathTextField				= null;
-	private JButton				browseButton				= null;
-	private JLabel				authorLabel					= null;
-	private JTextField			authorTextField				= null;
-	private JLabel				descriptionLabel			= null;
-	private JTextField			descriptionTextField		= null;
-	
+	private EditorFrame			frame;
+	private JTextField			nameTextField			= null;
+	private JLabel				nameLabel				= null;
+	private JComboBox<String>	categoryComboBox		= null;
+	private JLabel				categoryLabel			= null;
+	private JComboBox<String>	subcategoryComboBox		= null;
+	private JLabel				subcategoryLabel		= null;
+	private JComboBox<String>	versionComboBox			= null;
+	private JLabel				versionLabel			= null;
+	private JLabel				pathLabel				= null;
+	private JTextField			pathTextField			= null;
+	private JButton				browseButton			= null;
+	private JLabel				authorLabel				= null;
+	private JTextField			authorTextField			= null;
+	private JLabel				descriptionLabel		= null;
+	private JTextField			descriptionTextField	= null;
+
 	private final String sep = System.getProperty("file.separator");
-	
+
 	/**
-	 *  
+	 *
 	 */
-	public GeneralProperties()
+	public GeneralProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	private void initialize()
 	{
 		authorLabel = new JLabel();
 		descriptionLabel = new JLabel();
 		pathLabel = new JLabel();
-		projectNameLabel = new JLabel();
-		trackCategoryLabel = new JLabel();
-		trackSubcategoryLabel = new JLabel();
-		trackVersionLabel = new JLabel();
+		nameLabel = new JLabel();
+		categoryLabel = new JLabel();
+		subcategoryLabel = new JLabel();
+		versionLabel = new JLabel();
 		this.setLayout(null);
-		projectNameLabel.setBounds(15, 15, 100, 30);
-		projectNameLabel.setText("Track Name");
-		trackCategoryLabel.setBounds(15, 60, 100, 30);
-		trackCategoryLabel.setText("Track Category");
-		trackSubcategoryLabel.setBounds(15, 105, 100, 30);
-		trackSubcategoryLabel.setText("Track Subcategory");
-		trackVersionLabel.setBounds(15, 150, 100, 30);
-		trackVersionLabel.setText("Track Version");
+		nameLabel.setBounds(15, 15, 100, 30);
+		nameLabel.setText("Track Name");
+		categoryLabel.setBounds(15, 60, 100, 30);
+		categoryLabel.setText("Track Category");
+		subcategoryLabel.setBounds(15, 105, 100, 30);
+		subcategoryLabel.setText("Track Subcategory");
+		versionLabel.setBounds(15, 150, 100, 30);
+		versionLabel.setText("Track Version");
 		pathLabel.setBounds(15, 195, 60, 30);
 		pathLabel.setText("Path");
 		authorLabel.setBounds(15, 240, 60, 30);
@@ -97,125 +100,94 @@ public class GeneralProperties extends JPanel
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.add(getPathTextField(), null);
 		this.add(getBrowseButton(), null);
-		this.add(getProjectNameTextField(), null);
-		this.add(projectNameLabel, null);
+		this.add(getNameTextField(), null);
+		this.add(nameLabel, null);
 		this.add(pathLabel, null);
 		this.add(authorLabel, null);
 		this.add(getAuthorTextField(), null);
 		this.add(getDescriptionTextField(), null);
 		this.add(descriptionLabel, null);
-		this.add(trackCategoryLabel, null);
-		this.add(getTrackCategoryComboBox(), null);
-		this.add(trackSubcategoryLabel, null);
-		this.add(getTrackSubcategoryComboBox(), null);
-		this.add(trackVersionLabel, null);
-		this.add(getTrackVersionComboBox(), null);
+		this.add(categoryLabel, null);
+		this.add(getCategoryComboBox(), null);
+		this.add(subcategoryLabel, null);
+		this.add(getSubcategoryComboBox(), null);
+		this.add(versionLabel, null);
+		this.add(getVersionComboBox(), null);
 	}
 
 	/**
-	 * This method initializes projectNameTextField
-	 * 
+	 * This method initializes nameTextField
+	 *
 	 * @return javax.swing.JTextField
 	 */
-	public JTextField getProjectNameTextField()
+	public JTextField getNameTextField()
 	{
-		if (projectNameTextField == null)
+		if (nameTextField == null)
 		{
-			projectNameTextField = new JTextField();
-			projectNameTextField.setBounds(135, 15, 170, 30);
-			projectNameTextField.setText(Editor.getProperties().getHeader().getName());
-			projectNameTextField.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-
-				}
-			});
+			nameTextField = new JTextField();
+			nameTextField.setBounds(135, 15, 170, 30);
+			nameTextField.setText(Editor.getProperties().getHeader().getName());
 		}
-		return projectNameTextField;
+		return nameTextField;
 	}
 
 	/**
-	 * This method initializes trackCategoryComboBox
+	 * This method initializes categoryComboBox
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	public JComboBox<String> getTrackCategoryComboBox()
+	public JComboBox<String> getCategoryComboBox()
 	{
-		if (trackCategoryComboBox == null)
+		if (categoryComboBox == null)
 		{
-			String[] items =
-			{"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
-			trackCategoryComboBox = new JComboBox<String>(items);
-			trackCategoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
-			trackCategoryComboBox.setBounds(135, 60, 170, 30);
-			trackCategoryComboBox.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-
-				}
-			});
+			String[] items = {"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
+			categoryComboBox = new JComboBox<String>(items);
+			categoryComboBox.setBounds(135, 60, 170, 30);
+			categoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
 		}
-		return trackCategoryComboBox;
+		return categoryComboBox;
 	}
 
 	/**
-	 * This method initializes trackSubcategoryComboBox
+	 * This method initializes subcategoryComboBox
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	public JComboBox<String> getTrackSubcategoryComboBox()
+	public JComboBox<String> getSubcategoryComboBox()
 	{
-		if (trackSubcategoryComboBox == null)
+		if (subcategoryComboBox == null)
 		{
-			String[] items =
-			{"none", "short", "long"};
-			trackSubcategoryComboBox = new JComboBox<String>(items);
+			String[] items = {"none", "short", "long"};
+			subcategoryComboBox = new JComboBox<String>(items);
+			subcategoryComboBox.setBounds(135, 105, 170, 30);
 			String subcategory = Editor.getProperties().getHeader().getSubcategory();
 			if (subcategory == null)
 				subcategory = "none";
-			trackSubcategoryComboBox.setSelectedItem(subcategory);
-			trackSubcategoryComboBox.setBounds(135, 105, 170, 30);
-			trackSubcategoryComboBox.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-
-				}
-			});
+			subcategoryComboBox.setSelectedItem(subcategory);
 		}
-		return trackSubcategoryComboBox;
+		return subcategoryComboBox;
 	}
 
 	/**
-	 * This method initializes trackVersionComboBox
+	 * This method initializes versionComboBox
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	public JComboBox<String> getTrackVersionComboBox()
+	public JComboBox<String> getVersionComboBox()
 	{
-		if (trackVersionComboBox == null)
+		if (versionComboBox == null)
 		{
-			String[] items =
-			{"3", "4", "5"};
-			trackVersionComboBox = new JComboBox<String>(items);
-			trackVersionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
-			trackVersionComboBox.setBounds(135, 150, 170, 30);
-			trackVersionComboBox.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-
-				}
-			});
+			String[] items = {"3", "4", "5"};
+			versionComboBox = new JComboBox<String>(items);
+			versionComboBox.setBounds(135, 150, 170, 30);
+			versionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
 		}
-		return trackVersionComboBox;
+		return versionComboBox;
 	}
 
 	/**
 	 * This method initializes pathTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	public JTextField getPathTextField()
@@ -224,23 +196,13 @@ public class GeneralProperties extends JPanel
 		{
 			pathTextField = new JTextField();
 			pathTextField.setBounds(65, 195, 240, 30);
-			pathTextField.setText(Editor.getProperties().getPath().substring(0, Editor.getProperties().getPath().lastIndexOf(sep)));
-			pathTextField.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-					System.out.println("actionPerformed()"); // TODO
-					// Auto-generated
-					// Event stub
-					// actionPerformed()
-				}
-			});
+			pathTextField.setText(Editor.getProperties().getPath());
 		}
 		return pathTextField;
 	}
 	/**
 	 * This method initializes browseButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	public JButton getBrowseButton()
@@ -262,7 +224,7 @@ public class GeneralProperties extends JPanel
 	}
 	/**
 	 * This method initializes authorTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	public JTextField getAuthorTextField()
@@ -277,7 +239,7 @@ public class GeneralProperties extends JPanel
 	}
 	/**
 	 * This method initializes descriptionTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	public JTextField getDescriptionTextField()
@@ -291,7 +253,7 @@ public class GeneralProperties extends JPanel
 		return descriptionTextField;
 	}
 	/**
-	 *  
+	 *
 	 */
 	protected void selectPath()
 	{
@@ -303,7 +265,7 @@ public class GeneralProperties extends JPanel
 		fc.setDialogTitle("Project path selection");
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fc.setCurrentDirectory(new File(System.getProperty("user.dir") + sep+"tracks"));
+		fc.setCurrentDirectory(new File(System.getProperty("user.dir") + sep + "tracks"));
 		int result = fc.showDialog(this, "Ok");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
@@ -313,31 +275,86 @@ public class GeneralProperties extends JPanel
 
 	public void exit()
 	{
+		// the path is something/category/track
 		String tmpPath = getPathTextField().getText();
-		String tmpName = getProjectNameTextField().getText();
-		Editor.getProperties().getHeader().setName(tmpName);
-		Editor.getProperties().setPath(tmpPath + sep + tmpName);
-		int index = tmpPath.lastIndexOf(sep) + 1;
-		String category = tmpPath.substring(index);
-		
-		File path = new File(tmpPath + sep + tmpName);
+		String tmpName = getNameTextField().getText();
+		String tmpCategory = (String) getCategoryComboBox().getSelectedItem();
+
+		if (!Editor.getProperties().getHeader().getName().equals(tmpName))
+		{
+			Editor.getProperties().getHeader().setName(tmpName);
+			frame.documentIsModified = true;
+		}
+
+		if (!Editor.getProperties().getPath().equals(tmpPath))
+		{
+			Editor.getProperties().setPath(tmpPath);
+			frame.documentIsModified = true;
+		}
+
+		if (!Editor.getProperties().getHeader().getCategory().equals(tmpCategory))
+		{
+			Editor.getProperties().getHeader().setCategory(tmpCategory);
+			frame.documentIsModified = true;
+		}
+
+		// get the track name from the path
+		int index = tmpPath.lastIndexOf(sep);
+		String nameFromPath = tmpPath.substring(index + 1);
+		if (!nameFromPath.equals(tmpName))
+		{
+			// TODO Which one should we use?
+			System.out.println("different!!! name from path: " + nameFromPath + " name: " + tmpName);
+		}
+
+		// remove the track name from the path
+		String pathToCategory = tmpPath.substring(0, index);
+
+		// get the category from the path
+		index = pathToCategory.lastIndexOf(sep);
+		String categoryFromPath = pathToCategory.substring(index + 1);
+		if (!categoryFromPath.equals(tmpCategory))
+		{
+			// TODO  Which one should we use?
+			System.out.println("category from path : " + categoryFromPath + " category : " + tmpCategory);
+		}
+
+		File path = new File(tmpPath);
 		if (!path.exists())
 		{
 			path.mkdirs();
 		}
-		Editor.getProperties().getHeader().setAuthor(getAuthorTextField().getText());
-		Editor.getProperties().getHeader().setDescription(getDescriptionTextField().getText());
 
-		if (category == getTrackCategoryComboBox().getSelectedItem())
-			Editor.getProperties().getHeader().setCategory((String) getTrackCategoryComboBox().getSelectedItem());
+		String subcategory = (String) getSubcategoryComboBox().getSelectedItem();
+		if (!subcategory.equals(Editor.getProperties().getHeader().getSubcategory()))
+		{
+			if (subcategory != "none")
+				Editor.getProperties().getHeader().setSubcategory(subcategory);
+			else
+				Editor.getProperties().getHeader().setSubcategory(null);
+			frame.documentIsModified = true;
+		}
 
-		String subcategory = (String) getTrackSubcategoryComboBox().getSelectedItem();
-		if (subcategory != "none")
-			Editor.getProperties().getHeader().setSubcategory(subcategory);
-		else
-			Editor.getProperties().getHeader().setSubcategory(null);
+		int version = Integer.parseInt((String) getVersionComboBox().getSelectedItem());
+		if (version != Editor.getProperties().getHeader().getVersion())
+		{
+			Editor.getProperties().getHeader().getVersion();
+			frame.documentIsModified = true;
+		}
 
-		Editor.getProperties().getHeader().setVersion(Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem()));
+		String author = getAuthorTextField().getText();
+		if (!author.equals(Editor.getProperties().getHeader().getAuthor()))
+		{
+			Editor.getProperties().getHeader().setAuthor(author);
+			frame.documentIsModified = true;
+		}
+
+		String description = getDescriptionTextField().getText();
+		if (!description.equals(Editor.getProperties().getHeader().getDescription()))
+		{
+			Editor.getProperties().getHeader().setDescription(description);
+			frame.documentIsModified = true;
+		}
 
 		Editor.getProperties().valueChanged();
 	}

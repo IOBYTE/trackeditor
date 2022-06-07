@@ -24,21 +24,6 @@ public class Header {
 	{
 		this.name = name;
 	}
-	/**
-	 * @return Returns the subcategory.
-	 */
-	public String getSubcategory()
-	{
-		return subcategory;
-	}
-	/**
-	 * @param subcategory
-	 *            The subcategory to set.
-	 */
-	public void setSubcategory(String subcategory)
-	{
-		this.subcategory = subcategory;
-	}
 
 	/**
 	 * @return Returns the category.
@@ -57,6 +42,22 @@ public class Header {
 	}
 
 	/**
+	 * @return Returns the subcategory.
+	 */
+	public String getSubcategory()
+	{
+		return subcategory;
+	}
+	/**
+	 * @param subcategory
+	 *            The subcategory to set.
+	 */
+	public void setSubcategory(String subcategory)
+	{
+		this.subcategory = subcategory;
+	}
+
+	/**
 	 * @return Returns the version.
 	 */
 	public int getVersion()
@@ -71,6 +72,7 @@ public class Header {
 	{
 		this.version = version;
 	}
+
 	/**
 	 * @return Returns the skyVersion.
 	 */
@@ -86,6 +88,7 @@ public class Header {
 	{
 		this.skyVersion = skyVersion;
 	}
+
 	/**
 	 * @return Returns the author.
 	 */

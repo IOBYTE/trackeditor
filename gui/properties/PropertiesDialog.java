@@ -26,6 +26,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+
+import gui.EditorFrame;
 /**
  * @author babis
  * 
@@ -35,6 +37,7 @@ import javax.swing.JTabbedPane;
 public class PropertiesDialog extends JDialog
 {
 	//private Properties properties = Properties.getInstance();
+	private EditorFrame				frame;
 	public static boolean			APPROVE					= false;
 	private JTabbedPane				tabbedPane				= null;
 	private GeneralProperties		generalProperties		= null;
@@ -54,9 +57,10 @@ public class PropertiesDialog extends JDialog
 	/**
 	 *  
 	 */
-	public PropertiesDialog()
+	public PropertiesDialog(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 	/**
@@ -105,7 +109,7 @@ public class PropertiesDialog extends JDialog
 	{
 		if (generalProperties == null)
 		{
-			generalProperties = new GeneralProperties();
+			generalProperties = new GeneralProperties(frame);
 		}
 		return generalProperties;
 	}

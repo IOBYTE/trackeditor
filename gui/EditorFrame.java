@@ -1374,7 +1374,7 @@ public class EditorFrame extends JFrame
 	{
 		if (TrackData.getTrackData() != null)
 		{
-			PropertiesDialog properties = new PropertiesDialog();
+			PropertiesDialog properties = new PropertiesDialog(this);
 			properties.setVisible(true);
 			refresh();
 		} else
