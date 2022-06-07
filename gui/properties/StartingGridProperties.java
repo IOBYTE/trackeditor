@@ -100,7 +100,6 @@ public class StartingGridProperties extends JPanel
 		this.add(getDistanceBetweenColumnsTextField(), null);
 		this.add(getOffsetWithinAColumnTextField(), null);
 		this.add(getInitialHeightTextField(), null);
-		update();
 	}
 	/**
 	 * This method initializes rowsTextField
@@ -113,6 +112,9 @@ public class StartingGridProperties extends JPanel
 		{
 			rowsTextField = new JTextField();
 			rowsTextField.setBounds(150, 10, 100, 20);
+			int rows = Editor.getProperties().getStartingGrid().getRows();
+			if (rows != Integer.MAX_VALUE)
+				rowsTextField.setText(rows + "");
 		}
 		return rowsTextField;
 	}
@@ -128,6 +130,10 @@ public class StartingGridProperties extends JPanel
 			String[] items = {"none", "right", "left"};
 			polePositionSideComboBox = new JComboBox<String>(items);
 			polePositionSideComboBox.setBounds(150, 35, 80, 20);
+			String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
+			if (side == null || side.isEmpty())
+				side = "none";
+			polePositionSideComboBox.setSelectedItem(side);
 		}
 		return polePositionSideComboBox;
 	}
@@ -142,6 +148,9 @@ public class StartingGridProperties extends JPanel
 		{
 			distanceToStartTextField = new JTextField();
 			distanceToStartTextField.setBounds(150, 60, 100, 20);
+			double value = Editor.getProperties().getStartingGrid().getDistanceToStart();
+			if (!Double.isNaN(value))
+				distanceToStartTextField.setText(value + "");
 		}
 		return distanceToStartTextField;
 	}
@@ -156,6 +165,9 @@ public class StartingGridProperties extends JPanel
 		{
 			distanceBetweenColumnsTextField = new JTextField();
 			distanceBetweenColumnsTextField.setBounds(150, 85, 100, 20);
+			double value = Editor.getProperties().getStartingGrid().getDistanceBetweenColumns();
+			if (!Double.isNaN(value))
+				distanceBetweenColumnsTextField.setText(value + "");
 		}
 		return distanceBetweenColumnsTextField;
 	}
@@ -171,6 +183,9 @@ public class StartingGridProperties extends JPanel
 		{
 			offsetWithinAColumnTextField = new JTextField();
 			offsetWithinAColumnTextField.setBounds(150, 110, 100, 20);
+			double value = Editor.getProperties().getStartingGrid().getOffsetWithinAColumn();
+			if (!Double.isNaN(value))
+				offsetWithinAColumnTextField.setText(value + "");
 		}
 		return offsetWithinAColumnTextField;
 	}
@@ -193,38 +208,6 @@ public class StartingGridProperties extends JPanel
 		return initialHeightTextField;
 	}
 
-	private void update()
-	{
-		int rows = Editor.getProperties().getStartingGrid().getRows();
-		if (rows != Integer.MAX_VALUE)
-			rowsTextField.setText(rows + "");
-		else
-			rowsTextField.setText("");
-
-		String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
-		if (side == null || side.isEmpty())
-			side = "none";
-		polePositionSideComboBox.setSelectedItem(side);
-
-		double value = Editor.getProperties().getStartingGrid().getDistanceToStart();
-		if (!Double.isNaN(value))
-			distanceToStartTextField.setText(value + "");
-		else
-			distanceToStartTextField.setText("");
-
-		value = Editor.getProperties().getStartingGrid().getDistanceBetweenColumns();
-		if (!Double.isNaN(value))
-			distanceBetweenColumnsTextField.setText(value + "");
-		else
-			distanceBetweenColumnsTextField.setText("");
-
-		value = Editor.getProperties().getStartingGrid().getOffsetWithinAColumn();
-		if (!Double.isNaN(value))
-			offsetWithinAColumnTextField.setText(value + "");
-		else
-			offsetWithinAColumnTextField.setText("");
-	}
-
 	/**
 	 *
 	 */
@@ -232,42 +215,97 @@ public class StartingGridProperties extends JPanel
 	{
 		try
 		{
-			Editor.getProperties().getStartingGrid().setRows(Integer.parseInt(this.getRowsTextField().getText()));
+			int value = Integer.parseInt(this.getRowsTextField().getText());
+			if (value != Editor.getProperties().getStartingGrid().getRows())
+			{
+				Editor.getProperties().getStartingGrid().setRows(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getStartingGrid().setRows(Integer.MAX_VALUE);
+			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getRows()))
+			{
+				Editor.getProperties().getStartingGrid().setRows(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
-		String side = (String) getPolePositionSideComboBox().getSelectedItem();
-		if (side == "none")
-			side = null;
-		Editor.getProperties().getStartingGrid().setPolePositionSide(side);
+
+		String subcategory = (String) getPolePositionSideComboBox().getSelectedItem();
+		if (!subcategory.equals(Editor.getProperties().getHeader().getSubcategory()))
+		{
+			if (subcategory != "none")
+				Editor.getProperties().getStartingGrid().setPolePositionSide(subcategory);
+			else
+				Editor.getProperties().getStartingGrid().setPolePositionSide(null);
+			frame.documentIsModified = true;
+		}
+
 		try
 		{
-			Editor.getProperties().getStartingGrid().setDistanceToStart(Double.parseDouble(this.getDistanceToStartTextField().getText()));
+			int value = Integer.parseInt(this.getDistanceToStartTextField().getText());
+			if (value != Editor.getProperties().getStartingGrid().getDistanceToStart())
+			{
+				Editor.getProperties().getStartingGrid().setDistanceToStart(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getStartingGrid().setDistanceToStart(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceToStart()))
+			{
+				Editor.getProperties().getStartingGrid().setDistanceToStart(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Double.parseDouble(this.getDistanceBetweenColumnsTextField().getText()));
+			int value = Integer.parseInt(this.getDistanceBetweenColumnsTextField().getText());
+			if (value != Editor.getProperties().getStartingGrid().getDistanceBetweenColumns())
+			{
+				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceBetweenColumns()))
+			{
+				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Double.parseDouble(this.getOffsetWithinAColumnTextField().getText()));
+			int value = Integer.parseInt(this.getOffsetWithinAColumnTextField().getText());
+			if (value != Editor.getProperties().getStartingGrid().getOffsetWithinAColumn())
+			{
+				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getOffsetWithinAColumn()))
+			{
+				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
+
 		try
 		{
-			Editor.getProperties().getStartingGrid().setInitialHeight(Double.parseDouble(this.getInitialHeightTextField().getText()));
+			int value = Integer.parseInt(this.getInitialHeightTextField().getText());
+			if (value != Editor.getProperties().getStartingGrid().getInitialHeight())
+			{
+				Editor.getProperties().getStartingGrid().setInitialHeight(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getStartingGrid().setInitialHeight(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getInitialHeight()))
+			{
+				Editor.getProperties().getStartingGrid().setInitialHeight(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
 
 		Editor.getProperties().valueChanged();
