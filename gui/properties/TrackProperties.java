@@ -90,7 +90,6 @@ public class TrackProperties extends JPanel
         this.add(getSurfaceComboBox(), null);
         this.add(profileStepsLengthLabel, null);
         this.add(getProfileStepsLengthTextField(), null);
-        update();
 	}
 	/**
 	 * This method initializes widthTextField
@@ -117,6 +116,9 @@ public class TrackProperties extends JPanel
 			surfaceComboBox = new JComboBox<String>();
 			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
 			surfaceComboBox.setBounds(120, 35, 120, 20);
+			double width = Editor.getProperties().getMainTrack().getWidth();
+			if (!Double.isNaN(width))
+				widthTextField.setText(width + "");
 		}
 		return surfaceComboBox;
 	}
@@ -130,23 +132,11 @@ public class TrackProperties extends JPanel
 		if (profileStepsLengthTextField == null) {
 			profileStepsLengthTextField = new JTextField();
 			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
+			double length = Editor.getProperties().getMainTrack().getProfileStepLength();
+			if (!Double.isNaN(length))
+				profileStepsLengthTextField.setText(length + "");
 		}
 		return profileStepsLengthTextField;
-	}
-
-	private void update()
-	{
-		double width = Editor.getProperties().getMainTrack().getWidth();
-		if (!Double.isNaN(width))
-			widthTextField.setText(width + "");
-		else
-			widthTextField.setText("");
-
-		double length = Editor.getProperties().getMainTrack().getProfileStepLength();
-		if (!Double.isNaN(length))
-			profileStepsLengthTextField.setText(length + "");
-		else
-			profileStepsLengthTextField.setText("");
 	}
 
 	/**
@@ -156,20 +146,43 @@ public class TrackProperties extends JPanel
 	{
 		try
 		{
-			Editor.getProperties().getMainTrack().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
+			double value = Double.parseDouble(this.getWidthTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getWidth())
+			{
+				Editor.getProperties().getMainTrack().setWidth(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getMainTrack().setWidth(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getWidth()))
+			{
+				Editor.getProperties().getMainTrack().setWidth(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
 
-		Editor.getProperties().getMainTrack().setSurface((String) surfaceComboBox.getSelectedItem());
+		String surface = (String) surfaceComboBox.getSelectedItem();
+		if (!surface.equals(Editor.getProperties().getMainTrack().getSurface()))
+		{
+			Editor.getProperties().getMainTrack().setSurface(surface);
+			frame.documentIsModified = true;
+		}
 
 		try
 		{
-			Editor.getProperties().getMainTrack().setProfileStepLength(Double.parseDouble(this.getProfileStepsLengthTextField().getText()));
+			double value = Double.parseDouble(this.getProfileStepsLengthTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getWidth())
+			{
+				Editor.getProperties().getMainTrack().setProfileStepLength(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getMainTrack().setProfileStepLength(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getProfileStepLength()))
+			{
+				Editor.getProperties().getMainTrack().setProfileStepLength(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
 	}
  }  //  @jve:decl-index=0:visual-constraint="10,10"
