@@ -275,7 +275,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	private GraphicProperties getGraphicProperties() {
 		if (graphicProperties == null) {
-			graphicProperties = new GraphicProperties();
+			graphicProperties = new GraphicProperties(frame);
 		}
 		return graphicProperties;
 	}

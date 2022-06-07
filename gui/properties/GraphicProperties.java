@@ -20,11 +20,11 @@
  */
 package gui.properties;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import gui.EditorFrame;
 import utils.Editor;
 
 /**
@@ -35,23 +35,23 @@ import utils.Editor;
  */
 public class GraphicProperties extends JPanel
 {
-	private JLabel		descriptionLabel				= null;
-	private JTextField	descriptionTextField			= null;
-	private JLabel		descriptionNightLabel			= null;
-	private JTextField	descriptionNightTextField		= null;
-	private JLabel		descriptionRainNightLabel		= null;
-	private JTextField	descriptionRainNightTextField	= null;
-	private JLabel		backgroundImageLabel			= null;
-	private JTextField	backgroundImageTextField		= null;
-	private JButton		defaultButton					= null;
-	private JButton		deleteButton					= null;
+	private EditorFrame		frame;
+	private JLabel			descriptionLabel				= null;
+	private JTextField		descriptionTextField			= null;
+	private JLabel			descriptionNightLabel			= null;
+	private JTextField		descriptionNightTextField		= null;
+	private JLabel			descriptionRainNightLabel		= null;
+	private JTextField		descriptionRainNightTextField	= null;
+	private JLabel			backgroundImageLabel			= null;
+	private JTextField		backgroundImageTextField		= null;
 
 	/**
 	 *
 	 */
-	public GraphicProperties()
+	public GraphicProperties(EditorFrame frame)
 	{
 		super();
+		this.frame = frame;
 		initialize();
 	}
 
@@ -85,9 +85,6 @@ public class GraphicProperties extends JPanel
 		this.add(getDescriptionNightTextField(), null);
 		this.add(getDescriptionRainNightTextField(), null);
 		this.add(getBackgroundImageTextField(), null);
-		this.add(getDefaultButton(), null);
-		this.add(getDeleteButton(), null);
-		update();
 	}
 
 	/**
@@ -101,6 +98,9 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionTextField = new JTextField();
 			descriptionTextField.setBounds(130, 10, 150, 20);
+			String value = Editor.getProperties().getGraphic().getDescription();
+			if (value != null && !value.isEmpty())
+				descriptionTextField.setText(value);
 		}
 		return descriptionTextField;
 	}
@@ -115,6 +115,9 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionNightTextField = new JTextField();
 			descriptionNightTextField.setBounds(130, 35, 150, 20);
+			String value = Editor.getProperties().getGraphic().getDescriptionNight();
+			if (value != null && !value.isEmpty())
+				descriptionNightTextField.setText(value);
 		}
 		return descriptionNightTextField;
 	}
@@ -129,6 +132,9 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionRainNightTextField = new JTextField();
 			descriptionRainNightTextField.setBounds(130, 60, 150, 20);
+			String value = Editor.getProperties().getGraphic().getDescriptionRainNight();
+			if (value != null && !value.isEmpty())
+				descriptionRainNightTextField.setText(value);
 		}
 		return descriptionRainNightTextField;
 	}
@@ -143,81 +149,11 @@ public class GraphicProperties extends JPanel
 		{
 			backgroundImageTextField = new JTextField();
 			backgroundImageTextField.setBounds(130, 85, 150, 20);
+			String value = Editor.getProperties().getGraphic().getBackgroundImage();
+			if (value != null && !value.isEmpty())
+				backgroundImageTextField.setText(value);
 		}
 		return backgroundImageTextField;
-	}
-	/**
-	 * This method initializes defaultButton
-	 *
-	 * @return javax.swing.JButton
-	 */
-	private JButton getDefaultButton()
-	{
-		if (defaultButton == null)
-		{
-			defaultButton = new JButton();
-			defaultButton.setBounds(300, 15, 80, 25);
-			defaultButton.setText("Default");
-			defaultButton.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-//					Editor.getProperties().getGraphic().setDefault();
-					update();
-				}
-			});
-		}
-		return defaultButton;
-	}
-	/**
-	 * This method initializes deleteButton
-	 *
-	 * @return javax.swing.JButton
-	 */
-	private JButton getDeleteButton()
-	{
-		if (deleteButton == null)
-		{
-			deleteButton = new JButton();
-			deleteButton.setBounds(300, 50, 80, 25);
-			deleteButton.setText("Delete");
-			deleteButton.addActionListener(new java.awt.event.ActionListener()
-			{
-				public void actionPerformed(java.awt.event.ActionEvent e)
-				{
-//					Editor.getProperties().getGraphic().setDelete();
-					update();
-				}
-			});
-		}
-		return deleteButton;
-	}
-
-	private void update()
-	{
-		String value = Editor.getProperties().getGraphic().getDescription();
-		if (value != null && !value.isEmpty())
-			descriptionTextField.setText(value);
-		else
-			descriptionTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getDescriptionNight();
-		if (value != null && !value.isEmpty())
-			descriptionNightTextField.setText(value);
-		else
-			descriptionNightTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getDescriptionRainNight();
-		if (value != null && !value.isEmpty())
-			descriptionRainNightTextField.setText(value);
-		else
-			descriptionRainNightTextField.setText("");
-
-		value = Editor.getProperties().getGraphic().getBackgroundImage();
-		if (value != null && !value.isEmpty())
-			backgroundImageTextField.setText(value);
-		else
-			backgroundImageTextField.setText("");
 	}
 
 	/**
@@ -225,10 +161,33 @@ public class GraphicProperties extends JPanel
 	 */
 	public void exit()
 	{
-		Editor.getProperties().getGraphic().setDescription(getDescriptionTextField().getText());
-		Editor.getProperties().getGraphic().setDescriptionNight(getDescriptionNightTextField().getText());
-		Editor.getProperties().getGraphic().setDescriptionRainNight(getDescriptionRainNightTextField().getText());
-		Editor.getProperties().getGraphic().setBackgroundImage(getBackgroundImageTextField().getText());
+		String description = getDescriptionTextField().getText();
+		if (!description.equals(Editor.getProperties().getGraphic().getDescription()))
+		{
+			Editor.getProperties().getGraphic().setDescription(description);
+			frame.documentIsModified = true;
+		}
+
+		String descriptionNight = getDescriptionNightTextField().getText();
+		if (!descriptionNight.equals(Editor.getProperties().getGraphic().getDescriptionNight()))
+		{
+			Editor.getProperties().getGraphic().setDescriptionNight(descriptionNight);
+			frame.documentIsModified = true;
+		}
+
+		String descriptionRainNight = getDescriptionRainNightTextField().getText();
+		if (!descriptionRainNight.equals(Editor.getProperties().getGraphic().getDescriptionRainNight()))
+		{
+			Editor.getProperties().getGraphic().setDescriptionRainNight(descriptionRainNight);
+			frame.documentIsModified = true;
+		}
+
+		String backgroundImage = getBackgroundImageTextField().getText();
+		if (!backgroundImage.equals(Editor.getProperties().getGraphic().getBackgroundImage()))
+		{
+			Editor.getProperties().getGraphic().setBackgroundImage(backgroundImage);
+			frame.documentIsModified = true;
+		}
 
 		Editor.getProperties().valueChanged();
 	}
