@@ -34,9 +34,8 @@ import utils.Editor;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class StartingGridProperties extends JPanel
+public class StartingGridProperties extends PropertyPanel
 {
-	private EditorFrame			frame;
 	private JLabel				rowsLabel						= null;
 	private JTextField			rowsTextField					= null;
 	private JLabel				polePositionSideLabel			= null;
@@ -55,8 +54,7 @@ public class StartingGridProperties extends JPanel
 	 */
 	public StartingGridProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 
@@ -112,9 +110,7 @@ public class StartingGridProperties extends JPanel
 		{
 			rowsTextField = new JTextField();
 			rowsTextField.setBounds(150, 10, 100, 20);
-			int rows = Editor.getProperties().getStartingGrid().getRows();
-			if (rows != Integer.MAX_VALUE)
-				rowsTextField.setText(rows + "");
+			setTextField(rowsTextField, Editor.getProperties().getStartingGrid().getRows());
 		}
 		return rowsTextField;
 	}
@@ -148,9 +144,7 @@ public class StartingGridProperties extends JPanel
 		{
 			distanceToStartTextField = new JTextField();
 			distanceToStartTextField.setBounds(150, 60, 100, 20);
-			double value = Editor.getProperties().getStartingGrid().getDistanceToStart();
-			if (!Double.isNaN(value))
-				distanceToStartTextField.setText(value + "");
+			setTextField(distanceToStartTextField, Editor.getProperties().getStartingGrid().getDistanceToStart());
 		}
 		return distanceToStartTextField;
 	}
@@ -165,9 +159,7 @@ public class StartingGridProperties extends JPanel
 		{
 			distanceBetweenColumnsTextField = new JTextField();
 			distanceBetweenColumnsTextField.setBounds(150, 85, 100, 20);
-			double value = Editor.getProperties().getStartingGrid().getDistanceBetweenColumns();
-			if (!Double.isNaN(value))
-				distanceBetweenColumnsTextField.setText(value + "");
+			setTextField(distanceBetweenColumnsTextField, Editor.getProperties().getStartingGrid().getDistanceBetweenColumns());
 		}
 		return distanceBetweenColumnsTextField;
 	}
@@ -183,9 +175,7 @@ public class StartingGridProperties extends JPanel
 		{
 			offsetWithinAColumnTextField = new JTextField();
 			offsetWithinAColumnTextField.setBounds(150, 110, 100, 20);
-			double value = Editor.getProperties().getStartingGrid().getOffsetWithinAColumn();
-			if (!Double.isNaN(value))
-				offsetWithinAColumnTextField.setText(value + "");
+			setTextField(offsetWithinAColumnTextField, Editor.getProperties().getStartingGrid().getOffsetWithinAColumn());
 		}
 		return offsetWithinAColumnTextField;
 	}
@@ -200,10 +190,8 @@ public class StartingGridProperties extends JPanel
 		if (initialHeightTextField == null)
 		{
 			initialHeightTextField = new JTextField();
-			double space = Editor.getProperties().getStartingGrid().getInitialHeight();
-			if (!Double.isNaN(space))
-				initialHeightTextField.setText(space + "");
 			initialHeightTextField.setBounds(150, 135, 100, 20);
+			setTextField(initialHeightTextField, Editor.getProperties().getStartingGrid().getInitialHeight());
 		}
 		return initialHeightTextField;
 	}

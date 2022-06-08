@@ -27,7 +27,6 @@ import java.util.Vector;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -39,9 +38,8 @@ import utils.circuit.Surface;
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-public class TrackProperties extends JPanel
+public class TrackProperties extends PropertyPanel
 {
-	private EditorFrame			frame;
 	private JLabel				widthLabel					= null;
 	private JTextField			widthTextField				= null;
 	private JLabel				surfaceLabel				= null;
@@ -66,8 +64,7 @@ public class TrackProperties extends JPanel
 	 */
 	public TrackProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 
@@ -127,9 +124,7 @@ public class TrackProperties extends JPanel
 		if (widthTextField == null) {
 			widthTextField = new JTextField();
 			widthTextField.setBounds(120, 10, 50, 20);
-			double value = Editor.getProperties().getMainTrack().getWidth();
-			if (!Double.isNaN(value))
-				widthTextField.setText(value + "");
+			setTextField(widthTextField, Editor.getProperties().getMainTrack().getWidth());
 		}
 		return widthTextField;
 	}
@@ -177,9 +172,7 @@ public class TrackProperties extends JPanel
 		if (profileStepsLengthTextField == null) {
 			profileStepsLengthTextField = new JTextField();
 			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
-			double length = Editor.getProperties().getMainTrack().getProfileStepLength();
-			if (!Double.isNaN(length))
-				profileStepsLengthTextField.setText(length + "");
+			setTextField(profileStepsLengthTextField, Editor.getProperties().getMainTrack().getProfileStepLength());
 		}
 		return profileStepsLengthTextField;
 	}
@@ -206,11 +199,23 @@ public class TrackProperties extends JPanel
 			}
 		}
 
-		String surface = (String) surfaceComboBox.getSelectedItem();
-		if (!surface.equals(Editor.getProperties().getMainTrack().getSurface()))
+		String newSurface = (String) surfaceComboBox.getSelectedItem();
+		String oldSurface = Editor.getProperties().getMainTrack().getSurface();
+		if (newSurface != null)
 		{
-			Editor.getProperties().getMainTrack().setSurface(surface);
-			frame.documentIsModified = true;
+			if (!newSurface.equals(oldSurface))
+			{
+				Editor.getProperties().getMainTrack().setSurface(newSurface);
+				frame.documentIsModified = true;
+			}
+		}
+		else
+		{
+			if (oldSurface != null && !oldSurface.isEmpty())
+			{
+				Editor.getProperties().getMainTrack().setSurface(null);
+				frame.documentIsModified = true;
+			}
 		}
 
 		try

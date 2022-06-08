@@ -42,9 +42,8 @@ import utils.circuit.TerrainGeneration;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class TerrainProperties extends JPanel
+public class TerrainProperties extends PropertyPanel
 {
-	private EditorFrame			frame;
 	private JLabel				trackStepLabel				= null;
 	private JTextField			trackStepTextField			= null;
 	private JLabel				borderMarginLabel			= null;
@@ -87,8 +86,7 @@ public class TerrainProperties extends JPanel
 	 */
 	public TerrainProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 
@@ -444,30 +442,6 @@ public class TerrainProperties extends JPanel
 			});
 		}
 		return deleteButton;
-	}
-
-	private void setTextField(JTextField field, double value)
-	{
-		if (!Double.isNaN(value))
-		{
-			field.setText(value + "");
-		}
-		else
-		{
-			field.setText(null);
-		}
-	}
-
-	private void setTextField(JTextField field, String value)
-	{
-		if (value != null && !value.isEmpty())
-		{
-			field.setText(value);
-		}
-		else
-		{
-			field.setText(null);
-		}
 	}
 
 	/**

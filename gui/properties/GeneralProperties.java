@@ -26,7 +26,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -38,9 +37,8 @@ import utils.Editor;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class GeneralProperties extends JPanel
+public class GeneralProperties extends PropertyPanel
 {
-	private EditorFrame			frame;
 	private JTextField			nameTextField			= null;
 	private JLabel				nameLabel				= null;
 	private JComboBox<String>	categoryComboBox		= null;
@@ -64,8 +62,7 @@ public class GeneralProperties extends JPanel
 	 */
 	public GeneralProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 

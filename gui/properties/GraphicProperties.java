@@ -23,7 +23,6 @@ package gui.properties;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -35,9 +34,8 @@ import utils.Editor;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class GraphicProperties extends JPanel
+public class GraphicProperties extends PropertyPanel
 {
-	private EditorFrame			frame;
 	private JLabel				descriptionLabel				= null;
 	private JTextField			descriptionTextField			= null;
 	private JLabel				descriptionNightLabel			= null;
@@ -54,8 +52,7 @@ public class GraphicProperties extends JPanel
 	 */
 	public GraphicProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 
@@ -107,9 +104,7 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionTextField = new JTextField();
 			descriptionTextField.setBounds(130, 10, 150, 20);
-			String value = Editor.getProperties().getGraphic().getDescription();
-			if (value != null && !value.isEmpty())
-				descriptionTextField.setText(value);
+			setTextField(descriptionTextField, Editor.getProperties().getGraphic().getDescription());
 		}
 		return descriptionTextField;
 	}
@@ -124,9 +119,7 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionNightTextField = new JTextField();
 			descriptionNightTextField.setBounds(130, 35, 150, 20);
-			String value = Editor.getProperties().getGraphic().getDescriptionNight();
-			if (value != null && !value.isEmpty())
-				descriptionNightTextField.setText(value);
+			setTextField(descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight());
 		}
 		return descriptionNightTextField;
 	}
@@ -141,9 +134,7 @@ public class GraphicProperties extends JPanel
 		{
 			descriptionRainNightTextField = new JTextField();
 			descriptionRainNightTextField.setBounds(130, 60, 150, 20);
-			String value = Editor.getProperties().getGraphic().getDescriptionRainNight();
-			if (value != null && !value.isEmpty())
-				descriptionRainNightTextField.setText(value);
+			setTextField(descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight());
 		}
 		return descriptionRainNightTextField;
 	}
@@ -158,9 +149,7 @@ public class GraphicProperties extends JPanel
 		{
 			backgroundImageTextField = new JTextField();
 			backgroundImageTextField.setBounds(130, 85, 150, 20);
-			String value = Editor.getProperties().getGraphic().getBackgroundImage();
-			if (value != null && !value.isEmpty())
-				backgroundImageTextField.setText(value);
+			setTextField(backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage());
 		}
 		return backgroundImageTextField;
 	}

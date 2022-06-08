@@ -25,7 +25,6 @@ import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 
@@ -38,28 +37,25 @@ import utils.Editor;
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-public class ImageProperties extends JPanel
+public class ImageProperties extends PropertyPanel
 {
-	private EditorFrame		frame;
-	private JLabel			pathLabel				= null;
-	private JTextField		pathTextField			= null;
-	private JButton			browseButton			= null;
-	private JLabel imageScaleLabel = null;
-	private JTextField imageScaleTextField = null;
-	
+	private JLabel		pathLabel				= null;
+	private JTextField	pathTextField			= null;
+	private JButton		browseButton			= null;
+	private JLabel 		imageScaleLabel			= null;
+	private JTextField	imageScaleTextField		= null;
+
 	private String sep = System.getProperty("file.separator");
-	
 
 	/**
 	 * 
 	 */
 	public ImageProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
-	
+
 	/**
 	 * 
 	 */

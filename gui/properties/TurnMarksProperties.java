@@ -22,7 +22,6 @@ package gui.properties;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -35,9 +34,8 @@ import utils.circuit.TurnMarks;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class TurnMarksProperties extends JPanel
+public class TurnMarksProperties extends PropertyPanel
 {
-	private EditorFrame	frame;
 	private JLabel		widthLabel					= null;
 	private JTextField	widthTextField				= null;
 	private JLabel		heightLabel					= null;
@@ -54,8 +52,7 @@ public class TurnMarksProperties extends JPanel
 	 */
 	public TurnMarksProperties(EditorFrame frame)
 	{
-		super();
-		this.frame = frame;
+		super(frame);
 		initialize();
 	}
 
@@ -104,9 +101,7 @@ public class TurnMarksProperties extends JPanel
 		{
 			widthTextField = new JTextField();
 			widthTextField.setBounds(100, 10, 100, 20);
-			double value = Editor.getProperties().getGraphic().getTurnMarks().getWidth();
-			if (!Double.isNaN(value))
-				widthTextField.setText(value + "");
+			setTextField(widthTextField, Editor.getProperties().getGraphic().getTurnMarks().getWidth());
 		}
 		return widthTextField;
 	}
@@ -121,9 +116,7 @@ public class TurnMarksProperties extends JPanel
 		{
 			heightTextField = new JTextField();
 			heightTextField.setBounds(100, 35, 100, 20);
-			double value = Editor.getProperties().getGraphic().getTurnMarks().getHeight();
-			if (!Double.isNaN(value))
-				heightTextField.setText(value + "");
+			setTextField(heightTextField, Editor.getProperties().getGraphic().getTurnMarks().getHeight());
 		}
 		return heightTextField;
 	}
@@ -138,9 +131,7 @@ public class TurnMarksProperties extends JPanel
 		{
 			verticalSpaceTextField = new JTextField();
 			verticalSpaceTextField.setBounds(100, 60, 100, 20);
-			double value = Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace();
-			if (!Double.isNaN(value))
-				verticalSpaceTextField.setText(value + "");
+			setTextField(verticalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace());
 		}
 		return verticalSpaceTextField;
 	}
@@ -155,9 +146,7 @@ public class TurnMarksProperties extends JPanel
 		{
 			horizontalSpaceTextField = new JTextField();
 			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
-			double value = Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace();
-			if (!Double.isNaN(value))
-				horizontalSpaceTextField.setText(value + "");
+			setTextField(horizontalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace());
 		}
 		return horizontalSpaceTextField;
 	}
