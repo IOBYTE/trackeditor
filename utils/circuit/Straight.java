@@ -49,12 +49,8 @@ public class Straight extends Segment implements Cloneable
 	{
 		double currentX = Editor.getProperties().getCurrentX();
 		double currentY = Editor.getProperties().getCurrentY();
-		//		double currentZ = Editor.getProperties().getCurrentZ();
 		double currentA = Editor.getProperties().getCurrentA();
-		//		double currentBanking = Editor.getProperties().getCurrentBanking();
 		double showArrows = Editor.getProperties().getShowArrows();
-		//		double trackStartDist = Editor.getProperties().getTrackStartDist();
-		//		double profileStepLength = Editor.getProperties().getProfileStepLength();
 		double trackWidth = Editor.getProperties().getMainTrack().getWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth();
 		double	rightBorderWidth = getValidRightBorderWidth();

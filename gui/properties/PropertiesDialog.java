@@ -71,12 +71,12 @@ public class PropertiesDialog extends JDialog
 	private void initialize()
 	{
 		this.setContentPane(getPane());
-		this.setSize(440, 455);
+		this.setSize(440, 665);
 		this.setModal(true);
 		this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		this.setTitle("Properties");
-		this.getPane().setSize(447, 321);
+		this.getPane().setSize(447, 531);
 	}
 	/**
 	 * This method initializes tabbedPane

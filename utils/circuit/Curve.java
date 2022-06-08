@@ -73,7 +73,7 @@ public class Curve extends Segment implements Cloneable
 		double	currentA	= Editor.getProperties().getCurrentA();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
-		double	profileStepLength = getValidProfilStepsLength();
+		double	profilStepsLength = getValidProfilStepsLength();
 		double	trackWidth = Editor.getProperties().getMainTrack().getWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth();
 		double	rightBorderWidth = getValidRightBorderWidth();
@@ -91,7 +91,7 @@ public class Curve extends Segment implements Cloneable
 		
 		// calc turn length
 		length = arc * (radiusStart + radiusEnd) / 2;
-		nbSteps = (int) (length / profileStepLength + 0.5) + 1;
+		nbSteps = (int) (length / profilStepsLength + 0.5) + 1;
 
 		trackStartDist += length;
 

@@ -84,9 +84,8 @@ public class TrackProperties extends PropertyPanel
         widthLabel.setBounds(10, 10, 110, 20);
         surfaceLabel.setText("Surface");
         surfaceLabel.setBounds(10, 35, 110, 20);
-        profilStepsLengthLabel.setText("Profile Steps Length");
+        profilStepsLengthLabel.setText("Profil Steps Length");
         profilStepsLengthLabel.setBounds(10, 60, 110, 20);
-
         this.add(widthLabel, null);
         this.add(getWidthTextField(), null);
         this.add(surfaceLabel, null);
@@ -164,7 +163,7 @@ public class TrackProperties extends PropertyPanel
 	}
 
 	/**
-	 * This method initializes profileStepsLengthTextField
+	 * This method initializes profilStepsLengthTextField
 	 *
 	 * @return javax.swing.JTextField
 	 */

@@ -82,8 +82,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private SegmentSlider			heightStartRightSlider		= null;
 	private SegmentSlider			heightEndLeftSlider			= null;
 	private SegmentSlider			heightEndRightSlider		= null;
-	private SegmentSlider			profileStepsSlider			= null;
-	private SegmentSlider			profileStepsLengthSlider	= null;
+	private SegmentSlider			profilStepsSlider			= null;
+	private SegmentSlider			profilStepsLengthSlider		= null;
 	
 	private SegmentSideProperties	rightPanel					= null;
 	private SegmentSideProperties	leftPanel					= null;
@@ -404,52 +404,52 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return endTangentSlider;
 	}
 	/**
-	 * This method initializes profileStepsSlider
+	 * This method initializes profilStepsSlider
 	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getProfileStepsSlider()
 	{
-		if (profileStepsSlider == null)
+		if (profilStepsSlider == null)
 		{
-			profileStepsSlider = new SegmentSlider();
-			profileStepsSlider.setBounds(390, 56, 50, 390);
-			profileStepsSlider.setSection("Steps");
-			profileStepsSlider.setAttr("");
-			profileStepsSlider.setMin(0);
-			profileStepsSlider.setMax(100);
-			profileStepsSlider.setExtent(2);
-			profileStepsSlider.setTickSpacing(0.5);
-			profileStepsSlider.setRealToTextCoeff(1);
-			profileStepsSlider.setMethod("ProfilSteps");
-			profileStepsSlider.setOptional(true);
-			profileStepsSlider.addSliderListener(this);
+			profilStepsSlider = new SegmentSlider();
+			profilStepsSlider.setBounds(390, 56, 50, 390);
+			profilStepsSlider.setSection("Steps");
+			profilStepsSlider.setAttr("");
+			profilStepsSlider.setMin(0);
+			profilStepsSlider.setMax(100);
+			profilStepsSlider.setExtent(2);
+			profilStepsSlider.setTickSpacing(0.5);
+			profilStepsSlider.setRealToTextCoeff(1);
+			profilStepsSlider.setMethod("ProfilSteps");
+			profilStepsSlider.setOptional(true);
+			profilStepsSlider.addSliderListener(this);
 		}
-		return profileStepsSlider;
+		return profilStepsSlider;
 	}
 	/**
-	 * This method initializes profileStepsLengthSlider
+	 * This method initializes profilStepsLengthSlider
 	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getProfileStepsLengthSlider()
 	{
-		if (profileStepsLengthSlider == null)
+		if (profilStepsLengthSlider == null)
 		{
-			profileStepsLengthSlider = new SegmentSlider();
-			profileStepsLengthSlider.setBounds(445, 56, 50, 390);
-			profileStepsLengthSlider.setSection("Steps");
-			profileStepsLengthSlider.setAttr("Len");
-			profileStepsLengthSlider.setMin(0);
-			profileStepsLengthSlider.setMax(100);
-			profileStepsLengthSlider.setExtent(2);
-			profileStepsLengthSlider.setTickSpacing(0.5);
-			profileStepsLengthSlider.setRealToTextCoeff(1);
-			profileStepsLengthSlider.setMethod("ProfilStepsLength");
-			profileStepsLengthSlider.setOptional(true);
-			profileStepsLengthSlider.addSliderListener(this);
+			profilStepsLengthSlider = new SegmentSlider();
+			profilStepsLengthSlider.setBounds(445, 56, 50, 390);
+			profilStepsLengthSlider.setSection("Steps");
+			profilStepsLengthSlider.setAttr("Len");
+			profilStepsLengthSlider.setMin(0);
+			profilStepsLengthSlider.setMax(100);
+			profilStepsLengthSlider.setExtent(2);
+			profilStepsLengthSlider.setTickSpacing(0.5);
+			profilStepsLengthSlider.setRealToTextCoeff(1);
+			profilStepsLengthSlider.setMethod("ProfilStepsLength");
+			profilStepsLengthSlider.setOptional(true);
+			profilStepsLengthSlider.addSliderListener(this);
 		}
-		return profileStepsLengthSlider;
+		return profilStepsLengthSlider;
 	}
 	/**
 	 * This method initializes bankingStartSlider
