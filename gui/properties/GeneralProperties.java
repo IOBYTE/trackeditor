@@ -276,22 +276,23 @@ public class GeneralProperties extends PropertyPanel
 		String tmpPath = getPathTextField().getText();
 		String tmpName = getNameTextField().getText();
 		String tmpCategory = (String) getCategoryComboBox().getSelectedItem();
+		String result = null;
 
-		if (!Editor.getProperties().getHeader().getName().equals(tmpName))
+		if (isDifferent(tmpName, Editor.getProperties().getHeader().getName(), result))
 		{
-			Editor.getProperties().getHeader().setName(tmpName);
+			Editor.getProperties().getHeader().setName(result);
 			frame.documentIsModified = true;
 		}
 
-		if (!Editor.getProperties().getPath().equals(tmpPath))
+		if (isDifferent(tmpPath, Editor.getProperties().getPath(), result))
 		{
-			Editor.getProperties().setPath(tmpPath);
+			Editor.getProperties().setPath(result);
 			frame.documentIsModified = true;
 		}
 
-		if (!Editor.getProperties().getHeader().getCategory().equals(tmpCategory))
+		if (isDifferent(tmpCategory, Editor.getProperties().getHeader().getCategory(), result))
 		{
-			Editor.getProperties().getHeader().setCategory(tmpCategory);
+			Editor.getProperties().getHeader().setCategory(result);
 			frame.documentIsModified = true;
 		}
 
@@ -322,38 +323,33 @@ public class GeneralProperties extends PropertyPanel
 			path.mkdirs();
 		}
 
-		String subcategory = (String) getSubcategoryComboBox().getSelectedItem();
-		if (!subcategory.equals(Editor.getProperties().getHeader().getSubcategory()))
+		if (isDifferent((String) getSubcategoryComboBox().getSelectedItem(),
+			Editor.getProperties().getHeader().getSubcategory(), result))
 		{
-			if (subcategory != "none")
-				Editor.getProperties().getHeader().setSubcategory(subcategory);
-			else
-				Editor.getProperties().getHeader().setSubcategory(null);
+			Editor.getProperties().getHeader().setSubcategory(result);
 			frame.documentIsModified = true;
 		}
 
 		int version = Integer.parseInt((String) getVersionComboBox().getSelectedItem());
 		if (version != Editor.getProperties().getHeader().getVersion())
 		{
-			Editor.getProperties().getHeader().getVersion();
+			Editor.getProperties().getHeader().setVersion(version);
 			frame.documentIsModified = true;
 		}
 
-		String author = getAuthorTextField().getText();
-		if (!author.equals(Editor.getProperties().getHeader().getAuthor()))
+		if (isDifferent(getAuthorTextField().getText(),
+			Editor.getProperties().getHeader().getAuthor(), result))
 		{
-			Editor.getProperties().getHeader().setAuthor(author);
+			Editor.getProperties().getHeader().setAuthor(result);
 			frame.documentIsModified = true;
 		}
 
-		String description = getDescriptionTextField().getText();
-		if (!description.equals(Editor.getProperties().getHeader().getDescription()))
+		if (isDifferent(getDescriptionTextField().getText(),
+			Editor.getProperties().getHeader().getDescription(), result))
 		{
-			Editor.getProperties().getHeader().setDescription(description);
+			Editor.getProperties().getHeader().setDescription(result);
 			frame.documentIsModified = true;
 		}
-
-		Editor.getProperties().valueChanged();
 	}
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

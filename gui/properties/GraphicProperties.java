@@ -179,34 +179,61 @@ public class GraphicProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String description = getDescriptionTextField().getText();
-		if (!description.equals(Editor.getProperties().getGraphic().getDescription()))
+		String result = null;
+		if (isDifferent(getDescriptionTextField().getText(),
+			Editor.getProperties().getGraphic().getDescription(), result))
 		{
-			Editor.getProperties().getGraphic().setDescription(description);
+			Editor.getProperties().getGraphic().setDescription(result);
 			frame.documentIsModified = true;
 		}
 
-		String descriptionNight = getDescriptionNightTextField().getText();
-		if (!descriptionNight.equals(Editor.getProperties().getGraphic().getDescriptionNight()))
+		if (isDifferent(getDescriptionNightTextField().getText(),
+			Editor.getProperties().getGraphic().getDescriptionNight(), result))
 		{
-			Editor.getProperties().getGraphic().setDescriptionNight(descriptionNight);
+			Editor.getProperties().getGraphic().setDescriptionNight(result);
 			frame.documentIsModified = true;
 		}
 
-		String descriptionRainNight = getDescriptionRainNightTextField().getText();
-		if (!descriptionRainNight.equals(Editor.getProperties().getGraphic().getDescriptionRainNight()))
+		if (isDifferent(getDescriptionRainNightTextField().getText(),
+			Editor.getProperties().getGraphic().getDescriptionRainNight(), result))
 		{
-			Editor.getProperties().getGraphic().setDescriptionRainNight(descriptionRainNight);
+			Editor.getProperties().getGraphic().setDescriptionRainNight(result);
 			frame.documentIsModified = true;
 		}
 
-		String backgroundImage = getBackgroundImageTextField().getText();
-		if (!backgroundImage.equals(Editor.getProperties().getGraphic().getBackgroundImage()))
+		if (isDifferent(getBackgroundImageTextField().getText(),
+			Editor.getProperties().getGraphic().getBackgroundImage(), result))
 		{
-			Editor.getProperties().getGraphic().setBackgroundImage(backgroundImage);
+			Editor.getProperties().getGraphic().setBackgroundImage(result);
 			frame.documentIsModified = true;
 		}
 
-		Editor.getProperties().valueChanged();
+		int index = getBackgroundTypeComboBox().getSelectedIndex();
+		int type = Editor.getProperties().getGraphic().getBackgroundType();
+		if (index == 0)
+		{
+			if (type != Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getGraphic().setBackgroundType(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
+		}
+		else
+		{
+			if (type == Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getGraphic().setBackgroundType(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
+			else
+			{
+				int value = Integer.parseInt((String) getBackgroundTypeComboBox().getSelectedItem());
+				if (value != type)
+				{
+					Editor.getProperties().getGraphic().setBackgroundType(value);
+					frame.documentIsModified = true;
+				}
+			}
+		}
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

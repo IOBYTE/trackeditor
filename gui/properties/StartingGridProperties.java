@@ -22,7 +22,6 @@ package gui.properties;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -211,26 +210,24 @@ public class StartingGridProperties extends PropertyPanel
 			}
 		} catch (NumberFormatException e)
 		{
-			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getRows()))
+			if (Editor.getProperties().getStartingGrid().getRows() != Integer.MAX_VALUE)
 			{
 				Editor.getProperties().getStartingGrid().setRows(Integer.MAX_VALUE);
 				frame.documentIsModified = true;
 			}
 		}
 
-		String subcategory = (String) getPolePositionSideComboBox().getSelectedItem();
-		if (!subcategory.equals(Editor.getProperties().getHeader().getSubcategory()))
+		String result = null;
+		if (isDifferent((String) getPolePositionSideComboBox().getSelectedItem(),
+			Editor.getProperties().getStartingGrid().getPolePositionSide(), result))
 		{
-			if (subcategory != "none")
-				Editor.getProperties().getStartingGrid().setPolePositionSide(subcategory);
-			else
-				Editor.getProperties().getStartingGrid().setPolePositionSide(null);
+			Editor.getProperties().getStartingGrid().setPolePositionSide(result);
 			frame.documentIsModified = true;
 		}
 
 		try
 		{
-			int value = Integer.parseInt(this.getDistanceToStartTextField().getText());
+			double value = Double.parseDouble(this.getDistanceToStartTextField().getText());
 			if (value != Editor.getProperties().getStartingGrid().getDistanceToStart())
 			{
 				Editor.getProperties().getStartingGrid().setDistanceToStart(value);
@@ -240,14 +237,14 @@ public class StartingGridProperties extends PropertyPanel
 		{
 			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceToStart()))
 			{
-				Editor.getProperties().getStartingGrid().setDistanceToStart(Integer.MAX_VALUE);
+				Editor.getProperties().getStartingGrid().setDistanceToStart(Double.NaN);
 				frame.documentIsModified = true;
 			}
 		}
 
 		try
 		{
-			int value = Integer.parseInt(this.getDistanceBetweenColumnsTextField().getText());
+			double value = Double.parseDouble(this.getDistanceBetweenColumnsTextField().getText());
 			if (value != Editor.getProperties().getStartingGrid().getDistanceBetweenColumns())
 			{
 				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(value);
@@ -257,14 +254,14 @@ public class StartingGridProperties extends PropertyPanel
 		{
 			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceBetweenColumns()))
 			{
-				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Integer.MAX_VALUE);
+				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Double.NaN);
 				frame.documentIsModified = true;
 			}
 		}
 
 		try
 		{
-			int value = Integer.parseInt(this.getOffsetWithinAColumnTextField().getText());
+			double value = Double.parseDouble(this.getOffsetWithinAColumnTextField().getText());
 			if (value != Editor.getProperties().getStartingGrid().getOffsetWithinAColumn())
 			{
 				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(value);
@@ -274,14 +271,14 @@ public class StartingGridProperties extends PropertyPanel
 		{
 			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getOffsetWithinAColumn()))
 			{
-				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Integer.MAX_VALUE);
+				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Double.NaN);
 				frame.documentIsModified = true;
 			}
 		}
 
 		try
 		{
-			int value = Integer.parseInt(this.getInitialHeightTextField().getText());
+			double value = Double.parseDouble(this.getInitialHeightTextField().getText());
 			if (value != Editor.getProperties().getStartingGrid().getInitialHeight())
 			{
 				Editor.getProperties().getStartingGrid().setInitialHeight(value);
@@ -291,11 +288,9 @@ public class StartingGridProperties extends PropertyPanel
 		{
 			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getInitialHeight()))
 			{
-				Editor.getProperties().getStartingGrid().setInitialHeight(Integer.MAX_VALUE);
+				Editor.getProperties().getStartingGrid().setInitialHeight(Double.NaN);
 				frame.documentIsModified = true;
 			}
 		}
-
-		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

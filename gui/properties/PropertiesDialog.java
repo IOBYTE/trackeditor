@@ -28,9 +28,10 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import gui.EditorFrame;
+import utils.Editor;
 /**
  * @author babis
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -54,7 +55,7 @@ public class PropertiesDialog extends JDialog
 	private GraphicProperties		graphicProperties		= null;
 
 	/**
-	 *  
+	 *
 	 */
 	public PropertiesDialog(EditorFrame frame)
 	{
@@ -64,7 +65,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -79,7 +80,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes tabbedPane
-	 * 
+	 *
 	 * @return javax.swing.JTabbedPane
 	 */
 	private JTabbedPane getTabbedPane()
@@ -101,7 +102,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes generalProperties
-	 * 
+	 *
 	 * @return gui.properties.GeneralProperties
 	 */
 	private GeneralProperties getGeneralProperties()
@@ -114,7 +115,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes pane
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private JPanel getPane()
@@ -130,7 +131,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes footerPanel
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private JPanel getFooterPanel()
@@ -148,7 +149,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes okButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getOkButton()
@@ -170,7 +171,7 @@ public class PropertiesDialog extends JDialog
 	}
 	/**
 	 * This method initializes cancelButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getCancelButton()
@@ -191,10 +192,10 @@ public class PropertiesDialog extends JDialog
 		return cancelButton;
 	}
 	/**
-	 * This method initializes trackProperties	
-	 * 	
-	 * @return gui.properties.TrackProperties	
-	 */    
+	 * This method initializes trackProperties
+	 *
+	 * @return gui.properties.TrackProperties
+	 */
 	private TrackProperties getTrackProperties() {
 		if (trackProperties == null) {
 			trackProperties = new TrackProperties(frame);
@@ -278,9 +279,9 @@ public class PropertiesDialog extends JDialog
 		}
 		return graphicProperties;
 	}
-	
+
 	/**
-	 *  
+	 *
 	 */
 	protected void exit()
 	{
@@ -293,12 +294,13 @@ public class PropertiesDialog extends JDialog
 		this.localInfoProperties.exit();
 		this.startingGridProperties.exit();
 		this.graphicProperties.exit();
+		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();
 	}
-	
+
 	/**
-	 *  
+	 *
 	 */
 	protected void cancel()
 	{

@@ -240,10 +240,11 @@ public class LocalInfoProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String station = getStationTextField().getText();
-		if (!station.equals(Editor.getProperties().getLocalInfo().getStation()))
+		String result = null;
+		if (isDifferent(getStationTextField().getText(),
+			Editor.getProperties().getLocalInfo().getStation(), result))
 		{
-			Editor.getProperties().getLocalInfo().setStation(station);
+			Editor.getProperties().getLocalInfo().setStation(result);
 			frame.documentIsModified = true;
 		}
 
@@ -365,7 +366,5 @@ public class LocalInfoProperties extends PropertyPanel
 				frame.documentIsModified = true;
 			}
 		}
-
-		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

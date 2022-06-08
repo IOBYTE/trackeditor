@@ -8,7 +8,7 @@ import gui.EditorFrame;
 public class PropertyPanel extends JPanel
 {
 	public EditorFrame			frame;
-	
+
 	public PropertyPanel(EditorFrame frame)
 	{
 		super();
@@ -23,7 +23,7 @@ public class PropertyPanel extends JPanel
 		}
 		else
 		{
-			field.setText("");
+			field.setText(null);
 		}
 	}
 
@@ -35,7 +35,7 @@ public class PropertyPanel extends JPanel
 		}
 		else
 		{
-			field.setText("");
+			field.setText(null);
 		}
 	}
 
@@ -47,7 +47,34 @@ public class PropertyPanel extends JPanel
 		}
 		else
 		{
-			field.setText("");
+			field.setText(null);
 		}
+	}
+
+	public boolean isDifferent(String newValue, String oldValue, String result)
+	{
+		if ((newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE)) && 
+			(oldValue == null || oldValue.isEmpty()))
+		{
+			return false;
+		}
+
+		if (newValue == null && !oldValue.isEmpty())
+		{
+			result = newValue;
+			return true;
+		}
+
+		boolean different = !newValue.equals(oldValue);
+
+		if (different)
+		{
+			if (newValue.equals("none") || newValue == String.valueOf(Integer.MAX_VALUE))
+				result = null;
+			else
+				result = newValue;
+		}
+
+		return different;
 	}
 }

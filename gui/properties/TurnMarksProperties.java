@@ -273,7 +273,5 @@ public class TurnMarksProperties extends PropertyPanel
 				frame.documentIsModified = true;
 			}
 		}
-
-		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

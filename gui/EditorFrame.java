@@ -201,7 +201,7 @@ public class EditorFrame extends JFrame
 				public void actionPerformed(ActionEvent e)
 				{
 					//view.setBackgroundImage(properties.getImage());
-					documentIsModified = true;
+					//documentIsModified = true;
 
 				}
 

@@ -60,7 +60,7 @@ public class TrackProperties extends PropertyPanel
 	private Vector<String>	roadSurfaceVector				= new Vector<String>(Arrays.asList(roadSurfaceItems));
 
 	/**
-	 * 
+	 *
 	 */
 	public TrackProperties(EditorFrame frame)
 	{
@@ -70,7 +70,7 @@ public class TrackProperties extends PropertyPanel
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize() {
@@ -178,7 +178,7 @@ public class TrackProperties extends PropertyPanel
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void exit()
 	{
@@ -199,29 +199,18 @@ public class TrackProperties extends PropertyPanel
 			}
 		}
 
-		String newSurface = (String) surfaceComboBox.getSelectedItem();
-		String oldSurface = Editor.getProperties().getMainTrack().getSurface();
-		if (newSurface != null)
+		String result = null;
+		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
+			Editor.getProperties().getMainTrack().getSurface(), result))
 		{
-			if (!newSurface.equals(oldSurface))
-			{
-				Editor.getProperties().getMainTrack().setSurface(newSurface);
-				frame.documentIsModified = true;
-			}
-		}
-		else
-		{
-			if (oldSurface != null && !oldSurface.isEmpty())
-			{
-				Editor.getProperties().getMainTrack().setSurface(null);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getMainTrack().setSurface(result);
+			frame.documentIsModified = true;
 		}
 
 		try
 		{
 			double value = Double.parseDouble(this.getProfileStepsLengthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getWidth())
+			if (value != Editor.getProperties().getMainTrack().getProfileStepLength())
 			{
 				Editor.getProperties().getMainTrack().setProfileStepLength(value);
 				frame.documentIsModified = true;

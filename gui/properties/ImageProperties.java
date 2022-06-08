@@ -48,7 +48,7 @@ public class ImageProperties extends PropertyPanel
 	private String sep = System.getProperty("file.separator");
 
 	/**
-	 * 
+	 *
 	 */
 	public ImageProperties(EditorFrame frame)
 	{
@@ -57,7 +57,7 @@ public class ImageProperties extends PropertyPanel
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void initialize()
 	{
@@ -79,7 +79,7 @@ public class ImageProperties extends PropertyPanel
 
 	/**
 	 * This method initializes pathTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	public JTextField getPathTextField()
@@ -94,7 +94,7 @@ public class ImageProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes browseButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	public JButton getBrowseButton()
@@ -115,7 +115,7 @@ public class ImageProperties extends PropertyPanel
 		return browseButton;
 	}
 	/**
-	 *  
+	 *
 	 */
 	protected void selectPath()
 	{
@@ -143,12 +143,12 @@ public class ImageProperties extends PropertyPanel
 			getPathTextField().setText(fc.getSelectedFile().toString());
 		}
 	}
-	
+
 	/**
-	 * This method initializes imageScaleTextField	
-	 * 	
-	 * @return javax.swing.JTextField	
-	 */    
+	 * This method initializes imageScaleTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
 	public JTextField getImageScaleTextField() {
 		if (imageScaleTextField == null) {
 			imageScaleTextField = new JTextField();
@@ -171,14 +171,32 @@ public class ImageProperties extends PropertyPanel
 	{
 		this.pathTextField = pathTextField;
 	}
-	
+
 	public void exit()
 	{
-	    double scale = Double.parseDouble(getImageScaleTextField().getText());
-		String tmpPath = getPathTextField().getText();
-		Editor.getProperties().setImage(tmpPath);
-		Editor.getProperties().setImageScale(scale);
-		Editor.getProperties().valueChanged();
+		String result = null;
+		if (isDifferent(getPathTextField().getText(), Editor.getProperties().getImage(), result))
+		{
+			Editor.getProperties().setImage(result);
+			frame.documentIsModified = true;
+		}
+
+		try
+		{
+			double value = Double.parseDouble(getImageScaleTextField().getText());
+			if (value != Editor.getProperties().getImageScale())
+			{
+				Editor.getProperties().setImageScale(value);
+				frame.documentIsModified = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (!Double.isNaN(Editor.getProperties().getImageScale()))
+			{
+				Editor.getProperties().setImageScale(Double.NaN);
+				frame.documentIsModified = true;
+			}
+		}
 	}
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

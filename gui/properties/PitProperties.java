@@ -36,7 +36,7 @@ import utils.circuit.SegmentSide;
 
 /**
  * @author babis
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -73,7 +73,7 @@ public class PitProperties extends PropertyPanel
 	private boolean 			generatePits			= false;
 
 	/**
-	 *  
+	 *
 	 */
 	public PitProperties(EditorFrame frame)
 	{
@@ -83,7 +83,7 @@ public class PitProperties extends PropertyPanel
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -171,19 +171,21 @@ public class PitProperties extends PropertyPanel
 	{
 		if (styleComboBox == null)
 		{
-			String[] items = {"none", "on track side", "on separate path", "no building"};
+			String[] items = {"none", "no pits", "on track side", "on separate path", "no building"};
 			styleComboBox = new JComboBox<String>(items);
 			styleComboBox.setBounds(100, 10, 100, 20);
 			int style = Editor.getProperties().getMainTrack().getPits().getStyle();
 			if (style == Integer.MAX_VALUE)
 				style = 0;
+			else
+				style++;
 			styleComboBox.setSelectedIndex(style);
 		}
 		return styleComboBox;
 	}
 	/**
 	 * This method initializes sideComboBox
-	 * 
+	 *
 	 * @return javax.swing.JComboBox
 	 */
 	private JComboBox<String> getSideComboBox()
@@ -202,7 +204,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes entryTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getEntryTextField()
@@ -217,7 +219,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes startTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getStartTextField()
@@ -277,7 +279,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes endTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getEndTextField()
@@ -292,7 +294,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes exitTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getExitTextField()
@@ -307,7 +309,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes widthTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getWidthTextField()
@@ -322,7 +324,7 @@ public class PitProperties extends PropertyPanel
 	}
 	/**
 	 * This method initializes lengthTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getLengthTextField()
@@ -367,68 +369,169 @@ public class PitProperties extends PropertyPanel
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	public void exit()
 	{
-		Editor.getProperties().getMainTrack().getPits().setStyle(getStyleComboBox().getSelectedIndex());	// TODO handle missing
-		String side = (String) getSideComboBox().getSelectedItem();
-		if (side == "none")
-			side = null;
-		Editor.getProperties().getMainTrack().getPits().setSide(side);
-		Editor.getProperties().getMainTrack().getPits().setEntry(this.getEntryTextField().getText());
-		Editor.getProperties().getMainTrack().getPits().setStart(this.getStartTextField().getText());
-		Editor.getProperties().getMainTrack().getPits().setStartBuildings(this.getStartBuildingsTextField().getText());
-		Editor.getProperties().getMainTrack().getPits().setStopBuildings(this.getStopBuildingsTextField().getText());
+		int index = getStyleComboBox().getSelectedIndex();
+		int style = Editor.getProperties().getMainTrack().getPits().getStyle();
+		if (index == 0)
+		{
+			if (style != Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getMainTrack().getPits().setStyle(Integer.MAX_VALUE);
+				frame.documentIsModified = true;				
+			}
+		}
+		else if (style == Integer.MAX_VALUE || style != index - 1)
+		{
+			Editor.getProperties().getMainTrack().getPits().setStyle(index - 1);
+			frame.documentIsModified = true;				
+		}
+
+		String result = null;
+		if (isDifferent((String) getSideComboBox().getSelectedItem(),
+			Editor.getProperties().getMainTrack().getPits().getSide(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setSide(result);
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getEntryTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getEntry(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setEntry(result);
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getStartTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getStart(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setStart(result);
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getStartBuildingsTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getStartBuildings(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setStartBuildings(result);
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getStopBuildingsTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getStopBuildings(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setStopBuildings(result);
+			frame.documentIsModified = true;
+		}
+
 		try
 		{
-			int maxPits = Integer.parseInt(this.getMaxPitsTextField().getText());
-			if (maxPits != Integer.MAX_VALUE)
-				Editor.getProperties().getMainTrack().getPits().setMaxPits(maxPits);
+			int value = Integer.parseInt(this.getMaxPitsTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getPits().getMaxPits())
+			{
+				Editor.getProperties().getMainTrack().getPits().setMaxPits(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getMainTrack().getPits().setMaxPits(Integer.MAX_VALUE);
+			if (Editor.getProperties().getMainTrack().getPits().getMaxPits() != Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getMainTrack().getPits().setMaxPits(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
 		}
-		Editor.getProperties().getMainTrack().getPits().setEnd(this.getEndTextField().getText());
-		Editor.getProperties().getMainTrack().getPits().setExit(this.getExitTextField().getText());
+
+		if (isDifferent(getEndTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getEnd(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setEnd(result);
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getExitTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getExit(), result))
+		{
+			Editor.getProperties().getMainTrack().getPits().setExit(result);
+			frame.documentIsModified = true;
+		}
+
 		try
 		{
-			Editor.getProperties().getMainTrack().getPits().setWidth(Double.parseDouble(this.getWidthTextField().getText()));
+			double value = Double.parseDouble(getWidthTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getPits().getWidth())
+			{
+				Editor.getProperties().getMainTrack().getPits().setWidth(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getMainTrack().getPits().setWidth(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getWidth()))
+			{
+				Editor.getProperties().getMainTrack().getPits().setWidth(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
+		
 		try
 		{
-			Editor.getProperties().getMainTrack().getPits().setLength(Double.parseDouble(this.getLengthTextField().getText()));
+			double value = Double.parseDouble(getLengthTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getPits().getLength())
+			{
+				Editor.getProperties().getMainTrack().getPits().setLength(value);
+				frame.documentIsModified = true;
+			}
 		} catch (NumberFormatException e)
 		{
-			Editor.getProperties().getMainTrack().getPits().setLength(Double.NaN);
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getLength()))
+			{
+				Editor.getProperties().getMainTrack().getPits().setLength(Double.NaN);
+				frame.documentIsModified = true;
+			}
 		}
-		if(this.getGeneratePitsCheckBox().isSelected())
+
+		try
+		{
+			int value = Integer.parseInt(this.getIndicatorTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getPits().getIndicator())
+			{
+				Editor.getProperties().getMainTrack().getPits().setIndicator(value);
+				frame.documentIsModified = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (Editor.getProperties().getMainTrack().getPits().getIndicator() != Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getMainTrack().getPits().setIndicator(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
+		}
+
+		try
+		{
+			double value = Double.parseDouble(getSpeedLimitTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getPits().getSpeedLimit())
+			{
+				Editor.getProperties().getMainTrack().getPits().setSpeedLimit(value);
+				frame.documentIsModified = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getSpeedLimit()))
+			{
+				Editor.getProperties().getMainTrack().getPits().setSpeedLimit(Double.NaN);
+				frame.documentIsModified = true;
+			}
+		}
+
+		if (getGeneratePitsCheckBox().isSelected())
 		{
 			createPits();
+			frame.documentIsModified = true;
 		}
-		try
-		{
-			int indicator = Integer.parseInt(this.getIndicatorTextField().getText());
-			if (indicator != Integer.MAX_VALUE)
-				Editor.getProperties().getMainTrack().getPits().setIndicator(indicator);
-		} catch (NumberFormatException e)
-		{
-			Editor.getProperties().getMainTrack().getPits().setIndicator(Integer.MAX_VALUE);
-		}
-		try
-		{
-			Editor.getProperties().getMainTrack().getPits().setSpeedLimit(Double.parseDouble(this.getSpeedLimitTextField().getText()));
-		} catch (NumberFormatException e)
-		{
-			Editor.getProperties().getMainTrack().getPits().setSpeedLimit(Double.NaN);
-		}
-		Editor.getProperties().valueChanged();
 	}
 	/**
-	 * 
+	 *
 	 */
 	private void createPits()
 	{
@@ -439,7 +542,7 @@ public class PitProperties extends PropertyPanel
 		Segment pitStopBuildings = null;
 		Segment pitEnd = null;
 		Segment pitExit = null;
-		
+
 		Iterator it = data.iterator();
 		while (it.hasNext())
 		{
@@ -484,7 +587,7 @@ public class PitProperties extends PropertyPanel
 		side.setSideSurface("road1");
 		side.setBarrierHeight(1);
 		side.setBarrierWidth(0.1);
-		
+
 		if(pitExit == null)
 		{
 			System.out.println("No pit exit");
@@ -503,16 +606,16 @@ public class PitProperties extends PropertyPanel
 		side.setSideSurface("road1");
 		side.setBarrierHeight(1);
 		side.setBarrierWidth(0.1);
-		
+
 		if(pitStart == null || pitEnd == null)
 		{
 			System.out.println("No pit start or end");
 			return;
 		}
-		
+
 		int start = data.indexOf(pitEntry);
 		int end = data.indexOf(pitExit);
-		
+
 		for(int i=start+1; i<data.size(); i++)
 		{
 			if(Editor.getProperties().getMainTrack().getPits().getSide().equals("left"))
@@ -530,7 +633,7 @@ public class PitProperties extends PropertyPanel
 			side.setBarrierHeight(1);
 			side.setBarrierWidth(0.1);
 		}
-		
+
 		for(int i=0; i<end; i++)
 		{
 			if(Editor.getProperties().getMainTrack().getPits().getSide().equals("left"))
@@ -551,17 +654,17 @@ public class PitProperties extends PropertyPanel
 	}
 
 	/**
-	 * This method initializes generatePitsCheckBox	
-	 * 	
-	 * @return javax.swing.JCheckBox	
-	 */    
+	 * This method initializes generatePitsCheckBox
+	 *
+	 * @return javax.swing.JCheckBox
+	 */
 	private JCheckBox getGeneratePitsCheckBox() {
 		if (generatePitsCheckBox == null) {
 			generatePitsCheckBox = new JCheckBox();
 			generatePitsCheckBox.setBounds(328, 10, 20, 20);
-			generatePitsCheckBox.addActionListener(new java.awt.event.ActionListener() { 
-				public void actionPerformed(java.awt.event.ActionEvent e) 
-				{    
+			generatePitsCheckBox.addActionListener(new java.awt.event.ActionListener() {
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
 					if(generatePitsCheckBox.isSelected())
 					{
 						generatePits = true;

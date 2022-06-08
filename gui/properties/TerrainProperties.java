@@ -28,7 +28,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -38,7 +37,7 @@ import utils.circuit.TerrainGeneration;
 
 /**
  * @author Robert Reif
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -68,7 +67,7 @@ public class TerrainProperties extends PropertyPanel
 	private JComboBox<String>	surfaceComboBox				= null;
 	private JButton				defaultButton				= null;
 	private JButton				deleteButton				= null;
-	
+
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
      "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
@@ -82,7 +81,7 @@ public class TerrainProperties extends PropertyPanel
 	private Vector<String>	roadSurfaceVector				= new Vector<String>(Arrays.asList(roadSurfaceItems));
 
 	/**
-	 *  
+	 *
 	 */
 	public TerrainProperties(EditorFrame frame)
 	{
@@ -92,7 +91,7 @@ public class TerrainProperties extends PropertyPanel
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -110,7 +109,7 @@ public class TerrainProperties extends PropertyPanel
 		surfaceLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);		
+		this.setSize(362, 251);
 		trackStepLabel.setBounds(10, 10, 90, 20);
 		trackStepLabel.setText("Track Step");
 		borderMarginLabel.setBounds(10, 35, 90, 20);
@@ -181,7 +180,7 @@ public class TerrainProperties extends PropertyPanel
 
 	/**
 	 * This method initializes trackStepTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getTrackStepTextField()
@@ -197,7 +196,7 @@ public class TerrainProperties extends PropertyPanel
 
 	/**
 	 * This method initializes borderMarginTextField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getBorderMarginTextField()
@@ -445,7 +444,7 @@ public class TerrainProperties extends PropertyPanel
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	public void exit()
 	{
@@ -568,36 +567,33 @@ public class TerrainProperties extends PropertyPanel
 			}
 		}
 
-		String orientation = (String) getOrientationComboBox().getSelectedItem();
-		if (orientation == "none")
-			orientation = null;
-		if (!orientation.equals(Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation()))
+		String result = null;
+		if (isDifferent((String) getOrientationComboBox().getSelectedItem(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation(), result))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setOrientation(orientation);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setOrientation(result);
 			frame.documentIsModified = true;
 		}
 
-		String elevationMap = getElevationMapTextField().getText();
-		if (!elevationMap.equals(Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap()))
+		if (isDifferent(getElevationMapTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap(), result))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap(elevationMap);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap(result);
 			frame.documentIsModified = true;
 		}
 
-		String reliefFile = getReliefFileTextField().getText();
-		if (!reliefFile.equals(Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile()))
+		if (isDifferent(getReliefFileTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile(), result))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile(reliefFile);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile(result);
 			frame.documentIsModified = true;
 		}
 
-		String surface = (String) surfaceComboBox.getSelectedItem();
-		if (!surface.equals(Editor.getProperties().getGraphic().getTerrainGeneration().getSurface()))
+		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getSurface(), result))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setSurface(surface);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setSurface(result);
 			frame.documentIsModified = true;
 		}
-
-		Editor.getProperties().valueChanged();
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"
