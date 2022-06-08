@@ -73,7 +73,7 @@ public class Curve extends Segment implements Cloneable
 		double	currentA	= Editor.getProperties().getCurrentA();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
-		double	profileStepLength = getValidProfilStepLength();
+		double	profileStepLength = getValidProfilStepsLength();
 		double	trackWidth = Editor.getProperties().getMainTrack().getWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth();
 		double	rightBorderWidth = getValidRightBorderWidth();

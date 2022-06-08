@@ -94,7 +94,7 @@ public class XmlReader
 
         Editor.getProperties().getMainTrack().setWidth(getAttrNumValue(mainTrack, "width"));
         Editor.getProperties().getMainTrack().setSurface(getAttrStrValue(mainTrack, "surface"));
-        Editor.getProperties().getMainTrack().setProfileStepLength(getAttrNumValue(mainTrack, "profil steps length"));
+        Editor.getProperties().getMainTrack().setProfilStepsLength(getAttrNumValue(mainTrack, "profil steps length"));
         Editor.getProperties().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
         Editor.getProperties().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
         Editor.getProperties().getMainTrack().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
@@ -543,7 +543,6 @@ public class XmlReader
                 shape = new Curve(getAttrStrValue(e, "type"), null);
             }
             shape = setSegment(e, shape, prev);
-            shape.setProfilStepLength(4);
             try
             {
                 shape.calcShape(prev);

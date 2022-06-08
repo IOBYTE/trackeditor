@@ -66,6 +66,7 @@ import utils.Project;
 import utils.Properties;
 import utils.TrackData;
 import utils.circuit.Curve;
+import utils.circuit.MainTrack;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
 import utils.undo.Undo;
@@ -337,12 +338,15 @@ public class EditorFrame extends JFrame
      */
     private void createNewCircuit()
     {
+        Editor.getProperties().getMainTrack().setProfilStepsLength(MainTrack.DEFAULT_WIDTH);
+        Editor.getProperties().getMainTrack().setWidth(MainTrack.DEFAULT_PROFIL_STEPS_LENGTH);
+        Editor.getProperties().getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
+
         Segment shape;
         Vector<Segment> track = new Vector<Segment>();
 
         shape = new Straight();
         shape.setLength(100);
-        shape.setProfilStepLength(4);
         shape.setHeightStartLeft(0);
         shape.setHeightStartRight(0);
         shape.setHeightEndLeft(0);
@@ -355,7 +359,6 @@ public class EditorFrame extends JFrame
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
         ((Curve)shape).setArc(Math.PI);
-        shape.setProfilStepLength(4);
         shape.setHeightStartLeft(0);
         shape.setHeightStartRight(0);
         shape.setHeightEndLeft(0);
@@ -366,7 +369,6 @@ public class EditorFrame extends JFrame
 
         shape = new Straight();
         shape.setLength(100);
-        shape.setProfilStepLength(4);
         shape.setHeightStartLeft(0);
         shape.setHeightStartRight(0);
         shape.setHeightEndLeft(0);
@@ -379,7 +381,6 @@ public class EditorFrame extends JFrame
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
         ((Curve)shape).setArc(Math.PI);
-        shape.setProfilStepLength(4);
         shape.setHeightStartLeft(0);
         shape.setHeightStartRight(0);
         shape.setHeightEndLeft(0);

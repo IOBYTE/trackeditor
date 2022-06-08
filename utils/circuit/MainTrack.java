@@ -1,15 +1,20 @@
 package utils.circuit;
 
-public class MainTrack {
-	private double				width				= 10;
-	private String				surface				= "asphalt2-lines";
-	private double				racelineWidthscale	= Double.NaN;
-	private double				racelineInt			= Double.NaN;
-	private double				racelinExt			= Double.NaN;
-	private double				profileStepLength	= 4;
-	private Pits				pits				= new Pits();
-	private SegmentSide			left				= new SegmentSide();
-	private SegmentSide			right				= new SegmentSide();
+public class MainTrack
+{
+	public static final	double	DEFAULT_WIDTH				= 10;
+	public static final	String	DEFAULT_SURFACE				= "asphalt2-lines";
+	public static final	double	DEFAULT_PROFIL_STEPS_LENGTH	= 4;
+
+	private double				width						= 10;
+	private String				surface						= null;
+	private double				racelineWidthscale			= Double.NaN;
+	private double				racelineInt					= Double.NaN;
+	private double				racelinExt					= Double.NaN;
+	private double				profilStepsLength			= Double.NaN;
+	private Pits				pits						= new Pits();
+	private SegmentSide			left						= new SegmentSide();
+	private SegmentSide			right						= new SegmentSide();
 
 	/**
 	 * @return Returns the width.
@@ -41,18 +46,18 @@ public class MainTrack {
 		this.surface = surface;
 	}
 	/**
-	 * @return Returns the profileStepLength.
+	 * @return Returns the profilStepsLength.
 	 */
-	public double getProfileStepLength()
+	public double getProfilStepsLength()
 	{
-		return profileStepLength;
+		return profilStepsLength;
 	}
 	/**
-	 * @param profileStepLength The profileStepLength to set.
+	 * @param profilStepsLength The profilStepsLength to set.
 	 */
-	public void setProfileStepLength(double profileStepLength)
+	public void setProfilStepsLength(double profilStepsLength)
 	{
-		this.profileStepLength = profileStepLength;
+		this.profilStepsLength = profilStepsLength;
 	}
 
     /**
@@ -131,7 +136,7 @@ public class MainTrack {
 		System.out.println(indent + "  racelineWidthscale : " + racelineWidthscale);
 		System.out.println(indent + "  racelineInt        : " + racelineInt);
 		System.out.println(indent + "  racelinExt         : " + racelinExt);
-		System.out.println(indent + "  profileStepLength  : " + profileStepLength);
+		System.out.println(indent + "  profilStepsLength  : " + profilStepsLength);
 		pits.dump(indent + "    ");
     }
 }

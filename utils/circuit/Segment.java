@@ -60,9 +60,8 @@ public class Segment implements Cloneable
 	public double			distFromCircuitStart;
 
 	// All datas
-	protected double		profilStepLength;
-	protected double		length;
-	protected String		surface;
+	protected double		length					= Double.NaN;
+	protected String		surface					= null;
 
 	protected double		heightStartLeft			= Double.NaN;
 	protected double		heightStartRight		= Double.NaN;
@@ -73,7 +72,7 @@ public class Segment implements Cloneable
 	protected double		bankingStart			= Double.NaN;
 	protected double		bankingEnd				= Double.NaN;
 
-	protected String		profil;
+	protected String		profil					= null;
 	protected double		profilSteps				= Double.NaN;
 	protected double		profilStepsLength		= Double.NaN;
 	protected double		profilStartTangent		= Double.NaN;
@@ -601,21 +600,6 @@ public class Segment implements Cloneable
 		this.type = type;
 	}
 	/**
-	 * @return Returns the profilStepLength.
-	 */
-	public double getProfilStepLength()
-	{
-		return profilStepLength;
-	}
-	/**
-	 * @param profilStepLength
-	 *            The profilStepLength to set.
-	 */
-	public void setProfilStepLength(double profilStepLength)
-	{
-		this.profilStepLength = profilStepLength;
-	}
-	/**
 	 * @return Returns the count.
 	 */
 	public int getCount()
@@ -733,15 +717,15 @@ public class Segment implements Cloneable
         return dy;
     }
 
-    public double getValidProfilStepLength()
+    public double getValidProfilStepsLength()
     {
-        double	length = profilStepLength;
-        if (Double.isNaN(profilStepLength))
+        double	length = profilStepsLength;
+        if (Double.isNaN(profilStepsLength))
         {
-            length = Editor.getProperties().getMainTrack().getProfileStepLength();
+            length = Editor.getProperties().getMainTrack().getProfilStepsLength();
             if (Double.isNaN(length))
             {
-                length = 0.5;
+                length = MainTrack.DEFAULT_PROFIL_STEPS_LENGTH;
             }
         }
         return length;

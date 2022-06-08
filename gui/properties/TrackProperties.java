@@ -44,8 +44,8 @@ public class TrackProperties extends PropertyPanel
 	private JTextField			widthTextField				= null;
 	private JLabel				surfaceLabel				= null;
 	private JComboBox<String>	surfaceComboBox				= null;
-	private JLabel				profileStepsLengthLabel		= null;
-	private JTextField			profileStepsLengthTextField	= null;
+	private JLabel				profilStepsLengthLabel		= null;
+	private JTextField			profilStepsLengthTextField	= null;
 
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -76,7 +76,7 @@ public class TrackProperties extends PropertyPanel
 	private void initialize() {
         widthLabel = new JLabel();
         surfaceLabel = new JLabel();
-        profileStepsLengthLabel = new JLabel();
+        profilStepsLengthLabel = new JLabel();
         this.setLayout(null);
         this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
         this.setSize(356, 259);
@@ -84,15 +84,15 @@ public class TrackProperties extends PropertyPanel
         widthLabel.setBounds(10, 10, 110, 20);
         surfaceLabel.setText("Surface");
         surfaceLabel.setBounds(10, 35, 110, 20);
-        profileStepsLengthLabel.setText("Profile Steps Length");
-        profileStepsLengthLabel.setBounds(10, 60, 110, 20);
+        profilStepsLengthLabel.setText("Profile Steps Length");
+        profilStepsLengthLabel.setBounds(10, 60, 110, 20);
 
         this.add(widthLabel, null);
         this.add(getWidthTextField(), null);
         this.add(surfaceLabel, null);
         this.add(getSurfaceComboBox(), null);
-        this.add(profileStepsLengthLabel, null);
-        this.add(getProfileStepsLengthTextField(), null);
+        this.add(profilStepsLengthLabel, null);
+        this.add(getProfilStepsLengthTextField(), null);
 
         Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
         for (int i = 0; i < surfaces.size(); i++)
@@ -168,13 +168,13 @@ public class TrackProperties extends PropertyPanel
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getProfileStepsLengthTextField() {
-		if (profileStepsLengthTextField == null) {
-			profileStepsLengthTextField = new JTextField();
-			profileStepsLengthTextField.setBounds(120, 60, 50, 20);
-			setTextField(profileStepsLengthTextField, Editor.getProperties().getMainTrack().getProfileStepLength());
+	private JTextField getProfilStepsLengthTextField() {
+		if (profilStepsLengthTextField == null) {
+			profilStepsLengthTextField = new JTextField();
+			profilStepsLengthTextField.setBounds(120, 60, 50, 20);
+			setTextField(profilStepsLengthTextField, Editor.getProperties().getMainTrack().getProfilStepsLength());
 		}
-		return profileStepsLengthTextField;
+		return profilStepsLengthTextField;
 	}
 
 	/**
@@ -209,17 +209,17 @@ public class TrackProperties extends PropertyPanel
 
 		try
 		{
-			double value = Double.parseDouble(this.getProfileStepsLengthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getProfileStepLength())
+			double value = Double.parseDouble(this.getProfilStepsLengthTextField().getText());
+			if (value != Editor.getProperties().getMainTrack().getProfilStepsLength())
 			{
-				Editor.getProperties().getMainTrack().setProfileStepLength(value);
+				Editor.getProperties().getMainTrack().setProfilStepsLength(value);
 				frame.documentIsModified = true;
 			}
 		} catch (NumberFormatException e)
 		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getProfileStepLength()))
+			if (!Double.isNaN(Editor.getProperties().getMainTrack().getProfilStepsLength()))
 			{
-				Editor.getProperties().getMainTrack().setProfileStepLength(Double.NaN);
+				Editor.getProperties().getMainTrack().setProfilStepsLength(Double.NaN);
 				frame.documentIsModified = true;
 			}
 		}
