@@ -325,7 +325,7 @@ public class TerrainProperties extends JPanel
 		{
 			elevationMapTextField = new JTextField();
 			elevationMapTextField.setBounds(120, 210, 100, 20);
-			elevationMapTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
+			setTextField(elevationMapTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
 		}
 		return elevationMapTextField;
 	}
@@ -341,7 +341,7 @@ public class TerrainProperties extends JPanel
 		{
 			reliefFileTextField = new JTextField();
 			reliefFileTextField.setBounds(120, 235, 100, 20);
-			reliefFileTextField.setText(Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
+			setTextField(reliefFileTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
 		}
 		return reliefFileTextField;
 	}
@@ -404,8 +404,8 @@ public class TerrainProperties extends JPanel
 					setTextField(maximumAltitudeTextField, TerrainGeneration.DEFAULT_MAXIMUM_ALTITUDE);
 					setTextField(minimumAltitudeTextField, TerrainGeneration.DEFAULT_MINIMUM_ALTITUDE);
 					setTextField(groupSizeTextField, TerrainGeneration.DEFAULT_GROUP_SIZE);
-					elevationMapTextField.setText(TerrainGeneration.DEFAULT_ELEVATION_MAP);
-					reliefFileTextField.setText(TerrainGeneration.DEFAULT_RELIEF_FILE);
+					setTextField(elevationMapTextField, TerrainGeneration.DEFAULT_ELEVATION_MAP);
+					setTextField(reliefFileTextField, TerrainGeneration.DEFAULT_RELIEF_FILE);
 					surfaceComboBox.setSelectedItem(TerrainGeneration.DEFAULT_SURFACE);
 				}
 			});
@@ -451,6 +451,18 @@ public class TerrainProperties extends JPanel
 		if (!Double.isNaN(value))
 		{
 			field.setText(value + "");
+		}
+		else
+		{
+			field.setText(null);
+		}
+	}
+
+	private void setTextField(JTextField field, String value)
+	{
+		if (value != null && !value.isEmpty())
+		{
+			field.setText(value);
 		}
 		else
 		{
