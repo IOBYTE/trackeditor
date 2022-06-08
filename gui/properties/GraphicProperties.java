@@ -20,6 +20,8 @@
  */
 package gui.properties;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -35,15 +37,17 @@ import utils.Editor;
  */
 public class GraphicProperties extends JPanel
 {
-	private EditorFrame		frame;
-	private JLabel			descriptionLabel				= null;
-	private JTextField		descriptionTextField			= null;
-	private JLabel			descriptionNightLabel			= null;
-	private JTextField		descriptionNightTextField		= null;
-	private JLabel			descriptionRainNightLabel		= null;
-	private JTextField		descriptionRainNightTextField	= null;
-	private JLabel			backgroundImageLabel			= null;
-	private JTextField		backgroundImageTextField		= null;
+	private EditorFrame			frame;
+	private JLabel				descriptionLabel				= null;
+	private JTextField			descriptionTextField			= null;
+	private JLabel				descriptionNightLabel			= null;
+	private JTextField			descriptionNightTextField		= null;
+	private JLabel				descriptionRainNightLabel		= null;
+	private JTextField			descriptionRainNightTextField	= null;
+	private JLabel				backgroundImageLabel			= null;
+	private JTextField			backgroundImageTextField		= null;
+	private JLabel				backgroundTypeLabel				= null;
+	private JComboBox<String>	backgroundTypeComboBox			= null;
 
 	/**
 	 *
@@ -66,6 +70,7 @@ public class GraphicProperties extends JPanel
 		descriptionNightLabel = new JLabel();
 		descriptionRainNightLabel = new JLabel();
 		backgroundImageLabel = new JLabel();
+		backgroundTypeLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 		this.setSize(362, 251);
@@ -77,14 +82,18 @@ public class GraphicProperties extends JPanel
 		descriptionRainNightLabel.setText("Description Rain Night");
 		backgroundImageLabel.setBounds(10, 85, 120, 20);
 		backgroundImageLabel.setText("Background Image");
+		backgroundTypeLabel.setBounds(10, 110, 120, 20);
+		backgroundTypeLabel.setText("Background Type");
 		this.add(descriptionLabel, null);
 		this.add(descriptionNightLabel, null);
 		this.add(descriptionRainNightLabel, null);
 		this.add(backgroundImageLabel, null);
+		this.add(backgroundTypeLabel, null);
 		this.add(getDescriptionTextField(), null);
 		this.add(getDescriptionNightTextField(), null);
 		this.add(getDescriptionRainNightTextField(), null);
 		this.add(getBackgroundImageTextField(), null);
+		this.add(getBackgroundTypeComboBox(), null);
 	}
 
 	/**
@@ -154,6 +163,26 @@ public class GraphicProperties extends JPanel
 				backgroundImageTextField.setText(value);
 		}
 		return backgroundImageTextField;
+	}
+
+	/**
+	 * This method initializes backgroundTypeComboBox
+	 *
+	 * @return javax.swing.JComboBox
+	 */
+	private JComboBox<String> getBackgroundTypeComboBox()
+	{
+		if (backgroundTypeComboBox == null)
+		{
+			String[] types = {"none", "0", "2", "4"};
+			backgroundTypeComboBox = new JComboBox<String>();
+			backgroundTypeComboBox.setModel(new DefaultComboBoxModel<String>(types));
+			backgroundTypeComboBox.setBounds(130, 110, 120, 20);
+			int value = Editor.getProperties().getGraphic().getBackgroundType();
+			if (value != Integer.MAX_VALUE)
+				backgroundTypeComboBox.setSelectedItem(String.valueOf(value));
+		}
+		return backgroundTypeComboBox;
 	}
 
 	/**

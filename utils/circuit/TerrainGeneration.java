@@ -2,50 +2,32 @@ package utils.circuit;
 
 import java.util.Vector;
 
-public class TerrainGeneration {
+public class TerrainGeneration
+{
+	public static final double 	DEFAULT_TRACK_STEP			= 20;
+	public static final double	DEFAULT_BORDER_MARGIN		= 50;
+	public static final double	DEFAULT_BORDER_STEP			= 30;
+	public static final double	DEFAULT_BORDER_HEIGHT		= 15;
+	public static final String	DEFAULT_ORIENTATION			= "clockwise";
+	public static final double	DEFAULT_MAXIMUM_ALTITUDE	= Double.NaN;
+	public static final double	DEFAULT_MINIMUM_ALTITUDE	= Double.NaN;
+	public static final double	DEFAULT_GROUP_SIZE			= Double.NaN;
+	public static final String	DEFAULT_ELEVATION_MAP		= null;
+	public static final String	DEFAULT_RELIEF_FILE			= null;
+	public static final String	DEFAULT_SURFACE				= null;
 
-	private double				trackStep		= Double.NaN;
-	private double				borderMargin	= Double.NaN;
-	private double				borderStep		= Double.NaN;
-	private double				borderHeight	= Double.NaN;
-	private String				orientation		= null;
-	private double				maximumAltitude	= Double.NaN;
-	private double				minimumAltitude	= Double.NaN;
-	private double				groupSize		= Double.NaN;
-	private String				elevationMap	= null;
-	private String				reliefFile		= null;
-	private String				surface			= null;
-	private Vector<ObjectMap>	objectMaps		= new Vector<ObjectMap>();
-
-	public void setDefault()
-	{
-		trackStep		= 20;
-		borderMargin	= 50;
-		borderStep		= 30;
-		borderHeight	= 15;
-		orientation		= "clockwise";
-		maximumAltitude	= Double.NaN;
-		minimumAltitude	= Double.NaN;
-		groupSize		= Double.NaN;
-		elevationMap	= null;
-		reliefFile		= null;
-		surface			= null;
-	}
-
-	public void setDelete()
-	{
-		trackStep		= Double.NaN;
-		borderMargin	= Double.NaN;
-		borderStep		= Double.NaN;
-		borderHeight	= Double.NaN;
-		orientation		= null;
-		maximumAltitude	= Double.NaN;
-		minimumAltitude	= Double.NaN;
-		groupSize		= Double.NaN;
-		elevationMap	= null;
-		reliefFile		= null;
-		surface			= null;
-	}
+	private double				trackStep					= Double.NaN;
+	private double				borderMargin				= Double.NaN;
+	private double				borderStep					= Double.NaN;
+	private double				borderHeight				= Double.NaN;
+	private String				orientation					= null;
+	private double				maximumAltitude				= Double.NaN;
+	private double				minimumAltitude				= Double.NaN;
+	private double				groupSize					= Double.NaN;
+	private String				elevationMap				= null;
+	private String				reliefFile					= null;
+	private String				surface						= null;
+	private Vector<ObjectMap>	objectMaps					= new Vector<ObjectMap>();
 
 	/**
 	 * @return Returns the terrainTrackStep.

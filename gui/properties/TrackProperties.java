@@ -20,6 +20,10 @@
  */
 package gui.properties;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Vector;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -28,6 +32,7 @@ import javax.swing.JTextField;
 
 import gui.EditorFrame;
 import utils.Editor;
+import utils.circuit.Surface;
 /**
  * @author babis
  *
@@ -46,14 +51,15 @@ public class TrackProperties extends JPanel
 
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
-"asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
-"road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
-"concrete3", "b-asphalt", "b-asphalt-l1", "b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left",
-"asphalt2-l-right", "asphalt2-l-both", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3",
-"sand", "curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l", "tar-grass3-r", "tar-sand", "b-road1-grass6",
-"b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7",
-"b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1",
-"barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+     "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
+     "road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
+     "concrete3", "b-asphalt", "b-asphalt-l1", "b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left",
+     "asphalt2-l-right", "asphalt2-l-both", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3",
+     "sand", "curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l", "tar-grass3-r", "tar-sand", "b-road1-grass6",
+     "b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7",
+     "b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1",
+     "barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+	private Vector<String>	roadSurfaceVector				= new Vector<String>(Arrays.asList(roadSurfaceItems));
 
 	/**
 	 * 
@@ -90,7 +96,28 @@ public class TrackProperties extends JPanel
         this.add(getSurfaceComboBox(), null);
         this.add(profileStepsLengthLabel, null);
         this.add(getProfileStepsLengthTextField(), null);
+
+        Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
+        for (int i = 0; i < surfaces.size(); i++)
+        {
+			String surface = surfaces.elementAt(i).getName();
+			boolean found = false;
+			for (int j = 0; j < roadSurfaceVector.size(); j++)
+			{
+				if (roadSurfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				roadSurfaceVector.add(surface);
+			}
+        }
+		Collections.sort(roadSurfaceVector);
 	}
+
 	/**
 	 * This method initializes widthTextField
 	 *
@@ -100,6 +127,9 @@ public class TrackProperties extends JPanel
 		if (widthTextField == null) {
 			widthTextField = new JTextField();
 			widthTextField.setBounds(120, 10, 50, 20);
+			double value = Editor.getProperties().getMainTrack().getWidth();
+			if (!Double.isNaN(value))
+				widthTextField.setText(value + "");
 		}
 		return widthTextField;
 	}
@@ -114,11 +144,26 @@ public class TrackProperties extends JPanel
 		if (surfaceComboBox == null)
 		{
 			surfaceComboBox = new JComboBox<String>();
-			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
-			surfaceComboBox.setBounds(120, 35, 120, 20);
-			double width = Editor.getProperties().getMainTrack().getWidth();
-			if (!Double.isNaN(width))
-				widthTextField.setText(width + "");
+			surfaceComboBox.setBounds(120, 35, 140, 20);
+			String surface = Editor.getProperties().getMainTrack().getSurface();
+			if (surface != null)
+			{
+				boolean found = false;
+				for (int i = 0; i < roadSurfaceVector.size(); i++)
+				{
+					if (roadSurfaceVector.elementAt(i).equals(surface))
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+				{
+					roadSurfaceVector.add(surface);
+				}
+			}
+			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceVector));
+			surfaceComboBox.setSelectedItem(surface);
 		}
 		return surfaceComboBox;
 	}

@@ -177,10 +177,10 @@ public class TurnMarksProperties extends JPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					widthTextField.setText("");
-					heightTextField.setText("");
-					verticalSpaceTextField.setText("");
-					horizontalSpaceTextField.setText("");
+					widthTextField.setText(TurnMarks.DEFAULT_WIDTH + "");
+					heightTextField.setText(TurnMarks.DEFAULT_HEIGHT + "");
+					verticalSpaceTextField.setText(TurnMarks.DEFAULT_VERTICAL_SPACE + "");
+					horizontalSpaceTextField.setText(TurnMarks.DEFAULT_HORIZONTAL_SPACE + "");
 				}
 			});
 		}
@@ -202,10 +202,10 @@ public class TurnMarksProperties extends JPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					widthTextField.setText(TurnMarks.DEFAULT_WIDTH + "");
-					heightTextField.setText(TurnMarks.DEFAULT_HEIGHT + "");
-					verticalSpaceTextField.setText(TurnMarks.DEFAULT_VERTICAL_SPACE + "");
-					horizontalSpaceTextField.setText(TurnMarks.DEFAULT_HORIZONTAL_SPACE + "");
+					widthTextField.setText("");
+					heightTextField.setText("");
+					verticalSpaceTextField.setText("");
+					horizontalSpaceTextField.setText("");
 				}
 			});
 		}
