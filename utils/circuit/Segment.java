@@ -747,7 +747,7 @@ public class Segment implements Cloneable
             }
             else
             {
-                previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
@@ -776,7 +776,7 @@ public class Segment implements Cloneable
     		}
     		else
     		{
-    			previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
@@ -805,7 +805,7 @@ public class Segment implements Cloneable
     		}
     		else
     		{
-    			previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
@@ -834,7 +834,7 @@ public class Segment implements Cloneable
     		}
     		else
     		{
-    			previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
@@ -863,7 +863,7 @@ public class Segment implements Cloneable
     		}
     		else
     		{
-    			previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
@@ -892,7 +892,7 @@ public class Segment implements Cloneable
     		}
     		else
     		{
-    			previous = previousShape;
+                previous = previous.previousShape;
     		}
     	}
 
