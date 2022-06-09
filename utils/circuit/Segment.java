@@ -22,6 +22,7 @@ package utils.circuit;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -32,7 +33,7 @@ import utils.Editor;
 
 /**
  * @author Patrice Espie , Charalampos Alexopoulos
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -46,17 +47,17 @@ public class Segment implements Cloneable
 	public Segment			previousShape;
 	public Segment			nextShape;
 
-	protected String		name				= "";
+	protected String		name					= "";
 
-	protected SegmentSide	left				= new SegmentSide();
-	protected SegmentSide	right				= new SegmentSide();
+	protected SegmentSide	left					= new SegmentSide();
+	protected SegmentSide	right					= new SegmentSide();
 	//	 type
 	protected String		type;
 	protected int			count;
 	public double			startTrackAlpha;
 	public double			endTrackAlpha;
-	public Point2D.Double	startTrackCenter	= new Point2D.Double();
-	public Point2D.Double	endTrackCenter		= new Point2D.Double();
+	public Point2D.Double	startTrackCenter		= new Point2D.Double();
+	public Point2D.Double	endTrackCenter			= new Point2D.Double();
 	public double			distFromCircuitStart;
 
 	// All datas
@@ -89,7 +90,7 @@ public class Segment implements Cloneable
 	// datas for fast 'draw' process
 	int						xToDraw[]			= new int[4];
 	int						yToDraw[]			= new int[4];
-	
+
 	double dx;
 	double dy;
 
@@ -630,7 +631,7 @@ public class Segment implements Cloneable
 		this.previousShape = prev;
 	}
 	/**
-	 *  
+	 *
 	 */
 	private void setProperties()
 	{
@@ -730,83 +731,178 @@ public class Segment implements Cloneable
         }
         return length;
     }
+
     public double getValidLeftBorderWidth()
     {
-    	double	leftBorderWidth = left.borderWidth;
+        Segment previous = this;
+        double	leftBorderWidth;
+
+        // try to get missing attribute from previous segments first
+        while (previous != null)
+        {
+            leftBorderWidth = previous.left.borderWidth;
+            if (!Double.isNaN(leftBorderWidth))
+            {
+                return leftBorderWidth;
+            }
+            else
+            {
+                previous = previousShape;
+    		}
+    	}
+
+    	// get it from main track when all else fails
+    	leftBorderWidth = Editor.getProperties().getMainTrack().getLeft().getBorderWidth();
     	if (Double.isNaN(leftBorderWidth))
     	{
-            leftBorderWidth = Editor.getProperties().getMainTrack().getLeft().getBorderWidth();
-    		if (Double.isNaN(leftBorderWidth))
-    		{
-    			leftBorderWidth = 0.5;
-    		}
+    		leftBorderWidth = SegmentSide.DEFAULT_BORDER_WIDTH;
     	}
+
     	return leftBorderWidth;
     }
+
     public double getValidRightBorderWidth()
     {
-    	double	rightBorderWidth = right.borderWidth;
+    	Segment previous = this;
+		double	rightBorderWidth;
+
+    	// try to get missing attribute from previous segments first
+    	while (previous != null)
+    	{
+    		rightBorderWidth = previous.right.borderWidth;
+    		if (!Double.isNaN(rightBorderWidth))
+    		{
+    			return rightBorderWidth;
+    		}
+    		else
+    		{
+    			previous = previousShape;
+    		}
+    	}
+
+    	// get it from main track when all else fails
+    	rightBorderWidth = Editor.getProperties().getMainTrack().getRight().getBorderWidth();
     	if (Double.isNaN(rightBorderWidth))
     	{
-            rightBorderWidth = Editor.getProperties().getMainTrack().getRight().getBorderWidth();
-    		if (Double.isNaN(rightBorderWidth))
-    		{
-    			rightBorderWidth = 0.5;
-    		}
-		}
+    		rightBorderWidth = SegmentSide.DEFAULT_BORDER_WIDTH;
+    	}
+
     	return rightBorderWidth;
     }
+
     public double getValidLeftSideStartWidth()
     {
-    	double	leftSideStartWidth = left.sideStartWidth;
+    	Segment previous = this;
+		double	leftSideStartWidth;
+
+    	// try to get missing attribute from previous segments first
+    	while (previous != null)
+    	{
+    		leftSideStartWidth = previous.left.sideStartWidth;
+    		if (!Double.isNaN(leftSideStartWidth))
+    		{
+    			return leftSideStartWidth;
+    		}
+    		else
+    		{
+    			previous = previousShape;
+    		}
+    	}
+
+    	// get it from main track when all else fails
+    	leftSideStartWidth = Editor.getProperties().getMainTrack().getLeft().getSideStartWidth();
     	if (Double.isNaN(leftSideStartWidth))
     	{
-            leftSideStartWidth = Editor.getProperties().getMainTrack().getLeft().getSideStartWidth();
-    		if (Double.isNaN(leftSideStartWidth))
-    		{
-    			leftSideStartWidth = 4.0;
-    		}
+    		leftSideStartWidth = SegmentSide.DEFAULT_SIDE_START_WIDTH;
     	}
+
     	return leftSideStartWidth;
     }
+
     public double getValidLeftSideEndWidth()
     {
-    	double	leftSideEndWidth = left.sideEndWidth;
+    	Segment previous = this;
+		double	leftSideEndWidth;
+
+    	// try to get missing attribute from previous segments first
+    	while (previous != null)
+    	{
+    		leftSideEndWidth = previous.left.sideEndWidth;
+    		if (!Double.isNaN(leftSideEndWidth))
+    		{
+    			return leftSideEndWidth;
+    		}
+    		else
+    		{
+    			previous = previousShape;
+    		}
+    	}
+
+    	// get it from main track when all else fails
+    	leftSideEndWidth = Editor.getProperties().getMainTrack().getLeft().getSideEndWidth();
     	if (Double.isNaN(leftSideEndWidth))
     	{
-            leftSideEndWidth = Editor.getProperties().getMainTrack().getLeft().getSideEndWidth();
-    		if (Double.isNaN(leftSideEndWidth))
-    		{
-    			leftSideEndWidth = 4.0;
-    		}
+    		leftSideEndWidth = SegmentSide.DEFAULT_SIDE_END_WIDTH;
     	}
+
     	return leftSideEndWidth;
     }
+
     public double getValidRightSideStartWidth()
     {
-    	double	rightSideStartWidth = right.sideStartWidth;
+    	Segment previous = this;
+		double	rightSideStartWidth;
+
+    	// try to get missing attribute from previous segments first
+    	while (previous != null)
+    	{
+    		rightSideStartWidth = previous.right.sideStartWidth;
+    		if (!Double.isNaN(rightSideStartWidth))
+    		{
+    			return rightSideStartWidth;
+    		}
+    		else
+    		{
+    			previous = previousShape;
+    		}
+    	}
+
+    	// get it from main track when all else fails
+    	rightSideStartWidth = Editor.getProperties().getMainTrack().getRight().getSideStartWidth();
     	if (Double.isNaN(rightSideStartWidth))
     	{
-            rightSideStartWidth = Editor.getProperties().getMainTrack().getRight().getSideStartWidth();
-    		if (Double.isNaN(rightSideStartWidth))
-    		{
-    			rightSideStartWidth = 4.0;
-    		}
+    		rightSideStartWidth = SegmentSide.DEFAULT_SIDE_START_WIDTH;
     	}
+
     	return rightSideStartWidth;
     }
+
     public double getValidRightSideEndWidth()
     {
-    	double	rightSideEndWidth = right.sideEndWidth;
-    	if (Double.isNaN(rightSideEndWidth))
+    	Segment previous = this;
+		double	rightSideEndWidth;
+
+    	// try to get missing attribute from previous segments first
+    	while (previous != null)
     	{
-            rightSideEndWidth = Editor.getProperties().getMainTrack().getRight().getSideEndWidth();
-    		if (Double.isNaN(rightSideEndWidth))
+    		rightSideEndWidth = previous.right.sideEndWidth;
+    		if (!Double.isNaN(rightSideEndWidth))
     		{
-    			rightSideEndWidth = 4.0;
+    			return rightSideEndWidth;
+    		}
+    		else
+    		{
+    			previous = previousShape;
     		}
     	}
+
+    	// get it from main track when all else fails
+    	rightSideEndWidth = Editor.getProperties().getMainTrack().getRight().getSideEndWidth();
+    	if (Double.isNaN(rightSideEndWidth))
+    	{
+    		rightSideEndWidth = SegmentSide.DEFAULT_SIDE_END_WIDTH;
+    	}
+
     	return rightSideEndWidth;
 	}
-
 }

@@ -32,54 +32,65 @@ import java.util.Vector;
  */
 public class SegmentSide implements Cloneable
 {
-	private Vector		sideListeners				= new Vector();
-	private SegmentSide	prev						= null;
-	private SegmentSide	props						= null;
+	public static final double	DEFAULT_SIDE_START_WIDTH	= 4.0;
+	public static final double	DEFAULT_SIDE_END_WIDTH		= 4.0;
+	public static final String	DEFAULT_SIDE_SURFACE		= "grass";
+	public static final double	DEFAULT_BARRIER_HEIGHT		= 1.0;
+	public static final double	DEFAULT_BARRIER_WIDTH		= 0.1;
+	public static final String	DEFAULT_BARRIER_SURFACE		= "barrier";
+	public static final String	DEFAULT_BARRIER_STYLE		= "curb";
+	public static final double	DEFAULT_BORDER_WIDTH		= 0.5;
+	public static final double	DEFAULT_BORDER_HEIGHT		= 0.05;
+	public static final String	DEFAULT_BORDER_SURFACE		= "curb-5cm-r";
+	public static final String	DEFAULT_BORDER_STYLE		= "plan";
+	private Vector				sideListeners				= new Vector();
+	private SegmentSide			prev						= null;
+	private SegmentSide			props						= null;
 
 	//	Side
-	protected boolean	hasSide						= false;
-	protected double	sideStartWidth				= Double.NaN;
-	private boolean		prevSideStartWidthChanged	= false;
-	private boolean		thisSideStartWidthChanged	= false;
-	protected double	sideEndWidth				= Double.NaN;
-	private boolean		prevSideEndWidthChanged		= false;
-	private boolean		thisSideEndWidthChanged		= false;
-	protected String	sideSurface					= null;
-	private boolean		prevSideSurfaceChanged		= false;
-	private boolean		thisSideSurfaceChanged		= false;
-	protected String	sideBankingType				= null;
-	private boolean		prevSideBankingTypeChanged	= false;
-	private boolean		thisSideBankingTypeChanged	= false;
+	protected boolean			hasSide						= false;
+	protected double			sideStartWidth				= Double.NaN;
+	private boolean				prevSideStartWidthChanged	= false;
+	private boolean				thisSideStartWidthChanged	= false;
+	protected double			sideEndWidth				= Double.NaN;
+	private boolean				prevSideEndWidthChanged		= false;
+	private boolean				thisSideEndWidthChanged		= false;
+	protected String			sideSurface					= null;
+	private boolean				prevSideSurfaceChanged		= false;
+	private boolean				thisSideSurfaceChanged		= false;
+	protected String			sideBankingType				= null;
+	private boolean				prevSideBankingTypeChanged	= false;
+	private boolean				thisSideBankingTypeChanged	= false;
 
 	//	Barrier
-	protected boolean	hasBarrier					= false;
-	protected double	barrierHeight				= Double.NaN;
-	private boolean		prevBarrierHeightChanged	= false;
-	private boolean		thisBarrierHeightChanged	= false;
-	protected double	barrierWidth				= Double.NaN;
-	private boolean		prevBarrierWidthChanged		= false;
-	private boolean		thisBarrierWidthChanged		= false;
-	protected String	barrierSurface				= null;
-	private boolean		prevBarrierSurfaceChanged	= false;
-	private boolean		thisBarrierSurfaceChanged	= false;
-	protected String	barrierStyle				= null;
-	private boolean		prevBarrierStyleChanged		= false;
-	private boolean		thisBarrierStyleChanged		= false;
+	protected boolean			hasBarrier					= false;
+	protected double			barrierHeight				= Double.NaN;
+	private boolean				prevBarrierHeightChanged	= false;
+	private boolean				thisBarrierHeightChanged	= false;
+	protected double			barrierWidth				= Double.NaN;
+	private boolean				prevBarrierWidthChanged		= false;
+	private boolean				thisBarrierWidthChanged		= false;
+	protected String			barrierSurface				= null;
+	private boolean				prevBarrierSurfaceChanged	= false;
+	private boolean				thisBarrierSurfaceChanged	= false;
+	protected String			barrierStyle				= null;
+	private boolean				prevBarrierStyleChanged		= false;
+	private boolean				thisBarrierStyleChanged		= false;
 
 	// Border
-	protected boolean	hasBorder					= false;
-	protected double	borderWidth					= Double.NaN;
-	private boolean		prevBorderWidthChanged		= false;
-	private boolean		thisBorderWidthChanged		= false;
-	protected double	borderHeight				= Double.NaN;
-	private boolean		prevBorderHeightChanged		= false;
-	private boolean		thisBorderHeightChanged		= false;
-	protected String	borderSurface				= null;
-	private boolean		prevBorderSurfaceChanged	= false;
-	private boolean		thisBorderSurfaceChanged	= false;
-	protected String	borderStyle					= null;
-	private boolean		prevBorderStyleChanged		= false;
-	private boolean		thisBorderStyleChanged		= false;
+	protected boolean			hasBorder					= false;
+	protected double			borderWidth					= Double.NaN;
+	private boolean				prevBorderWidthChanged		= false;
+	private boolean				thisBorderWidthChanged		= false;
+	protected double			borderHeight				= Double.NaN;
+	private boolean				prevBorderHeightChanged		= false;
+	private boolean				thisBorderHeightChanged		= false;
+	protected String			borderSurface				= null;
+	private boolean				prevBorderSurfaceChanged	= false;
+	private boolean				thisBorderSurfaceChanged	= false;
+	protected String			borderStyle					= null;
+	private boolean				prevBorderStyleChanged		= false;
+	private boolean				thisBorderStyleChanged		= false;
 
 	/**
 	 *  

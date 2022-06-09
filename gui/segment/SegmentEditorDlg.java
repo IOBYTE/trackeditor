@@ -32,6 +32,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -45,11 +48,12 @@ import utils.Editor;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
+import utils.circuit.Surface;
 import bsh.EvalError;
 import bsh.Interpreter;
 /**
  * @author babis
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -71,6 +75,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private SegmentSlider			lengthSlider				= null;
 	private JLabel					nameLabel					= null;
 	private JTextField				nameTextField				= null;
+	private JLabel					surfaceLabel				= null;
 	private JComboBox<String>		surfaceComboBox				= null;
 
 	private SegmentSlider			gradeSlider					= null;
@@ -84,7 +89,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private SegmentSlider			heightEndRightSlider		= null;
 	private SegmentSlider			profilStepsSlider			= null;
 	private SegmentSlider			profilStepsLengthSlider		= null;
-	
+
 	private SegmentSideProperties	rightPanel					= null;
 	private SegmentSideProperties	leftPanel					= null;
 
@@ -96,16 +101,18 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 
 	private String[]				roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
-"asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
-"road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
-"concrete3", "b-asphalt", "b-asphalt-l1", "b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left",
-"asphalt2-l-right", "asphalt2-l-both", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3",
-"sand", "curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l", "tar-grass3-r", "tar-sand", "b-road1-grass6",
-"b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7",
-"b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1",
-"barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+     "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
+     "road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
+     "concrete3", "b-asphalt", "b-asphalt-l1", "b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left",
+     "asphalt2-l-right", "asphalt2-l-both", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3",
+     "sand", "curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l", "tar-grass3-r", "tar-sand", "b-road1-grass6",
+     "b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7",
+     "b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1",
+     "barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+	private Vector<String>			roadSurfaceVector			= new Vector<String>(Arrays.asList(roadSurfaceItems));
+
 	/**
-	 *  
+	 *
 	 */
 	public SegmentEditorDlg()
 	{
@@ -124,6 +131,25 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			this.frame = frame;
 			setShape(shape);
 
+			// add this surface if it't not found in default list
+			String surface = shape.getSurface();
+			if (surface != null)
+			{
+				boolean found = false;
+				for (int i = 0; i < roadSurfaceVector.size(); i++)
+				{
+					if (roadSurfaceVector.elementAt(i).equals(surface))
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+				{
+					roadSurfaceVector.add(surface);
+				}
+			}
+
 			initialize();
 			//			pack();
 			this.setVisible(true);
@@ -134,7 +160,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	private void initialize()
 	{
@@ -146,11 +172,32 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		this.setLocation(p);
 		this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		this.setContentPane(getJContentPane());
+
+		// add new surfaces from Surfaces
+        Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
+        for (int i = 0; i < surfaces.size(); i++)
+        {
+			String surface = surfaces.elementAt(i).getName();
+			boolean found = false;
+			for (int j = 0; j < roadSurfaceVector.size(); j++)
+			{
+				if (roadSurfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				roadSurfaceVector.add(surface);
+			}
+        }
+		Collections.sort(roadSurfaceVector);
 	}
 
 	/**
 	 * This method initializes jContentPane
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private JPanel getJContentPane()
@@ -166,7 +213,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 
 	/**
 	 * This method initializes jTabbedPane
-	 * 
+	 *
 	 * @return javax.swing.JTabbedPane
 	 */
 	private JTabbedPane getJTabbedPane()
@@ -183,7 +230,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes centerPanel
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private JPanel getCenterPanel()
@@ -191,16 +238,18 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (centerPanel == null)
 		{
 			nameLabel = new JLabel();
+			surfaceLabel = new JLabel();
 			marksLabel = new JLabel();
 			centerPanel = new JPanel();
 			centerPanel.setLayout(null);
-			nameLabel.setBounds(10, 10, 45, 20);
+			nameLabel.setBounds(10, 5, 45, 20);
 			nameLabel.setText("Name");
-			nameLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
+			surfaceLabel.setBounds(10, 30, 45, 20);
+			surfaceLabel.setText("Surface");
 	        marksLabel.setText("Marks");
 	        marksLabel.setBounds(480, 10, 60, 20);
-			marksLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
 	        centerPanel.add(nameLabel, null);
+	        centerPanel.add(surfaceLabel, null);
 			centerPanel.add(marksLabel, null);
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getMarksTextField(), null);
@@ -227,7 +276,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes radiusStartSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getRadiusStartSlider()
@@ -253,7 +302,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes radiusEndSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getRadiusEndSlider()
@@ -280,7 +329,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes arcSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getArcSlider()
@@ -306,7 +355,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes lengthSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getLengthSlider()
@@ -608,7 +657,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (nameTextField == null)
 		{
 			nameTextField = new JTextField();
-			nameTextField.setBounds(75, 10, 110, 20);
+			nameTextField.setBounds(75, 5, 110, 20);
 			nameTextField.setText(shape.getName());
 			nameTextField.addKeyListener(new KeyAdapter()
 			{
@@ -654,11 +703,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (surfaceComboBox == null)
 		{
 			surfaceComboBox = new JComboBox<String>();
-			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceItems));
-			surfaceComboBox.setBounds(190, 10, 120, 20);
+			surfaceComboBox.setModel(new DefaultComboBoxModel<String>(roadSurfaceVector));
+			surfaceComboBox.setBounds(74, 30, 120, 20);
 			surfaceComboBox.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					shape.setSurface((String) surfaceComboBox.getSelectedItem());
@@ -696,13 +744,13 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				this.getLengthSlider().setEnabled(false);
 				getGroupButton().setEnabled(true);
 				getGroupButton().setSelected(curve.getType());
-				
+
 				this.getArcSlider().setValue(curve.getArc());
 				this.getRadiusStartSlider().setValue(curve.getRadiusStart());
 				this.getRadiusEndSlider().setValue(curve.getRadiusEnd());
 				this.getMarksTextField().setEnabled(true);
 				this.getMarksTextField().setText(curve.getMarks());
-				
+
 			} else
 			{
 				this.getRadiusStartSlider().setEnabled(false);
@@ -710,7 +758,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				this.getArcSlider().setEnabled(false);
 				this.getLengthSlider().setEnabled(true);
 				getGroupButton().setEnabled(false);
-				
+
 				this.getLengthSlider().setValue(shape.getLength());
 				this.getMarksTextField().setEnabled(false);
 				this.getMarksTextField().setText("");
@@ -765,7 +813,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes rightPanel
-	 * 
+	 *
 	 * @return gui.segment.SegmentSideProperties
 	 */
 	private SegmentSideProperties getRightPanel()
@@ -778,7 +826,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * This method initializes leftPanel
-	 * 
+	 *
 	 * @return gui.segment.SegmentSideProperties
 	 */
 	private SegmentSideProperties getLeftPanel()
@@ -847,7 +895,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			shape.setProfil(getProfileButton().getSelected());
 		frame.documentIsModified = true;
 	}
-	
+
 	public void windowClosing(java.awt.event.WindowEvent anEvent)
 	{
 		System.out.println("JDialog is closing");
@@ -877,7 +925,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			}
 
 			String method = slider.getMethod();
-			
+
 			if (Double.isNaN(slider.getValue()))
 				command = "shape.set" + method + "(Double.NaN)";
 			else
@@ -894,8 +942,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		frame.documentIsModified = true;
 		dirty = true;
 	}
-	
-	
+
+
 	//	 Exit when window close
 
 	protected void processWindowEvent(WindowEvent e)
@@ -906,13 +954,13 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			exit();
 		}
 	}
-	
+
 	private void exit()
 	{
 		frame.getProject().setSegmentEditorX(this.getX());
 		frame.getProject().setSegmentEditorY(this.getY());
 	}
 
-    
+
 } //  @jve:decl-index=0:visual-constraint="10,10"
 

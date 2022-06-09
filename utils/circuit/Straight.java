@@ -52,12 +52,12 @@ public class Straight extends Segment implements Cloneable
 		double currentA = Editor.getProperties().getCurrentA();
 		double showArrows = Editor.getProperties().getShowArrows();
 		double trackWidth = Editor.getProperties().getMainTrack().getWidth();
-		double	leftBorderWidth = getValidLeftBorderWidth();
-		double	rightBorderWidth = getValidRightBorderWidth();
-		double	leftSideStartWidth = getValidLeftSideStartWidth();
-		double	leftSideEndWidth = getValidLeftSideEndWidth();
-		double	rightSideStartWidth = getValidRightSideStartWidth();
-		double	rightSideEndWidth = getValidRightSideEndWidth();
+		double leftBorderWidth = getValidLeftBorderWidth();
+		double rightBorderWidth = getValidRightBorderWidth();
+		double leftSideStartWidth = getValidLeftSideStartWidth();
+		double leftSideEndWidth = getValidLeftSideEndWidth();
+		double rightSideStartWidth = getValidRightSideStartWidth();
+		double rightSideEndWidth = getValidRightSideEndWidth();
 
 		if (points == null || points.length != 4 * (5 + (showArrows > 0.0 ? 1 : 0)))
 		{

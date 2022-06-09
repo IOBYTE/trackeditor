@@ -22,17 +22,22 @@ package gui.segment;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import utils.Editor;
 import utils.circuit.SegmentSide;
+import utils.circuit.Surface;
 import bsh.EvalError;
 import bsh.Interpreter;
 /**
  * @author babis
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -54,6 +59,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2", "concrete3", "b-asphalt", "b-asphalt-l1",
 			"b-asphalt-l1p", "asphalt2-lines", "asphalt2-l-left", "asphalt2-l-right", "asphalt2-l-both", "barrier",
 			"barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+	private Vector<String>		borderSurfaceVector		= new Vector<String>(Arrays.asList(borderSurfaceItems));
 	private String[]			sideSurfaceItems		=
 														{"grass", "grass3", "grass5", "grass6", "grass7", "gravel",
 			"sand3", "sand", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both", "asphalt-pits",
@@ -64,6 +70,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2", "b-asphalt-grass7", "b-asphalt-grass7-l1",
 			"b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1", "barrier", "barrier2",
 			"barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
+	private Vector<String>		sideSurfaceVector		= new Vector<String>(Arrays.asList(sideSurfaceItems));
 	private String[]			fenceSurfaceItems		=
 														{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 			"wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -74,6 +81,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"b-road1-grass6", "b-road1-grass6-l2", "b-road1-gravel-l2", "b-road1-sand3", "b-road1-sand3-l2",
 			"b-asphalt-grass7", "b-asphalt-grass7-l1", "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3",
 			"b-asphalt-sand3-l1", "grass", "grass3", "grass5", "grass6", "grass7", "gravel", "sand3", "sand"};
+	private Vector<String>		fenceSurfaceVector		= new Vector<String>(Arrays.asList(fenceSurfaceItems));
 
 	public JPanel				panel					= null;
 	private JLabel				borderLabel				= null;
@@ -97,7 +105,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private SegmentSlider		barrierWidthSlider		= null;
 	private SegmentSlider		borderHeightSlider		= null;
 	/**
-	 *  
+	 *
 	 */
 	public SegmentSideProperties(SegmentEditorDlg parent, SegmentSide side)
 	{
@@ -108,7 +116,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize()
@@ -123,11 +131,37 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		titleLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.BOLD, 18));
 		this.add(getPanel(), null);
 		this.add(titleLabel, null);
-
+		addDefaultSurfaces(borderSurfaceVector);
+		addDefaultSurfaces(sideSurfaceVector);
+		addDefaultSurfaces(fenceSurfaceVector);
 	}
+
+	private void addDefaultSurfaces(Vector<String> surfaceVector)
+	{
+        Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
+        for (int i = 0; i < surfaces.size(); i++)
+        {
+			String surface = surfaces.elementAt(i).getName();
+			boolean found = false;
+			for (int j = 0; j < surfaceVector.size(); j++)
+			{
+				if (surfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				surfaceVector.add(surface);
+			}
+        }
+		Collections.sort(surfaceVector);
+	}
+
 	/**
 	 * This method initializes panel
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	public JPanel getPanel()
@@ -189,7 +223,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	/**
 	 * This method initializes borderSurfaceComboBox
-	 * 
+	 *
 	 * @return gui.segment.SegmentComboBox
 	 */
 	private SegmentComboBox getBorderSurfaceComboBox()
@@ -198,7 +232,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			borderSurfaceComboBox = new SegmentComboBox();
 			borderSurfaceComboBox.setBounds(270, 350, 120, 20);
-			borderSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(borderSurfaceItems));
+			borderSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(borderSurfaceVector));
 			borderSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -213,7 +247,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes borderStyleComboBox
-	 * 
+	 *
 	 * @return gui.segment.SegmentComboBox
 	 */
 	private SegmentComboBox getBorderStyleComboBox()
@@ -238,7 +272,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes sideSurfaceComboBox
-	 * 
+	 *
 	 * @return gui.segment.SegmentComboBox
 	 */
 	private SegmentComboBox getSideSurfaceComboBox()
@@ -247,7 +281,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			sideSurfaceComboBox = new SegmentComboBox();
 			sideSurfaceComboBox.setBounds(137, 350, 120, 20);
-			sideSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(sideSurfaceItems));
+			sideSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(sideSurfaceVector));
 			sideSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -262,7 +296,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes barrierSurfaceComboBox
-	 * 
+	 *
 	 * @return gui.segment.SegmentComboBox
 	 */
 	private SegmentComboBox getBarrierSurfaceComboBox()
@@ -271,7 +305,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			barrierSurfaceComboBox = new SegmentComboBox();
 			barrierSurfaceComboBox.setBounds(5, 350, 120, 20);
-			barrierSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(fenceSurfaceItems));
+			barrierSurfaceComboBox.setModel(new DefaultComboBoxModel<String>(fenceSurfaceVector));
 			barrierSurfaceComboBox.addActionListener(new ActionListener()
 					{
 
@@ -286,7 +320,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes barrierStyleComboBox
-	 * 
+	 *
 	 * @return gui.segment.SegmentComboBox
 	 */
 	private SegmentComboBox getBarrierStyleComboBox()
@@ -311,7 +345,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes barrierHeightSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getBarrierHeightSlider()
@@ -335,7 +369,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	/**
 	 * This method initializes sideStartWidthSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getSideStartWidthSlider()
@@ -358,7 +392,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes borderWidthSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getBorderWidthSlider()
@@ -381,7 +415,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes sideEndWidthSlider
-	 * 
+	 *
 	 * @return gui.SegmentSlider
 	 */
 	private SegmentSlider getSideEndWidthSlider()
@@ -404,7 +438,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes barrierWidthSlider
-	 * 
+	 *
 	 * @return gui.segment.SegmentSlider
 	 */
 	private SegmentSlider getBarrierWidthSlider()
@@ -427,7 +461,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	}
 	/**
 	 * This method initializes borderHeightSlider
-	 * 
+	 *
 	 * @return gui.segment.SegmentSlider
 	 */
 	private SegmentSlider getBorderHeightSlider()
@@ -465,27 +499,27 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//		borderSurfaceComboBox.setAttName("surface");
 		//		borderSurfaceComboBox.setEditor(editor);
 		//		borderSurfaceComboBox.setShape(shape);
-		//		
+		//
 		//		borderStyleComboBox.setAttType("attstr");
 		//		borderStyleComboBox.setAttName("style");
 		//		borderStyleComboBox.setEditor(editor);
 		//		borderStyleComboBox.setShape(shape);
-		//		
+		//
 		//		sideSurfaceComboBox.setAttType("attstr");
 		//		sideSurfaceComboBox.setAttName("surface");
 		//		sideSurfaceComboBox.setEditor(editor);
 		//		sideSurfaceComboBox.setShape(shape);
-		//		
+		//
 		//		barrierSurfaceComboBox.setAttType("attstr");
 		//		barrierSurfaceComboBox.setAttName("surface");
 		//		barrierSurfaceComboBox.setEditor(editor);
 		//		barrierSurfaceComboBox.setShape(shape);
-		//		
+		//
 		//		barrierStyleComboBox.setAttType("attstr");
 		//		barrierStyleComboBox.setAttName("style");
 		//		barrierStyleComboBox.setEditor(editor);
 		//		barrierStyleComboBox.setShape(shape);
-		//		
+		//
 		//		switch (side)
 		//		{
 		//			case 1 :
@@ -496,7 +530,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					borderSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				borderStyleComboBox.setSectionName("Left Border");
 		//				borderStyleComboBox.setDataIdx(Segment.leftBorderStyle);
 		//				tmp = shape.strAllDatas[Segment.leftBorderStyle];
@@ -504,7 +538,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					borderStyleComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				sideSurfaceComboBox.setSectionName("Left Side");
 		//				sideSurfaceComboBox.setDataIdx(Segment.leftSideSurface);
 		//				tmp = shape.strAllDatas[Segment.leftSideSurface];
@@ -512,7 +546,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					sideSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				barrierSurfaceComboBox.setSectionName("Left Barrier");
 		//				barrierSurfaceComboBox.setDataIdx(Segment.leftBarrierSurface);
 		//				tmp = shape.strAllDatas[Segment.leftBarrierSurface];
@@ -521,7 +555,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					barrierSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				barrierStyleComboBox.setSectionName("Left Barrier");
 		//				barrierStyleComboBox.setDataIdx(Segment.leftBarrierStyle);
 		//				tmp = shape.strAllDatas[Segment.leftBarrierStyle];
@@ -539,7 +573,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					borderSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				borderStyleComboBox.setSectionName("Right Border");
 		//				borderStyleComboBox.setDataIdx(Segment.rightBorderStyle);
 		//				tmp = shape.strAllDatas[Segment.rightBorderStyle];
@@ -547,7 +581,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					borderStyleComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				sideSurfaceComboBox.setSectionName("Right Side");
 		//				sideSurfaceComboBox.setDataIdx(Segment.rightSideSurface);
 		//				tmp = shape.strAllDatas[Segment.rightSideSurface];
@@ -555,7 +589,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					sideSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				barrierSurfaceComboBox.setSectionName("Right Barrier");
 		//				barrierSurfaceComboBox.setDataIdx(Segment.rightBarrierSurface);
 		//				tmp = shape.strAllDatas[Segment.rightBarrierSurface];
@@ -563,7 +597,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		//				{
 		//					barrierSurfaceComboBox.setSelectedItem(tmp);
 		//				}
-		//				
+		//
 		//				barrierStyleComboBox.setSectionName("Right Barrier");
 		//				barrierStyleComboBox.setDataIdx(Segment.rightBarrierStyle);
 		//				tmp = shape.strAllDatas[Segment.rightBarrierStyle];
@@ -615,7 +649,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see gui.segment.SliderListener#valueChanged(gui.segment.SegmentSlider)
 	 */
 	public void sliderChanged(SegmentSlider slider)
