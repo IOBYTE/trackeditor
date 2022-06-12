@@ -268,8 +268,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						int count = Editor.getProperties().getCurveNameCount()+1;
 						Editor.getProperties().setCurveNameCount(count);
 						newShape.setName("curve "+count);
-						//newShape.addToPrevious(handledShape);
-						//newShape.addToNext(handledShape.getNextShape());
+						Segment next = handledShape.getNextShape();
+						newShape.addToPrevious(handledShape);
+						newShape.addToNext(next);
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -294,8 +295,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						int count = Editor.getProperties().getCurveNameCount()+1;
 						Editor.getProperties().setCurveNameCount(count);
 						newShape.setName("curve "+count);
-						//newShape.addToNext(handledShape.getNextShape());
-						//newShape.addToPrevious(handledShape);
+						Segment next = handledShape.getNextShape();
+						newShape.addToPrevious(handledShape);
+						newShape.addToNext(next);
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -319,8 +321,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						int count = Editor.getProperties().getStraightNameCount()+1;
 						Editor.getProperties().setStraightNameCount(count);
 						newShape.setName("straight "+count);
-						//newShape.addToPrevious(handledShape);
-						//newShape.addToNext(handledShape.getNextShape());
+						Segment next = handledShape.getNextShape();
+						newShape.addToPrevious(handledShape);
+						newShape.addToNext(next);
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -355,8 +358,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							// must check for a segment under the mouse
 							Vector<Segment> data = TrackData.getTrackData();
 							int pos = data.indexOf(handledShape);
-							//handledShape.getPreviousShape().setNextShape(handledShape.getNextShape());
-							//handledShape.getNextShape().setPreviousShape(handledShape.getPreviousShape());
+							handledShape.getPreviousShape().setNextShape(handledShape.getNextShape());
+							handledShape.getNextShape().setPreviousShape(handledShape.getPreviousShape());
 							Undo.add(new UndoDeleteSegment(handledShape));
 							data.remove(pos);
 							handledShape = null;
