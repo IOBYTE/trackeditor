@@ -951,4 +951,11 @@ public class Segment implements Cloneable
         if (previous != null)
             previous.nextShape = this;
     }
+
+    public void addToNext(Segment next)
+    {
+        nextShape = next;
+        if (next != null)
+            next.previousShape = this;
+    }
 }

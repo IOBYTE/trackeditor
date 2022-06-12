@@ -259,7 +259,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							return;
 
 						// create a standard curve segment
-						Vector data = TrackData.getTrackData();
+						Vector<Segment> data = TrackData.getTrackData();
 						int pos = data.indexOf(handledShape);
 						Curve newShape = new Curve("lft",handledShape);
 						newShape.setArc(Math.PI/2);
@@ -268,6 +268,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						int count = Editor.getProperties().getCurveNameCount()+1;
 						Editor.getProperties().setCurveNameCount(count);
 						newShape.setName("curve "+count);
+						newShape.addToPrevious(handledShape);
+						newShape.addToNext(handledShape.getNextShape());
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -283,7 +285,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							return;
 
 						// create a standard curve segment
-						Vector data = TrackData.getTrackData();
+						Vector<Segment> data = TrackData.getTrackData();
 						int pos = data.indexOf(handledShape);
 						Curve newShape = new Curve("rgt",handledShape);
 						newShape.setArc(Math.PI/2);
@@ -292,6 +294,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						int count = Editor.getProperties().getCurveNameCount()+1;
 						Editor.getProperties().setCurveNameCount(count);
 						newShape.setName("curve "+count);
+						newShape.addToNext(handledShape.getNextShape());
+						newShape.addToPrevious(handledShape);
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -308,13 +312,15 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							return;
 
 						// create a standard straight segment
-						Vector data = TrackData.getTrackData();
+						Vector<Segment> data = TrackData.getTrackData();
 						int pos = data.indexOf(handledShape);
 						Straight newShape = new Straight();
 						newShape.setLength(50);
 						int count = Editor.getProperties().getStraightNameCount()+1;
 						Editor.getProperties().setStraightNameCount(count);
 						newShape.setName("straight "+count);
+						newShape.addToPrevious(handledShape);
+						newShape.addToNext(handledShape.getNextShape());
 						data.insertElementAt(newShape,pos+1);
 						Undo.add(new UndoAddSegment(newShape));
 						selectedShape = newShape;
@@ -347,8 +353,10 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							}
 
 							// must check for a segment under the mouse
-							Vector data = TrackData.getTrackData();
+							Vector<Segment> data = TrackData.getTrackData();
 							int pos = data.indexOf(handledShape);
+							handledShape.getPreviousShape().setNextShape(handledShape.getNextShape());
+							handledShape.getNextShape().setPreviousShape(handledShape.getPreviousShape());
 							Undo.add(new UndoDeleteSegment(handledShape));
 							data.remove(pos);
 							handledShape = null;
