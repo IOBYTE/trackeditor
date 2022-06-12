@@ -343,6 +343,7 @@ public class EditorFrame extends JFrame
         Editor.getProperties().getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
 
         Segment shape;
+        Segment previous = null;
         Vector<Segment> track = new Vector<Segment>();
 
         shape = new Straight();
@@ -355,6 +356,7 @@ public class EditorFrame extends JFrame
         shape.getRight().setNewTrackDefaults();
         track.add(shape);
 
+        previous = shape;
         shape = new Curve();
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
@@ -365,8 +367,10 @@ public class EditorFrame extends JFrame
         shape.setHeightEndRight(0);
         shape.getLeft().setNewTrackDefaults();
         shape.getRight().setNewTrackDefaults();
+        shape.addToPrevious(previous);
         track.add(shape);
 
+        previous = shape;
         shape = new Straight();
         shape.setLength(100);
         shape.setHeightStartLeft(0);
@@ -375,8 +379,10 @@ public class EditorFrame extends JFrame
         shape.setHeightEndRight(0);
         shape.getLeft().setNewTrackDefaults();
         shape.getRight().setNewTrackDefaults();
+        shape.addToPrevious(previous);
         track.add(shape);
 
+        previous = shape;
         shape = new Curve();
         ((Curve)shape).setRadiusStart(100);
         ((Curve)shape).setRadiusEnd(100);
@@ -387,6 +393,7 @@ public class EditorFrame extends JFrame
         shape.setHeightEndRight(0);
         shape.getLeft().setNewTrackDefaults();
         shape.getRight().setNewTrackDefaults();
+        shape.addToPrevious(previous);
         track.add(shape);
 
         TrackData.setTrackData(track);

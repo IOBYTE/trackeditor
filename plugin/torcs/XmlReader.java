@@ -560,6 +560,8 @@ public class XmlReader
     private synchronized static Segment setSegment(Element seg, Segment shape,
             Segment prev)
     {
+        shape.addToPrevious(prev);
+
         SegmentSide left = shape.getLeft();
         SegmentSide right = shape.getRight();
         if (prev != null)
