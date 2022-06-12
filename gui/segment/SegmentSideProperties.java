@@ -362,6 +362,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			barrierHeightSlider.setTickSpacing(0.5);
 			barrierHeightSlider.setRealToTextCoeff(1);
 			barrierHeightSlider.setMethod("BarrierHeight");
+			barrierHeightSlider.setOptional(true);
 			barrierHeightSlider.addSliderListener(this);
 		}
 		return barrierHeightSlider;
@@ -386,6 +387,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			sideStartWidthSlider.setTickSpacing(0.5);
 			sideStartWidthSlider.setRealToTextCoeff(1);
 			sideStartWidthSlider.setMethod("SideStartWidth");
+			sideStartWidthSlider.setOptional(true);
 			sideStartWidthSlider.addSliderListener(this);
 		}
 		return sideStartWidthSlider;
@@ -409,6 +411,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			borderWidthSlider.setTickSpacing(0.05);
 			borderWidthSlider.setRealToTextCoeff(1);
 			borderWidthSlider.setMethod("BorderWidth");
+			borderWidthSlider.setOptional(true);
 			borderWidthSlider.addSliderListener(this);
 		}
 		return borderWidthSlider;
@@ -432,6 +435,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			sideEndWidthSlider.setTickSpacing(0.5);
 			sideEndWidthSlider.setRealToTextCoeff(1);
 			sideEndWidthSlider.setMethod("SideEndWidth");
+			sideEndWidthSlider.setOptional(true);
 			sideEndWidthSlider.addSliderListener(this);
 		}
 		return sideEndWidthSlider;
@@ -455,6 +459,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			barrierWidthSlider.setTickSpacing(0.5);
 			barrierWidthSlider.setRealToTextCoeff(1);
 			barrierWidthSlider.setMethod("BarrierWidth");
+			barrierWidthSlider.setOptional(true);
 			barrierWidthSlider.addSliderListener(this);
 		}
 		return barrierWidthSlider;
@@ -478,6 +483,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			borderHeightSlider.setTickSpacing(0.5);
 			borderHeightSlider.setRealToTextCoeff(1);
 			borderHeightSlider.setMethod("BorderHeight");
+			borderHeightSlider.setOptional(true);
 			borderHeightSlider.addSliderListener(this);
 		}
 		return borderHeightSlider;
