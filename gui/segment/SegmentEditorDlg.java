@@ -60,7 +60,7 @@ import bsh.Interpreter;
 public class SegmentEditorDlg extends JDialog implements SliderListener
 {
 	//private Properties			properties						= Properties.getInstance();
-	public Segment					shape;
+	private Segment					shape;
 	CircuitView						view;
 	EditorFrame						frame;
 	public boolean					dirty						= false;
@@ -788,15 +788,6 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		this.validate();
 		this.repaint();
 	}
-
-	/**
-	 * @return Returns the shape.
-	 */
-	public Segment getShape()
-	{
-		return shape;
-	}
-
 
 	public void update()
 	{
