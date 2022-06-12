@@ -338,10 +338,6 @@ public class EditorFrame extends JFrame
      */
     private void createNewCircuit()
     {
-        Editor.getProperties().getMainTrack().setProfilStepsLength(MainTrack.DEFAULT_WIDTH);
-        Editor.getProperties().getMainTrack().setWidth(MainTrack.DEFAULT_PROFIL_STEPS_LENGTH);
-        Editor.getProperties().getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
-
         Segment shape;
         Segment previous = null;
         Vector<Segment> track = new Vector<Segment>();
@@ -398,6 +394,9 @@ public class EditorFrame extends JFrame
 
         TrackData.setTrackData(track);
 
+        Editor.getProperties().getMainTrack().setProfilStepsLength(MainTrack.DEFAULT_PROFIL_STEPS_LENGTH);
+        Editor.getProperties().getMainTrack().setWidth(MainTrack.DEFAULT_WIDTH);
+        Editor.getProperties().getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
         Editor.getProperties().getMainTrack().getLeft().setNewTrackDefaults();
         Editor.getProperties().getMainTrack().getRight().setNewTrackDefaults();
     }

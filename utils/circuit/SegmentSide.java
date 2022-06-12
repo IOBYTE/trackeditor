@@ -43,6 +43,7 @@ public class SegmentSide implements Cloneable
 	public static final double	DEFAULT_BORDER_HEIGHT		= 0.05;
 	public static final String	DEFAULT_BORDER_SURFACE		= "curb-5cm-r";
 	public static final String	DEFAULT_BORDER_STYLE		= "plan";
+
 	private Vector				sideListeners				= new Vector();
 	private SegmentSide			prev						= null;
 	private SegmentSide			props						= null;
@@ -105,19 +106,21 @@ public class SegmentSide implements Cloneable
 	public void setNewTrackDefaults()
 	{
 		setHasSide(true);
-		setSideStartWidth(4.0);
-		setSideEndWidth(4.0);
-		setSideSurface("grass");
+		setSideStartWidth(DEFAULT_SIDE_START_WIDTH);
+		setSideEndWidth(DEFAULT_SIDE_END_WIDTH);
+		setSideSurface(DEFAULT_SIDE_SURFACE);
+
 		setHasBarrier(true);
-		setBarrierHeight(1.0);
-		setBarrierWidth(0.1);
-		setBarrierSurface("barrier");
-		setBarrierStyle("curb");
+		setBarrierHeight(DEFAULT_BARRIER_HEIGHT);
+		setBarrierWidth(DEFAULT_BARRIER_WIDTH);
+		setBarrierSurface(DEFAULT_BARRIER_SURFACE);
+		setBarrierStyle(DEFAULT_BARRIER_STYLE);
+
 		setHasBorder(true);
-		setBorderWidth(0.5);
-		setBorderHeight(0.05);
-		setBorderSurface("curb-5cm-r");
-		setBorderStyle("plan");
+		setBorderWidth(DEFAULT_BORDER_WIDTH);
+		setBorderHeight(DEFAULT_BORDER_HEIGHT);
+		setBorderSurface(DEFAULT_BORDER_SURFACE);
+		setBorderStyle(DEFAULT_BORDER_STYLE);
 	}
 
 	/**
