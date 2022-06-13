@@ -796,7 +796,14 @@ public class XmlReader
         {
             if (e.getName().equals("attnum"))
             {
-                out = Double.parseDouble(e.getAttributeValue("val"));
+                try
+                {
+                    out = Double.parseDouble(e.getAttributeValue("val"));
+                }
+                catch (NumberFormatException exception)
+                {
+                    exception.printStackTrace();
+                }
             }
         }
         return out;
@@ -811,7 +818,14 @@ public class XmlReader
         {
             if (e.getName().equals("attnum"))
             {
-                out = Integer.decode(e.getAttributeValue("val"));
+                try
+                {
+                    out = Integer.decode(e.getAttributeValue("val"));
+                }
+                catch (NumberFormatException exception)
+                {
+                    exception.printStackTrace();
+                }
             }
         }
         return out;
