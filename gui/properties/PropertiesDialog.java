@@ -53,6 +53,7 @@ public class PropertiesDialog extends JDialog
 	private LocalInfoProperties		localInfoProperties		= null;
 	private StartingGridProperties	startingGridProperties	= null;
 	private GraphicProperties		graphicProperties		= null;
+	private SurfaceProperties		surfaceProperties		= null;
 	private EnvMapProperties		envMapProperties		= null;
 
 	/**
@@ -72,7 +73,7 @@ public class PropertiesDialog extends JDialog
 	private void initialize()
 	{
 		this.setContentPane(getPane());
-		this.setSize(500, 665);
+		this.setSize(500, 760);
 		this.setModal(true);
 		this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -98,6 +99,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
 			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
 			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
+			tabbedPane.addTab("Surface", null, getSurfaceProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -294,6 +296,18 @@ public class PropertiesDialog extends JDialog
 	}
 
 	/**
+	 * This method initializes surfaceProperties
+	 *
+	 * @return gui.properties.EnvMapProperties
+	 */
+	private SurfaceProperties getSurfaceProperties() {
+		if (surfaceProperties == null) {
+			surfaceProperties = new SurfaceProperties(frame);
+		}
+		return surfaceProperties;
+	}
+
+	/**
 	 *
 	 */
 	protected void exit()
@@ -308,6 +322,7 @@ public class PropertiesDialog extends JDialog
 		this.startingGridProperties.exit();
 		this.graphicProperties.exit();
 		this.envMapProperties.exit();
+		this.surfaceProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();
