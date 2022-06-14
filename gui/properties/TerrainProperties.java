@@ -642,10 +642,8 @@ public class TerrainProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				System.out.println("fileName " + fileName + " pathToFile " + pathToFile);
 				if (pathToFile.equals(Editor.getProperties().getPath()))
 					fileName = fileName.substring(index + 1);
-				System.out.println("fileName " + fileName);
 				getObjectMapTextField().setText(fileName);
 			}
 		}
