@@ -20,6 +20,7 @@
  */
 package gui.properties;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Vector;
@@ -27,10 +28,12 @@ import java.util.Vector;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
 import utils.Editor;
@@ -533,6 +536,9 @@ public class TerrainProperties extends PropertyPanel
 		private JTextField 	nameTextField		= null;
 		private JLabel		objectMapLabel		= null;
 		private JTextField	objectMapTextField	= null;
+		private JButton		browseButton		= null;
+
+		private final String sep = System.getProperty("file.separator");
 
 		/**
 		 *
@@ -557,10 +563,9 @@ public class TerrainProperties extends PropertyPanel
 			add(nameLabel);
 			add(objectMapLabel);
 			setLayout(null);
-			//setSize(420, 230);
-			//setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 			add(getNameTextField(), null);
 			add(getObjectMapTextField(), null);
+			add(getBrowseButton(), null);
 
 			getNameTextField().setText(name);
 			getObjectMapTextField().setText(objectMap);
@@ -594,6 +599,55 @@ public class TerrainProperties extends PropertyPanel
 				objectMapTextField.setBounds(105, 40, 200, 20);
 			}
 			return objectMapTextField;
+		}
+		/**
+		 * This method initializes browseButton
+		 *
+		 * @return javax.swing.JButton
+		 */
+		private JButton getBrowseButton()
+		{
+			if (browseButton == null)
+			{
+				browseButton = new JButton();
+				browseButton.setBounds(310, 37, 80, 25);
+				browseButton.setText("Browse");
+				browseButton.addActionListener(new java.awt.event.ActionListener()
+				{
+					public void actionPerformed(java.awt.event.ActionEvent e)
+					{
+						selectFile();
+					}
+				});
+			}
+			return browseButton;
+		}
+
+		protected void selectFile()
+		{
+			JFileChooser fc = new JFileChooser();
+			fc.setSelectedFiles(null);
+			fc.setSelectedFile(null);
+			fc.rescanCurrentDirectory();
+			fc.setApproveButtonMnemonic(0);
+			fc.setDialogTitle("Object Map image file selection");
+			fc.setVisible(true);
+			fc.setAcceptAllFileFilterUsed(false);
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
+			fc.addChoosableFileFilter(filter);
+			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			int result = fc.showDialog(this, "Ok");
+			if (result == JFileChooser.APPROVE_OPTION)
+			{
+				String fileName = fc.getSelectedFile().toString();
+				int index = fileName.lastIndexOf(sep);
+				String pathToFile = fileName.substring(0, index);
+				System.out.println("fileName " + fileName + " pathToFile " + pathToFile);
+				if (pathToFile.equals(Editor.getProperties().getPath()))
+					fileName = fileName.substring(index + 1);
+				System.out.println("fileName " + fileName);
+				getObjectMapTextField().setText(fileName);
+			}
 		}
 	}
 
