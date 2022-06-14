@@ -53,6 +53,7 @@ public class PropertiesDialog extends JDialog
 	private LocalInfoProperties		localInfoProperties		= null;
 	private StartingGridProperties	startingGridProperties	= null;
 	private GraphicProperties		graphicProperties		= null;
+	private EnvMapProperties		envMapProperties		= null;
 
 	/**
 	 *
@@ -71,7 +72,7 @@ public class PropertiesDialog extends JDialog
 	private void initialize()
 	{
 		this.setContentPane(getPane());
-		this.setSize(440, 665);
+		this.setSize(500, 665);
 		this.setModal(true);
 		this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -96,6 +97,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Local Info", null, getLocalInfoProperties(), null);
 			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
 			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
+			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -157,7 +159,7 @@ public class PropertiesDialog extends JDialog
 		if (okButton == null)
 		{
 			okButton = new JButton();
-			okButton.setBounds(120, 5, 80, 25);
+			okButton.setBounds(140, 5, 80, 25);
 			okButton.setText("Ok");
 			okButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -179,7 +181,7 @@ public class PropertiesDialog extends JDialog
 		if (cancelButton == null)
 		{
 			cancelButton = new JButton();
-			cancelButton.setBounds(250, 5, 80, 25);
+			cancelButton.setBounds(270, 5, 80, 25);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -279,6 +281,17 @@ public class PropertiesDialog extends JDialog
 		}
 		return graphicProperties;
 	}
+	/**
+	 * This method initializes envMapProperties
+	 *
+	 * @return gui.properties.EnvMapProperties
+	 */
+	private EnvMapProperties getEnvMapProperties() {
+		if (envMapProperties == null) {
+			envMapProperties = new EnvMapProperties(frame);
+		}
+		return envMapProperties;
+	}
 
 	/**
 	 *
@@ -294,6 +307,7 @@ public class PropertiesDialog extends JDialog
 		this.localInfoProperties.exit();
 		this.startingGridProperties.exit();
 		this.graphicProperties.exit();
+		this.envMapProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();

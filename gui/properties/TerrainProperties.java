@@ -465,7 +465,7 @@ public class TerrainProperties extends PropertyPanel
 		if (addObjectMapButton == null)
 		{
 			addObjectMapButton = new JButton();
-			addObjectMapButton.setBounds(15, 400, 120, 25);
+			addObjectMapButton.setBounds(10, 400, 120, 25);
 			addObjectMapButton.setText("Add Object Map");
 			addObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -491,7 +491,7 @@ public class TerrainProperties extends PropertyPanel
 		if (deleteObjectMapButton == null)
 		{
 			deleteObjectMapButton = new JButton();
-			deleteObjectMapButton.setBounds(150, 400, 140, 25);
+			deleteObjectMapButton.setBounds(145, 400, 140, 25);
 			deleteObjectMapButton.setText("Delete Object Map");
 			deleteObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -517,7 +517,7 @@ public class TerrainProperties extends PropertyPanel
 		if (tabbedPane == null)
 		{
 			tabbedPane = new JTabbedPane();
-			tabbedPane.setBounds(10, 285, 400, 100);
+			tabbedPane.setBounds(10, 285, 460, 100);
 
 			Vector<ObjectMap> objectMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
 
@@ -596,7 +596,7 @@ public class TerrainProperties extends PropertyPanel
 			if (objectMapTextField == null)
 			{
 				objectMapTextField = new JTextField();
-				objectMapTextField.setBounds(105, 40, 200, 20);
+				objectMapTextField.setBounds(105, 40, 260, 20);
 			}
 			return objectMapTextField;
 		}
@@ -610,7 +610,7 @@ public class TerrainProperties extends PropertyPanel
 			if (browseButton == null)
 			{
 				browseButton = new JButton();
-				browseButton.setBounds(310, 37, 80, 25);
+				browseButton.setBounds(370, 37, 80, 25);
 				browseButton.setText("Browse");
 				browseButton.addActionListener(new java.awt.event.ActionListener()
 				{
