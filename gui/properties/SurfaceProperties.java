@@ -356,7 +356,7 @@ public class SurfaceProperties extends PropertyPanel
 		private String getString(double value)
 		{
 			if (!Double.isNaN(value))
-				return value + "";
+				return String.valueOf(value);
 
 			return null;
 		}
@@ -650,7 +650,8 @@ public class SurfaceProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String result = null;
+		String stringResult = null;
+		MutableDouble doubleResult = new MutableDouble(Double.NaN);
 		Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
 		int minCount = Integer.min(surfaces.size(), tabbedPane.getTabCount());
 		if (surfaces.size() != tabbedPane.getTabCount())
@@ -661,9 +662,136 @@ public class SurfaceProperties extends PropertyPanel
         {
             Surface surface = surfaces.elementAt(i);
             SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(i);
-            if (isDifferent(panel.getNameTextField().getText(), surface.getName(), result))
+
+            if (isDifferent(panel.getNameTextField().getText(), surface.getName(), stringResult))
             {
                 surface.setName(panel.getNameTextField().getText());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorR1TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorR1(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorG1TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorG1(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorB1TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorB1(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorR2TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorR2(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorG2TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorG2(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getColorB2TextField().getText(), surface.getColorR1(), doubleResult))
+            {
+                surface.setColorB2(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureNameTextField().getText(), surface.getTextureName(), stringResult))
+            {
+                surface.setTextureName(panel.getTextureNameTextField().getText());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureTypeComboBox().getSelectedItem().toString(), surface.getTextureType(), stringResult))
+            {
+                surface.setTextureName(stringResult);
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureSizeTextField().getText(), surface.getTextureSize(), doubleResult))
+            {
+                surface.setTextureSize(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString(), surface.getTextureLinkWithPrevious(), stringResult))
+            {
+                surface.setTextureLinkWithPrevious(stringResult);
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString(), surface.getTextureStartOnBoundary(), stringResult))
+            {
+                surface.setTextureStartOnBoundary(stringResult);
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getTextureMipMapTextField().getText(), surface.getTextureMipMap(), doubleResult))
+            {
+                surface.setTextureMipMap(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getFrictionTextField().getText(), surface.getFriction(), doubleResult))
+            {
+                surface.setFriction(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getRollingResistanceTextField().getText(), surface.getRollingResistance(), doubleResult))
+            {
+                surface.setRollingResistance(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getBumpNameTextField().getText(), surface.getBumpName(), stringResult))
+            {
+                surface.setBumpName(panel.getBumpNameTextField().getText());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getBumpSizeTextField().getText(), surface.getBumpSize(), doubleResult))
+            {
+                surface.setBumpSize(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getRoughnessTextField().getText(), surface.getRoughness(), doubleResult))
+            {
+                surface.setRoughness(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getRoughnessWavelengthTextField().getText(), surface.getRoughnessWavelength(), doubleResult))
+            {
+                surface.setRoughnessWavelength(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getRacelineNameTextField().getText(), surface.getRacelineName(), stringResult))
+            {
+                surface.setRacelineName(panel.getRacelineNameTextField().getText());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getDamageTextField().getText(), surface.getDammage(), doubleResult))
+            {
+                surface.setDammage(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.getReboundTextField().getText(), surface.getRebound(), doubleResult))
+            {
+                surface.setRebound(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 		}
@@ -682,9 +810,57 @@ public class SurfaceProperties extends PropertyPanel
 			{
 	            SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(surfaces.size());
 				Surface surface = new Surface();
+
 				surface.setName(panel.getNameTextField().getText());
+				surface.setColorR1(getDouble(panel.getColorR1TextField().getText()));
+				surface.setColorG1(getDouble(panel.getColorG1TextField().getText()));
+				surface.setColorB1(getDouble(panel.getColorB1TextField().getText()));
+				surface.setColorR2(getDouble(panel.getColorR1TextField().getText()));
+				surface.setColorG2(getDouble(panel.getColorG2TextField().getText()));
+				surface.setColorB2(getDouble(panel.getColorB2TextField().getText()));
+				surface.setTextureName(panel.getTextureNameTextField().getText());
+				surface.setTextureType(getString(panel.getTextureTypeComboBox().getSelectedItem().toString()));
+				surface.setTextureSize(getDouble(panel.getTextureSizeTextField().getText()));
+				surface.setTextureLinkWithPrevious(getString(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString()));
+				surface.setTextureStartOnBoundary(getString(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString()));
+				surface.setTextureMipMap(getDouble(panel.getTextureMipMapTextField().getText()));
+				surface.setFriction(getDouble(panel.getFrictionTextField().getText()));
+				surface.setRollingResistance(getDouble(panel.getRollingResistanceTextField().getText()));
+				surface.setBumpName(panel.getBumpNameTextField().getText());
+				surface.setBumpSize(getDouble(panel.getBumpSizeTextField().getText()));
+				surface.setRoughness(getDouble(panel.getRoughnessTextField().getText()));
+				surface.setRoughnessWavelength(getDouble(panel.getRoughnessWavelengthTextField().getText()));
+				surface.setRacelineName(panel.getRacelineNameTextField().getText());
+				surface.setDammage(getDouble(panel.getDamageTextField().getText()));
+				surface.setRebound(getDouble(panel.getReboundTextField().getText()));
+
 				surfaces.add(surface);
 			}
 		}
 	}
- } //  @jve:decl-index=0:visual-constraint="10,10"
+
+	private double getDouble(String string)
+	{
+		if (string == null || string.isEmpty())
+			return Double.NaN;
+
+		double value = Double.NaN;
+
+		try
+		{
+			value = Double.parseDouble(string);
+		}
+		catch (NumberFormatException e)
+		{
+		}
+
+		return value;
+	}
+	private String getString(String string)
+	{
+		if (string == "none")
+			return null;
+
+		return string;
+	}
+} //  @jve:decl-index=0:visual-constraint="10,10"

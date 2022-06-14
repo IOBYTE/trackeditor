@@ -4,6 +4,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
+import utils.Editor;
 
 public class PropertyPanel extends JPanel
 {
@@ -53,7 +54,7 @@ public class PropertyPanel extends JPanel
 
 	public boolean isDifferent(String newValue, String oldValue, String result)
 	{
-		if ((newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE)) && 
+		if ((newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE)) &&
 			(oldValue == null || oldValue.isEmpty()))
 		{
 			return false;
@@ -76,5 +77,47 @@ public class PropertyPanel extends JPanel
 		}
 
 		return different;
+	}
+
+	public boolean isDifferent(String newValue, double oldValue, MutableDouble result)
+	{
+		boolean changed = false;
+		try
+		{
+			double value = Double.parseDouble(newValue);
+			if (value != oldValue)
+			{
+				result.setValue(value);
+				changed = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (!Double.isNaN(oldValue))
+			{
+				result.setValue(Double.NaN);
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	public class MutableDouble
+	{
+		private double value;
+
+		public MutableDouble(double value)
+		{
+			this.value = value;
+		}
+
+		public double getValue()
+		{
+			return value;
+		}
+
+		public void setValue(double value)
+		{
+			this.value = value;
+		}
 	}
 }
