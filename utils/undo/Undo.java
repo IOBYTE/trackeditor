@@ -31,8 +31,8 @@ import java.util.Vector;
  */
 public class Undo
 {
-	private static Vector	undoSegments	= new Vector();
-	private static Vector	redoSegments	= new Vector();
+	private static Vector<UndoInterface>	undoSegments	= new Vector<UndoInterface>();
+	private static Vector<UndoInterface>	redoSegments	= new Vector<UndoInterface>();
 
 	/**
 	 *  
@@ -51,7 +51,7 @@ public class Undo
 	{
 		if (undoSegments.size() > 0)
 		{
-			UndoInterface last = (UndoInterface) undoSegments.lastElement();
+			UndoInterface last = undoSegments.lastElement();
 			undoSegments.remove(last);
 			redoSegments.add(last);
 			last.undo();
@@ -67,7 +67,7 @@ public class Undo
 	{
 		if (redoSegments.size() > 0)
 		{
-			UndoInterface last = (UndoInterface) redoSegments.lastElement();
+			UndoInterface last = redoSegments.lastElement();
 			redoSegments.remove(last);
 			undoSegments.add(last);
 			last.redo();

@@ -39,7 +39,7 @@ public class TorcsTuneFileFilter extends FileFilter {
     private static String TYPE_UNKNOWN = "Type Unknown";
     private static String HIDDEN_FILE = "Hidden File";
 
-    private Hashtable filters = null;
+    private Hashtable<String, TorcsTuneFileFilter> filters = null;
     private String description = null;
     private String fullDescription = null;
     private boolean useExtensionsInDescription = true;
@@ -51,7 +51,7 @@ public class TorcsTuneFileFilter extends FileFilter {
      * @see #addExtension
      */
     public TorcsTuneFileFilter() {
-    this.filters = new Hashtable();
+    this.filters = new Hashtable<String, TorcsTuneFileFilter>();
     }
 
     /**
@@ -162,7 +162,7 @@ public class TorcsTuneFileFilter extends FileFilter {
      */
     public void addExtension(String extension) {
     if(filters == null) {
-        filters = new Hashtable(5);
+        filters = new Hashtable<String, TorcsTuneFileFilter>(5);
     }
     filters.put(extension.toLowerCase(), this);
     fullDescription = null;
@@ -183,11 +183,11 @@ public class TorcsTuneFileFilter extends FileFilter {
         if(description == null || isExtensionListInDescription()) {
         fullDescription = description==null ? "(" : description + " (";
         // build the description from the extension list
-        Enumeration extensions = filters.keys();
+        Enumeration<String> extensions = filters.keys();
         if(extensions != null) {
-            fullDescription += "." + (String) extensions.nextElement();
+            fullDescription += "." + extensions.nextElement();
             while (extensions.hasMoreElements()) {
-            fullDescription += ", ." + (String) extensions.nextElement();
+            fullDescription += ", ." + extensions.nextElement();
             }
         }
         fullDescription += ")";

@@ -685,7 +685,7 @@ public class Segment implements Cloneable
 			s.heightEndLeft = this.heightEndLeft;
 			s.heightEndRight = this.heightEndRight;
 			s.grade = this.grade;
-			s.bankingStart= this.bankingStart;
+			s.bankingStart = this.bankingStart;
 			s.bankingEnd = this.bankingEnd;
 			s.profil = this.profil;
 			s.profilSteps = this.profilSteps;

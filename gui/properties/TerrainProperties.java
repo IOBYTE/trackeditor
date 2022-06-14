@@ -28,10 +28,13 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
 import utils.Editor;
+import utils.circuit.ObjectMap;
 import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
 
@@ -67,8 +70,11 @@ public class TerrainProperties extends PropertyPanel
 	private JComboBox<String>	surfaceComboBox				= null;
 	private JButton				defaultButton				= null;
 	private JButton				deleteButton				= null;
+	private JButton				addObjectMapButton			= null;
+	private JButton				deleteObjectMapButton		= null;
+	private JTabbedPane			tabbedPane					= null;
 
-	private String[]			roadSurfaceItems		=
+	private String[]			roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
      "asphalt-l-both", "asphalt-pits", "asphalt", "dirt", "dirt-b", "asphalt2", "road1", "road1-pits",
      "road1-asphalt", "asphalt-road1", "b-road1", "b-road1-l2", "b-road1-l2p", "concrete", "concrete2",
@@ -87,7 +93,7 @@ public class TerrainProperties extends PropertyPanel
 	{
 		super(frame);
 		initialize();
-	}
+    }
 
 	/**
 	 * This method initializes this
@@ -156,6 +162,9 @@ public class TerrainProperties extends PropertyPanel
 		this.add(getSurfaceComboBox(), null);
 		this.add(getDefaultButton(), null);
 		this.add(getDeleteButton(), null);
+		this.add(getTabbedPane(), null);
+		this.add(getAddObjectMapButton(), null);
+		this.add(getDeleteObjectMapButton(), null);
 
         Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
         for (int i = 0; i < surfaces.size(); i++)
@@ -444,6 +453,151 @@ public class TerrainProperties extends PropertyPanel
 	}
 
 	/**
+	 * This method initializes addObjectMapButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getAddObjectMapButton()
+	{
+		if (addObjectMapButton == null)
+		{
+			addObjectMapButton = new JButton();
+			addObjectMapButton.setBounds(15, 400, 120, 25);
+			addObjectMapButton.setText("Add Object Map");
+			addObjectMapButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					String name = "map " + (tabbedPane.getTabCount() + 1);
+
+					tabbedPane.addTab(name, null, new ObjectMapPanel(name, ""), null);
+					tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+				}
+			});
+		}
+		return addObjectMapButton;
+	}
+
+	/**
+	 * This method initializes deleteObjectMapButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getDeleteObjectMapButton()
+	{
+		if (deleteObjectMapButton == null)
+		{
+			deleteObjectMapButton = new JButton();
+			deleteObjectMapButton.setBounds(150, 400, 140, 25);
+			deleteObjectMapButton.setText("Delete Object Map");
+			deleteObjectMapButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					if (tabbedPane.getTabCount() > 0)
+					{
+						tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+					}
+				}
+			});
+		}
+		return deleteObjectMapButton;
+	}
+
+	/**
+	 * This method initializes tabbedPane
+	 *
+	 * @return javax.swing.JTabbedPane
+	 */
+	private JTabbedPane getTabbedPane()
+	{
+		if (tabbedPane == null)
+		{
+			tabbedPane = new JTabbedPane();
+			tabbedPane.setBounds(10, 285, 400, 100);
+
+			Vector<ObjectMap> objectMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
+
+			for (int i = 0; i < objectMaps.size(); i++)
+	        {
+                utils.circuit.ObjectMap objectMap = objectMaps.elementAt(i);
+				tabbedPane.addTab(objectMap.getName(), null, new ObjectMapPanel(objectMap.getName(), objectMap.getObjectMap()), null);
+			}
+		}
+		return tabbedPane;
+	}
+
+	private class ObjectMapPanel extends JPanel
+	{
+		private JLabel		nameLabel			= null;
+		private JTextField 	nameTextField		= null;
+		private JLabel		objectMapLabel		= null;
+		private JTextField	objectMapTextField	= null;
+
+		/**
+		 *
+		 */
+		public ObjectMapPanel(String name, String objectMap)
+		{
+			super();
+			initialize(name, objectMap);
+		}
+
+		/**
+		 *
+		 */
+		private void initialize(String name, String objectMap)
+		{
+			nameLabel = new JLabel();
+			objectMapLabel = new JLabel();
+			nameLabel.setBounds(15, 15, 90, 20);
+			nameLabel.setText("Name");
+			objectMapLabel.setBounds(15, 40, 90, 20);
+			objectMapLabel.setText("Object Map");
+			add(nameLabel);
+			add(objectMapLabel);
+			setLayout(null);
+			//setSize(420, 230);
+			//setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+			add(getNameTextField(), null);
+			add(getObjectMapTextField(), null);
+
+			getNameTextField().setText(name);
+			getObjectMapTextField().setText(objectMap);
+		}
+
+		/**
+		 * This method initializes nameTextField
+		 *
+		 * @return javax.swing.JTextField
+		 */
+		public JTextField getNameTextField()
+		{
+			if (nameTextField == null)
+			{
+				nameTextField = new JTextField();
+				nameTextField.setBounds(105, 15, 60, 20);
+			}
+			return nameTextField;
+		}
+
+		/**
+		 * This method initializes objectMapTextField
+		 *
+		 * @return javax.swing.JTextField
+		 */
+		public JTextField getObjectMapTextField()
+		{
+			if (objectMapTextField == null)
+			{
+				objectMapTextField = new JTextField();
+				objectMapTextField.setBounds(105, 40, 200, 20);
+			}
+			return objectMapTextField;
+		}
+	}
+
+	/**
 	 *
 	 */
 	public void exit()
@@ -594,6 +748,48 @@ public class TerrainProperties extends PropertyPanel
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setSurface(result);
 			frame.documentIsModified = true;
+		}
+
+		Vector<ObjectMap> objectMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
+		int minCount = Integer.min(objectMaps.size(), tabbedPane.getTabCount());
+		if (objectMaps.size() != tabbedPane.getTabCount())
+		{
+			frame.documentIsModified = true;
+		}
+		for (int i = 0; i < minCount; i++)
+        {
+            utils.circuit.ObjectMap objectMap = objectMaps.elementAt(i);
+            ObjectMapPanel panel = (ObjectMapPanel) tabbedPane.getComponentAt(i);
+            if (isDifferent(panel.getNameTextField().getText(), objectMap.getName(), result))
+            {
+                objectMap.setName(panel.getNameTextField().getText());
+                frame.documentIsModified = true;
+            }
+            if (isDifferent(panel.getObjectMapTextField().getText(), objectMap.getObjectMap(), result))
+            {
+                objectMap.setObjectMap(panel.getObjectMapTextField().getText());
+                frame.documentIsModified = true;
+            }
+		}
+		if (objectMaps.size() > tabbedPane.getTabCount())
+		{
+			// need to trim objectMaps
+			while (objectMaps.size() > tabbedPane.getTabCount())
+			{
+				objectMaps.remove(objectMaps.size() - 1);
+			}
+		}
+		else if (objectMaps.size() < tabbedPane.getTabCount())
+		{
+			// need to add to objectMaps
+			while (objectMaps.size() < tabbedPane.getTabCount())
+			{
+	            ObjectMapPanel panel = (ObjectMapPanel) tabbedPane.getComponentAt(objectMaps.size());
+				ObjectMap objectMap = new ObjectMap();
+				objectMap.setName(panel.getNameTextField().getText());
+				objectMap.setObjectMap(panel.getObjectMapTextField().getText());
+				objectMaps.add(objectMap);
+			}
 		}
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

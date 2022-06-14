@@ -306,4 +306,4 @@ public class PropertiesDialog extends JDialog
 	{
 		this.dispose();
 	}
-   } //  @jve:decl-index=0:visual-constraint="6,6"
+} //  @jve:decl-index=0:visual-constraint="6,6"
