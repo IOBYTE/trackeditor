@@ -56,8 +56,8 @@ public class TorcsPlugin implements Plugin
 	public TorcsPlugin(EditorFrame editor)
 	{
 		this.editor = editor;
-		importAction = new ImportAction("Torcs", null, "Torcs xml file", null);
-		exportAction = new ExportAction("Torcs", null, "Torcs xml file", null);
+		importAction = new ImportAction("Speed Dreams", null, "Speed Dreams xml file", null);
+		exportAction = new ExportAction("Speed Dreams", null, "Speed Dreams xml file", null);
 	}
 
 	public void importTrack()
