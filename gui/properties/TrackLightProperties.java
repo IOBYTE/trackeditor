@@ -20,13 +20,16 @@
  */
 package gui.properties;
 
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
 import utils.Editor;
@@ -164,10 +167,12 @@ public class TrackLightProperties extends PropertyPanel
 		private JTextField			bottomRightYTextField	= null;
 		private JLabel				bottomRightZLabel		= null;
 		private JTextField			bottomRightZTextField	= null;
-		private JLabel				textureOnLabel			= null;		// TODO add file chooser
+		private JLabel				textureOnLabel			= null;
 		private JTextField			textureOnTextField		= null;
-		private JLabel				textureOffLabel			= null;		// TODO add file chooser
+		private JButton				textureOnButton			= null;
+		private JLabel				textureOffLabel			= null;
 		private JTextField			textureOffTextField		= null;
+		private JButton				textureOffButton		= null;
 		private JLabel				indexLabel				= null;
 		private JTextField			indexTextField			= null;
 		private JLabel				redLabel				= null;
@@ -176,6 +181,8 @@ public class TrackLightProperties extends PropertyPanel
 		private JTextField			greenTextField			= null;
 		private JLabel				blueLabel				= null;
 		private JTextField			blueTextField			= null;
+
+		private final String sep = System.getProperty("file.separator");
 
 		/**
 		 *
@@ -262,6 +269,8 @@ public class TrackLightProperties extends PropertyPanel
 			add(getRedTextField(), null);
 			add(getGreenTextField(), null);
 			add(getBlueTextField(), null);
+			add(getTextureOnButton(), null);
+			add(getTextureOffButton(), null);
 
 			getNameTextField().setText(light.getName());
 			getRoleTextField().setText(light.getRole());
@@ -384,9 +393,27 @@ public class TrackLightProperties extends PropertyPanel
 			if (textureOnTextField == null)
 			{
 				textureOnTextField = new JTextField();
-				textureOnTextField.setBounds(120, 210, 180, 20);
+				textureOnTextField.setBounds(120, 210, 240, 20);
 			}
 			return textureOnTextField;
+		}
+
+		private JButton getTextureOnButton()
+		{
+			if (textureOnButton == null)
+			{
+				textureOnButton = new JButton();
+				textureOnButton.setBounds(370, 208, 80, 25);
+				textureOnButton.setText("Browse");
+				textureOnButton.addActionListener(new java.awt.event.ActionListener()
+				{
+					public void actionPerformed(java.awt.event.ActionEvent e)
+					{
+						textureOnFile();
+					}
+				});
+			}
+			return textureOnButton;
 		}
 
 		public JTextField getTextureOffTextField()
@@ -394,9 +421,27 @@ public class TrackLightProperties extends PropertyPanel
 			if (textureOffTextField == null)
 			{
 				textureOffTextField = new JTextField();
-				textureOffTextField.setBounds(120, 235, 180, 20);
+				textureOffTextField.setBounds(120, 235, 240, 20);
 			}
 			return textureOffTextField;
+		}
+
+		private JButton getTextureOffButton()
+		{
+			if (textureOffButton == null)
+			{
+				textureOffButton = new JButton();
+				textureOffButton.setBounds(370, 233, 80, 25);
+				textureOffButton.setText("Browse");
+				textureOffButton.addActionListener(new java.awt.event.ActionListener()
+				{
+					public void actionPerformed(java.awt.event.ActionEvent e)
+					{
+						textureOffFile();
+					}
+				});
+			}
+			return textureOffButton;
 		}
 
 		public JTextField getIndexTextField()
@@ -437,6 +482,56 @@ public class TrackLightProperties extends PropertyPanel
 				blueTextField.setBounds(120, 335, 100, 20);
 			}
 			return blueTextField;
+		}
+
+		protected void textureOnFile()
+		{
+			JFileChooser fc = new JFileChooser();
+			fc.setSelectedFiles(null);
+			fc.setSelectedFile(null);
+			fc.rescanCurrentDirectory();
+			fc.setApproveButtonMnemonic(0);
+			fc.setDialogTitle("Texture On image file selection");
+			fc.setVisible(true);
+			fc.setAcceptAllFileFilterUsed(false);
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+			fc.addChoosableFileFilter(filter);
+			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			int result = fc.showDialog(this, "Ok");
+			if (result == JFileChooser.APPROVE_OPTION)
+			{
+				String fileName = fc.getSelectedFile().toString();
+				int index = fileName.lastIndexOf(sep);
+				String pathToFile = fileName.substring(0, index);
+				if (pathToFile.equals(Editor.getProperties().getPath()))
+					fileName = fileName.substring(index + 1);
+				getTextureOnTextField().setText(fileName);
+			}
+		}
+
+		protected void textureOffFile()
+		{
+			JFileChooser fc = new JFileChooser();
+			fc.setSelectedFiles(null);
+			fc.setSelectedFile(null);
+			fc.rescanCurrentDirectory();
+			fc.setApproveButtonMnemonic(0);
+			fc.setDialogTitle("Texture Off image file selection");
+			fc.setVisible(true);
+			fc.setAcceptAllFileFilterUsed(false);
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+			fc.addChoosableFileFilter(filter);
+			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			int result = fc.showDialog(this, "Ok");
+			if (result == JFileChooser.APPROVE_OPTION)
+			{
+				String fileName = fc.getSelectedFile().toString();
+				int index = fileName.lastIndexOf(sep);
+				String pathToFile = fileName.substring(0, index);
+				if (pathToFile.equals(Editor.getProperties().getPath()))
+					fileName = fileName.substring(index + 1);
+				getTextureOffTextField().setText(fileName);
+			}
 		}
 	}
 
