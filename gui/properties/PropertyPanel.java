@@ -101,6 +101,72 @@ public class PropertyPanel extends JPanel
 		return changed;
 	}
 
+	public boolean isDifferent(String newValue, int oldValue, MutableInteger result)
+	{
+		boolean changed = false;
+		try
+		{
+			int value = Integer.parseInt(newValue);
+			if (value != oldValue)
+			{
+				result.setValue(value);
+				changed = true;
+			}
+		} catch (NumberFormatException e)
+		{
+			if (oldValue != Integer.MAX_VALUE)
+			{
+				result.setValue(Integer.MAX_VALUE);
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	protected double getDouble(String string)
+	{
+		if (string == null || string.isEmpty())
+			return Double.NaN;
+
+		double value = Double.NaN;
+
+		try
+		{
+			value = Double.parseDouble(string);
+		}
+		catch (NumberFormatException e)
+		{
+		}
+
+		return value;
+	}
+
+	protected int getInteger(String string)
+	{
+		if (string == null || string.isEmpty())
+			return Integer.MAX_VALUE;
+
+		int value = Integer.MAX_VALUE;
+
+		try
+		{
+			value = Integer.decode(string);
+		}
+		catch (NumberFormatException e)
+		{
+		}
+
+		return value;
+	}
+
+	protected String getString(String string)
+	{
+		if (string == "none")
+			return null;
+
+		return string;
+	}
+
 	public class MutableDouble
 	{
 		private double value;
@@ -116,6 +182,26 @@ public class PropertyPanel extends JPanel
 		}
 
 		public void setValue(double value)
+		{
+			this.value = value;
+		}
+	}
+
+	public class MutableInteger
+	{
+		private int value;
+
+		public MutableInteger(int value)
+		{
+			this.value = value;
+		}
+
+		public int getValue()
+		{
+			return value;
+		}
+
+		public void setValue(int value)
 		{
 			this.value = value;
 		}

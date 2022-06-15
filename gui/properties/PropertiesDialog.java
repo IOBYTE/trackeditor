@@ -55,6 +55,7 @@ public class PropertiesDialog extends JDialog
 	private GraphicProperties		graphicProperties		= null;
 	private SurfaceProperties		surfaceProperties		= null;
 	private EnvMapProperties		envMapProperties		= null;
+	private ObjectProperties		objectProperties		= null;
 
 	/**
 	 *
@@ -100,6 +101,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
 			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
 			tabbedPane.addTab("Surface", null, getSurfaceProperties(), null);
+			tabbedPane.addTab("Object", null, getObjectProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -298,13 +300,25 @@ public class PropertiesDialog extends JDialog
 	/**
 	 * This method initializes surfaceProperties
 	 *
-	 * @return gui.properties.EnvMapProperties
+	 * @return gui.properties.SurfaceProperties
 	 */
 	private SurfaceProperties getSurfaceProperties() {
 		if (surfaceProperties == null) {
 			surfaceProperties = new SurfaceProperties(frame);
 		}
 		return surfaceProperties;
+	}
+
+	/**
+	 * This method initializes objectProperties
+	 *
+	 * @return gui.properties.ObjectProperties
+	 */
+	private ObjectProperties getObjectProperties() {
+		if (objectProperties == null) {
+			objectProperties = new ObjectProperties(frame);
+		}
+		return objectProperties;
 	}
 
 	/**
@@ -323,6 +337,7 @@ public class PropertiesDialog extends JDialog
 		this.graphicProperties.exit();
 		this.envMapProperties.exit();
 		this.surfaceProperties.exit();
+		this.objectProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();

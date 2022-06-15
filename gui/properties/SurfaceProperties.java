@@ -815,7 +815,7 @@ public class SurfaceProperties extends PropertyPanel
 				surface.setColorR1(getDouble(panel.getColorR1TextField().getText()));
 				surface.setColorG1(getDouble(panel.getColorG1TextField().getText()));
 				surface.setColorB1(getDouble(panel.getColorB1TextField().getText()));
-				surface.setColorR2(getDouble(panel.getColorR1TextField().getText()));
+				surface.setColorR2(getDouble(panel.getColorR2TextField().getText()));
 				surface.setColorG2(getDouble(panel.getColorG2TextField().getText()));
 				surface.setColorB2(getDouble(panel.getColorB2TextField().getText()));
 				surface.setTextureName(panel.getTextureNameTextField().getText());
@@ -837,30 +837,5 @@ public class SurfaceProperties extends PropertyPanel
 				surfaces.add(surface);
 			}
 		}
-	}
-
-	private double getDouble(String string)
-	{
-		if (string == null || string.isEmpty())
-			return Double.NaN;
-
-		double value = Double.NaN;
-
-		try
-		{
-			value = Double.parseDouble(string);
-		}
-		catch (NumberFormatException e)
-		{
-		}
-
-		return value;
-	}
-	private String getString(String string)
-	{
-		if (string == "none")
-			return null;
-
-		return string;
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"
