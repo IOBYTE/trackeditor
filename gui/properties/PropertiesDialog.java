@@ -56,6 +56,7 @@ public class PropertiesDialog extends JDialog
 	private SurfaceProperties		surfaceProperties		= null;
 	private EnvMapProperties		envMapProperties		= null;
 	private ObjectProperties		objectProperties		= null;
+	private CameraProperties		cameraProperties		= null;
 
 	/**
 	 *
@@ -102,6 +103,7 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
 			tabbedPane.addTab("Surface", null, getSurfaceProperties(), null);
 			tabbedPane.addTab("Object", null, getObjectProperties(), null);
+			tabbedPane.addTab("Camera", null, getCameraProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -322,6 +324,18 @@ public class PropertiesDialog extends JDialog
 	}
 
 	/**
+	 * This method initializes cameraProperties
+	 *
+	 * @return gui.properties.CameraProperties
+	 */
+	private CameraProperties getCameraProperties() {
+		if (cameraProperties == null) {
+			cameraProperties = new CameraProperties(frame);
+		}
+		return cameraProperties;
+	}
+
+	/**
 	 *
 	 */
 	protected void exit()
@@ -338,6 +352,7 @@ public class PropertiesDialog extends JDialog
 		this.envMapProperties.exit();
 		this.surfaceProperties.exit();
 		this.objectProperties.exit();
+		this.cameraProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();
