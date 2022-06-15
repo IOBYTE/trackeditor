@@ -97,7 +97,7 @@ public class XmlReader
         Editor.getProperties().getMainTrack().setProfilStepsLength(getAttrNumValue(mainTrack, "profil steps length"));
         Editor.getProperties().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
         Editor.getProperties().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
-        Editor.getProperties().getMainTrack().setRacelinExt(getAttrNumValue(mainTrack, "raceline ext"));
+        Editor.getProperties().getMainTrack().setRacelineExt(getAttrNumValue(mainTrack, "raceline ext"));
 
         if (Editor.getProperties().getHeader().getVersion() == 3)
         {

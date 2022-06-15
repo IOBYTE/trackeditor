@@ -127,7 +127,7 @@ public class XmlWriter
 		addContent(track, "surface", Editor.getProperties().getMainTrack().getSurface());
 		addContent(track, "raceline widthscale", null, Editor.getProperties().getMainTrack().getRacelineWidthscale());
 		addContent(track, "raceline int", null, Editor.getProperties().getMainTrack().getRacelineInt());
-		addContent(track, "raceline ext", null, Editor.getProperties().getMainTrack().getRacelinExt());
+		addContent(track, "raceline ext", null, Editor.getProperties().getMainTrack().getRacelineExt());
 
 		if (Editor.getProperties().getHeader().getVersion() == 3)
 		{

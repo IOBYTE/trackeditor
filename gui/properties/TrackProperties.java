@@ -46,6 +46,12 @@ public class TrackProperties extends PropertyPanel
 	private JComboBox<String>	surfaceComboBox				= null;
 	private JLabel				profilStepsLengthLabel		= null;
 	private JTextField			profilStepsLengthTextField	= null;
+	private JLabel				racelineWidthscaleLabel		= null;
+	private JTextField			racelineWidthscaleTextField	= null;
+	private JLabel				racelineIntLabel			= null;
+	private JTextField			racelineIntTextField		= null;
+	private JLabel				racelineExtLabel			= null;
+	private JTextField			racelineExtTextField		= null;
 
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -77,6 +83,9 @@ public class TrackProperties extends PropertyPanel
         widthLabel = new JLabel();
         surfaceLabel = new JLabel();
         profilStepsLengthLabel = new JLabel();
+        racelineWidthscaleLabel = new JLabel();
+        racelineIntLabel = new JLabel();
+        racelineExtLabel = new JLabel();
         this.setLayout(null);
         this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
         this.setSize(356, 259);
@@ -86,12 +95,24 @@ public class TrackProperties extends PropertyPanel
         surfaceLabel.setBounds(10, 35, 110, 20);
         profilStepsLengthLabel.setText("Profil Steps Length");
         profilStepsLengthLabel.setBounds(10, 60, 110, 20);
+        racelineWidthscaleLabel.setText("Raceline Width Scale");
+        racelineWidthscaleLabel.setBounds(10, 85, 110, 20);
+        racelineIntLabel.setText("Raceline Int");
+        racelineIntLabel.setBounds(10, 110, 110, 20);
+        racelineExtLabel.setText("Racelin Ext");
+        racelineExtLabel.setBounds(10, 135, 110, 20);
         this.add(widthLabel, null);
         this.add(getWidthTextField(), null);
         this.add(surfaceLabel, null);
         this.add(getSurfaceComboBox(), null);
         this.add(profilStepsLengthLabel, null);
         this.add(getProfilStepsLengthTextField(), null);
+        this.add(racelineWidthscaleLabel, null);
+        this.add(getRacelineWidthscaleTextField(), null);
+        this.add(racelineIntLabel, null);
+        this.add(getRacelineIntTextField(), null);
+        this.add(racelineExtLabel, null);
+        this.add(getRacelineExtTextField(), null);
 
         Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
         for (int i = 0; i < surfaces.size(); i++)
@@ -177,50 +198,95 @@ public class TrackProperties extends PropertyPanel
 	}
 
 	/**
+	 * This method initializes racelineWidthscaleTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getRacelineWidthscaleTextField() {
+		if (racelineWidthscaleTextField == null) {
+			racelineWidthscaleTextField = new JTextField();
+			racelineWidthscaleTextField.setBounds(120, 85, 50, 20);
+			setTextField(racelineWidthscaleTextField, Editor.getProperties().getMainTrack().getRacelineWidthscale());
+		}
+		return racelineWidthscaleTextField;
+	}
+
+	/**
+	 * This method initializes racelineIntTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getRacelineIntTextField() {
+		if (racelineIntTextField == null) {
+			racelineIntTextField = new JTextField();
+			racelineIntTextField.setBounds(120, 110, 50, 20);
+			setTextField(racelineIntTextField, Editor.getProperties().getMainTrack().getRacelineInt());
+		}
+		return racelineIntTextField;
+	}
+
+	/**
+	 * This method initializes profilStepsLengthTextField
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getRacelineExtTextField() {
+		if (racelineExtTextField == null) {
+			racelineExtTextField = new JTextField();
+			racelineExtTextField.setBounds(120, 135, 50, 20);
+			setTextField(racelineExtTextField, Editor.getProperties().getMainTrack().getRacelineExt());
+		}
+		return racelineExtTextField;
+	}
+
+	/**
 	 *
 	 */
 	public void exit()
 	{
-		try
-		{
-			double value = Double.parseDouble(this.getWidthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getWidth())
-			{
-				Editor.getProperties().getMainTrack().setWidth(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getWidth()))
-			{
-				Editor.getProperties().getMainTrack().setWidth(Double.NaN);
-				frame.documentIsModified = true;
-			}
-		}
+		String stringResult = new String();
+		MutableDouble doubleResult = new MutableDouble(Double.NaN);
 
-		String result = null;
+        if (isDifferent(getWidthTextField().getText(),
+            Editor.getProperties().getMainTrack().getWidth(), doubleResult))
+        {
+            Editor.getProperties().getMainTrack().setWidth(doubleResult.getValue());
+            frame.documentIsModified = true;
+        }
+
 		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
-			Editor.getProperties().getMainTrack().getSurface(), result))
+            Editor.getProperties().getMainTrack().getSurface(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().setSurface(result);
+			Editor.getProperties().getMainTrack().setSurface(stringResult);
 			frame.documentIsModified = true;
 		}
 
-		try
-		{
-			double value = Double.parseDouble(this.getProfilStepsLengthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getProfilStepsLength())
-			{
-				Editor.getProperties().getMainTrack().setProfilStepsLength(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getProfilStepsLength()))
-			{
-				Editor.getProperties().getMainTrack().setProfilStepsLength(Double.NaN);
-				frame.documentIsModified = true;
-			}
-		}
+        if (isDifferent(getProfilStepsLengthTextField().getText(),
+            Editor.getProperties().getMainTrack().getProfilStepsLength(), doubleResult))
+        {
+            Editor.getProperties().getMainTrack().setProfilStepsLength(doubleResult.getValue());
+            frame.documentIsModified = true;
+        }
+
+        if (isDifferent(getRacelineWidthscaleTextField().getText(),
+            Editor.getProperties().getMainTrack().getRacelineWidthscale(), doubleResult))
+        {
+            Editor.getProperties().getMainTrack().setRacelineWidthscale(doubleResult.getValue());
+            frame.documentIsModified = true;
+        }
+
+        if (isDifferent(getRacelineIntTextField().getText(),
+            Editor.getProperties().getMainTrack().getRacelineInt(), doubleResult))
+        {
+            Editor.getProperties().getMainTrack().setRacelineInt(doubleResult.getValue());
+            frame.documentIsModified = true;
+        }
+
+        if (isDifferent(getRacelineExtTextField().getText(),
+            Editor.getProperties().getMainTrack().getRacelineExt(), doubleResult))
+        {
+            Editor.getProperties().getMainTrack().setRacelineExt(doubleResult.getValue());
+            frame.documentIsModified = true;
+        }
 	}
  }  //  @jve:decl-index=0:visual-constraint="10,10"
