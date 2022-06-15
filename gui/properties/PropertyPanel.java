@@ -4,7 +4,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
-import utils.Editor;
 
 public class PropertyPanel extends JPanel
 {

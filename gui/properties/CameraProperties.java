@@ -20,7 +20,6 @@
  */
 package gui.properties;
 
-import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -188,17 +187,17 @@ public class CameraProperties extends PropertyPanel
 			nameLabel.setBounds(10, 10, 160, 20);
 			nameLabel.setText("Name");
 			segmentLabel.setBounds(10, 35, 160, 20);
-			segmentLabel.setText("Camera");
+			segmentLabel.setText("Segment");
 			toRightLabel.setBounds(10, 60, 160, 20);
-			toRightLabel.setText("Color");
+			toRightLabel.setText("To Right");
 			toStartLabel.setBounds(10, 85, 160, 20);
-			toStartLabel.setText("Orientation Type");
+			toStartLabel.setText("To Start");
 			heightLabel.setBounds(10, 110, 160, 20);
-			heightLabel.setText("Orientation");
+			heightLabel.setText("Height");
 			fovStartLabel.setBounds(10, 135, 160, 20);
-			fovStartLabel.setText("Delta Height");
+			fovStartLabel.setText("Fov Start");
 			fovEndLabel.setBounds(10, 160, 160, 20);
-			fovEndLabel.setText("Delta Vert");
+			fovEndLabel.setText("Fov End");
 			add(nameLabel);
 			add(segmentLabel);
 			add(toRightLabel);
@@ -272,7 +271,7 @@ public class CameraProperties extends PropertyPanel
 			if (toStartTextField == null)
 			{
 				toStartTextField = new JTextField();
-				toStartTextField.setBounds(120, 85, 120, 20);
+				toStartTextField.setBounds(120, 85, 100, 20);
 			}
 			return toStartTextField;
 		}

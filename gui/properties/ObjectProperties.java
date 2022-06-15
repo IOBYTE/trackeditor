@@ -20,7 +20,6 @@
  */
 package gui.properties;
 
-import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -282,7 +281,7 @@ public class ObjectProperties extends PropertyPanel
 			return colorTextField;
 		}
 
-		public JComboBox getOrientationTypeComboBox()
+		public JComboBox<String> getOrientationTypeComboBox()
 		{
 			if (orientationTypeComboBox == null)
 			{

@@ -57,6 +57,7 @@ public class PropertiesDialog extends JDialog
 	private EnvMapProperties		envMapProperties		= null;
 	private ObjectProperties		objectProperties		= null;
 	private CameraProperties		cameraProperties		= null;
+	private TrackLightProperties	trackLightProperties	= null;
 
 	/**
 	 *
@@ -101,9 +102,10 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
 			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
 			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
-			tabbedPane.addTab("Surface", null, getSurfaceProperties(), null);
-			tabbedPane.addTab("Object", null, getObjectProperties(), null);
-			tabbedPane.addTab("Camera", null, getCameraProperties(), null);
+			tabbedPane.addTab("Surfaces", null, getSurfaceProperties(), null);
+			tabbedPane.addTab("Objects", null, getObjectProperties(), null);
+			tabbedPane.addTab("Cameras", null, getCameraProperties(), null);
+			tabbedPane.addTab("Lights", null, getTrackLightProperties(), null);
 			tabbedPane.addTab("Image", null, getImageProperties(), null);
 		}
 		return tabbedPane;
@@ -336,6 +338,18 @@ public class PropertiesDialog extends JDialog
 	}
 
 	/**
+	 * This method initializes trackLightProperties
+	 *
+	 * @return gui.propertiesTraclLightProperties
+	 */
+	private TrackLightProperties getTrackLightProperties() {
+		if (trackLightProperties == null) {
+			trackLightProperties = new TrackLightProperties(frame);
+		}
+		return trackLightProperties;
+	}
+
+	/**
 	 *
 	 */
 	protected void exit()
@@ -353,6 +367,7 @@ public class PropertiesDialog extends JDialog
 		this.surfaceProperties.exit();
 		this.objectProperties.exit();
 		this.cameraProperties.exit();
+		this.trackLightProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();

@@ -52,9 +52,31 @@ public final class TrackLight {
 		return topLeft;
 	}
 
-	public void setTopLeft(double x, double y, double z) {
-		this.topLeft = new Corner();
+	public double getTopLeftX() {
+		return topLeft.x;
+	}
 
+	public double getTopLeftY() {
+		return topLeft.y;
+	}
+
+	public double getTopLeftZ() {
+		return topLeft.z;
+	}
+
+	public void setTopLeftX(double x) {
+		this.topLeft.x = x;
+	}
+
+	public void setTopLeftY(double y) {
+		this.topLeft.y = y;
+	}
+
+	public void setTopLeftZ(double z) {
+		this.topLeft.z = z;
+	}
+
+	public void setTopLeft(double x, double y, double z) {
 		this.topLeft.x = x;
 		this.topLeft.y = y;
 		this.topLeft.z = z;
@@ -68,9 +90,31 @@ public final class TrackLight {
 		return bottomRight;
 	}
 
-	public void setBottomRight(double x, double y, double z) {
-		this.bottomRight = new Corner();
+	public double getBottomRightX() {
+		return bottomRight.x;
+	}
 
+	public double getBottomRightY() {
+		return bottomRight.y;
+	}
+
+	public double getBottomRightZ() {
+		return bottomRight.z;
+	}
+
+	public void setBottomRightX(double x) {
+		this.bottomRight.x = x;
+	}
+
+	public void setBottomRightY(double y) {
+		this.bottomRight.y = y;
+	}
+
+	public void setBottomRightZ(double z) {
+		this.bottomRight.z = z;
+	}
+
+	public void setBottomRight(double x, double y, double z) {
 		this.bottomRight.x = x;
 		this.bottomRight.y = y;
 		this.bottomRight.z = z;
