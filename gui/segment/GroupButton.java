@@ -41,8 +41,6 @@ public class GroupButton extends JPanel
 	Action						leftAction	= null;
 	Action						rightAction	= null;
 	ButtonGroup					group		= null;
-	private JLabel				rightLabel	= null;
-	private JLabel				leftLabel	= null;
 	private boolean				enabled 	= true;
 	private String				selected;
 	private SegmentEditorDlg	parent;
@@ -60,21 +58,11 @@ public class GroupButton extends JPanel
 	 */
 	private void initialize()
 	{
-		leftLabel = new JLabel();
-		rightLabel = new JLabel();
-		this.setLayout(null);
-		this.setBounds(0, 0, 70, 32);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		rightLabel.setText("Right");
-		rightLabel.setBounds(5, 2, 40, 16);
-		leftLabel.setText("Left");
-		leftLabel.setBounds(5, 16, 40, 15);
-		this.add(getLeftButton(), null);
-		this.add(getRightButton(), null);
-		this.add(rightLabel, null);
-		this.add(leftLabel, null);
-		this.add(leftLabel, null);
-		this.add(rightLabel, null);
+		setLayout(null);
+		setBounds(0, 0, 70, 32);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+		add(getLeftButton(), null);
+		add(getRightButton(), null);
 		group = new ButtonGroup();
 		group.add(rightButton);
 		group.add(leftButton);
@@ -84,10 +72,9 @@ public class GroupButton extends JPanel
 	{
 		if (leftButton == null)
 		{
-			leftButton = new JRadioButton();
+			leftButton = new JRadioButton("Left");
 			leftButton.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					selected = "lft";
@@ -95,7 +82,7 @@ public class GroupButton extends JPanel
 				}
 
 			});
-			leftButton.setBounds(47, 16, 15, 15);
+			leftButton.setBounds(5, 16, 50, 15);
 		}
 		return leftButton;
 	}
@@ -104,10 +91,9 @@ public class GroupButton extends JPanel
 	{
 		if (rightButton == null)
 		{
-			rightButton = new JRadioButton();
+			rightButton = new JRadioButton("Right");
 			rightButton.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					selected = "rgt";
@@ -115,8 +101,7 @@ public class GroupButton extends JPanel
 				}
 
 			});
-			//rightButton.setSelected(true);
-			rightButton.setBounds(47, 2, 15, 15);
+			rightButton.setBounds(5, 2, 50, 15);
 		}
 		return rightButton;
 	}
@@ -164,9 +149,7 @@ public class GroupButton extends JPanel
 	{
 		this.enabled = enabled;
 		getRightButton().setEnabled(enabled);
-		rightLabel.setEnabled(enabled);
 		getLeftButton().setEnabled(enabled);
-		leftLabel.setEnabled(enabled);
 		if (!enabled)
 			group.clearSelection();
 	}

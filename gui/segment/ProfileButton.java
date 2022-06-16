@@ -43,9 +43,6 @@ public class ProfileButton extends JPanel
 	Action						linearAction	= null;
 	Action						splineAction	= null;
 	ButtonGroup					group			= null;
-	private JLabel				noneLabel		= null;
-	private JLabel				linearLabel		= null;
-	private JLabel				splineLabel		= null;
 	private boolean				enabled 		= true;
 	private String				selected;
 	private SegmentEditorDlg	parent;
@@ -63,24 +60,12 @@ public class ProfileButton extends JPanel
 	 */
 	private void initialize()
 	{
-		noneLabel = new JLabel();
-		linearLabel = new JLabel();
-		splineLabel = new JLabel();
-		this.setLayout(null);
-		this.setBounds(0, 0, 70, 48);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		noneLabel.setText("None");
-		noneLabel.setBounds(5, 2, 40, 16);
-		linearLabel.setText("Linear");
-		linearLabel.setBounds(5, 16, 40, 16);
-		splineLabel.setText("Spline");
-		splineLabel.setBounds(5, 30, 40, 16);
-		this.add(getNoneButton(), null);
-		this.add(getLinearButton(), null);
-		this.add(getSplineButton(), null);
-		this.add(noneLabel, null);
-		this.add(linearLabel, null);
-		this.add(splineLabel, null);
+		setLayout(null);
+		setBounds(0, 0, 70, 48);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+		add(getNoneButton(), null);
+		add(getLinearButton(), null);
+		add(getSplineButton(), null);
 		group = new ButtonGroup();
 		group.add(noneButton);
 		group.add(linearButton);
@@ -91,10 +76,9 @@ public class ProfileButton extends JPanel
 	{
 		if (noneButton == null)
 		{
-			noneButton = new JRadioButton();
+			noneButton = new JRadioButton("None");
 			noneButton.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					selected = "none";
@@ -102,7 +86,7 @@ public class ProfileButton extends JPanel
 				}
 
 			});
-			noneButton.setBounds(47, 2, 15, 15);
+			noneButton.setBounds(5, 2, 50, 15);
 		}
 		return noneButton;
 	}
@@ -111,10 +95,9 @@ public class ProfileButton extends JPanel
 	{
 		if (linearButton == null)
 		{
-			linearButton = new JRadioButton();
+			linearButton = new JRadioButton("Linear");
 			linearButton.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					selected = "linear";
@@ -122,7 +105,7 @@ public class ProfileButton extends JPanel
 				}
 
 			});
-			linearButton.setBounds(47, 16, 15, 15);
+			linearButton.setBounds(5, 16, 50, 15);
 		}
 		return linearButton;
 	}
@@ -131,10 +114,9 @@ public class ProfileButton extends JPanel
 	{
 		if (splineButton == null)
 		{
-			splineButton = new JRadioButton();
+			splineButton = new JRadioButton("Spline");
 			splineButton.addActionListener(new ActionListener()
 			{
-
 				public void actionPerformed(ActionEvent e)
 				{
 					selected = "spline";
@@ -142,7 +124,7 @@ public class ProfileButton extends JPanel
 				}
 
 			});
-			splineButton.setBounds(47, 30, 15, 15);
+			splineButton.setBounds(5, 30, 50, 15);
 		}
 		return splineButton;
 	}
@@ -193,11 +175,8 @@ public class ProfileButton extends JPanel
 	{
 		this.enabled = enabled;
 		getNoneButton().setEnabled(enabled);
-		noneLabel.setEnabled(enabled);
 		getLinearButton().setEnabled(enabled);
-		linearLabel.setEnabled(enabled);
 		getSplineButton().setEnabled(enabled);
-		splineLabel.setEnabled(enabled);
 		if (!enabled)
 			group.clearSelection();
 	}
