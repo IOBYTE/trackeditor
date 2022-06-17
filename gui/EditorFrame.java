@@ -73,7 +73,7 @@ import utils.undo.Undo;
 
 /**
  * @author Patrice Espie , Charalampos Alexopoulos
- * 
+ *
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
@@ -168,7 +168,7 @@ public class EditorFrame extends JFrame
 
 	public Plugin				torcsPlugin							= new TorcsPlugin(this);
 	private Project	prj;
-	
+
 	private String sep = System.getProperty("file.separator");
 
 	private JButton calculateDeltaButton = null;
@@ -216,7 +216,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	protected void openProject()
 	{
@@ -275,7 +275,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	protected void saveProject()
 	{
@@ -312,7 +312,7 @@ public class EditorFrame extends JFrame
 		}
 	}
 	/**
-	 *  
+	 *
 	 */
 	protected void newProjectDialog()
 	{
@@ -334,7 +334,7 @@ public class EditorFrame extends JFrame
 
 
 	/**
-     * 
+     *
      */
     private void createNewCircuit()
     {
@@ -504,7 +504,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes newMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getNewMenuItem()
@@ -519,7 +519,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes openMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getOpenMenuItem()
@@ -534,7 +534,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes itemSaveCircuit
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getItemSaveCircuit()
@@ -550,7 +550,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes zoomPlusMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getZoomPlusMenuItem()
@@ -565,7 +565,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes zoomMinusMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getZoomMinusMenuItem()
@@ -580,7 +580,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes zoomOneMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getZoomOneMenuItem()
@@ -595,7 +595,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes segmentMenu
-	 * 
+	 *
 	 * @return javax.swing.JMenu
 	 */
 	private JMenu getSegmentMenu()
@@ -615,7 +615,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes helpMenu
-	 * 
+	 *
 	 * @return javax.swing.JMenu
 	 */
 	private JMenu getHelpMenu()
@@ -630,7 +630,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes aboutMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getAboutMenuItem()
@@ -645,7 +645,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes addStraightMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getAddStraightMenuItem()
@@ -660,7 +660,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes addRightMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getAddRightMenuItem()
@@ -675,7 +675,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes addLeftMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getAddLeftMenuItem()
@@ -690,7 +690,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes moveMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getMoveMenuItem()
@@ -705,7 +705,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes deleteMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getDeleteMenuItem()
@@ -720,7 +720,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes showArrowsMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getShowArrowsMenuItem()
@@ -735,7 +735,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes showBackgroundMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getShowBackgroundMenuItem()
@@ -751,7 +751,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes editMenu
-	 * 
+	 *
 	 * @return javax.swing.JMenu
 	 */
 	private JMenu getEditMenu()
@@ -767,7 +767,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes undoMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getUndoMenuItem()
@@ -782,7 +782,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes redoMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getRedoMenuItem()
@@ -797,7 +797,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes importMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenu getImportMenu()
@@ -812,7 +812,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes exportMenu
-	 * 
+	 *
 	 * @return javax.swing.JMenu
 	 */
 	private JMenu getExportMenu()
@@ -831,7 +831,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes exportAllMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getExportAllMenuItem()
@@ -846,7 +846,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes exportAC3MenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getExportAC3MenuItem()
@@ -861,7 +861,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes propertiesMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	private JMenuItem getPropertiesMenuItem()
@@ -877,7 +877,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes undoButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getUndoButton()
@@ -896,7 +896,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes redoButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getRedoButton()
@@ -915,7 +915,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes deleteButton
-	 * 
+	 *
 	 * @return javax.swing.JToggleButton
 	 */
 	private JToggleButton getToggleButtonDelete()
@@ -934,7 +934,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes buttonZoomPlus
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getButtonZoomPlus()
@@ -953,7 +953,7 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * This method initializes buttonZoomPlus
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getButtonZoomOne()
@@ -1027,7 +1027,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes moveButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JToggleButton getMoveButton()
@@ -1045,7 +1045,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes showArrowsButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JToggleButton getShowArrowsButton()
@@ -1063,7 +1063,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes showBackgroundButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JToggleButton getShowBackgroundButton()
@@ -1081,7 +1081,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes newButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getNewButton()
@@ -1099,7 +1099,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes saveButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getSaveButton()
@@ -1117,7 +1117,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes openButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getOpenButton()
@@ -1135,7 +1135,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes helpButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getHelpButton()
@@ -1153,7 +1153,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes jContentPane
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private JPanel getJContentPane()
@@ -1168,12 +1168,12 @@ public class EditorFrame extends JFrame
 		}
 		return jContentPane;
 	}
-	
+
 //	private DeltaPanel getDeltaPanel()
 //	{
 //	    if (deltaPanel == null)
 //		{
-//	        deltaPanel = new DeltaPanel();			
+//	        deltaPanel = new DeltaPanel();
 //	        //deltaPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 //	        //deltaPanel.setBackground(new java.awt.Color(0,204,204));
 //	        deltaPanel.setPreferredSize(new java.awt.Dimension(140,24));
@@ -1338,7 +1338,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes jToolBar
-	 * 
+	 *
 	 * @return javax.swing.JToolBar
 	 */
 	private JToolBar getJToolBar()
@@ -1375,7 +1375,7 @@ public class EditorFrame extends JFrame
 		tg.setVisible(true);
 	}
 	/**
-	 *  
+	 *
 	 */
 	protected void propertiesDialog()
 	{
@@ -1407,7 +1407,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	private void createActions()
 	{
@@ -1707,22 +1707,22 @@ public class EditorFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
 		{
 		    calculateDeltas();
-		    
+
 		}
 	}
-	
+
     /**
-     * 
+     *
      */
     private void calculateDeltas()
     {
         DeltaPanel tg = new DeltaPanel(this, "", false);
 		//tg.setModal(false);
 		tg.setVisible(true);
-		
+
 
     }
-	
+
 
 	public void refresh()
 	{
@@ -1773,7 +1773,7 @@ public class EditorFrame extends JFrame
 	public void mouseClicked(MouseEvent e)
 	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -1782,7 +1782,7 @@ public class EditorFrame extends JFrame
 	public void mouseEntered(MouseEvent e)
 	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -1791,7 +1791,7 @@ public class EditorFrame extends JFrame
 	public void mouseExited(MouseEvent e)
 	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -1800,7 +1800,7 @@ public class EditorFrame extends JFrame
 	public void mousePressed(MouseEvent e)
 	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -1824,10 +1824,10 @@ public class EditorFrame extends JFrame
 
 
 	/**
-	 * This method initializes calculateDeltaButton	
-	 * 	
-	 * @return javax.swing.JButton	
-	 */    
+	 * This method initializes calculateDeltaButton
+	 *
+	 * @return javax.swing.JButton
+	 */
 	private JButton getCalculateDeltaButton() {
 		if (calculateDeltaButton == null) {
 			calculateDeltaButton = new JButton();

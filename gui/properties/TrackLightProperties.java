@@ -545,7 +545,7 @@ public class TrackLightProperties extends PropertyPanel
 		MutableInteger integerResult = new MutableInteger();
 
 		Vector<TrackLight> lights = Editor.getProperties().getTrackLights();
-		int minCount = Integer.min(lights.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(lights.size(), tabbedPane.getTabCount());
 		if (lights.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;

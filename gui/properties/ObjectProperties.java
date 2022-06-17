@@ -333,7 +333,7 @@ public class ObjectProperties extends PropertyPanel
 		MutableInteger integerResult = new MutableInteger();
 
 		Vector<TrackObject> objects = Editor.getProperties().getObjects();
-		int minCount = Integer.min(objects.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(objects.size(), tabbedPane.getTabCount());
 		if (objects.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;

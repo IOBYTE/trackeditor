@@ -654,7 +654,7 @@ public class SurfaceProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 
 		Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
-		int minCount = Integer.min(surfaces.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(surfaces.size(), tabbedPane.getTabCount());
 		if (surfaces.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;

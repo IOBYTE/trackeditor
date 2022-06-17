@@ -735,7 +735,7 @@ public class TerrainProperties extends PropertyPanel
 		}
 
 		Vector<ObjectMap> objectMaps = Editor.getProperties().getGraphic().getTerrainGeneration().getObjectMaps();
-		int minCount = Integer.min(objectMaps.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(objectMaps.size(), tabbedPane.getTabCount());
 		if (objectMaps.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;

@@ -272,7 +272,7 @@ public class EnvMapProperties extends PropertyPanel
 	{
 		MutableString stringResult = new MutableString();
 		Vector<EnvironmentMapping> envMaps = Editor.getProperties().getGraphic().getEnvironmentMapping();
-		int minCount = Integer.min(envMaps.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(envMaps.size(), tabbedPane.getTabCount());
 		if (envMaps.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;

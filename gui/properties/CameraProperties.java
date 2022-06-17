@@ -316,7 +316,7 @@ public class CameraProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 
 		Vector<Camera> cameras = Editor.getProperties().getCameras();
-		int minCount = Integer.min(cameras.size(), tabbedPane.getTabCount());
+		int minCount = Math.min(cameras.size(), tabbedPane.getTabCount());
 		if (cameras.size() != tabbedPane.getTabCount())
 		{
 			frame.documentIsModified = true;
