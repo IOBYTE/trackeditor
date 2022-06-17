@@ -30,7 +30,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
-import gui.properties.PropertyPanel.MutableString;
 import utils.Editor;
 import utils.circuit.Surface;
 /**
