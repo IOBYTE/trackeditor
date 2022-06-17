@@ -233,24 +233,24 @@ public class PropertyPanel extends JPanel
 		}
 	}
 
-	protected void addLabel(int index, JLabel label, String text, int length)
+	protected void addLabel(JPanel panel, int index, JLabel label, String text, int length)
 	{
 		label.setText(text);
 		label.setBounds(10, 10 + (index * 25), length, 20);
-		add(label);
+		panel.add(label);
 	}
 
-	protected void addTextField(int index, JTextField textField, String text, int offset, int length)
+	protected void addTextField(JPanel panel, int index, JTextField textField, String text, int offset, int length)
 	{
 		textField.setBounds(offset, 10 + (index * 25), length, 20);
 		setTextField(textField, text);
-		add(textField);
+		panel.add(textField);
 	}
 
-	protected void addTextField(int index, JTextField textField, double value, int offset, int length)
+	protected void addTextField(JPanel panel, int index, JTextField textField, double value, int offset, int length)
 	{
 		textField.setBounds(offset, 10 + (index * 25), length, 20);
 		setTextField(textField, value);
-		add(textField);
+		panel.add(textField);
 	}
 }

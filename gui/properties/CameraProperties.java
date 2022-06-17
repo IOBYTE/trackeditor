@@ -148,20 +148,20 @@ public class CameraProperties extends PropertyPanel
 
 	private class CameraPanel extends JPanel
 	{
-		private JLabel				nameLabel			= null;
-		private JTextField 			nameTextField		= null;
-		private JLabel				segmentLabel		= null;
-		private JTextField			segmentTextField	= null;
-		private JLabel				toRightLabel		= null;
-		private JTextField			toRightTextField	= null;
-		private JLabel				toStartLabel		= null;
-		private JTextField			toStartTextField	= null;
-		private JLabel				heightLabel			= null;
-		private JTextField			heightTextField		= null;
-		private JLabel				fovStartLabel		= null;
-		private JTextField			fovStartTextField	= null;
-		private JLabel				fovEndLabel			= null;
-		private JTextField			fovEndTextField		= null;
+		private JLabel				nameLabel			= new JLabel();
+		private JTextField 			nameTextField		= new JTextField();
+		private JLabel				segmentLabel		= new JLabel();
+		private JTextField			segmentTextField	= new JTextField();
+		private JLabel				toRightLabel		= new JLabel();
+		private JTextField			toRightTextField	= new JTextField();
+		private JLabel				toStartLabel		= new JLabel();
+		private JTextField			toStartTextField	= new JTextField();
+		private JLabel				heightLabel			= new JLabel();
+		private JTextField			heightTextField		= new JTextField();
+		private JLabel				fovStartLabel		= new JLabel();
+		private JTextField			fovStartTextField	= new JTextField();
+		private JLabel				fovEndLabel			= new JLabel();
+		private JTextField			fovEndTextField		= new JTextField();
 
 		/**
 		 *
@@ -177,50 +177,23 @@ public class CameraProperties extends PropertyPanel
 		 */
 		private void initialize(Camera camera)
 		{
-			nameLabel = new JLabel();
-			segmentLabel = new JLabel();
-			toRightLabel = new JLabel();
-			toStartLabel = new JLabel();
-			heightLabel = new JLabel();
-			fovStartLabel = new JLabel();
-			fovEndLabel = new JLabel();
-			nameLabel.setBounds(10, 10, 160, 20);
-			nameLabel.setText("Name");
-			segmentLabel.setBounds(10, 35, 160, 20);
-			segmentLabel.setText("Segment");
-			toRightLabel.setBounds(10, 60, 160, 20);
-			toRightLabel.setText("To Right");
-			toStartLabel.setBounds(10, 85, 160, 20);
-			toStartLabel.setText("To Start");
-			heightLabel.setBounds(10, 110, 160, 20);
-			heightLabel.setText("Height");
-			fovStartLabel.setBounds(10, 135, 160, 20);
-			fovStartLabel.setText("Fov Start");
-			fovEndLabel.setBounds(10, 160, 160, 20);
-			fovEndLabel.setText("Fov End");
-			add(nameLabel);
-			add(segmentLabel);
-			add(toRightLabel);
-			add(toStartLabel);
-			add(heightLabel);
-			add(fovStartLabel);
-			add(fovEndLabel);
 			setLayout(null);
-			add(getNameTextField(), null);
-			add(getSegmentTextField(), null);
-			add(getToRightTextField(), null);
-			add(getToStartTextField(), null);
-			add(getHeightTextField(), null);
-			add(getFovStartTextField(), null);
-			add(getFovEndTextField(), null);
 
-			getNameTextField().setText(camera.getName());
-			getSegmentTextField().setText(camera.getSegment());
-			getToRightTextField().setText(getString(camera.getToRight()));
-			getToStartTextField().setText(getString(camera.getToStart()));
-			getHeightTextField().setText(getString(camera.getHeight()));
-			getFovStartTextField().setText(camera.getFovStart());
-			getFovEndTextField().setText(camera.getFovEnd());
+			addLabel(this, 0, nameLabel, "Name", 130);
+			addLabel(this, 1, segmentLabel, "Segment", 130);
+			addLabel(this, 2, toRightLabel, "To Right", 130);
+			addLabel(this, 3, toStartLabel, "To Start", 130);
+			addLabel(this, 4, heightLabel, "i", 130);
+			addLabel(this, 5, fovStartLabel, "Fov Start", 130);
+			addLabel(this, 6, fovEndLabel, "Fov End", 130);
+
+			addTextField(this, 0, nameTextField, camera.getName(), 150, 100);
+			addTextField(this, 1, segmentTextField, camera.getSegment(), 150, 100);
+			addTextField(this, 2, toRightTextField, getString(camera.getToRight()), 150, 100);
+			addTextField(this, 3, toStartTextField, getString(camera.getToStart()), 150, 100);
+			addTextField(this, 4, heightTextField, getString(camera.getHeight()), 150, 100);
+			addTextField(this, 5, fovStartTextField, camera.getFovStart(), 150, 100);
+			addTextField(this, 6, fovEndTextField, camera.getFovEnd(), 150, 100);
 		}
 
 		private String getString(double value)
@@ -229,81 +202,6 @@ public class CameraProperties extends PropertyPanel
 				return String.valueOf(value);
 
 			return null;
-		}
-
-		/**
-		 * This method initializes nameTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getNameTextField()
-		{
-			if (nameTextField == null)
-			{
-				nameTextField = new JTextField();
-				nameTextField.setBounds(120, 10, 100, 20);
-			}
-			return nameTextField;
-		}
-
-		public JTextField getSegmentTextField()
-		{
-			if (segmentTextField == null)
-			{
-				segmentTextField = new JTextField();
-				segmentTextField.setBounds(120, 35, 100, 20);
-			}
-			return segmentTextField;
-		}
-
-		public JTextField getToRightTextField()
-		{
-			if (toRightTextField == null)
-			{
-				toRightTextField = new JTextField();
-				toRightTextField.setBounds(120, 60, 100, 20);
-			}
-			return toRightTextField;
-		}
-
-		public JTextField getToStartTextField()
-		{
-			if (toStartTextField == null)
-			{
-				toStartTextField = new JTextField();
-				toStartTextField.setBounds(120, 85, 100, 20);
-			}
-			return toStartTextField;
-		}
-
-		public JTextField getHeightTextField()
-		{
-			if (heightTextField == null)
-			{
-				heightTextField = new JTextField();
-				heightTextField.setBounds(120, 110, 100, 20);
-			}
-			return heightTextField;
-		}
-
-		public JTextField getFovStartTextField()
-		{
-			if (fovStartTextField == null)
-			{
-				fovStartTextField = new JTextField();
-				fovStartTextField.setBounds(120, 135, 100, 20);
-			}
-			return fovStartTextField;
-		}
-
-		public JTextField getFovEndTextField()
-		{
-			if (fovEndTextField == null)
-			{
-				fovEndTextField = new JTextField();
-				fovEndTextField.setBounds(120, 160, 100, 20);
-			}
-			return fovEndTextField;
 		}
 	}
 
@@ -326,43 +224,43 @@ public class CameraProperties extends PropertyPanel
             Camera camera = cameras.elementAt(i);
             CameraPanel panel = (CameraPanel) tabbedPane.getComponentAt(i);
 
-            if (isDifferent(panel.getNameTextField().getText(), camera.getName(), stringResult))
+            if (isDifferent(panel.nameTextField.getText(), camera.getName(), stringResult))
             {
                 camera.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getSegmentTextField().getText(), camera.getSegment(), stringResult))
+            if (isDifferent(panel.segmentTextField.getText(), camera.getSegment(), stringResult))
             {
                 camera.setSegment(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getToRightTextField().getText(), camera.getToRight(), doubleResult))
+            if (isDifferent(panel.toRightTextField.getText(), camera.getToRight(), doubleResult))
             {
                 camera.setToRight(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getToStartTextField().getText(), camera.getToStart(), doubleResult))
+            if (isDifferent(panel.toStartTextField.getText(), camera.getToStart(), doubleResult))
             {
                 camera.setToStart(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getHeightTextField().getText(), camera.getHeight(), doubleResult))
+            if (isDifferent(panel.heightTextField.getText(), camera.getHeight(), doubleResult))
             {
                 camera.setHeight(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getFovStartTextField().getText(), camera.getFovStart(), stringResult))
+            if (isDifferent(panel.fovStartTextField.getText(), camera.getFovStart(), stringResult))
             {
                 camera.setFovStart(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getFovEndTextField().getText(), camera.getFovEnd(), stringResult))
+            if (isDifferent(panel.fovEndTextField.getText(), camera.getFovEnd(), stringResult))
             {
                 camera.setFovEnd(stringResult.getValue());
                 frame.documentIsModified = true;
@@ -384,13 +282,13 @@ public class CameraProperties extends PropertyPanel
 	            CameraPanel panel = (CameraPanel) tabbedPane.getComponentAt(cameras.size());
 				Camera camera = new Camera();
 
-				camera.setName(panel.getNameTextField().getText());
-				camera.setSegment(panel.getSegmentTextField().getText());
-				camera.setToRight(getDouble(panel.getToRightTextField().getText()));
-				camera.setToStart(getDouble(panel.getToStartTextField().getText()));
-				camera.setHeight(getDouble(panel.getHeightTextField().getText()));
-				camera.setFovStart(panel.getFovStartTextField().getText());
-				camera.setFovEnd(panel.getFovEndTextField().getText());
+				camera.setName(panel.nameTextField.getText());
+				camera.setSegment(panel.segmentTextField.getText());
+				camera.setToRight(getDouble(panel.toRightTextField.getText()));
+				camera.setToStart(getDouble(panel.toStartTextField.getText()));
+				camera.setHeight(getDouble(panel.heightTextField.getText()));
+				camera.setFovStart(panel.fovStartTextField.getText());
+				camera.setFovEnd(panel.fovEndTextField.getText());
 
 				cameras.add(camera);
 			}

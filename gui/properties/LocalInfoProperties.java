@@ -69,23 +69,23 @@ public class LocalInfoProperties extends PropertyPanel
 	{
 		setLayout(null);
 
-		addLabel(0, stationLabel, "Station", 130);
-		addLabel(1, timezoneLabel, "Timezone", 130);
-		addLabel(2, overallRainLikelyhoodLabel, "Overall Rain Likelyhood", 130);
-		addLabel(3, littleRainLikelyhoodLabel, "Little Rain Likelyhood", 130);
-		addLabel(4, mediumRainLikelyhoodLabel, "Medium Rain Likelyhood", 130);
-		addLabel(5, timeOfDayLabel, "Time Of Day", 130);
-		addLabel(6, sunAscensionLabel, "Sun Ascension", 130);
-		addLabel(7, altitudeLabel, "Altitude", 130);
+		addLabel(this, 0, stationLabel, "Station", 130);
+		addLabel(this, 1, timezoneLabel, "Timezone", 130);
+		addLabel(this, 2, overallRainLikelyhoodLabel, "Overall Rain Likelyhood", 130);
+		addLabel(this, 3, littleRainLikelyhoodLabel, "Little Rain Likelyhood", 130);
+		addLabel(this, 4, mediumRainLikelyhoodLabel, "Medium Rain Likelyhood", 130);
+		addLabel(this, 5, timeOfDayLabel, "Time Of Day", 130);
+		addLabel(this, 6, sunAscensionLabel, "Sun Ascension", 130);
+		addLabel(this, 7, altitudeLabel, "Altitude", 130);
 
-		addTextField(0, stationTextField, Editor.getProperties().getLocalInfo().getStation(), 150, 100);
-		addTextField(1, timezoneTextField, Editor.getProperties().getLocalInfo().getTimezone(), 150, 100);
-		addTextField(2, overallRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getOverallRainLikelyhood(), 150, 100);
-		addTextField(3, littleRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getLittleRainLikelyhood(), 150, 100);
-		addTextField(4, mediumRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getMediumRainLikelyhood(), 150, 100);
-		addTextField(5, timeOfDayTextField, Editor.getProperties().getLocalInfo().getTimeOfDay(), 150, 100);
-		addTextField(6, sunAscensionTextField, Editor.getProperties().getLocalInfo().getSunAscension(), 150, 100);
-		addTextField(7, altitudeTextField, Editor.getProperties().getLocalInfo().getAltitude(), 150, 100);
+		addTextField(this, 0, stationTextField, Editor.getProperties().getLocalInfo().getStation(), 150, 100);
+		addTextField(this, 1, timezoneTextField, Editor.getProperties().getLocalInfo().getTimezone(), 150, 100);
+		addTextField(this, 2, overallRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getOverallRainLikelyhood(), 150, 100);
+		addTextField(this, 3, littleRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getLittleRainLikelyhood(), 150, 100);
+		addTextField(this, 4, mediumRainLikelyhoodTextField, Editor.getProperties().getLocalInfo().getMediumRainLikelyhood(), 150, 100);
+		addTextField(this, 5, timeOfDayTextField, Editor.getProperties().getLocalInfo().getTimeOfDay(), 150, 100);
+		addTextField(this, 6, sunAscensionTextField, Editor.getProperties().getLocalInfo().getSunAscension(), 150, 100);
+		addTextField(this, 7, altitudeTextField, Editor.getProperties().getLocalInfo().getAltitude(), 150, 100);
 	}
 
 	/**
