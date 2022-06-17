@@ -20,10 +20,15 @@
  */
 package gui.properties;
 
+import java.io.File;
+
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
 import utils.Editor;
@@ -42,7 +47,7 @@ public class GraphicProperties extends PropertyPanel
 	private JTextField			descriptionNightTextField		= new JTextField();
 	private JLabel				descriptionRainNightLabel		= new JLabel();
 	private JTextField			descriptionRainNightTextField	= new JTextField();
-	private JLabel				backgroundImageLabel			= new JLabel();		// TODO add file chooser button
+	private JLabel				backgroundImageLabel			= new JLabel();
 	private JTextField			backgroundImageTextField		= new JTextField();
 	private JLabel				backgroundTypeLabel				= new JLabel();
 	private JComboBox<String>	backgroundTypeComboBox			= null;
@@ -80,6 +85,9 @@ public class GraphicProperties extends PropertyPanel
     private JTextField			shininessTextField				= new JTextField();
     private JLabel				fovFactorLabel					= new JLabel();
     private JTextField			fovFactorTextField				= new JTextField();
+	private JButton				browseButton					= null;
+
+	private final String sep = System.getProperty("file.separator");
 
 	/**
 	 *
@@ -126,7 +134,7 @@ public class GraphicProperties extends PropertyPanel
 		addTextField(this, 0, descriptionTextField, Editor.getProperties().getGraphic().getDescription(), 130, 150);
 		addTextField(this, 1, descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight(), 130, 150);
 		addTextField(this, 2, descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight(), 130, 150);
-		addTextField(this, 3, backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage(), 130, 250);
+		addTextField(this, 3, backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage(), 130, 255);
 
 		add(getBackgroundTypeComboBox(), null);
 
@@ -147,6 +155,8 @@ public class GraphicProperties extends PropertyPanel
 		addTextField(this, 19, lightPositionZTextField, Editor.getProperties().getGraphic().getLightPositionZ(), 130, 80);
 		addTextField(this, 20, shininessTextField, Editor.getProperties().getGraphic().getShininess(), 130, 80);
 		addTextField(this, 21, fovFactorTextField, Editor.getProperties().getGraphic().getFovFactor(), 130, 80);
+
+		add(getBrowseButton(), null);
 	}
 
 	/**
@@ -167,6 +177,54 @@ public class GraphicProperties extends PropertyPanel
 				backgroundTypeComboBox.setSelectedItem(String.valueOf(value));
 		}
 		return backgroundTypeComboBox;
+	}
+
+	/**
+	 * This method initializes browseButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getBrowseButton()
+	{
+		if (browseButton == null)
+		{
+			browseButton = new JButton();
+			browseButton.setBounds(390, 82, 80, 25);
+			browseButton.setText("Browse");
+			browseButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					selectFile();
+				}
+			});
+		}
+		return browseButton;
+	}
+
+	protected void selectFile()
+	{
+		JFileChooser fc = new JFileChooser();
+		fc.setSelectedFiles(null);
+		fc.setSelectedFile(null);
+		fc.rescanCurrentDirectory();
+		fc.setApproveButtonMnemonic(0);
+		fc.setDialogTitle("Surface texture image file selection");
+		fc.setVisible(true);
+		fc.setAcceptAllFileFilterUsed(false);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+		fc.addChoosableFileFilter(filter);
+		fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+		int result = fc.showDialog(this, "Ok");
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			String fileName = fc.getSelectedFile().toString();
+			int index = fileName.lastIndexOf(sep);
+			String pathToFile = fileName.substring(0, index);
+			if (pathToFile.equals(Editor.getProperties().getPath()))
+				fileName = fileName.substring(index + 1);
+			backgroundImageTextField.setText(fileName);
+		}
 	}
 
 	/**
