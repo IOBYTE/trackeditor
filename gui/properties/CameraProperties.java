@@ -183,7 +183,7 @@ public class CameraProperties extends PropertyPanel
 			addLabel(this, 1, segmentLabel, "Segment", 130);
 			addLabel(this, 2, toRightLabel, "To Right", 130);
 			addLabel(this, 3, toStartLabel, "To Start", 130);
-			addLabel(this, 4, heightLabel, "i", 130);
+			addLabel(this, 4, heightLabel, "Height", 130);
 			addLabel(this, 5, fovStartLabel, "Fov Start", 130);
 			addLabel(this, 6, fovEndLabel, "Fov End", 130);
 
