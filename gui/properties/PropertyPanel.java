@@ -253,4 +253,11 @@ public class PropertyPanel extends JPanel
 		setTextField(textField, value);
 		panel.add(textField);
 	}
+
+	protected void addTextField(JPanel panel, int index, JTextField textField, int value, int offset, int length)
+	{
+		textField.setBounds(offset, 10 + (index * 25), length, 20);
+		setTextField(textField, value);
+		panel.add(textField);
+	}
 }

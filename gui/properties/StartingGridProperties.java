@@ -35,18 +35,18 @@ import utils.Editor;
  */
 public class StartingGridProperties extends PropertyPanel
 {
-	private JLabel				rowsLabel						= null;
-	private JTextField			rowsTextField					= null;
-	private JLabel				polePositionSideLabel			= null;
+	private JLabel				rowsLabel						= new JLabel();
+	private JTextField			rowsTextField					= new JTextField();
+	private JLabel				polePositionSideLabel			= new JLabel();
 	private JComboBox<String>	polePositionSideComboBox		= null;
-	private JLabel				distanceToStartLabel			= null;
-	private JTextField			distanceToStartTextField		= null;
-	private JLabel				distanceBetweenColumnsLabel		= null;
-	private JTextField			distanceBetweenColumnsTextField	= null;
-	private JLabel				offsetWithinAColumnLabel		= null;
-	private JTextField			offsetWithinAColumnTextField	= null;
-	private JLabel				initialHeightLabel				= null;
-	private JTextField			initialHeightTextField			= null;
+	private JLabel				distanceToStartLabel			= new JLabel();
+	private JTextField			distanceToStartTextField		= new JTextField();
+	private JLabel				distanceBetweenColumnsLabel		= new JLabel();
+	private JTextField			distanceBetweenColumnsTextField	= new JTextField();
+	private JLabel				offsetWithinAColumnLabel		= new JLabel();
+	private JTextField			offsetWithinAColumnTextField	= new JTextField();
+	private JLabel				initialHeightLabel				= new JLabel();
+	private JTextField			initialHeightTextField			= new JTextField();
 
 	/**
 	 *
@@ -64,57 +64,28 @@ public class StartingGridProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		rowsLabel = new JLabel();
-		polePositionSideLabel = new JLabel();
-		distanceToStartLabel = new JLabel();
-		distanceBetweenColumnsLabel = new JLabel();
-		offsetWithinAColumnLabel = new JLabel();
-		initialHeightLabel = new JLabel();
-		this.setLayout(null);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
-		rowsLabel.setBounds(10, 10, 70, 20);
-		rowsLabel.setText("Rows");
-		polePositionSideLabel.setBounds(10, 35, 120, 20);
-		polePositionSideLabel.setText("Pole Position Side");
-		distanceToStartLabel.setBounds(10, 60, 120, 20);
-		distanceToStartLabel.setText("Distance To Start");
-		distanceBetweenColumnsLabel.setBounds(10, 85, 140, 20);
-		distanceBetweenColumnsLabel.setText("Distance Between Columns");
-		offsetWithinAColumnLabel.setBounds(10, 110, 140, 20);
-		offsetWithinAColumnLabel.setText("Offset Within A Column");
-		initialHeightLabel.setBounds(10, 135, 140, 20);
-		initialHeightLabel.setText("Initial Height");
-		this.add(rowsLabel, null);
-		this.add(polePositionSideLabel, null);
-		this.add(distanceToStartLabel, null);
-		this.add(distanceBetweenColumnsLabel, null);
-		this.add(offsetWithinAColumnLabel, null);
-		this.add(initialHeightLabel, null);
-		this.add(getRowsTextField(), null);
-		this.add(getPolePositionSideComboBox(), null);
-		this.add(getDistanceToStartTextField(), null);
-		this.add(getDistanceBetweenColumnsTextField(), null);
-		this.add(getOffsetWithinAColumnTextField(), null);
-		this.add(getInitialHeightTextField(), null);
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+
+		addLabel(this, 0, rowsLabel, "Rows", 140);
+		addLabel(this, 1, polePositionSideLabel, "Pole Position Side", 140);
+		addLabel(this, 2, distanceToStartLabel, "Distance To Start", 140);
+		addLabel(this, 3, distanceBetweenColumnsLabel, "Distance Between Columns", 140);
+		addLabel(this, 4, offsetWithinAColumnLabel, "Offset Within A Column", 140);
+		addLabel(this, 5, initialHeightLabel, "Initial Height", 140);
+
+		addTextField(this, 0, rowsTextField, Editor.getProperties().getStartingGrid().getRows(), 150, 100);
+
+		add(getPolePositionSideComboBox(), null);
+
+		addTextField(this, 2, distanceToStartTextField, Editor.getProperties().getStartingGrid().getDistanceToStart(), 150, 100);
+		addTextField(this, 3, distanceBetweenColumnsTextField, Editor.getProperties().getStartingGrid().getDistanceBetweenColumns(), 150, 100);
+		addTextField(this, 4, offsetWithinAColumnTextField, Editor.getProperties().getStartingGrid().getOffsetWithinAColumn(), 150, 100);
+		addTextField(this, 5, initialHeightTextField, Editor.getProperties().getStartingGrid().getInitialHeight(), 150, 100);
 	}
+
 	/**
-	 * This method initializes rowsTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getRowsTextField()
-	{
-		if (rowsTextField == null)
-		{
-			rowsTextField = new JTextField();
-			rowsTextField.setBounds(150, 10, 100, 20);
-			setTextField(rowsTextField, Editor.getProperties().getStartingGrid().getRows());
-		}
-		return rowsTextField;
-	}
-	/**
-	 * This method initializes sideComboBox
+	 * This method initializes polePositionSideComboBox
 	 *
 	 * @return javax.swing.JComboBox
 	 */
@@ -132,68 +103,6 @@ public class StartingGridProperties extends PropertyPanel
 		}
 		return polePositionSideComboBox;
 	}
-	/**
-	 * This method initializes distanceToStartTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDistanceToStartTextField()
-	{
-		if (distanceToStartTextField == null)
-		{
-			distanceToStartTextField = new JTextField();
-			distanceToStartTextField.setBounds(150, 60, 100, 20);
-			setTextField(distanceToStartTextField, Editor.getProperties().getStartingGrid().getDistanceToStart());
-		}
-		return distanceToStartTextField;
-	}
-	/**
-	 * This method initializes distanceBetweenColumnsTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDistanceBetweenColumnsTextField()
-	{
-		if (distanceBetweenColumnsTextField == null)
-		{
-			distanceBetweenColumnsTextField = new JTextField();
-			distanceBetweenColumnsTextField.setBounds(150, 85, 100, 20);
-			setTextField(distanceBetweenColumnsTextField, Editor.getProperties().getStartingGrid().getDistanceBetweenColumns());
-		}
-		return distanceBetweenColumnsTextField;
-	}
-
-	/**
-	 * This method initializes offsetWithinAColumnTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getOffsetWithinAColumnTextField()
-	{
-		if (offsetWithinAColumnTextField == null)
-		{
-			offsetWithinAColumnTextField = new JTextField();
-			offsetWithinAColumnTextField.setBounds(150, 110, 100, 20);
-			setTextField(offsetWithinAColumnTextField, Editor.getProperties().getStartingGrid().getOffsetWithinAColumn());
-		}
-		return offsetWithinAColumnTextField;
-	}
-
-	/**
-	 * This method initializes initialHeightTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getInitialHeightTextField()
-	{
-		if (initialHeightTextField == null)
-		{
-			initialHeightTextField = new JTextField();
-			initialHeightTextField.setBounds(150, 135, 100, 20);
-			setTextField(initialHeightTextField, Editor.getProperties().getStartingGrid().getInitialHeight());
-		}
-		return initialHeightTextField;
-	}
 
 	/**
 	 *
@@ -204,7 +113,7 @@ public class StartingGridProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();
 
-		if (isDifferent(getRowsTextField().getText(),
+		if (isDifferent(rowsTextField.getText(),
 			Editor.getProperties().getStartingGrid().getRows(), integerResult))
 		{
 			Editor.getProperties().getStartingGrid().setRows(integerResult.getValue());
@@ -218,28 +127,28 @@ public class StartingGridProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDistanceToStartTextField().getText(),
+		if (isDifferent(distanceToStartTextField.getText(),
 			Editor.getProperties().getStartingGrid().getDistanceToStart(), doubleResult))
 		{
 			Editor.getProperties().getStartingGrid().setDistanceToStart(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDistanceBetweenColumnsTextField().getText(),
+		if (isDifferent(distanceBetweenColumnsTextField.getText(),
 			Editor.getProperties().getStartingGrid().getDistanceBetweenColumns(), doubleResult))
 		{
 			Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getOffsetWithinAColumnTextField().getText(),
+		if (isDifferent(offsetWithinAColumnTextField.getText(),
 			Editor.getProperties().getStartingGrid().getOffsetWithinAColumn(), doubleResult))
 		{
 			Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getInitialHeightTextField().getText(),
+		if (isDifferent(initialHeightTextField.getText(),
 			Editor.getProperties().getStartingGrid().getInitialHeight(), doubleResult))
 		{
 			Editor.getProperties().getStartingGrid().setInitialHeight(doubleResult.getValue());
