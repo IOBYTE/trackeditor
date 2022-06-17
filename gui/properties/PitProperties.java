@@ -42,32 +42,32 @@ import utils.circuit.SegmentSide;
  */
 public class PitProperties extends PropertyPanel
 {
-	private JLabel				styleLabel				= null;
+	private JLabel				styleLabel				= new JLabel();
 	private JComboBox<String>	styleComboBox			= null;
-	private JLabel				sideLabel				= null;
+	private JLabel				sideLabel				= new JLabel();
 	private JComboBox<String>	sideComboBox			= null;
-	private JLabel				entryLabel				= null;
-	private JTextField			entryTextField			= null;
-	private JLabel				startLabel				= null;
-	private JTextField			startTextField			= null;
-	private JLabel				startBuildingsLabel		= null;
-	private JTextField			startBuildingsTextField	= null;
-	private JLabel				stopBuildingsLabel		= null;
-	private JTextField			stopBuildingsTextField	= null;
-	private JLabel				maxPitsLabel			= null;
-	private JTextField			maxPitsTextField		= null;
-	private JLabel				endLabel				= null;
-	private JTextField			endTextField			= null;
-	private JLabel				exitLabel				= null;
-	private JTextField			exitTextField			= null;
-	private JLabel				widthLabel				= null;
-	private JTextField			widthTextField			= null;
-	private JLabel				lengthLabel				= null;
-	private JTextField			lengthTextField			= null;
-	private JLabel				indicatorLabel			= null;
-	private JTextField			indicatorTextField		= null;	// TODO replace with JComboBox?
-	private JLabel				speedLimitLabel			= null;
-	private JTextField			speedLimitTextField		= null;
+	private JLabel				entryLabel				= new JLabel();
+	private JTextField			entryTextField			= new JTextField();
+	private JLabel				startLabel				= new JLabel();
+	private JTextField			startTextField			= new JTextField();
+	private JLabel				startBuildingsLabel		= new JLabel();
+	private JTextField			startBuildingsTextField	= new JTextField();
+	private JLabel				stopBuildingsLabel		= new JLabel();
+	private JTextField			stopBuildingsTextField	= new JTextField();
+	private JLabel				maxPitsLabel			= new JLabel();
+	private JTextField			maxPitsTextField		= new JTextField();
+	private JLabel				endLabel				= new JLabel();
+	private JTextField			endTextField			= new JTextField();
+	private JLabel				exitLabel				= new JLabel();
+	private JTextField			exitTextField			= new JTextField();
+	private JLabel				widthLabel				= new JLabel();
+	private JTextField			widthTextField			= new JTextField();
+	private JLabel				lengthLabel				= new JLabel();
+	private JTextField			lengthTextField			= new JTextField();
+	private JLabel				indicatorLabel			= new JLabel();
+	private JComboBox<String>	indicatorComboBox		= null;
+	private JLabel				speedLimitLabel			= new JLabel();
+	private JTextField			speedLimitTextField		= new JTextField();
 	private JLabel 				generatePitsLabel 		= null;
 	private JCheckBox 			generatePitsCheckBox 	= null;
 	private boolean 			generatePits			= false;
@@ -88,79 +88,43 @@ public class PitProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		generatePitsLabel = new JLabel();
-		sideLabel = new JLabel();
-		entryLabel = new JLabel();
-		startLabel = new JLabel();
-		endLabel = new JLabel();
-		exitLabel = new JLabel();
-		widthLabel = new JLabel();
-		lengthLabel = new JLabel();
-		startBuildingsLabel = new JLabel();
-		stopBuildingsLabel = new JLabel();
-		styleLabel = new JLabel();
-		maxPitsLabel = new JLabel();
-		indicatorLabel = new JLabel();
-		speedLimitLabel = new JLabel();
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
-		styleLabel.setBounds(10, 10, 70, 20);
-		styleLabel.setText("Pit type");
-		sideLabel.setBounds(10, 35, 70, 20);
-		sideLabel.setText("Pits side");
-		entryLabel.setBounds(10, 60, 70, 20);
-		entryLabel.setText("Pit entry");
-		startLabel.setBounds(10, 85, 70, 20);
-		startLabel.setText("Pit start");
-		startBuildingsLabel.setBounds(10, 110, 120, 20);
-		startBuildingsLabel.setText("Pit start buildings");
-		stopBuildingsLabel.setBounds(10, 135, 120, 20);
-		stopBuildingsLabel.setText("Pit stop buildings");
-		maxPitsLabel.setBounds(10, 160, 120, 20);
-		maxPitsLabel.setText("Pit max pits");
-		endLabel.setBounds(10, 185, 70, 20);
-		endLabel.setText("Pit end");
-		exitLabel.setBounds(10, 210, 70, 20);
-		exitLabel.setText("Pit exit");
-		widthLabel.setBounds(10, 235, 70, 20);
-		widthLabel.setText("Pit width");
-		lengthLabel.setBounds(10, 260, 70, 20);
-		lengthLabel.setText("Pit length");
-		indicatorLabel.setBounds(10, 285, 70, 20);
-		indicatorLabel.setText("Pit indicator");
-		speedLimitLabel.setBounds(10, 310, 70, 20);
-		speedLimitLabel.setText("Pit speed limit");
+
+		addLabel(this, 0, styleLabel, "Type", 130);
+		addLabel(this, 1, sideLabel, "Side", 130);
+		addLabel(this, 2, entryLabel, "Entry", 130);
+		addLabel(this, 3, startLabel, "Start", 130);
+		addLabel(this, 4, startBuildingsLabel, "Start Buildings", 130);
+		addLabel(this, 5, stopBuildingsLabel, "Stop Buildings", 130);
+		addLabel(this, 6, maxPitsLabel, "Max Pits", 130);
+		addLabel(this, 7, endLabel, "End", 130);
+		addLabel(this, 8, exitLabel, "Exit", 130);
+		addLabel(this, 9, widthLabel, "Width", 130);
+		addLabel(this, 10, lengthLabel, "Length", 130);
+		addLabel(this, 11, indicatorLabel, "Indicator", 130);
+		addLabel(this, 12, speedLimitLabel, "Speed Limit", 130);
+
+		generatePitsLabel = new JLabel();
 		generatePitsLabel.setBounds(240, 10, 99, 20);
 		generatePitsLabel.setText("Generate Pits");
-		this.add(getLengthTextField(), null);
-		this.add(getWidthTextField(), null);
-		this.add(lengthLabel, null);
-		this.add(getExitTextField(), null);
-		this.add(widthLabel, null);
-		this.add(getEntryTextField(), null);
-		this.add(startLabel, null);
-		this.add(getStartTextField(), null);
-		this.add(endLabel, null);
-		this.add(getEndTextField(), null);
-		this.add(exitLabel, null);
-		this.add(sideLabel, null);
-		this.add(getSideComboBox(), null);
-		this.add(entryLabel, null);
+
 		this.add(getStyleComboBox(), null);
-		this.add(styleLabel, null);
-		this.add(generatePitsLabel, null);
-		this.add(getGeneratePitsCheckBox(), null);
-		this.add(startBuildingsLabel, null);
-		this.add(getStartBuildingsTextField(), null);
-		this.add(stopBuildingsLabel, null);
-		this.add(getStopBuildingsTextField(), null);
-		this.add(getMaxPitsTextField(), null);
-		this.add(maxPitsLabel, null);
-		this.add(getIndicatorTextField(), null);
-		this.add(indicatorLabel, null);
-		this.add(getSpeedLimitTextField(), null);
-		this.add(speedLimitLabel, null);
+		this.add(getSideComboBox(), null);
+
+		addTextField(this, 2, entryTextField, Editor.getProperties().getMainTrack().getPits().getEntry(), 100, 100);
+		addTextField(this, 3, startTextField, Editor.getProperties().getMainTrack().getPits().getStart(), 100, 100);
+		addTextField(this, 4, startBuildingsTextField, Editor.getProperties().getMainTrack().getPits().getStartBuildings(), 100, 100);
+		addTextField(this, 5, stopBuildingsTextField, Editor.getProperties().getMainTrack().getPits().getStopBuildings(), 100, 100);
+		addTextField(this, 6, maxPitsTextField, Editor.getProperties().getMainTrack().getPits().getMaxPits(), 100, 100);
+		addTextField(this, 7, endTextField, Editor.getProperties().getMainTrack().getPits().getEnd(), 100, 100);
+		addTextField(this, 8, exitTextField, Editor.getProperties().getMainTrack().getPits().getExit(), 100, 100);
+		addTextField(this, 9, widthTextField, Editor.getProperties().getMainTrack().getPits().getWidth(), 100, 40);
+		addTextField(this, 10, lengthTextField, Editor.getProperties().getMainTrack().getPits().getLength(), 100, 40);
+
+		this.add(getIndicatorComboBox(), null);
+
+		addTextField(this, 12, speedLimitTextField, Editor.getProperties().getMainTrack().getPits().getSpeedLimit(), 100, 40);
 	}
 	/**
 	 * This method initializes styleComboBox
@@ -173,7 +137,7 @@ public class PitProperties extends PropertyPanel
 		{
 			String[] items = {"none", "no pits", "on track side", "on separate path", "no building"};
 			styleComboBox = new JComboBox<String>(items);
-			styleComboBox.setBounds(100, 10, 100, 20);
+			styleComboBox.setBounds(100, 10, 120, 20);
 			int style = Editor.getProperties().getMainTrack().getPits().getStyle();
 			if (style == Integer.MAX_VALUE)
 				style = 0;
@@ -202,170 +166,27 @@ public class PitProperties extends PropertyPanel
 		}
 		return sideComboBox;
 	}
+
 	/**
-	 * This method initializes entryTextField
+	 * This method initializes indicatorComboBox
 	 *
-	 * @return javax.swing.JTextField
+	 * @return javax.swing.JComboBox
 	 */
-	private JTextField getEntryTextField()
+	private JComboBox getIndicatorComboBox()
 	{
-		if (entryTextField == null)
+		if (indicatorComboBox == null)
 		{
-			entryTextField = new JTextField();
-			entryTextField.setBounds(100, 60, 100, 20);
-			setTextField(entryTextField, Editor.getProperties().getMainTrack().getPits().getEntry());
+			String[] items = {"none", "no", "yes"};
+			indicatorComboBox = new JComboBox<String>(items);
+			indicatorComboBox.setBounds(100, 285, 80, 20);
+			int indicator = Editor.getProperties().getMainTrack().getPits().getIndicator();
+			if (indicator == Integer.MAX_VALUE)
+				indicator = 0;
+			else
+				indicator++;
+			indicatorComboBox.setSelectedIndex(indicator);
 		}
-		return entryTextField;
-	}
-	/**
-	 * This method initializes startTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getStartTextField()
-	{
-		if (startTextField == null)
-		{
-			startTextField = new JTextField();
-			startTextField.setBounds(100, 85, 100, 20);
-			setTextField(startTextField, Editor.getProperties().getMainTrack().getPits().getStart());
-		}
-		return startTextField;
-	}
-	/**
-	 * This method initializes startBuildingsTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getStartBuildingsTextField()
-	{
-		if (startBuildingsTextField == null)
-		{
-			startBuildingsTextField = new JTextField();
-			startBuildingsTextField.setBounds(100, 110, 100, 20);
-			setTextField(startBuildingsTextField, Editor.getProperties().getMainTrack().getPits().getStartBuildings());
-		}
-		return startBuildingsTextField;
-	}
-	/**
-	 * This method initializes stopBuildingsTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getStopBuildingsTextField()
-	{
-		if (stopBuildingsTextField == null)
-		{
-			stopBuildingsTextField = new JTextField();
-			stopBuildingsTextField.setBounds(100, 135, 100, 20);
-			setTextField(stopBuildingsTextField, Editor.getProperties().getMainTrack().getPits().getStopBuildings());
-		}
-		return stopBuildingsTextField;
-	}
-	/**
-	 * This method initializes maxPitsTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getMaxPitsTextField()
-	{
-		if (maxPitsTextField == null)
-		{
-			maxPitsTextField = new JTextField();
-			maxPitsTextField.setBounds(100, 160, 100, 20);
-			setTextField(maxPitsTextField, Editor.getProperties().getMainTrack().getPits().getMaxPits());
-		}
-		return maxPitsTextField;
-	}
-	/**
-	 * This method initializes endTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getEndTextField()
-	{
-		if (endTextField == null)
-		{
-			endTextField = new JTextField();
-			endTextField.setBounds(100, 185, 100, 20);
-			setTextField(endTextField, Editor.getProperties().getMainTrack().getPits().getEnd());
-		}
-		return endTextField;
-	}
-	/**
-	 * This method initializes exitTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getExitTextField()
-	{
-		if (exitTextField == null)
-		{
-			exitTextField = new JTextField();
-			exitTextField.setBounds(100, 210, 100, 20);
-			setTextField(exitTextField, Editor.getProperties().getMainTrack().getPits().getExit());
-		}
-		return exitTextField;
-	}
-	/**
-	 * This method initializes widthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getWidthTextField()
-	{
-		if (widthTextField == null)
-		{
-			widthTextField = new JTextField();
-			widthTextField.setBounds(100, 235, 40, 20);
-			setTextField(widthTextField, Editor.getProperties().getMainTrack().getPits().getWidth());
-		}
-		return widthTextField;
-	}
-	/**
-	 * This method initializes lengthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getLengthTextField()
-	{
-		if (lengthTextField == null)
-		{
-			lengthTextField = new JTextField();
-			lengthTextField.setBounds(100, 260, 40, 20);
-			setTextField(lengthTextField, Editor.getProperties().getMainTrack().getPits().getLength());
-		}
-		return lengthTextField;
-	}
-	/**
-	 * This method initializes indicatorTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getIndicatorTextField()
-	{
-		if (indicatorTextField == null)
-		{
-			indicatorTextField = new JTextField();
-			indicatorTextField.setBounds(100, 285, 40, 20);
-			setTextField(indicatorTextField, Editor.getProperties().getMainTrack().getPits().getIndicator());
-		}
-		return indicatorTextField;
-	}
-	/**
-	 * This method initializes speedLimitTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getSpeedLimitTextField()
-	{
-		if (speedLimitTextField == null)
-		{
-			speedLimitTextField = new JTextField();
-			speedLimitTextField.setBounds(100, 310, 40, 20);
-			setTextField(speedLimitTextField, Editor.getProperties().getMainTrack().getPits().getSpeedLimit());
-		}
-		return speedLimitTextField;
+		return indicatorComboBox;
 	}
 
 	/**
@@ -400,84 +221,86 @@ public class PitProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getEntryTextField().getText(),
+		if (isDifferent(entryTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getEntry(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setEntry(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getStartTextField().getText(),
+		if (isDifferent(startTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getStart(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setStart(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getStartBuildingsTextField().getText(),
+		if (isDifferent(startBuildingsTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getStartBuildings(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setStartBuildings(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getStopBuildingsTextField().getText(),
+		if (isDifferent(stopBuildingsTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getStopBuildings(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setStopBuildings(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getMaxPitsTextField().getText(),
+		if (isDifferent(maxPitsTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getMaxPits(), integerResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setMaxPits(integerResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getEndTextField().getText(),
+		if (isDifferent(endTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getEnd(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setEnd(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getExitTextField().getText(),
+		if (isDifferent(exitTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getExit(), stringResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setExit(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getWidthTextField().getText(),
+		if (isDifferent(widthTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getWidth(), doubleResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setWidth(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getLengthTextField().getText(),
+		if (isDifferent(lengthTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getLength(), doubleResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setLength(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getIndicatorTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getIndicator(), integerResult))
+		index = getIndicatorComboBox().getSelectedIndex();
+		int indicator = Editor.getProperties().getMainTrack().getPits().getIndicator();
+		if (index == 0)
 		{
-			Editor.getProperties().getMainTrack().getPits().setIndicator(integerResult.getValue());
+			if (indicator != Integer.MAX_VALUE)
+			{
+				Editor.getProperties().getMainTrack().getPits().setIndicator(Integer.MAX_VALUE);
+				frame.documentIsModified = true;
+			}
+		}
+		else if (indicator == Integer.MAX_VALUE || indicator != index - 1)
+		{
+			Editor.getProperties().getMainTrack().getPits().setIndicator(index - 1);
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getSpeedLimitTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getIndicator(), integerResult))
-		{
-			Editor.getProperties().getMainTrack().getPits().setIndicator(integerResult.getValue());
-			frame.documentIsModified = true;
-		}
-
-		if (isDifferent(getSpeedLimitTextField().getText(),
+		if (isDifferent(speedLimitTextField.getText(),
 			Editor.getProperties().getMainTrack().getPits().getSpeedLimit(), doubleResult))
 		{
 			Editor.getProperties().getMainTrack().getPits().setSpeedLimit(doubleResult.getValue());
