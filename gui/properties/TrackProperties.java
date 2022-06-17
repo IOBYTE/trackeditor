@@ -40,18 +40,18 @@ import utils.circuit.Surface;
  */
 public class TrackProperties extends PropertyPanel
 {
-	private JLabel				widthLabel					= null;
-	private JTextField			widthTextField				= null;
-	private JLabel				surfaceLabel				= null;
+	private JLabel				widthLabel					= new JLabel();
+	private JTextField			widthTextField				= new JTextField();
+	private JLabel				surfaceLabel				= new JLabel();
 	private JComboBox<String>	surfaceComboBox				= null;
-	private JLabel				profilStepsLengthLabel		= null;
-	private JTextField			profilStepsLengthTextField	= null;
-	private JLabel				racelineWidthscaleLabel		= null;
-	private JTextField			racelineWidthscaleTextField	= null;
-	private JLabel				racelineIntLabel			= null;
-	private JTextField			racelineIntTextField		= null;
-	private JLabel				racelineExtLabel			= null;
-	private JTextField			racelineExtTextField		= null;
+	private JLabel				profilStepsLengthLabel		= new JLabel();
+	private JTextField			profilStepsLengthTextField	= new JTextField();
+	private JLabel				racelineWidthscaleLabel		= new JLabel();
+	private JTextField			racelineWidthscaleTextField	= new JTextField();
+	private JLabel				racelineIntLabel			= new JLabel();
+	private JTextField			racelineIntTextField		= new JTextField();
+	private JLabel				racelineExtLabel			= new JLabel();
+	private JTextField			racelineExtTextField		= new JTextField();
 
 	private String[]			roadSurfaceItems		=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -79,40 +79,26 @@ public class TrackProperties extends PropertyPanel
 	 *
 	 * @return void
 	 */
-	private void initialize() {
-        widthLabel = new JLabel();
-        surfaceLabel = new JLabel();
-        profilStepsLengthLabel = new JLabel();
-        racelineWidthscaleLabel = new JLabel();
-        racelineIntLabel = new JLabel();
-        racelineExtLabel = new JLabel();
+	private void initialize()
+	{
         this.setLayout(null);
         this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-        this.setSize(356, 259);
-        widthLabel.setText("Width");
-        widthLabel.setBounds(10, 10, 110, 20);
-        surfaceLabel.setText("Surface");
-        surfaceLabel.setBounds(10, 35, 110, 20);
-        profilStepsLengthLabel.setText("Profil Steps Length");
-        profilStepsLengthLabel.setBounds(10, 60, 110, 20);
-        racelineWidthscaleLabel.setText("Raceline Width Scale");
-        racelineWidthscaleLabel.setBounds(10, 85, 110, 20);
-        racelineIntLabel.setText("Raceline Int");
-        racelineIntLabel.setBounds(10, 110, 110, 20);
-        racelineExtLabel.setText("Racelin Ext");
-        racelineExtLabel.setBounds(10, 135, 110, 20);
-        this.add(widthLabel, null);
-        this.add(getWidthTextField(), null);
-        this.add(surfaceLabel, null);
+
+		addLabel(this, 0, widthLabel, "Width", 130);
+		addLabel(this, 1, surfaceLabel, "Surface", 130);
+		addLabel(this, 2, profilStepsLengthLabel, "Profil Steps Length", 130);
+		addLabel(this, 3, racelineWidthscaleLabel, "Raceline Width Scale", 130);
+		addLabel(this, 4, racelineIntLabel, "Raceline Int", 130);
+		addLabel(this, 5, racelineExtLabel, "Racelin Ext", 130);
+
+		addTextField(this, 0, widthTextField, Editor.getProperties().getMainTrack().getWidth(), 120, 50);
+
         this.add(getSurfaceComboBox(), null);
-        this.add(profilStepsLengthLabel, null);
-        this.add(getProfilStepsLengthTextField(), null);
-        this.add(racelineWidthscaleLabel, null);
-        this.add(getRacelineWidthscaleTextField(), null);
-        this.add(racelineIntLabel, null);
-        this.add(getRacelineIntTextField(), null);
-        this.add(racelineExtLabel, null);
-        this.add(getRacelineExtTextField(), null);
+
+		addTextField(this, 2, profilStepsLengthTextField, Editor.getProperties().getMainTrack().getProfilStepsLength(), 120, 50);
+		addTextField(this, 3, racelineWidthscaleTextField, Editor.getProperties().getMainTrack().getRacelineWidthscale(), 120, 50);
+		addTextField(this, 4, racelineIntTextField, Editor.getProperties().getMainTrack().getRacelineInt(), 120, 50);
+		addTextField(this, 5, racelineExtTextField, Editor.getProperties().getMainTrack().getRacelineExt(), 120, 50);
 
         Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
         for (int i = 0; i < surfaces.size(); i++)
@@ -133,20 +119,6 @@ public class TrackProperties extends PropertyPanel
 			}
         }
 		Collections.sort(roadSurfaceVector);
-	}
-
-	/**
-	 * This method initializes widthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getWidthTextField() {
-		if (widthTextField == null) {
-			widthTextField = new JTextField();
-			widthTextField.setBounds(120, 10, 50, 20);
-			setTextField(widthTextField, Editor.getProperties().getMainTrack().getWidth());
-		}
-		return widthTextField;
 	}
 
 	/**
@@ -184,62 +156,6 @@ public class TrackProperties extends PropertyPanel
 	}
 
 	/**
-	 * This method initializes profilStepsLengthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getProfilStepsLengthTextField() {
-		if (profilStepsLengthTextField == null) {
-			profilStepsLengthTextField = new JTextField();
-			profilStepsLengthTextField.setBounds(120, 60, 50, 20);
-			setTextField(profilStepsLengthTextField, Editor.getProperties().getMainTrack().getProfilStepsLength());
-		}
-		return profilStepsLengthTextField;
-	}
-
-	/**
-	 * This method initializes racelineWidthscaleTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getRacelineWidthscaleTextField() {
-		if (racelineWidthscaleTextField == null) {
-			racelineWidthscaleTextField = new JTextField();
-			racelineWidthscaleTextField.setBounds(120, 85, 50, 20);
-			setTextField(racelineWidthscaleTextField, Editor.getProperties().getMainTrack().getRacelineWidthscale());
-		}
-		return racelineWidthscaleTextField;
-	}
-
-	/**
-	 * This method initializes racelineIntTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getRacelineIntTextField() {
-		if (racelineIntTextField == null) {
-			racelineIntTextField = new JTextField();
-			racelineIntTextField.setBounds(120, 110, 50, 20);
-			setTextField(racelineIntTextField, Editor.getProperties().getMainTrack().getRacelineInt());
-		}
-		return racelineIntTextField;
-	}
-
-	/**
-	 * This method initializes profilStepsLengthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getRacelineExtTextField() {
-		if (racelineExtTextField == null) {
-			racelineExtTextField = new JTextField();
-			racelineExtTextField.setBounds(120, 135, 50, 20);
-			setTextField(racelineExtTextField, Editor.getProperties().getMainTrack().getRacelineExt());
-		}
-		return racelineExtTextField;
-	}
-
-	/**
 	 *
 	 */
 	public void exit()
@@ -247,7 +163,7 @@ public class TrackProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 
-        if (isDifferent(getWidthTextField().getText(),
+        if (isDifferent(widthTextField.getText(),
             Editor.getProperties().getMainTrack().getWidth(), doubleResult))
         {
             Editor.getProperties().getMainTrack().setWidth(doubleResult.getValue());
@@ -261,28 +177,28 @@ public class TrackProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 
-        if (isDifferent(getProfilStepsLengthTextField().getText(),
+        if (isDifferent(profilStepsLengthTextField.getText(),
             Editor.getProperties().getMainTrack().getProfilStepsLength(), doubleResult))
         {
             Editor.getProperties().getMainTrack().setProfilStepsLength(doubleResult.getValue());
             frame.documentIsModified = true;
         }
 
-        if (isDifferent(getRacelineWidthscaleTextField().getText(),
+        if (isDifferent(racelineWidthscaleTextField.getText(),
             Editor.getProperties().getMainTrack().getRacelineWidthscale(), doubleResult))
         {
             Editor.getProperties().getMainTrack().setRacelineWidthscale(doubleResult.getValue());
             frame.documentIsModified = true;
         }
 
-        if (isDifferent(getRacelineIntTextField().getText(),
+        if (isDifferent(racelineIntTextField.getText(),
             Editor.getProperties().getMainTrack().getRacelineInt(), doubleResult))
         {
             Editor.getProperties().getMainTrack().setRacelineInt(doubleResult.getValue());
             frame.documentIsModified = true;
         }
 
-        if (isDifferent(getRacelineExtTextField().getText(),
+        if (isDifferent(racelineExtTextField.getText(),
             Editor.getProperties().getMainTrack().getRacelineExt(), doubleResult))
         {
             Editor.getProperties().getMainTrack().setRacelineExt(doubleResult.getValue());
