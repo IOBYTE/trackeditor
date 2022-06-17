@@ -171,7 +171,7 @@ public class PitProperties extends PropertyPanel
 	 *
 	 * @return javax.swing.JComboBox
 	 */
-	private JComboBox getIndicatorComboBox()
+	private JComboBox<String> getIndicatorComboBox()
 	{
 		if (indicatorComboBox == null)
 		{
@@ -312,6 +312,7 @@ public class PitProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 	}
+
 	/**
 	 *
 	 */
@@ -325,10 +326,10 @@ public class PitProperties extends PropertyPanel
 		Segment pitEnd = null;
 		Segment pitExit = null;
 
-		Iterator it = data.iterator();
+		Iterator<Segment> it = data.iterator();
 		while (it.hasNext())
 		{
-			Segment obj = (Segment) it.next();
+			Segment obj = it.next();
 			String name = obj.getName();
 			if (name.equals(Editor.getProperties().getMainTrack().getPits().getEntry()))
 			{
