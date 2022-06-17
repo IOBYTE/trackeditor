@@ -206,72 +206,34 @@ public class TurnMarksProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		try
+		MutableDouble doubleResult = new MutableDouble();
+
+		if (isDifferent(getWidthTextField().getText(),
+			Editor.getProperties().getGraphic().getTurnMarks().getWidth(), doubleResult))
 		{
-			double value = Double.parseDouble(getWidthTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTurnMarks().getWidth())
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setWidth(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getWidth()))
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setWidth(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTurnMarks().setWidth(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getHeightTextField().getText(),
+			Editor.getProperties().getGraphic().getTurnMarks().getHeight(), doubleResult))
 		{
-			double value = Double.parseDouble(getHeightTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTurnMarks().getHeight())
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setHeight(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getHeight()))
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setHeight(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTurnMarks().setHeight(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getVerticalSpaceTextField().getText(),
+			Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace(), doubleResult))
 		{
-			double value = Double.parseDouble(getVerticalSpaceTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace())
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace()))
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getHorizontalSpaceTextField().getText(),
+			Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace(), doubleResult))
 		{
-			double value = Double.parseDouble(getHorizontalSpaceTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace())
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace()))
-			{
-				Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 	}
- } //  @jve:decl-index=0:visual-constraint="10,10"
+} //  @jve:decl-index=0:visual-constraint="10,10"

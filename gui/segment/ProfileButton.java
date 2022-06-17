@@ -25,7 +25,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 /**

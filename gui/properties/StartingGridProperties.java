@@ -200,97 +200,50 @@ public class StartingGridProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		try
-		{
-			int value = Integer.parseInt(this.getRowsTextField().getText());
-			if (value != Editor.getProperties().getStartingGrid().getRows())
-			{
-				Editor.getProperties().getStartingGrid().setRows(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (Editor.getProperties().getStartingGrid().getRows() != Integer.MAX_VALUE)
-			{
-				Editor.getProperties().getStartingGrid().setRows(Integer.MAX_VALUE);
-				frame.documentIsModified = true;
-			}
-		}
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+		MutableInteger integerResult = new MutableInteger();
 
-		String result = null;
-		if (isDifferent((String) getPolePositionSideComboBox().getSelectedItem(),
-			Editor.getProperties().getStartingGrid().getPolePositionSide(), result))
+		if (isDifferent(getRowsTextField().getText(),
+			Editor.getProperties().getStartingGrid().getRows(), integerResult))
 		{
-			Editor.getProperties().getStartingGrid().setPolePositionSide(result);
+			Editor.getProperties().getStartingGrid().setRows(integerResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent((String) getPolePositionSideComboBox().getSelectedItem(),
+			Editor.getProperties().getStartingGrid().getPolePositionSide(), stringResult))
 		{
-			double value = Double.parseDouble(this.getDistanceToStartTextField().getText());
-			if (value != Editor.getProperties().getStartingGrid().getDistanceToStart())
-			{
-				Editor.getProperties().getStartingGrid().setDistanceToStart(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceToStart()))
-			{
-				Editor.getProperties().getStartingGrid().setDistanceToStart(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getStartingGrid().setPolePositionSide(stringResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getDistanceToStartTextField().getText(),
+			Editor.getProperties().getStartingGrid().getDistanceToStart(), doubleResult))
 		{
-			double value = Double.parseDouble(this.getDistanceBetweenColumnsTextField().getText());
-			if (value != Editor.getProperties().getStartingGrid().getDistanceBetweenColumns())
-			{
-				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getDistanceBetweenColumns()))
-			{
-				Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getStartingGrid().setDistanceToStart(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getDistanceBetweenColumnsTextField().getText(),
+			Editor.getProperties().getStartingGrid().getDistanceBetweenColumns(), doubleResult))
 		{
-			double value = Double.parseDouble(this.getOffsetWithinAColumnTextField().getText());
-			if (value != Editor.getProperties().getStartingGrid().getOffsetWithinAColumn())
-			{
-				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getOffsetWithinAColumn()))
-			{
-				Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getStartingGrid().setDistanceBetweenColumns(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getOffsetWithinAColumnTextField().getText(),
+			Editor.getProperties().getStartingGrid().getOffsetWithinAColumn(), doubleResult))
 		{
-			double value = Double.parseDouble(this.getInitialHeightTextField().getText());
-			if (value != Editor.getProperties().getStartingGrid().getInitialHeight())
-			{
-				Editor.getProperties().getStartingGrid().setInitialHeight(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
+			Editor.getProperties().getStartingGrid().setOffsetWithinAColumn(doubleResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getInitialHeightTextField().getText(),
+			Editor.getProperties().getStartingGrid().getInitialHeight(), doubleResult))
 		{
-			if (!Double.isNaN(Editor.getProperties().getStartingGrid().getInitialHeight()))
-			{
-				Editor.getProperties().getStartingGrid().setInitialHeight(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getStartingGrid().setInitialHeight(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 	}
- } //  @jve:decl-index=0:visual-constraint="10,10"
+} //  @jve:decl-index=0:visual-constraint="10,10"

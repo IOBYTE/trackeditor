@@ -312,8 +312,9 @@ public class CameraProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String stringResult = null;
-		MutableDouble doubleResult = new MutableDouble(Double.NaN);
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+
 		Vector<Camera> cameras = Editor.getProperties().getCameras();
 		int minCount = Integer.min(cameras.size(), tabbedPane.getTabCount());
 		if (cameras.size() != tabbedPane.getTabCount())
@@ -327,13 +328,13 @@ public class CameraProperties extends PropertyPanel
 
             if (isDifferent(panel.getNameTextField().getText(), camera.getName(), stringResult))
             {
-                camera.setName(panel.getNameTextField().getText());
+                camera.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getSegmentTextField().getText(), camera.getSegment(), stringResult))
             {
-                camera.setSegment(panel.getSegmentTextField().getText());
+                camera.setSegment(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
@@ -357,13 +358,13 @@ public class CameraProperties extends PropertyPanel
 
             if (isDifferent(panel.getFovStartTextField().getText(), camera.getFovStart(), stringResult))
             {
-                camera.setFovStart(stringResult);
+                camera.setFovStart(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getFovEndTextField().getText(), camera.getFovEnd(), stringResult))
             {
-                camera.setFovEnd(stringResult);
+                camera.setFovEnd(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 		}

@@ -328,9 +328,10 @@ public class ObjectProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String stringResult = null;
-		MutableDouble doubleResult = new MutableDouble(Double.NaN);
-		MutableInteger integerResult = new MutableInteger(Integer.MAX_VALUE);
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+		MutableInteger integerResult = new MutableInteger();
+
 		Vector<TrackObject> objects = Editor.getProperties().getObjects();
 		int minCount = Integer.min(objects.size(), tabbedPane.getTabCount());
 		if (objects.size() != tabbedPane.getTabCount())
@@ -344,13 +345,13 @@ public class ObjectProperties extends PropertyPanel
 
             if (isDifferent(panel.getNameTextField().getText(), object.getName(), stringResult))
             {
-                object.setName(panel.getNameTextField().getText());
+                object.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getObjectTextField().getText(), object.getObject(), stringResult))
             {
-                object.setObject(panel.getObjectTextField().getText());
+                object.setObject(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
@@ -362,7 +363,7 @@ public class ObjectProperties extends PropertyPanel
 
             if (isDifferent(panel.getOrientationTypeComboBox().getSelectedItem().toString(), object.getOrientationType(), stringResult))
             {
-                object.setOrientationType(stringResult);
+                object.setOrientationType(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 

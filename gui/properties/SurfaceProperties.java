@@ -650,8 +650,9 @@ public class SurfaceProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String stringResult = null;
-		MutableDouble doubleResult = new MutableDouble(Double.NaN);
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+
 		Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
 		int minCount = Integer.min(surfaces.size(), tabbedPane.getTabCount());
 		if (surfaces.size() != tabbedPane.getTabCount())
@@ -665,7 +666,7 @@ public class SurfaceProperties extends PropertyPanel
 
             if (isDifferent(panel.getNameTextField().getText(), surface.getName(), stringResult))
             {
-                surface.setName(panel.getNameTextField().getText());
+                surface.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
@@ -707,13 +708,13 @@ public class SurfaceProperties extends PropertyPanel
 
             if (isDifferent(panel.getTextureNameTextField().getText(), surface.getTextureName(), stringResult))
             {
-                surface.setTextureName(panel.getTextureNameTextField().getText());
+                surface.setTextureName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getTextureTypeComboBox().getSelectedItem().toString(), surface.getTextureType(), stringResult))
             {
-                surface.setTextureName(stringResult);
+                surface.setTextureName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
@@ -725,13 +726,13 @@ public class SurfaceProperties extends PropertyPanel
 
             if (isDifferent(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString(), surface.getTextureLinkWithPrevious(), stringResult))
             {
-                surface.setTextureLinkWithPrevious(stringResult);
+                surface.setTextureLinkWithPrevious(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString(), surface.getTextureStartOnBoundary(), stringResult))
             {
-                surface.setTextureStartOnBoundary(stringResult);
+                surface.setTextureStartOnBoundary(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 

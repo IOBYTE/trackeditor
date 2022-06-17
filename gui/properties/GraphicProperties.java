@@ -573,32 +573,34 @@ public class GraphicProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String result = null;
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+
 		if (isDifferent(getDescriptionTextField().getText(),
-			Editor.getProperties().getGraphic().getDescription(), result))
+			Editor.getProperties().getGraphic().getDescription(), stringResult))
 		{
-			Editor.getProperties().getGraphic().setDescription(result);
+			Editor.getProperties().getGraphic().setDescription(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getDescriptionNightTextField().getText(),
-			Editor.getProperties().getGraphic().getDescriptionNight(), result))
+			Editor.getProperties().getGraphic().getDescriptionNight(), stringResult))
 		{
-			Editor.getProperties().getGraphic().setDescriptionNight(result);
+			Editor.getProperties().getGraphic().setDescriptionNight(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getDescriptionRainNightTextField().getText(),
-			Editor.getProperties().getGraphic().getDescriptionRainNight(), result))
+			Editor.getProperties().getGraphic().getDescriptionRainNight(), stringResult))
 		{
-			Editor.getProperties().getGraphic().setDescriptionRainNight(result);
+			Editor.getProperties().getGraphic().setDescriptionRainNight(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getBackgroundImageTextField().getText(),
-			Editor.getProperties().getGraphic().getBackgroundImage(), result))
+			Editor.getProperties().getGraphic().getBackgroundImage(), stringResult))
 		{
-			Editor.getProperties().getGraphic().setBackgroundImage(result);
+			Editor.getProperties().getGraphic().setBackgroundImage(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
@@ -630,242 +632,95 @@ public class GraphicProperties extends PropertyPanel
 			}
 		}
 
-		try
+		if (isDifferent(getBackgroundColorRTextField().getText(),
+			Editor.getProperties().getGraphic().getBackgroundColorR(), doubleResult))
 		{
-			double value = Double.parseDouble(getBackgroundColorRTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getBackgroundColorR())
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorR(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getBackgroundColorR()))
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorR(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setBackgroundColorR(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getBackgroundColorGTextField().getText(),
+			Editor.getProperties().getGraphic().getBackgroundColorG(), doubleResult))
 		{
-			double value = Double.parseDouble(getBackgroundColorGTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getBackgroundColorG())
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorG(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getBackgroundColorG()))
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorG(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setBackgroundColorG(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getBackgroundColorBTextField().getText(),
+			Editor.getProperties().getGraphic().getBackgroundColorB(), doubleResult))
 		{
-			double value = Double.parseDouble(getBackgroundColorBTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getBackgroundColorB())
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorB(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getBackgroundColorB()))
-			{
-				Editor.getProperties().getGraphic().setBackgroundColorB(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setBackgroundColorB(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getAmbientColorRTextField().getText(),
+			Editor.getProperties().getGraphic().getAmbientColorR(), doubleResult))
 		{
-			double value = Double.parseDouble(getAmbientColorRTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getAmbientColorR())
-			{
-				Editor.getProperties().getGraphic().setAmbientColorR(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getAmbientColorR()))
-			{
-				Editor.getProperties().getGraphic().setAmbientColorR(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setAmbientColorR(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getAmbientColorGTextField().getText(),
+			Editor.getProperties().getGraphic().getAmbientColorG(), doubleResult))
 		{
-			double value = Double.parseDouble(getAmbientColorGTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getAmbientColorG())
-			{
-				Editor.getProperties().getGraphic().setAmbientColorG(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getAmbientColorG()))
-			{
-				Editor.getProperties().getGraphic().setAmbientColorG(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setAmbientColorG(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getDiffuseColorRTextField().getText(),
+			Editor.getProperties().getGraphic().getDiffuseColorR(), doubleResult))
 		{
-			double value = Double.parseDouble(getAmbientColorBTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getAmbientColorB())
-			{
-				Editor.getProperties().getGraphic().setAmbientColorB(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getAmbientColorB()))
-			{
-				Editor.getProperties().getGraphic().setAmbientColorB(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setDiffuseColorR(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getDiffuseColorGTextField().getText(),
+			Editor.getProperties().getGraphic().getDiffuseColorG(), doubleResult))
 		{
-			double value = Double.parseDouble(getDiffuseColorRTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getDiffuseColorR())
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorR(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getDiffuseColorR()))
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorR(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setDiffuseColorG(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getDiffuseColorBTextField().getText(),
+			Editor.getProperties().getGraphic().getDiffuseColorB(), doubleResult))
 		{
-			double value = Double.parseDouble(getDiffuseColorGTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getDiffuseColorG())
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorG(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getDiffuseColorG()))
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorG(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setDiffuseColorB(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getLightPositionXTextField().getText(),
+			Editor.getProperties().getGraphic().getLightPositionX(), doubleResult))
 		{
-			double value = Double.parseDouble(getDiffuseColorBTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getDiffuseColorB())
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorB(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getDiffuseColorB()))
-			{
-				Editor.getProperties().getGraphic().setDiffuseColorB(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setLightPositionX(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getLightPositionYTextField().getText(),
+			Editor.getProperties().getGraphic().getLightPositionY(), doubleResult))
 		{
-			double value = Double.parseDouble(getLightPositionXTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getLightPositionX())
-			{
-				Editor.getProperties().getGraphic().setLightPositionX(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getLightPositionX()))
-			{
-				Editor.getProperties().getGraphic().setLightPositionX(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setLightPositionY(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getLightPositionZTextField().getText(),
+			Editor.getProperties().getGraphic().getLightPositionZ(), doubleResult))
 		{
-			double value = Double.parseDouble(getLightPositionYTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getLightPositionY())
-			{
-				Editor.getProperties().getGraphic().setLightPositionY(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getLightPositionY()))
-			{
-				Editor.getProperties().getGraphic().setLightPositionY(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setLightPositionZ(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getShininessTextField().getText(),
+			Editor.getProperties().getGraphic().getShininess(), doubleResult))
 		{
-			double value = Double.parseDouble(getLightPositionZTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getLightPositionZ())
-			{
-				Editor.getProperties().getGraphic().setLightPositionZ(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getLightPositionZ()))
-			{
-				Editor.getProperties().getGraphic().setLightPositionZ(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setShininess(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getFovFactorTextField().getText(),
+			Editor.getProperties().getGraphic().getFovFactor(), doubleResult))
 		{
-			double value = Double.parseDouble(getShininessTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getShininess())
-			{
-				Editor.getProperties().getGraphic().setShininess(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getShininess()))
-			{
-				Editor.getProperties().getGraphic().setShininess(Double.NaN);
-				frame.documentIsModified = true;
-			}
-		}
-
-		try
-		{
-			double value = Double.parseDouble(getFovFactorTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getFovFactor())
-			{
-				Editor.getProperties().getGraphic().setFovFactor(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getFovFactor()))
-			{
-				Editor.getProperties().getGraphic().setFovFactor(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().setFovFactor(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

@@ -1,5 +1,6 @@
 package gui.properties;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -51,31 +52,37 @@ public class PropertyPanel extends JPanel
 		}
 	}
 
-	public boolean isDifferent(String newValue, String oldValue, String result)
+	public boolean isDifferent(String newValue, String oldValue, MutableString result)
 	{
-		if ((newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE)) &&
-			(oldValue == null || oldValue.isEmpty()))
+		boolean hasNewValue = !(newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE));
+		boolean hasOldValue = !(oldValue == null || oldValue.isEmpty());
+
+		if (!hasNewValue && !hasOldValue)
 		{
+			result.setValue(null);
 			return false;
 		}
 
-		if (newValue == null && !oldValue.isEmpty())
+		if (!hasNewValue && hasOldValue)
 		{
-			result = newValue;
+			result.setValue(null);
 			return true;
 		}
 
-		boolean different = !newValue.equals(oldValue);
-
-		if (different)
+		if (hasNewValue && !hasOldValue)
 		{
-			if (newValue.equals("none") || newValue == String.valueOf(Integer.MAX_VALUE))
-				result = null;
-			else
-				result = newValue;
+			result.setValue(newValue);
+			return true;
 		}
 
-		return different;
+		if (newValue.equals(oldValue))
+		{
+			result.setValue(null);
+			return false;
+		}
+
+		result.setValue(newValue);
+		return true;
 	}
 
 	public boolean isDifferent(String newValue, double oldValue, MutableDouble result)
@@ -166,13 +173,33 @@ public class PropertyPanel extends JPanel
 		return string;
 	}
 
+	public class MutableString
+	{
+		private String value;
+
+		public MutableString()
+		{
+			this.value = null;
+		}
+
+		public String getValue()
+		{
+			return value;
+		}
+
+		public void setValue(String value)
+		{
+			this.value = value;
+		}
+	}
+
 	public class MutableDouble
 	{
 		private double value;
 
-		public MutableDouble(double value)
+		public MutableDouble()
 		{
-			this.value = value;
+			this.value = Double.NaN;
 		}
 
 		public double getValue()
@@ -190,9 +217,9 @@ public class PropertyPanel extends JPanel
 	{
 		private int value;
 
-		public MutableInteger(int value)
+		public MutableInteger()
 		{
-			this.value = value;
+			this.value = Integer.MAX_VALUE;
 		}
 
 		public int getValue()
@@ -204,5 +231,29 @@ public class PropertyPanel extends JPanel
 		{
 			this.value = value;
 		}
+	}
+
+	protected void addLabel(int index, JLabel label, String text, int length)
+	{
+		System.out.println("addlabel : " + text);
+		label.setText(text);
+		label.setBounds(10, 10 + (index * 25), length, 20);
+		add(label);
+	}
+
+	protected void addTextField(int index, JTextField textField, String text, int offset, int length)
+	{
+		System.out.println("addTextField");
+		textField.setBounds(offset, 10 + (index * 25), length, 20);
+		setTextField(textField, text);
+		add(textField);
+	}
+
+	protected void addTextField(int index, JTextField textField, double value, int offset, int length)
+	{
+		System.out.println("addTextField");
+		textField.setBounds(offset, 10 + (index * 25), length, 20);
+		setTextField(textField, value);
+		add(textField);
 	}
 }

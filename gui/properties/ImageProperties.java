@@ -174,28 +174,20 @@ public class ImageProperties extends PropertyPanel
 
 	public void exit()
 	{
-		String result = null;
-		if (isDifferent(getPathTextField().getText(), Editor.getProperties().getImage(), result))
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+
+		if (isDifferent(getPathTextField().getText(), Editor.getProperties().getImage(), stringResult))
 		{
-			Editor.getProperties().setImage(result);
+			Editor.getProperties().setImage(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getImageScaleTextField().getText(),
+			Editor.getProperties().getImageScale(), doubleResult))
 		{
-			double value = Double.parseDouble(getImageScaleTextField().getText());
-			if (value != Editor.getProperties().getImageScale())
-			{
-				Editor.getProperties().setImageScale(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getImageScale()))
-			{
-				Editor.getProperties().setImageScale(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().setImageScale(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 	}
 

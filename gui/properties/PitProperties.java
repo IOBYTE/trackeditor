@@ -380,148 +380,108 @@ public class PitProperties extends PropertyPanel
 			if (style != Integer.MAX_VALUE)
 			{
 				Editor.getProperties().getMainTrack().getPits().setStyle(Integer.MAX_VALUE);
-				frame.documentIsModified = true;				
+				frame.documentIsModified = true;
 			}
 		}
 		else if (style == Integer.MAX_VALUE || style != index - 1)
 		{
 			Editor.getProperties().getMainTrack().getPits().setStyle(index - 1);
-			frame.documentIsModified = true;				
+			frame.documentIsModified = true;
 		}
 
-		String result = null;
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+		MutableInteger integerResult = new MutableInteger();
+
 		if (isDifferent((String) getSideComboBox().getSelectedItem(),
-			Editor.getProperties().getMainTrack().getPits().getSide(), result))
+			Editor.getProperties().getMainTrack().getPits().getSide(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setSide(result);
+			Editor.getProperties().getMainTrack().getPits().setSide(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getEntryTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getEntry(), result))
+			Editor.getProperties().getMainTrack().getPits().getEntry(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setEntry(result);
+			Editor.getProperties().getMainTrack().getPits().setEntry(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getStartTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getStart(), result))
+			Editor.getProperties().getMainTrack().getPits().getStart(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setStart(result);
+			Editor.getProperties().getMainTrack().getPits().setStart(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getStartBuildingsTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getStartBuildings(), result))
+			Editor.getProperties().getMainTrack().getPits().getStartBuildings(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setStartBuildings(result);
+			Editor.getProperties().getMainTrack().getPits().setStartBuildings(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getStopBuildingsTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getStopBuildings(), result))
+			Editor.getProperties().getMainTrack().getPits().getStopBuildings(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setStopBuildings(result);
+			Editor.getProperties().getMainTrack().getPits().setStopBuildings(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getMaxPitsTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getMaxPits(), integerResult))
 		{
-			int value = Integer.parseInt(this.getMaxPitsTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getPits().getMaxPits())
-			{
-				Editor.getProperties().getMainTrack().getPits().setMaxPits(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (Editor.getProperties().getMainTrack().getPits().getMaxPits() != Integer.MAX_VALUE)
-			{
-				Editor.getProperties().getMainTrack().getPits().setMaxPits(Integer.MAX_VALUE);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getMainTrack().getPits().setMaxPits(integerResult.getValue());
+			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getEndTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getEnd(), result))
+			Editor.getProperties().getMainTrack().getPits().getEnd(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setEnd(result);
+			Editor.getProperties().getMainTrack().getPits().setEnd(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getExitTextField().getText(),
-			Editor.getProperties().getMainTrack().getPits().getExit(), result))
+			Editor.getProperties().getMainTrack().getPits().getExit(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().getPits().setExit(result);
+			Editor.getProperties().getMainTrack().getPits().setExit(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getWidthTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getWidth(), doubleResult))
 		{
-			double value = Double.parseDouble(getWidthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getPits().getWidth())
-			{
-				Editor.getProperties().getMainTrack().getPits().setWidth(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getWidth()))
-			{
-				Editor.getProperties().getMainTrack().getPits().setWidth(Double.NaN);
-				frame.documentIsModified = true;
-			}
-		}
-		
-		try
-		{
-			double value = Double.parseDouble(getLengthTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getPits().getLength())
-			{
-				Editor.getProperties().getMainTrack().getPits().setLength(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getLength()))
-			{
-				Editor.getProperties().getMainTrack().getPits().setLength(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getMainTrack().getPits().setWidth(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getLengthTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getLength(), doubleResult))
 		{
-			int value = Integer.parseInt(this.getIndicatorTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getPits().getIndicator())
-			{
-				Editor.getProperties().getMainTrack().getPits().setIndicator(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (Editor.getProperties().getMainTrack().getPits().getIndicator() != Integer.MAX_VALUE)
-			{
-				Editor.getProperties().getMainTrack().getPits().setIndicator(Integer.MAX_VALUE);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getMainTrack().getPits().setLength(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getIndicatorTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getIndicator(), integerResult))
 		{
-			double value = Double.parseDouble(getSpeedLimitTextField().getText());
-			if (value != Editor.getProperties().getMainTrack().getPits().getSpeedLimit())
-			{
-				Editor.getProperties().getMainTrack().getPits().setSpeedLimit(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
+			Editor.getProperties().getMainTrack().getPits().setIndicator(integerResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getSpeedLimitTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getIndicator(), integerResult))
 		{
-			if (!Double.isNaN(Editor.getProperties().getMainTrack().getPits().getSpeedLimit()))
-			{
-				Editor.getProperties().getMainTrack().getPits().setSpeedLimit(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getMainTrack().getPits().setIndicator(integerResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(getSpeedLimitTextField().getText(),
+			Editor.getProperties().getMainTrack().getPits().getSpeedLimit(), doubleResult))
+		{
+			Editor.getProperties().getMainTrack().getPits().setSpeedLimit(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
 		if (getGeneratePitsCheckBox().isSelected())

@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
+import gui.properties.PropertyPanel.MutableString;
 import utils.Editor;
 import utils.circuit.Surface;
 /**
@@ -244,8 +245,8 @@ public class TrackProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String stringResult = new String();
-		MutableDouble doubleResult = new MutableDouble(Double.NaN);
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
 
         if (isDifferent(getWidthTextField().getText(),
             Editor.getProperties().getMainTrack().getWidth(), doubleResult))
@@ -257,7 +258,7 @@ public class TrackProperties extends PropertyPanel
 		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
             Editor.getProperties().getMainTrack().getSurface(), stringResult))
 		{
-			Editor.getProperties().getMainTrack().setSurface(stringResult);
+			Editor.getProperties().getMainTrack().setSurface(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 

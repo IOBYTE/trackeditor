@@ -272,27 +272,27 @@ public class GeneralProperties extends PropertyPanel
 
 	public void exit()
 	{
+		MutableString stringResult = new MutableString();
 		// the path is something/category/track
 		String tmpPath = getPathTextField().getText();
 		String tmpName = getNameTextField().getText();
 		String tmpCategory = (String) getCategoryComboBox().getSelectedItem();
-		String result = null;
 
-		if (isDifferent(tmpName, Editor.getProperties().getHeader().getName(), result))
+		if (isDifferent(tmpName, Editor.getProperties().getHeader().getName(), stringResult))
 		{
-			Editor.getProperties().getHeader().setName(result);
+			Editor.getProperties().getHeader().setName(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(tmpPath, Editor.getProperties().getPath(), result))
+		if (isDifferent(tmpPath, Editor.getProperties().getPath(), stringResult))
 		{
-			Editor.getProperties().setPath(result);
+			Editor.getProperties().setPath(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(tmpCategory, Editor.getProperties().getHeader().getCategory(), result))
+		if (isDifferent(tmpCategory, Editor.getProperties().getHeader().getCategory(), stringResult))
 		{
-			Editor.getProperties().getHeader().setCategory(result);
+			Editor.getProperties().getHeader().setCategory(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
@@ -324,9 +324,9 @@ public class GeneralProperties extends PropertyPanel
 		}
 
 		if (isDifferent((String) getSubcategoryComboBox().getSelectedItem(),
-			Editor.getProperties().getHeader().getSubcategory(), result))
+			Editor.getProperties().getHeader().getSubcategory(), stringResult))
 		{
-			Editor.getProperties().getHeader().setSubcategory(result);
+			Editor.getProperties().getHeader().setSubcategory(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
@@ -338,16 +338,16 @@ public class GeneralProperties extends PropertyPanel
 		}
 
 		if (isDifferent(getAuthorTextField().getText(),
-			Editor.getProperties().getHeader().getAuthor(), result))
+			Editor.getProperties().getHeader().getAuthor(), stringResult))
 		{
-			Editor.getProperties().getHeader().setAuthor(result);
+			Editor.getProperties().getHeader().setAuthor(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getDescriptionTextField().getText(),
-			Editor.getProperties().getHeader().getDescription(), result))
+			Editor.getProperties().getHeader().getDescription(), stringResult))
 		{
-			Editor.getProperties().getHeader().setDescription(result);
+			Editor.getProperties().getHeader().setDescription(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 	}

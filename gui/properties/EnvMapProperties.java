@@ -270,7 +270,7 @@ public class EnvMapProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String result = null;
+		MutableString stringResult = new MutableString();
 		Vector<EnvironmentMapping> envMaps = Editor.getProperties().getGraphic().getEnvironmentMapping();
 		int minCount = Integer.min(envMaps.size(), tabbedPane.getTabCount());
 		if (envMaps.size() != tabbedPane.getTabCount())
@@ -281,14 +281,14 @@ public class EnvMapProperties extends PropertyPanel
         {
             utils.circuit.EnvironmentMapping envMap = envMaps.elementAt(i);
             EnvMapPanel panel = (EnvMapPanel) tabbedPane.getComponentAt(i);
-            if (isDifferent(panel.getNameTextField().getText(), envMap.getName(), result))
+            if (isDifferent(panel.getNameTextField().getText(), envMap.getName(), stringResult))
             {
-                envMap.setName(panel.getNameTextField().getText());
+                envMap.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
-            if (isDifferent(panel.getEnvironmentMapTextField().getText(), envMap.getEnvMapImage(), result))
+            if (isDifferent(panel.getEnvironmentMapTextField().getText(), envMap.getEnvMapImage(), stringResult))
             {
-                envMap.setEnvMapImage(panel.getEnvironmentMapTextField().getText());
+                envMap.setEnvMapImage(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 		}

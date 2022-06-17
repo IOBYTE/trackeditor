@@ -654,151 +654,83 @@ public class TerrainProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		try
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+
+		if (isDifferent(getTrackStepTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep(), doubleResult))
 		{
-			double value = Double.parseDouble(getTrackStepTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getBorderMarginTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin(), doubleResult))
 		{
-			double value = Double.parseDouble(getBorderMarginTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getBorderStepTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep(), doubleResult))
 		{
-			double value = Double.parseDouble(getBorderStepTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getBorderHeightTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight(), doubleResult))
 		{
-			double value = Double.parseDouble(getBorderHeightTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getMaximumAltitudeTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude(), doubleResult))
 		{
-			double value = Double.parseDouble(getMaximumAltitudeTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getMinimumAltitudeTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude(), doubleResult))
 		{
-			double value = Double.parseDouble(getMinimumAltitudeTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		try
+		if (isDifferent(getGroupSizeTextField().getText(),
+			Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize(), doubleResult))
 		{
-			double value = Double.parseDouble(getGroupSizeTextField().getText());
-			if (value != Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize())
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(value);
-				frame.documentIsModified = true;
-			}
-		} catch (NumberFormatException e)
-		{
-			if (!Double.isNaN(Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize()))
-			{
-				Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(Double.NaN);
-				frame.documentIsModified = true;
-			}
+			Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(doubleResult.getValue());
+			frame.documentIsModified = true;
 		}
 
-		String result = null;
 		if (isDifferent((String) getOrientationComboBox().getSelectedItem(),
-			Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation(), result))
+			Editor.getProperties().getGraphic().getTerrainGeneration().getOrientation(), stringResult))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setOrientation(result);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setOrientation(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getElevationMapTextField().getText(),
-			Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap(), result))
+			Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap(), stringResult))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap(result);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent(getReliefFileTextField().getText(),
-			Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile(), result))
+			Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile(), stringResult))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile(result);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
 		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
-			Editor.getProperties().getGraphic().getTerrainGeneration().getSurface(), result))
+			Editor.getProperties().getGraphic().getTerrainGeneration().getSurface(), stringResult))
 		{
-			Editor.getProperties().getGraphic().getTerrainGeneration().setSurface(result);
+			Editor.getProperties().getGraphic().getTerrainGeneration().setSurface(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
@@ -812,14 +744,14 @@ public class TerrainProperties extends PropertyPanel
         {
             utils.circuit.ObjectMap objectMap = objectMaps.elementAt(i);
             ObjectMapPanel panel = (ObjectMapPanel) tabbedPane.getComponentAt(i);
-            if (isDifferent(panel.getNameTextField().getText(), objectMap.getName(), result))
+            if (isDifferent(panel.getNameTextField().getText(), objectMap.getName(), stringResult))
             {
-                objectMap.setName(panel.getNameTextField().getText());
+                objectMap.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
-            if (isDifferent(panel.getObjectMapTextField().getText(), objectMap.getObjectMap(), result))
+            if (isDifferent(panel.getObjectMapTextField().getText(), objectMap.getObjectMap(), stringResult))
             {
-                objectMap.setObjectMap(panel.getObjectMapTextField().getText());
+                objectMap.setObjectMap(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 		}

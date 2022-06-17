@@ -540,9 +540,10 @@ public class TrackLightProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
-		String stringResult = null;
-		MutableDouble doubleResult = new MutableDouble(Double.NaN);
-		MutableInteger integerResult = new MutableInteger(Integer.MAX_VALUE);
+		MutableString stringResult = new MutableString();
+		MutableDouble doubleResult = new MutableDouble();
+		MutableInteger integerResult = new MutableInteger();
+
 		Vector<TrackLight> lights = Editor.getProperties().getTrackLights();
 		int minCount = Integer.min(lights.size(), tabbedPane.getTabCount());
 		if (lights.size() != tabbedPane.getTabCount())
@@ -556,13 +557,13 @@ public class TrackLightProperties extends PropertyPanel
 
             if (isDifferent(panel.getNameTextField().getText(), light.getName(), stringResult))
             {
-                light.setName(panel.getNameTextField().getText());
+                light.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getRoleTextField().getText(), light.getRole(), stringResult))
             {
-                light.setRole(panel.getRoleTextField().getText());
+                light.setRole(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
@@ -586,13 +587,13 @@ public class TrackLightProperties extends PropertyPanel
 
             if (isDifferent(panel.getTextureOnTextField().getText(), light.getTextureOn(), stringResult))
             {
-                light.setTextureOn(panel.getTextureOnTextField().getText());
+                light.setTextureOn(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
             if (isDifferent(panel.getTextureOffTextField().getText(), light.getTextureOff(), stringResult))
             {
-                light.setTextureOff(panel.getTextureOffTextField().getText());
+                light.setTextureOff(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
