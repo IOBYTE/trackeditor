@@ -36,50 +36,50 @@ import utils.Editor;
  */
 public class GraphicProperties extends PropertyPanel
 {
-	private JLabel				descriptionLabel				= null;
-	private JTextField			descriptionTextField			= null;
-	private JLabel				descriptionNightLabel			= null;
-	private JTextField			descriptionNightTextField		= null;
-	private JLabel				descriptionRainNightLabel		= null;
-	private JTextField			descriptionRainNightTextField	= null;
-	private JLabel				backgroundImageLabel			= null;
-	private JTextField			backgroundImageTextField		= null;
-	private JLabel				backgroundTypeLabel				= null;
+	private JLabel				descriptionLabel				= new JLabel();
+	private JTextField			descriptionTextField			= new JTextField();
+	private JLabel				descriptionNightLabel			= new JLabel();
+	private JTextField			descriptionNightTextField		= new JTextField();
+	private JLabel				descriptionRainNightLabel		= new JLabel();
+	private JTextField			descriptionRainNightTextField	= new JTextField();
+	private JLabel				backgroundImageLabel			= new JLabel();		// TODO add file chooser button
+	private JTextField			backgroundImageTextField		= new JTextField();
+	private JLabel				backgroundTypeLabel				= new JLabel();
 	private JComboBox<String>	backgroundTypeComboBox			= null;
-    private JLabel				backgroundColorRLabel			= null;
-    private JTextField			backgroundColorRTextField		= null;
-    private JLabel				backgroundColorGLabel			= null;
-    private JTextField			backgroundColorGTextField		= null;
-    private JLabel				backgroundColorBLabel			= null;
-    private JTextField			backgroundColorBTextField		= null;
-    private JLabel				ambientColorRLabel				= null;
-    private JTextField			ambientColorRTextField			= null;
-    private JLabel				ambientColorGLabel				= null;
-    private JTextField			ambientColorGTextField			= null;
-    private JLabel				ambientColorBLabel				= null;
-    private JTextField			ambientColorBTextField			= null;
-    private JLabel				diffuseColorRLabel				= null;
-    private JTextField			diffuseColorRTextField			= null;
-    private JLabel				diffuseColorGLabel				= null;
-    private JTextField			diffuseColorGTextField			= null;
-    private JLabel				diffuseColorBLabel				= null;
-    private JTextField			diffuseColorBTextField			= null;
-    private JLabel				specularColorRLabel				= null;
-    private JTextField			specularColorRTextField			= null;
-    private JLabel				specularColorGLabel				= null;
-    private JTextField			specularColorGTextField			= null;
-    private JLabel				specularColorBLabel				= null;
-    private JTextField			specularColorBTextField			= null;
-    private JLabel				lightPositionXLabel				= null;
-    private JTextField			lightPositionXTextField			= null;
-    private JLabel				lightPositionYLabel				= null;
-    private JTextField			lightPositionYTextField			= null;
-    private JLabel				lightPositionZLabel				= null;
-    private JTextField			lightPositionZTextField			= null;
-    private JLabel				shininessLabel					= null;
-    private JTextField			shininessTextField				= null;
-    private JLabel				fovFactorLabel					= null;
-    private JTextField			fovFactorTextField				= null;
+    private JLabel				backgroundColorRLabel			= new JLabel();
+    private JTextField			backgroundColorRTextField		= new JTextField();
+    private JLabel				backgroundColorGLabel			= new JLabel();
+    private JTextField			backgroundColorGTextField		= new JTextField();
+    private JLabel				backgroundColorBLabel			= new JLabel();
+    private JTextField			backgroundColorBTextField		= new JTextField();
+    private JLabel				ambientColorRLabel				= new JLabel();
+    private JTextField			ambientColorRTextField			= new JTextField();
+    private JLabel				ambientColorGLabel				= new JLabel();
+    private JTextField			ambientColorGTextField			= new JTextField();
+    private JLabel				ambientColorBLabel				= new JLabel();
+    private JTextField			ambientColorBTextField			= new JTextField();
+    private JLabel				diffuseColorRLabel				= new JLabel();
+    private JTextField			diffuseColorRTextField			= new JTextField();
+    private JLabel				diffuseColorGLabel				= new JLabel();
+    private JTextField			diffuseColorGTextField			= new JTextField();
+    private JLabel				diffuseColorBLabel				= new JLabel();
+    private JTextField			diffuseColorBTextField			= new JTextField();
+    private JLabel				specularColorRLabel				= new JLabel();
+    private JTextField			specularColorRTextField			= new JTextField();
+    private JLabel				specularColorGLabel				= new JLabel();
+    private JTextField			specularColorGTextField			= new JTextField();
+    private JLabel				specularColorBLabel				= new JLabel();
+    private JTextField			specularColorBTextField			= new JTextField();
+    private JLabel				lightPositionXLabel				= new JLabel();
+    private JTextField			lightPositionXTextField			= new JTextField();
+    private JLabel				lightPositionYLabel				= new JLabel();
+    private JTextField			lightPositionYTextField			= new JTextField();
+    private JLabel				lightPositionZLabel				= new JLabel();
+    private JTextField			lightPositionZTextField			= new JTextField();
+    private JLabel				shininessLabel					= new JLabel();
+    private JTextField			shininessTextField				= new JTextField();
+    private JLabel				fovFactorLabel					= new JLabel();
+    private JTextField			fovFactorTextField				= new JTextField();
 
 	/**
 	 *
@@ -97,183 +97,56 @@ public class GraphicProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		descriptionLabel = new JLabel();
-		descriptionNightLabel = new JLabel();
-		descriptionRainNightLabel = new JLabel();
-		backgroundImageLabel = new JLabel();
-		backgroundTypeLabel = new JLabel();
-		backgroundColorRLabel = new JLabel();
-		backgroundColorGLabel = new JLabel();
-		backgroundColorBLabel = new JLabel();
-		ambientColorRLabel = new JLabel();
-		ambientColorGLabel = new JLabel();
-		ambientColorBLabel = new JLabel();
-		diffuseColorRLabel = new JLabel();
-		diffuseColorGLabel = new JLabel();
-		diffuseColorBLabel = new JLabel();
-		specularColorRLabel = new JLabel();
-		specularColorGLabel = new JLabel();
-		specularColorBLabel = new JLabel();
-		lightPositionXLabel = new JLabel();
-		lightPositionYLabel = new JLabel();
-		lightPositionZLabel = new JLabel();
-		shininessLabel = new JLabel();
-		fovFactorLabel = new JLabel();
-		this.setLayout(null);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
-		descriptionLabel.setBounds(10, 10, 70, 20);
-		descriptionLabel.setText("Description");
-		descriptionNightLabel.setBounds(10, 35, 120, 20);
-		descriptionNightLabel.setText("Description Night");
-		descriptionRainNightLabel.setBounds(10, 60, 150, 20);
-		descriptionRainNightLabel.setText("Description Rain Night");
-		backgroundImageLabel.setBounds(10, 85, 120, 20);
-		backgroundImageLabel.setText("Background Image");
-		backgroundTypeLabel.setBounds(10, 110, 120, 20);
-		backgroundTypeLabel.setText("Background Type");
-		backgroundColorRLabel.setBounds(10, 135, 120, 20);
-		backgroundColorRLabel.setText("Background Bolor R");
-		backgroundColorGLabel.setBounds(10, 160, 120, 20);
-		backgroundColorGLabel.setText("Background Color G");
-		backgroundColorBLabel.setBounds(10, 185, 120, 20);
-		backgroundColorBLabel.setText("Background Color B");
-		ambientColorRLabel.setBounds(10, 210, 120, 20);
-		ambientColorRLabel.setText("Ambient Color R");
-		ambientColorGLabel.setBounds(10, 235, 120, 20);
-		ambientColorGLabel.setText("Ambient Color G");
-		ambientColorBLabel.setBounds(10, 260, 120, 20);
-		ambientColorBLabel.setText("Ambient Color B");
-		diffuseColorRLabel.setBounds(10, 285, 120, 20);
-		diffuseColorRLabel.setText("Diffuse Color R");
-		diffuseColorGLabel.setBounds(10, 310, 120, 20);
-		diffuseColorGLabel.setText("Diffuse Color G");
-		diffuseColorBLabel.setBounds(10, 335, 120, 20);
-		diffuseColorBLabel.setText("Diffuse Color B");
-		specularColorRLabel.setBounds(10, 360, 120, 20);
-		specularColorRLabel.setText("Specular Color R");
-		specularColorGLabel.setBounds(10, 385, 120, 20);
-		specularColorGLabel.setText("Specular Color G");
-		specularColorBLabel.setBounds(10, 410, 120, 20);
-		specularColorBLabel.setText("Specular Color B");
-		lightPositionXLabel.setBounds(10, 435, 120, 20);
-		lightPositionXLabel.setText("Light Position X");
-		lightPositionYLabel.setBounds(10, 460, 120, 20);
-		lightPositionYLabel.setText("Light Position Y");
-		lightPositionZLabel.setBounds(10, 485, 120, 20);
-		lightPositionZLabel.setText("Light Position Z");
-		shininessLabel.setBounds(10, 510, 120, 20);
-		shininessLabel.setText("Shininess");
-		fovFactorLabel.setBounds(10, 535, 120, 20);
-		fovFactorLabel.setText("Fov Factor");
-		this.add(descriptionLabel, null);
-		this.add(descriptionNightLabel, null);
-		this.add(descriptionRainNightLabel, null);
-		this.add(backgroundImageLabel, null);
-		this.add(backgroundTypeLabel, null);
-		this.add(backgroundColorRLabel, null);
-		this.add(backgroundColorGLabel, null);
-		this.add(backgroundColorBLabel, null);
-		this.add(ambientColorRLabel, null);
-		this.add(ambientColorGLabel, null);
-		this.add(ambientColorBLabel, null);
-		this.add(diffuseColorRLabel, null);
-		this.add(diffuseColorGLabel, null);
-		this.add(diffuseColorBLabel, null);
-		this.add(specularColorRLabel, null);
-		this.add(specularColorGLabel, null);
-		this.add(specularColorBLabel, null);
-		this.add(lightPositionXLabel, null);
-		this.add(lightPositionYLabel, null);
-		this.add(lightPositionZLabel, null);
-		this.add(shininessLabel, null);
-		this.add(fovFactorLabel, null);
-		this.add(getDescriptionTextField(), null);
-		this.add(getDescriptionNightTextField(), null);
-		this.add(getDescriptionRainNightTextField(), null);
-		this.add(getBackgroundImageTextField(), null);
-		this.add(getBackgroundTypeComboBox(), null);
-		this.add(getBackgroundColorRTextField(), null);
-		this.add(getBackgroundColorGTextField(), null);
-		this.add(getBackgroundColorBTextField(), null);
-		this.add(getAmbientColorRTextField(), null);
-		this.add(getAmbientColorGTextField(), null);
-		this.add(getAmbientColorBTextField(), null);
-		this.add(getDiffuseColorRTextField(), null);
-		this.add(getDiffuseColorGTextField(), null);
-		this.add(getDiffuseColorBTextField(), null);
-		this.add(getSpecularColorRTextField(), null);
-		this.add(getSpecularColorGTextField(), null);
-		this.add(getSpecularColorBTextField(), null);
-		this.add(getLightPositionXTextField(), null);
-		this.add(getLightPositionYTextField(), null);
-		this.add(getLightPositionZTextField(), null);
-		this.add(getShininessTextField(), null);
-		this.add(getFovFactorTextField(), null);
-	}
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-	/**
-	 * This method initializes descriptionTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDescriptionTextField()
-	{
-		if (descriptionTextField == null)
-		{
-			descriptionTextField = new JTextField();
-			descriptionTextField.setBounds(130, 10, 150, 20);
-			setTextField(descriptionTextField, Editor.getProperties().getGraphic().getDescription());
-		}
-		return descriptionTextField;
-	}
+		addLabel(this, 0, descriptionLabel, "Description", 120);
+		addLabel(this, 1, descriptionNightLabel, "Description Night", 120);
+		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 120);
+		addLabel(this, 3, backgroundImageLabel, "Background Image", 120);
+		addLabel(this, 4, backgroundTypeLabel, "Background Type", 120);
+		addLabel(this, 5, backgroundColorRLabel, "Background Bolor R", 120);
+		addLabel(this, 6, backgroundColorGLabel, "Background Color G", 120);
+		addLabel(this, 7, backgroundColorBLabel, "Background Color B", 120);
+		addLabel(this, 8, ambientColorRLabel, "Ambient Color R", 120);
+		addLabel(this, 9, ambientColorGLabel, "Ambient Color G", 120);
+		addLabel(this, 10, ambientColorBLabel, "Ambient Color B", 120);
+		addLabel(this, 11, diffuseColorRLabel, "Diffuse Color R", 120);
+		addLabel(this, 12, diffuseColorGLabel, "Diffuse Color G", 120);
+		addLabel(this, 13, diffuseColorBLabel, "Diffuse Color B", 120);
+		addLabel(this, 14, specularColorRLabel, "Specular Color R", 120);
+		addLabel(this, 15, specularColorGLabel, "Specular Color G", 120);
+		addLabel(this, 16, specularColorBLabel, "Specular Color B", 120);
+		addLabel(this, 17, lightPositionXLabel, "Light Position X", 120);
+		addLabel(this, 18, lightPositionYLabel, "Light Position Y", 120);
+		addLabel(this, 19, lightPositionZLabel, "Light Position Z", 120);
+		addLabel(this, 20, shininessLabel, "Shininess", 120);
+		addLabel(this, 21, fovFactorLabel, "Fov Factor", 120);
 
-	/**
-	 * This method initializes descriptionNightTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDescriptionNightTextField()
-	{
-		if (descriptionNightTextField == null)
-		{
-			descriptionNightTextField = new JTextField();
-			descriptionNightTextField.setBounds(130, 35, 150, 20);
-			setTextField(descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight());
-		}
-		return descriptionNightTextField;
-	}
+		addTextField(this, 0, descriptionTextField, Editor.getProperties().getGraphic().getDescription(), 130, 150);
+		addTextField(this, 1, descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight(), 130, 150);
+		addTextField(this, 2, descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight(), 130, 150);
+		addTextField(this, 3, backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage(), 130, 250);
 
-	/**
-	 * This method initializes descriptionRainNightTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDescriptionRainNightTextField()
-	{
-		if (descriptionRainNightTextField == null)
-		{
-			descriptionRainNightTextField = new JTextField();
-			descriptionRainNightTextField.setBounds(130, 60, 150, 20);
-			setTextField(descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight());
-		}
-		return descriptionRainNightTextField;
-	}
+		add(getBackgroundTypeComboBox(), null);
 
-	/**
-	 * This method initializes backgroundImageTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBackgroundImageTextField()
-	{
-		if (backgroundImageTextField == null)
-		{
-			backgroundImageTextField = new JTextField();
-			backgroundImageTextField.setBounds(130, 85, 150, 20);
-			setTextField(backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage());
-		}
-		return backgroundImageTextField;
+		addTextField(this, 5, backgroundColorRTextField, Editor.getProperties().getGraphic().getBackgroundColorR(), 130, 80);
+		addTextField(this, 6, backgroundColorGTextField, Editor.getProperties().getGraphic().getBackgroundColorG(), 130, 80);
+		addTextField(this, 7, backgroundColorBTextField, Editor.getProperties().getGraphic().getBackgroundColorB(), 130, 80);
+		addTextField(this, 8, ambientColorRTextField, Editor.getProperties().getGraphic().getAmbientColorR(), 130, 80);
+		addTextField(this, 9, ambientColorGTextField, Editor.getProperties().getGraphic().getAmbientColorG(), 130, 80);
+		addTextField(this, 10, ambientColorBTextField, Editor.getProperties().getGraphic().getAmbientColorB(), 130, 80);
+		addTextField(this, 11, diffuseColorRTextField, Editor.getProperties().getGraphic().getDiffuseColorR(), 130, 80);
+		addTextField(this, 12, diffuseColorGTextField, Editor.getProperties().getGraphic().getDiffuseColorG(), 130, 80);
+		addTextField(this, 13, diffuseColorBTextField, Editor.getProperties().getGraphic().getDiffuseColorB(), 130, 80);
+		addTextField(this, 14, specularColorRTextField, Editor.getProperties().getGraphic().getSpecularColorR(), 130, 80);
+		addTextField(this, 15, specularColorGTextField, Editor.getProperties().getGraphic().getSpecularColorG(), 130, 80);
+		addTextField(this, 16, specularColorBTextField, Editor.getProperties().getGraphic().getSpecularColorB(), 130, 80);
+		addTextField(this, 17, lightPositionXTextField, Editor.getProperties().getGraphic().getLightPositionX(), 130, 80);
+		addTextField(this, 18, lightPositionYTextField, Editor.getProperties().getGraphic().getLightPositionY(), 130, 80);
+		addTextField(this, 19, lightPositionZTextField, Editor.getProperties().getGraphic().getLightPositionZ(), 130, 80);
+		addTextField(this, 20, shininessTextField, Editor.getProperties().getGraphic().getShininess(), 130, 80);
+		addTextField(this, 21, fovFactorTextField, Editor.getProperties().getGraphic().getFovFactor(), 130, 80);
 	}
 
 	/**
@@ -288,284 +161,12 @@ public class GraphicProperties extends PropertyPanel
 			String[] types = {"none", "0", "2", "4"};
 			backgroundTypeComboBox = new JComboBox<String>();
 			backgroundTypeComboBox.setModel(new DefaultComboBoxModel<String>(types));
-			backgroundTypeComboBox.setBounds(130, 110, 120, 20);
+			backgroundTypeComboBox.setBounds(130, 110, 80, 20);
 			int value = Editor.getProperties().getGraphic().getBackgroundType();
 			if (value != Integer.MAX_VALUE)
 				backgroundTypeComboBox.setSelectedItem(String.valueOf(value));
 		}
 		return backgroundTypeComboBox;
-	}
-
-	/**
-	 * This method initializes backgroundColorRTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBackgroundColorRTextField()
-	{
-		if (backgroundColorRTextField == null)
-		{
-			backgroundColorRTextField = new JTextField();
-			backgroundColorRTextField.setBounds(130, 135, 150, 20);
-			setTextField(backgroundColorRTextField, Editor.getProperties().getGraphic().getBackgroundColorR());
-		}
-		return backgroundColorRTextField;
-	}
-
-	/**
-	 * This method initializes backgroundColorGTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBackgroundColorGTextField()
-	{
-		if (backgroundColorGTextField == null)
-		{
-			backgroundColorGTextField = new JTextField();
-			backgroundColorGTextField.setBounds(130, 160, 150, 20);
-			setTextField(backgroundColorGTextField, Editor.getProperties().getGraphic().getBackgroundColorG());
-		}
-		return backgroundColorGTextField;
-	}
-
-	/**
-	 * This method initializes backgroundColorBTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBackgroundColorBTextField()
-	{
-		if (backgroundColorBTextField == null)
-		{
-			backgroundColorBTextField = new JTextField();
-			backgroundColorBTextField.setBounds(130, 185, 150, 20);
-			setTextField(backgroundColorBTextField, Editor.getProperties().getGraphic().getBackgroundColorB());
-		}
-		return backgroundColorBTextField;
-	}
-
-	/**
-	 * This method initializes ambientColorRTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getAmbientColorRTextField()
-	{
-		if (ambientColorRTextField == null)
-		{
-			ambientColorRTextField = new JTextField();
-			ambientColorRTextField.setBounds(130, 210, 150, 20);
-			setTextField(ambientColorRTextField, Editor.getProperties().getGraphic().getAmbientColorR());
-		}
-		return ambientColorRTextField;
-	}
-
-	/**
-	 * This method initializes ambientColorGTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getAmbientColorGTextField()
-	{
-		if (ambientColorGTextField == null)
-		{
-			ambientColorGTextField = new JTextField();
-			ambientColorGTextField.setBounds(130, 235, 150, 20);
-			setTextField(ambientColorGTextField, Editor.getProperties().getGraphic().getAmbientColorG());
-		}
-		return ambientColorGTextField;
-	}
-
-	/**
-	 * This method initializes ambientColorBTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getAmbientColorBTextField()
-	{
-		if (ambientColorBTextField == null)
-		{
-			ambientColorBTextField = new JTextField();
-			ambientColorBTextField.setBounds(130, 260, 150, 20);
-			setTextField(ambientColorBTextField, Editor.getProperties().getGraphic().getAmbientColorB());
-		}
-		return ambientColorBTextField;
-	}
-
-	/**
-	 * This method initializes diffuseColorRTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDiffuseColorRTextField()
-	{
-		if (diffuseColorRTextField == null)
-		{
-			diffuseColorRTextField = new JTextField();
-			diffuseColorRTextField.setBounds(130, 285, 150, 20);
-			setTextField(diffuseColorRTextField, Editor.getProperties().getGraphic().getDiffuseColorR());
-		}
-		return diffuseColorRTextField;
-	}
-
-	/**
-	 * This method initializes diffuseColorGTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDiffuseColorGTextField()
-	{
-		if (diffuseColorGTextField == null)
-		{
-			diffuseColorGTextField = new JTextField();
-			diffuseColorGTextField.setBounds(130, 310, 150, 20);
-			setTextField(diffuseColorGTextField, Editor.getProperties().getGraphic().getDiffuseColorG());
-		}
-		return diffuseColorGTextField;
-	}
-
-	/**
-	 * This method initializes diffuseColorBTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getDiffuseColorBTextField()
-	{
-		if (diffuseColorBTextField == null)
-		{
-			diffuseColorBTextField = new JTextField();
-			diffuseColorBTextField.setBounds(130, 335, 150, 20);
-			setTextField(diffuseColorBTextField, Editor.getProperties().getGraphic().getDiffuseColorB());
-		}
-		return diffuseColorBTextField;
-	}
-
-	/**
-	 * This method initializes specularColorRTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getSpecularColorRTextField()
-	{
-		if (specularColorRTextField == null)
-		{
-			specularColorRTextField = new JTextField();
-			specularColorRTextField.setBounds(130, 360, 150, 20);
-			setTextField(specularColorRTextField, Editor.getProperties().getGraphic().getSpecularColorR());
-		}
-		return specularColorRTextField;
-	}
-
-	/**
-	 * This method initializes specularColorGTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getSpecularColorGTextField()
-	{
-		if (specularColorGTextField == null)
-		{
-			specularColorGTextField = new JTextField();
-			specularColorGTextField.setBounds(130, 385, 150, 20);
-			setTextField(specularColorGTextField, Editor.getProperties().getGraphic().getSpecularColorG());
-		}
-		return specularColorGTextField;
-	}
-
-	/**
-	 * This method initializes specularColorBTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getSpecularColorBTextField()
-	{
-		if (specularColorBTextField == null)
-		{
-			specularColorBTextField = new JTextField();
-			specularColorBTextField.setBounds(130, 410, 150, 20);
-			setTextField(specularColorBTextField, Editor.getProperties().getGraphic().getSpecularColorB());
-		}
-		return specularColorBTextField;
-	}
-
-	/**
-	 * This method initializes lightPositionXTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getLightPositionXTextField()
-	{
-		if (lightPositionXTextField == null)
-		{
-			lightPositionXTextField = new JTextField();
-			lightPositionXTextField.setBounds(130, 435, 150, 20);
-			setTextField(lightPositionXTextField, Editor.getProperties().getGraphic().getLightPositionX());
-		}
-		return lightPositionXTextField;
-	}
-
-	/**
-	 * This method initializes lightPositionYTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getLightPositionYTextField()
-	{
-		if (lightPositionYTextField == null)
-		{
-			lightPositionYTextField = new JTextField();
-			lightPositionYTextField.setBounds(130, 460, 150, 20);
-			setTextField(lightPositionYTextField, Editor.getProperties().getGraphic().getLightPositionY());
-		}
-		return lightPositionYTextField;
-	}
-
-	/**
-	 * This method initializes lightPositionZTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getLightPositionZTextField()
-	{
-		if (lightPositionZTextField == null)
-		{
-			lightPositionZTextField = new JTextField();
-			lightPositionZTextField.setBounds(130, 485, 150, 20);
-			setTextField(lightPositionZTextField, Editor.getProperties().getGraphic().getLightPositionZ());
-		}
-		return lightPositionZTextField;
-	}
-
-	/**
-	 * This method initializes shininessTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getShininessTextField()
-	{
-		if (shininessTextField == null)
-		{
-			shininessTextField = new JTextField();
-			shininessTextField.setBounds(130, 510, 150, 20);
-			setTextField(shininessTextField, Editor.getProperties().getGraphic().getShininess());
-		}
-		return shininessTextField;
-	}
-
-	/**
-	 * This method initializes fovFactorTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getFovFactorTextField()
-	{
-		if (fovFactorTextField == null)
-		{
-			fovFactorTextField = new JTextField();
-			fovFactorTextField.setBounds(130, 535, 150, 20);
-			setTextField(fovFactorTextField, Editor.getProperties().getGraphic().getFovFactor());
-		}
-		return fovFactorTextField;
 	}
 
 	/**
@@ -576,28 +177,28 @@ public class GraphicProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(getDescriptionTextField().getText(),
+		if (isDifferent(descriptionTextField.getText(),
 			Editor.getProperties().getGraphic().getDescription(), stringResult))
 		{
 			Editor.getProperties().getGraphic().setDescription(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDescriptionNightTextField().getText(),
+		if (isDifferent(descriptionNightTextField.getText(),
 			Editor.getProperties().getGraphic().getDescriptionNight(), stringResult))
 		{
 			Editor.getProperties().getGraphic().setDescriptionNight(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDescriptionRainNightTextField().getText(),
+		if (isDifferent(descriptionRainNightTextField.getText(),
 			Editor.getProperties().getGraphic().getDescriptionRainNight(), stringResult))
 		{
 			Editor.getProperties().getGraphic().setDescriptionRainNight(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBackgroundImageTextField().getText(),
+		if (isDifferent(backgroundImageTextField.getText(),
 			Editor.getProperties().getGraphic().getBackgroundImage(), stringResult))
 		{
 			Editor.getProperties().getGraphic().setBackgroundImage(stringResult.getValue());
@@ -632,91 +233,119 @@ public class GraphicProperties extends PropertyPanel
 			}
 		}
 
-		if (isDifferent(getBackgroundColorRTextField().getText(),
+		if (isDifferent(backgroundColorRTextField.getText(),
 			Editor.getProperties().getGraphic().getBackgroundColorR(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setBackgroundColorR(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBackgroundColorGTextField().getText(),
+		if (isDifferent(backgroundColorGTextField.getText(),
 			Editor.getProperties().getGraphic().getBackgroundColorG(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setBackgroundColorG(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBackgroundColorBTextField().getText(),
+		if (isDifferent(backgroundColorBTextField.getText(),
 			Editor.getProperties().getGraphic().getBackgroundColorB(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setBackgroundColorB(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getAmbientColorRTextField().getText(),
+		if (isDifferent(ambientColorRTextField.getText(),
 			Editor.getProperties().getGraphic().getAmbientColorR(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setAmbientColorR(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getAmbientColorGTextField().getText(),
+		if (isDifferent(ambientColorGTextField.getText(),
 			Editor.getProperties().getGraphic().getAmbientColorG(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setAmbientColorG(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDiffuseColorRTextField().getText(),
+		if (isDifferent(ambientColorBTextField.getText(),
+			Editor.getProperties().getGraphic().getAmbientColorB(), doubleResult))
+		{
+			Editor.getProperties().getGraphic().setAmbientColorB(doubleResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(diffuseColorRTextField.getText(),
 			Editor.getProperties().getGraphic().getDiffuseColorR(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setDiffuseColorR(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDiffuseColorGTextField().getText(),
+		if (isDifferent(diffuseColorGTextField.getText(),
 			Editor.getProperties().getGraphic().getDiffuseColorG(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setDiffuseColorG(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDiffuseColorBTextField().getText(),
+		if (isDifferent(diffuseColorBTextField.getText(),
 			Editor.getProperties().getGraphic().getDiffuseColorB(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setDiffuseColorB(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getLightPositionXTextField().getText(),
+		if (isDifferent(specularColorRTextField.getText(),
+			Editor.getProperties().getGraphic().getSpecularColorR(), doubleResult))
+		{
+			Editor.getProperties().getGraphic().setSpecularColorR(doubleResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(specularColorGTextField.getText(),
+			Editor.getProperties().getGraphic().getSpecularColorG(), doubleResult))
+		{
+			Editor.getProperties().getGraphic().setSpecularColorG(doubleResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(specularColorBTextField.getText(),
+			Editor.getProperties().getGraphic().getSpecularColorB(), doubleResult))
+		{
+			Editor.getProperties().getGraphic().setSpecularColorB(doubleResult.getValue());
+			frame.documentIsModified = true;
+		}
+
+		if (isDifferent(lightPositionXTextField.getText(),
 			Editor.getProperties().getGraphic().getLightPositionX(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setLightPositionX(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getLightPositionYTextField().getText(),
+		if (isDifferent(lightPositionYTextField.getText(),
 			Editor.getProperties().getGraphic().getLightPositionY(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setLightPositionY(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getLightPositionZTextField().getText(),
+		if (isDifferent(lightPositionZTextField.getText(),
 			Editor.getProperties().getGraphic().getLightPositionZ(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setLightPositionZ(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getShininessTextField().getText(),
+		if (isDifferent(shininessTextField.getText(),
 			Editor.getProperties().getGraphic().getShininess(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setShininess(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getFovFactorTextField().getText(),
+		if (isDifferent(fovFactorTextField.getText(),
 			Editor.getProperties().getGraphic().getFovFactor(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().setFovFactor(doubleResult.getValue());

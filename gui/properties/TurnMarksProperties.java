@@ -36,14 +36,14 @@ import utils.circuit.TurnMarks;
  */
 public class TurnMarksProperties extends PropertyPanel
 {
-	private JLabel		widthLabel					= null;
-	private JTextField	widthTextField				= null;
-	private JLabel		heightLabel					= null;
-	private JTextField	heightTextField				= null;
-	private JLabel		verticalSpaceLabel			= null;
-	private JTextField	verticalSpaceTextField		= null;
-	private JLabel		horizontalSpaceLabel		= null;
-	private JTextField	horizontalSpaceTextField	= null;
+	private JLabel		widthLabel					= new JLabel();
+	private JTextField	widthTextField				= new JTextField();
+	private JLabel		heightLabel					= new JLabel();
+	private JTextField	heightTextField				= new JTextField();
+	private JLabel		verticalSpaceLabel			= new JLabel();
+	private JTextField	verticalSpaceTextField		= new JTextField();
+	private JLabel		horizontalSpaceLabel		= new JLabel();
+	private JTextField	horizontalSpaceTextField	= new JTextField();
 	private JButton		defaultButton				= null;
 	private JButton		deleteButton				= null;
 
@@ -63,93 +63,23 @@ public class TurnMarksProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		widthLabel = new JLabel();
-		heightLabel = new JLabel();
-		verticalSpaceLabel = new JLabel();
-		horizontalSpaceLabel = new JLabel();
-		this.setLayout(null);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
-		widthLabel.setBounds(10, 10, 70, 20);
-		widthLabel.setText("Width");
-		heightLabel.setBounds(10, 35, 70, 20);
-		heightLabel.setText("Height");
-		verticalSpaceLabel.setBounds(10, 60, 120, 20);
-		verticalSpaceLabel.setText("Vertical Space");
-		horizontalSpaceLabel.setBounds(10, 85, 120, 20);
-		horizontalSpaceLabel.setText("Horizontal Space");
-		this.add(widthLabel, null);
-		this.add(heightLabel, null);
-		this.add(verticalSpaceLabel, null);
-		this.add(horizontalSpaceLabel, null);
-		this.add(getWidthTextField(), null);
-		this.add(getHeightTextField(), null);
-		this.add(getVerticalSpaceTextField(), null);
-		this.add(getHorizontalSpaceTextField(), null);
-		this.add(getDefaultButton(), null);
-		this.add(getDeleteButton(), null);
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+
+		addLabel(this, 0, widthLabel, "Width", 90);
+		addLabel(this, 1, heightLabel, "Height", 90);
+		addLabel(this, 2, verticalSpaceLabel, "Vertical Space", 90);
+		addLabel(this, 3, horizontalSpaceLabel, "Horizontal Space", 90);
+
+		addTextField(this, 0, widthTextField, Editor.getProperties().getGraphic().getTurnMarks().getWidth(), 100, 100);
+		addTextField(this, 1, heightTextField, Editor.getProperties().getGraphic().getTurnMarks().getHeight(), 100, 100);
+		addTextField(this, 2, verticalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace(), 100, 100);
+		addTextField(this, 3, horizontalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace(), 100, 100);
+
+		add(getDefaultButton(), null);
+		add(getDeleteButton(), null);
 	}
 
-	/**
-	 * This method initializes widthTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getWidthTextField()
-	{
-		if (widthTextField == null)
-		{
-			widthTextField = new JTextField();
-			widthTextField.setBounds(100, 10, 100, 20);
-			setTextField(widthTextField, Editor.getProperties().getGraphic().getTurnMarks().getWidth());
-		}
-		return widthTextField;
-	}
-	/**
-	 * This method initializes heightTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getHeightTextField()
-	{
-		if (heightTextField == null)
-		{
-			heightTextField = new JTextField();
-			heightTextField.setBounds(100, 35, 100, 20);
-			setTextField(heightTextField, Editor.getProperties().getGraphic().getTurnMarks().getHeight());
-		}
-		return heightTextField;
-	}
-	/**
-	 * This method initializes verticalSpaceTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getVerticalSpaceTextField()
-	{
-		if (verticalSpaceTextField == null)
-		{
-			verticalSpaceTextField = new JTextField();
-			verticalSpaceTextField.setBounds(100, 60, 100, 20);
-			setTextField(verticalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace());
-		}
-		return verticalSpaceTextField;
-	}
-	/**
-	 * This method initializes horizontalSpaceTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getHorizontalSpaceTextField()
-	{
-		if (horizontalSpaceTextField == null)
-		{
-			horizontalSpaceTextField = new JTextField();
-			horizontalSpaceTextField.setBounds(100, 85, 100, 20);
-			setTextField(horizontalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace());
-		}
-		return horizontalSpaceTextField;
-	}
 	/**
 	 * This method initializes defaultButton
 	 *
@@ -208,28 +138,28 @@ public class TurnMarksProperties extends PropertyPanel
 	{
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(getWidthTextField().getText(),
+		if (isDifferent(widthTextField.getText(),
 			Editor.getProperties().getGraphic().getTurnMarks().getWidth(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTurnMarks().setWidth(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getHeightTextField().getText(),
+		if (isDifferent(heightTextField.getText(),
 			Editor.getProperties().getGraphic().getTurnMarks().getHeight(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTurnMarks().setHeight(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getVerticalSpaceTextField().getText(),
+		if (isDifferent(verticalSpaceTextField.getText(),
 			Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTurnMarks().setVerticalSpace(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getHorizontalSpaceTextField().getText(),
+		if (isDifferent(horizontalSpaceTextField.getText(),
 			Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTurnMarks().setHorizontalSpace(doubleResult.getValue());

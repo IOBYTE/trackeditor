@@ -68,6 +68,7 @@ public class LocalInfoProperties extends PropertyPanel
 	private void initialize()
 	{
 		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
 		addLabel(this, 0, stationLabel, "Station", 130);
 		addLabel(this, 1, timezoneLabel, "Timezone", 130);
