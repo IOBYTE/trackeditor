@@ -240,6 +240,13 @@ public class PropertyPanel extends JPanel
 		panel.add(label);
 	}
 
+	protected void addLabel(JPanel panel, int index, JLabel label, String text, int offset, int length)
+	{
+		label.setText(text);
+		label.setBounds(offset, 10 + (index * 25), length, 20);
+		panel.add(label);
+	}
+
 	protected void addTextField(JPanel panel, int index, JTextField textField, String text, int offset, int length)
 	{
 		textField.setBounds(offset, 10 + (index * 25), length, 20);

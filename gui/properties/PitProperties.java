@@ -68,7 +68,7 @@ public class PitProperties extends PropertyPanel
 	private JComboBox<String>	indicatorComboBox		= null;
 	private JLabel				speedLimitLabel			= new JLabel();
 	private JTextField			speedLimitTextField		= new JTextField();
-	private JLabel 				generatePitsLabel 		= null;
+	private JLabel 				generatePitsLabel 		= new JLabel();
 	private JCheckBox 			generatePitsCheckBox 	= null;
 	private boolean 			generatePits			= false;
 
@@ -88,8 +88,8 @@ public class PitProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		this.setLayout(null);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
 		addLabel(this, 0, styleLabel, "Type", 130);
 		addLabel(this, 1, sideLabel, "Side", 130);
@@ -104,13 +104,10 @@ public class PitProperties extends PropertyPanel
 		addLabel(this, 10, lengthLabel, "Length", 130);
 		addLabel(this, 11, indicatorLabel, "Indicator", 130);
 		addLabel(this, 12, speedLimitLabel, "Speed Limit", 130);
+		addLabel(this, 0, generatePitsLabel, "Generate Pits", 240, 100);
 
-		generatePitsLabel = new JLabel();
-		generatePitsLabel.setBounds(240, 10, 99, 20);
-		generatePitsLabel.setText("Generate Pits");
-
-		this.add(getStyleComboBox(), null);
-		this.add(getSideComboBox(), null);
+		add(getStyleComboBox(), null);
+		add(getSideComboBox(), null);
 
 		addTextField(this, 2, entryTextField, Editor.getProperties().getMainTrack().getPits().getEntry(), 100, 100);
 		addTextField(this, 3, startTextField, Editor.getProperties().getMainTrack().getPits().getStart(), 100, 100);
@@ -122,9 +119,11 @@ public class PitProperties extends PropertyPanel
 		addTextField(this, 9, widthTextField, Editor.getProperties().getMainTrack().getPits().getWidth(), 100, 40);
 		addTextField(this, 10, lengthTextField, Editor.getProperties().getMainTrack().getPits().getLength(), 100, 40);
 
-		this.add(getIndicatorComboBox(), null);
+		add(getIndicatorComboBox(), null);
 
 		addTextField(this, 12, speedLimitTextField, Editor.getProperties().getMainTrack().getPits().getSpeedLimit(), 100, 40);
+
+		add(getGeneratePitsCheckBox(), null);
 	}
 	/**
 	 * This method initializes styleComboBox
