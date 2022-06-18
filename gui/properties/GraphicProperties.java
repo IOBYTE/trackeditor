@@ -113,7 +113,7 @@ public class GraphicProperties extends PropertyPanel
 		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 120);
 		addLabel(this, 3, backgroundImageLabel, "Background Image", 120);
 		addLabel(this, 4, backgroundTypeLabel, "Background Type", 120);
-		addLabel(this, 5, backgroundColorRLabel, "Background Bolor R", 120);
+		addLabel(this, 5, backgroundColorRLabel, "Background Color R", 120);
 		addLabel(this, 6, backgroundColorGLabel, "Background Color G", 120);
 		addLabel(this, 7, backgroundColorBLabel, "Background Color B", 120);
 		addLabel(this, 8, ambientColorRLabel, "Ambient Color R", 120);

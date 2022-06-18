@@ -676,31 +676,31 @@ public class SurfaceProperties extends PropertyPanel
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorG1TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.getColorG1TextField().getText(), surface.getColorG1(), doubleResult))
             {
                 surface.setColorG1(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorB1TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.getColorB1TextField().getText(), surface.getColorB1(), doubleResult))
             {
                 surface.setColorB1(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorR2TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.getColorR2TextField().getText(), surface.getColorR2(), doubleResult))
             {
                 surface.setColorR2(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorG2TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.getColorG2TextField().getText(), surface.getColorG2(), doubleResult))
             {
                 surface.setColorG2(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorB2TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.getColorB2TextField().getText(), surface.getColorB2(), doubleResult))
             {
                 surface.setColorB2(doubleResult.getValue());
                 frame.documentIsModified = true;

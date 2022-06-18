@@ -112,7 +112,7 @@ public class PropertyPanel extends JPanel
 		boolean changed = false;
 		try
 		{
-			int value = Integer.parseInt(newValue);
+			int value = Integer.decode(newValue);
 			if (value != oldValue)
 			{
 				result.setValue(value);

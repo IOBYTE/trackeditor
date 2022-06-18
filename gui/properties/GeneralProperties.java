@@ -39,21 +39,21 @@ import utils.Editor;
  */
 public class GeneralProperties extends PropertyPanel
 {
-	private JTextField			nameTextField			= null;
-	private JLabel				nameLabel				= null;
+	private JTextField			nameTextField			= new JTextField();
+	private JLabel				nameLabel				= new JLabel();
 	private JComboBox<String>	categoryComboBox		= null;
-	private JLabel				categoryLabel			= null;
+	private JLabel				categoryLabel			= new JLabel();
 	private JComboBox<String>	subcategoryComboBox		= null;
-	private JLabel				subcategoryLabel		= null;
+	private JLabel				subcategoryLabel		= new JLabel();
 	private JComboBox<String>	versionComboBox			= null;
-	private JLabel				versionLabel			= null;
-	private JLabel				pathLabel				= null;
-	private JTextField			pathTextField			= null;
+	private JLabel				versionLabel			= new JLabel();
+	private JLabel				pathLabel				= new JLabel();
+	private JTextField			pathTextField			= new JTextField();
 	private JButton				browseButton			= null;
-	private JLabel				authorLabel				= null;
-	private JTextField			authorTextField			= null;
-	private JLabel				descriptionLabel		= null;
-	private JTextField			descriptionTextField	= null;
+	private JLabel				authorLabel				= new JLabel();
+	private JTextField			authorTextField			= new JTextField();
+	private JLabel				descriptionLabel		= new JLabel();
+	private JTextField			descriptionTextField	= new JTextField();
 
 	private final String sep = System.getProperty("file.separator");
 
@@ -71,61 +71,28 @@ public class GeneralProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		authorLabel = new JLabel();
-		descriptionLabel = new JLabel();
-		pathLabel = new JLabel();
-		nameLabel = new JLabel();
-		categoryLabel = new JLabel();
-		subcategoryLabel = new JLabel();
-		versionLabel = new JLabel();
-		this.setLayout(null);
-		nameLabel.setBounds(15, 15, 100, 30);
-		nameLabel.setText("Track Name");
-		categoryLabel.setBounds(15, 60, 100, 30);
-		categoryLabel.setText("Track Category");
-		subcategoryLabel.setBounds(15, 105, 100, 30);
-		subcategoryLabel.setText("Track Subcategory");
-		versionLabel.setBounds(15, 150, 100, 30);
-		versionLabel.setText("Track Version");
-		pathLabel.setBounds(15, 195, 60, 30);
-		pathLabel.setText("Path");
-		authorLabel.setBounds(15, 240, 60, 30);
-		authorLabel.setText("Author");
-		descriptionLabel.setBounds(15, 285, 80, 30);
-		descriptionLabel.setText("Description");
-		this.setSize(420, 230);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.add(getPathTextField(), null);
-		this.add(getBrowseButton(), null);
-		this.add(getNameTextField(), null);
-		this.add(nameLabel, null);
-		this.add(pathLabel, null);
-		this.add(authorLabel, null);
-		this.add(getAuthorTextField(), null);
-		this.add(getDescriptionTextField(), null);
-		this.add(descriptionLabel, null);
-		this.add(categoryLabel, null);
-		this.add(getCategoryComboBox(), null);
-		this.add(subcategoryLabel, null);
-		this.add(getSubcategoryComboBox(), null);
-		this.add(versionLabel, null);
-		this.add(getVersionComboBox(), null);
-	}
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-	/**
-	 * This method initializes nameTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getNameTextField()
-	{
-		if (nameTextField == null)
-		{
-			nameTextField = new JTextField();
-			nameTextField.setBounds(135, 15, 170, 30);
-			nameTextField.setText(Editor.getProperties().getHeader().getName());
-		}
-		return nameTextField;
+		addLabel(this, 0, nameLabel, "Track Name", 100);
+		addLabel(this, 1, categoryLabel, "Track Category", 100);
+		addLabel(this, 2, subcategoryLabel, "Track Subcategory", 100);
+		addLabel(this, 3, versionLabel, "Track Version", 100);
+		addLabel(this, 4, pathLabel, "Path", 80);
+		addLabel(this, 5, authorLabel, "Author", 80);
+		addLabel(this, 6, descriptionLabel, "Description", 80);
+
+		addTextField(this, 0, nameTextField, Editor.getProperties().getHeader().getName(), 110, 150);
+
+		add(getCategoryComboBox(), null);
+		add(getSubcategoryComboBox(), null);
+		add(getVersionComboBox(), null);
+
+		addTextField(this, 4, pathTextField, Editor.getProperties().getPath(), 80, 305);
+		addTextField(this, 5, authorTextField, Editor.getProperties().getHeader().getAuthor(), 80, 390);
+		addTextField(this, 6, descriptionTextField, Editor.getProperties().getHeader().getDescription(), 80, 390);
+
+		add(getBrowseButton(), null);
 	}
 
 	/**
@@ -139,7 +106,7 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
 			categoryComboBox = new JComboBox<String>(items);
-			categoryComboBox.setBounds(135, 60, 170, 30);
+			categoryComboBox.setBounds(110, 35, 100, 20);
 			categoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
 		}
 		return categoryComboBox;
@@ -156,7 +123,7 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"none", "short", "long"};
 			subcategoryComboBox = new JComboBox<String>(items);
-			subcategoryComboBox.setBounds(135, 105, 170, 30);
+			subcategoryComboBox.setBounds(110, 60, 100, 20);
 			String subcategory = Editor.getProperties().getHeader().getSubcategory();
 			if (subcategory == null)
 				subcategory = "none";
@@ -176,27 +143,12 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"3", "4", "5"};
 			versionComboBox = new JComboBox<String>(items);
-			versionComboBox.setBounds(135, 150, 170, 30);
+			versionComboBox.setBounds(110, 85, 100, 20);
 			versionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
 		}
 		return versionComboBox;
 	}
 
-	/**
-	 * This method initializes pathTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getPathTextField()
-	{
-		if (pathTextField == null)
-		{
-			pathTextField = new JTextField();
-			pathTextField.setBounds(65, 195, 240, 30);
-			pathTextField.setText(Editor.getProperties().getPath());
-		}
-		return pathTextField;
-	}
 	/**
 	 * This method initializes browseButton
 	 *
@@ -207,7 +159,7 @@ public class GeneralProperties extends PropertyPanel
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(320, 195, 95, 30);
+			browseButton.setBounds(390, 107, 80, 25);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -219,36 +171,7 @@ public class GeneralProperties extends PropertyPanel
 		}
 		return browseButton;
 	}
-	/**
-	 * This method initializes authorTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getAuthorTextField()
-	{
-		if (authorTextField == null)
-		{
-			authorTextField = new JTextField();
-			authorTextField.setBounds(65, 240, 240, 30);
-			authorTextField.setText(Editor.getProperties().getHeader().getAuthor());
-		}
-		return authorTextField;
-	}
-	/**
-	 * This method initializes descriptionTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getDescriptionTextField()
-	{
-		if (descriptionTextField == null)
-		{
-			descriptionTextField = new JTextField();
-			descriptionTextField.setBounds(85, 285, 330, 30);
-			descriptionTextField.setText(Editor.getProperties().getHeader().getDescription());
-		}
-		return descriptionTextField;
-	}
+
 	/**
 	 *
 	 */
@@ -266,16 +189,17 @@ public class GeneralProperties extends PropertyPanel
 		int result = fc.showDialog(this, "Ok");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			getPathTextField().setText(fc.getSelectedFile().toString());
+			pathTextField.setText(fc.getSelectedFile().toString());
 		}
 	}
 
 	public void exit()
 	{
 		MutableString stringResult = new MutableString();
+
 		// the path is something/category/track
-		String tmpPath = getPathTextField().getText();
-		String tmpName = getNameTextField().getText();
+		String tmpPath = pathTextField.getText();
+		String tmpName = nameTextField.getText();
 		String tmpCategory = (String) getCategoryComboBox().getSelectedItem();
 
 		if (isDifferent(tmpName, Editor.getProperties().getHeader().getName(), stringResult))
@@ -337,19 +261,18 @@ public class GeneralProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getAuthorTextField().getText(),
+		if (isDifferent(authorTextField.getText(),
 			Editor.getProperties().getHeader().getAuthor(), stringResult))
 		{
 			Editor.getProperties().getHeader().setAuthor(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getDescriptionTextField().getText(),
+		if (isDifferent(descriptionTextField.getText(),
 			Editor.getProperties().getHeader().getDescription(), stringResult))
 		{
 			Editor.getProperties().getHeader().setDescription(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 	}
-
 } //  @jve:decl-index=0:visual-constraint="10,10"
