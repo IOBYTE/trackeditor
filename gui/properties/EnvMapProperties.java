@@ -65,7 +65,6 @@ public class EnvMapProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
 		this.add(getTabbedPane(), null);
 		this.add(getAddEnvMapButton(), null);
 		this.add(getDeleteEnvMapButton(), null);
@@ -148,10 +147,10 @@ public class EnvMapProperties extends PropertyPanel
 
 	private class EnvMapPanel extends JPanel
 	{
-		private JLabel		nameLabel		= null;
-		private JTextField 	nameTextField	= null;
-		private JLabel		envMapLabel		= null;
-		private JTextField	envMapTextField	= null;
+		private JLabel		nameLabel		= new JLabel();
+		private JTextField 	nameTextField	= new JTextField();
+		private JLabel		envMapLabel		= new JLabel();
+		private JTextField	envMapTextField	= new JTextField();
 		private JButton		browseButton	= null;
 
 		private final String sep = System.getProperty("file.separator");
@@ -170,52 +169,17 @@ public class EnvMapProperties extends PropertyPanel
 		 */
 		private void initialize(String name, String environmentMap)
 		{
-			nameLabel = new JLabel();
-			envMapLabel = new JLabel();
-			nameLabel.setBounds(10, 15, 100, 20);
-			nameLabel.setText("Name");
-			envMapLabel.setBounds(10, 40, 100, 20);
-			envMapLabel.setText("Environment Map");
-			add(nameLabel);
-			add(envMapLabel);
 			setLayout(null);
-			add(getNameTextField(), null);
-			add(getEnvironmentMapTextField(), null);
+
+			addLabel(this, 0, nameLabel, "Name", 100);
+			addLabel(this, 1, envMapLabel, "Environment Map", 100);
+
+			addTextField(this, 0, nameTextField, name, 115, 60);
+			addTextField(this, 1, envMapTextField, environmentMap, 115, 250);
+
 			add(getBrowseButton(), null);
-
-			getNameTextField().setText(name);
-			getEnvironmentMapTextField().setText(environmentMap);
 		}
 
-		/**
-		 * This method initializes nameTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getNameTextField()
-		{
-			if (nameTextField == null)
-			{
-				nameTextField = new JTextField();
-				nameTextField.setBounds(115, 15, 60, 20);
-			}
-			return nameTextField;
-		}
-
-		/**
-		 * This method initializes envMapTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getEnvironmentMapTextField()
-		{
-			if (envMapTextField == null)
-			{
-				envMapTextField = new JTextField();
-				envMapTextField.setBounds(115, 40, 250, 20);
-			}
-			return envMapTextField;
-		}
 		/**
 		 * This method initializes browseButton
 		 *
@@ -226,7 +190,7 @@ public class EnvMapProperties extends PropertyPanel
 			if (browseButton == null)
 			{
 				browseButton = new JButton();
-				browseButton.setBounds(370, 37, 80, 25);
+				browseButton.setBounds(370, 33, 80, 25);
 				browseButton.setText("Browse");
 				browseButton.addActionListener(new java.awt.event.ActionListener()
 				{
@@ -260,7 +224,7 @@ public class EnvMapProperties extends PropertyPanel
 				String pathToFile = fileName.substring(0, index);
 				if (pathToFile.equals(Editor.getProperties().getPath()))
 					fileName = fileName.substring(index + 1);
-				getEnvironmentMapTextField().setText(fileName);
+				envMapTextField.setText(fileName);
 			}
 		}
 	}
@@ -281,12 +245,12 @@ public class EnvMapProperties extends PropertyPanel
         {
             utils.circuit.EnvironmentMapping envMap = envMaps.elementAt(i);
             EnvMapPanel panel = (EnvMapPanel) tabbedPane.getComponentAt(i);
-            if (isDifferent(panel.getNameTextField().getText(), envMap.getName(), stringResult))
+            if (isDifferent(panel.nameTextField.getText(), envMap.getName(), stringResult))
             {
                 envMap.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
-            if (isDifferent(panel.getEnvironmentMapTextField().getText(), envMap.getEnvMapImage(), stringResult))
+            if (isDifferent(panel.envMapTextField.getText(), envMap.getEnvMapImage(), stringResult))
             {
                 envMap.setEnvMapImage(stringResult.getValue());
                 frame.documentIsModified = true;
@@ -307,8 +271,8 @@ public class EnvMapProperties extends PropertyPanel
 			{
 	            EnvMapPanel panel = (EnvMapPanel) tabbedPane.getComponentAt(envMaps.size());
 				EnvironmentMapping envMap = new EnvironmentMapping();
-				envMap.setName(panel.getNameTextField().getText());
-				envMap.setEnvMapImage(panel.getEnvironmentMapTextField().getText());
+				envMap.setName(panel.nameTextField.getText());
+				envMap.setEnvMapImage(panel.envMapTextField.getText());
 				envMaps.add(envMap);
 			}
 		}
