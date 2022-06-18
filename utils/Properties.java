@@ -45,8 +45,8 @@ public  class Properties
 	private static Properties	instance				= new Properties();
 	private Vector				propertiesListeners		= new Vector();
 	//private Vector				trackData;
-	public final String			title					= "Track Editor";
-	public final String			version					= "v0.7.0 alpha";
+	public final String			title					= "sd2-trackeditor";
+	public final String			version					= "Beta";
 	private String				path;
 
 	private double				imageScale				= 1;
