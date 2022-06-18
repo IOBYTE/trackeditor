@@ -1652,8 +1652,9 @@ public class EditorFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
 		{
 		    int type = JOptionPane.PLAIN_MESSAGE;
-		    String msg = "TrackEditor "+Editor.getProperties().version+"\n\n"
-		        +"Copyright Charalampos Alexopoulos\n";
+		    String msg = Editor.getProperties().title + " " + Editor.getProperties().version + "\n\n"
+                + "Copyright Charalampos Alexopoulos\n"
+                + "Copyright Robert Reif\n";
 		    JOptionPane.showMessageDialog(null,msg,"About",type);
 		}
 	}
