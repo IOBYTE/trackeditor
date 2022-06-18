@@ -8,3 +8,5 @@ The following bugs have been fixed:
 1. Fix null button exception for show start point menu item.
 2. Fix drawing segments using profil steps length.
 3. Fix drawing optimized tracks.
+
+Development of this project has been moved to Speed Dreams: https://sourceforge.net/projects/speed-dreams/ and can be found in src/tools/trackeditor.
