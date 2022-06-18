@@ -49,33 +49,37 @@ import utils.circuit.TerrainGeneration;
  */
 public class TerrainProperties extends PropertyPanel
 {
-	private JLabel				trackStepLabel				= null;
-	private JTextField			trackStepTextField			= null;
-	private JLabel				borderMarginLabel			= null;
-	private JTextField			borderMarginTextField		= null;
-	private JLabel				borderStepLabel				= null;
-	private JTextField			borderStepTextField			= null;
-	private JLabel				borderHeightLabel			= null;
-	private JTextField			borderHeightTextField		= null;
-	private JLabel				orientationLabel			= null;
+	private JLabel				trackStepLabel				= new JLabel();
+	private JTextField			trackStepTextField			= new JTextField();
+	private JLabel				borderMarginLabel			= new JLabel();
+	private JTextField			borderMarginTextField		= new JTextField();
+	private JLabel				borderStepLabel				= new JLabel();
+	private JTextField			borderStepTextField			= new JTextField();
+	private JLabel				borderHeightLabel			= new JLabel();
+	private JTextField			borderHeightTextField		= new JTextField();
+	private JLabel				orientationLabel			= new JLabel();
 	private JComboBox<String>	orientationComboBox			= null;
-	private JLabel				maximumAltitudeLabel		= null;
-	private JTextField			maximumAltitudeTextField	= null;
-	private JLabel				minimumAltitudeLabel		= null;
-	private JTextField			minimumAltitudeTextField	= null;
-	private JLabel				groupSizeLabel				= null;
-	private JTextField			groupSizeTextField			= null;
-	private JLabel				elevationMapLabel			= null;
-	private JTextField			elevationMapTextField		= null;		// TODO add button to get file
-	private JLabel				reliefFileLabel				= null;
-	private JTextField			reliefFileTextField			= null;		// TODO add button to get file
-	private JLabel				surfaceLabel				= null;
+	private JLabel				maximumAltitudeLabel		= new JLabel();
+	private JTextField			maximumAltitudeTextField	= new JTextField();
+	private JLabel				minimumAltitudeLabel		= new JLabel();
+	private JTextField			minimumAltitudeTextField	= new JTextField();
+	private JLabel				groupSizeLabel				= new JLabel();
+	private JTextField			groupSizeTextField			= new JTextField();
+	private JLabel				elevationMapLabel			= new JLabel();
+	private JTextField			elevationMapTextField		= new JTextField();
+	private JLabel				reliefFileLabel				= new JLabel();
+	private JTextField			reliefFileTextField			= new JTextField();
+	private JLabel				surfaceLabel				= new JLabel();
 	private JComboBox<String>	surfaceComboBox				= null;
 	private JButton				defaultButton				= null;
 	private JButton				deleteButton				= null;
 	private JButton				addObjectMapButton			= null;
 	private JButton				deleteObjectMapButton		= null;
 	private JTabbedPane			tabbedPane					= null;
+	private JButton				elevationMapButton			= null;
+	private JButton				reliefFileButton			= null;
+
+	private final String sep = System.getProperty("file.separator");
 
 	private String[]			roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -105,69 +109,42 @@ public class TerrainProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		trackStepLabel = new JLabel();
-		borderMarginLabel = new JLabel();
-		borderStepLabel = new JLabel();
-		borderHeightLabel = new JLabel();
-		orientationLabel = new JLabel();
-		maximumAltitudeLabel = new JLabel();
-		minimumAltitudeLabel = new JLabel();
-		groupSizeLabel = new JLabel();
-		elevationMapLabel = new JLabel();
-		reliefFileLabel = new JLabel();
-		surfaceLabel = new JLabel();
-		this.setLayout(null);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
-		trackStepLabel.setBounds(10, 10, 90, 20);
-		trackStepLabel.setText("Track Step");
-		borderMarginLabel.setBounds(10, 35, 90, 20);
-		borderMarginLabel.setText("Border Margin");
-		borderStepLabel.setBounds(10, 60, 90, 20);
-		borderStepLabel.setText("Border Step");
-		borderHeightLabel.setBounds(10, 85, 90, 20);
-		borderHeightLabel.setText("Border Height");
-		orientationLabel.setBounds(10, 110, 90, 20);
-		orientationLabel.setText("Orientation");
-		maximumAltitudeLabel.setBounds(10, 135, 90, 20);
-		maximumAltitudeLabel.setText("Maximum Altitude");
-		minimumAltitudeLabel.setBounds(10, 160, 90, 20);
-		minimumAltitudeLabel.setText("Minimum Altitude");
-		groupSizeLabel.setBounds(10, 185, 90, 20);
-		groupSizeLabel.setText("Group Size");
-		elevationMapLabel.setBounds(10, 210, 90, 20);
-		elevationMapLabel.setText("Elevation Map");
-		reliefFileLabel.setBounds(10, 235, 90, 20);
-		reliefFileLabel.setText("Reliefe File");
-		surfaceLabel.setBounds(10, 260, 90, 20);
-		surfaceLabel.setText("Surface");
-		this.add(trackStepLabel, null);
-		this.add(borderMarginLabel, null);
-		this.add(borderStepLabel, null);
-		this.add(borderHeightLabel, null);
-		this.add(orientationLabel, null);
-		this.add(maximumAltitudeLabel, null);
-		this.add(minimumAltitudeLabel, null);
-		this.add(groupSizeLabel, null);
-		this.add(elevationMapLabel, null);
-		this.add(reliefFileLabel, null);
-		this.add(surfaceLabel, null);
-		this.add(getTrackStepTextField(), null);
-		this.add(getBorderMarginTextField(), null);
-		this.add(getBorderStepTextField(), null);
-		this.add(getBorderHeightTextField(), null);
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+
+		addLabel(this, 0, trackStepLabel, "Track Step", 90);
+		addLabel(this, 1, borderMarginLabel, "Border Margin", 90);
+		addLabel(this, 2, borderStepLabel, "Border Step", 90);
+		addLabel(this, 3, borderHeightLabel, "Border Height", 90);
+		addLabel(this, 4, orientationLabel, "Orientation", 90);
+		addLabel(this, 5, maximumAltitudeLabel, "Maximum Altitude", 90);
+		addLabel(this, 6, minimumAltitudeLabel, "Minimum Altitude", 90);
+		addLabel(this, 7, groupSizeLabel, "Group Size", 90);
+		addLabel(this, 8, elevationMapLabel, "Elevation Map", 90);
+		addLabel(this, 9, reliefFileLabel, "Reliefe File", 90);
+		addLabel(this, 10, surfaceLabel, "Surface", 90);
+
+		addTextField(this, 0, trackStepTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep(), 120, 100);
+		addTextField(this, 1, borderMarginTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin(), 120, 100);
+		addTextField(this, 2, borderStepTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep(), 120, 100);
+		addTextField(this, 3, borderHeightTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight(), 120, 100);
+
 		this.add(getOrientationComboBox(), null);
-		this.add(getMaximumAltitudeTextField(), null);
-		this.add(getMinimumAltitudeTextField(), null);
-		this.add(getGroupSizeTextField(), null);
-		this.add(getElevationMapTextField(), null);
-		this.add(getReliefFileTextField(), null);
+
+		addTextField(this, 5, maximumAltitudeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude(), 120, 100);
+		addTextField(this, 6, minimumAltitudeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude(), 120, 100);
+		addTextField(this, 7, groupSizeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize(), 120, 100);
+		addTextField(this, 8, elevationMapTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap(), 120, 250);
+		addTextField(this, 9, reliefFileTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile(), 120, 250);
+
 		this.add(getSurfaceComboBox(), null);
 		this.add(getDefaultButton(), null);
 		this.add(getDeleteButton(), null);
 		this.add(getTabbedPane(), null);
 		this.add(getAddObjectMapButton(), null);
 		this.add(getDeleteObjectMapButton(), null);
+		this.add(getElevationMapButton(), null);
+		this.add(getReliefFileButton(), null);
 
         Vector<Surface> surfaces = Editor.getProperties().getSurfaces();
         for (int i = 0; i < surfaces.size(); i++)
@@ -191,70 +168,6 @@ public class TerrainProperties extends PropertyPanel
 	}
 
 	/**
-	 * This method initializes trackStepTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getTrackStepTextField()
-	{
-		if (trackStepTextField == null)
-		{
-			trackStepTextField = new JTextField();
-			trackStepTextField.setBounds(120, 10, 100, 20);
-			setTextField(trackStepTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep());
-		}
-		return trackStepTextField;
-	}
-
-	/**
-	 * This method initializes borderMarginTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBorderMarginTextField()
-	{
-		if (borderMarginTextField == null)
-		{
-			borderMarginTextField = new JTextField();
-			borderMarginTextField.setBounds(120, 35, 100, 20);
-			setTextField(borderMarginTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin());
-		}
-		return borderMarginTextField;
-	}
-
-	/**
-	 * This method initializes borderStepTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBorderStepTextField()
-	{
-		if (borderStepTextField == null)
-		{
-			borderStepTextField = new JTextField();
-			borderStepTextField.setBounds(120, 60, 100, 20);
-			setTextField(borderStepTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep());
-		}
-		return borderStepTextField;
-	}
-
-	/**
-	 * This method initializes borderHeightTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getBorderHeightTextField()
-	{
-		if (borderHeightTextField == null)
-		{
-			borderHeightTextField = new JTextField();
-			borderHeightTextField.setBounds(120, 85, 100, 20);
-			setTextField(borderHeightTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight());
-		}
-		return borderHeightTextField;
-	}
-
-	/**
 	 * This method initializes orientationComboBox
 	 *
 	 * @return javax.swing.JComboBox
@@ -273,86 +186,6 @@ public class TerrainProperties extends PropertyPanel
 			orientationComboBox.setSelectedItem(orientation);
 		}
 		return orientationComboBox;
-	}
-
-	/**
-	 * This method initializes maximumAltitudeTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getMaximumAltitudeTextField()
-	{
-		if (maximumAltitudeTextField == null)
-		{
-			maximumAltitudeTextField = new JTextField();
-			maximumAltitudeTextField.setBounds(120, 135, 100, 20);
-			setTextField(maximumAltitudeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude());
-		}
-		return maximumAltitudeTextField;
-	}
-
-	/**
-	 * This method initializes minimumAltitudeTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getMinimumAltitudeTextField()
-	{
-		if (minimumAltitudeTextField == null)
-		{
-			minimumAltitudeTextField = new JTextField();
-			minimumAltitudeTextField.setBounds(120, 160, 100, 20);
-			setTextField(minimumAltitudeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude());
-		}
-		return minimumAltitudeTextField;
-	}
-
-	/**
-	 * This method initializes groupSizeTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getGroupSizeTextField()
-	{
-		if (groupSizeTextField == null)
-		{
-			groupSizeTextField = new JTextField();
-			groupSizeTextField.setBounds(120, 185, 100, 20);
-			setTextField(groupSizeTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize());
-		}
-		return groupSizeTextField;
-	}
-
-	/**
-	 * This method initializes elevationMapTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getElevationMapTextField()
-	{
-		if (elevationMapTextField == null)
-		{
-			elevationMapTextField = new JTextField();
-			elevationMapTextField.setBounds(120, 210, 100, 20);
-			setTextField(elevationMapTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap());
-		}
-		return elevationMapTextField;
-	}
-
-	/**
-	 * This method initializes reliefFileTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getReliefFileTextField()
-	{
-		if (reliefFileTextField == null)
-		{
-			reliefFileTextField = new JTextField();
-			reliefFileTextField.setBounds(120, 235, 100, 20);
-			setTextField(reliefFileTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile());
-		}
-		return reliefFileTextField;
 	}
 
 	/**
@@ -387,6 +220,102 @@ public class TerrainProperties extends PropertyPanel
 			surfaceComboBox.setSelectedItem(surface);
 		}
 		return surfaceComboBox;
+	}
+
+	/**
+	 * This method initializes elevationMapButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getElevationMapButton()
+	{
+		if (elevationMapButton == null)
+		{
+			elevationMapButton = new JButton();
+			elevationMapButton.setBounds(390, 207, 80, 25);
+			elevationMapButton.setText("Browse");
+			elevationMapButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					elevationMapFile();
+				}
+			});
+		}
+		return elevationMapButton;
+	}
+
+	/**
+	 * This method initializes reliefFileButton
+	 *
+	 * @return javax.swing.JButton
+	 */
+	private JButton getReliefFileButton()
+	{
+		if (reliefFileButton == null)
+		{
+			reliefFileButton = new JButton();
+			reliefFileButton.setBounds(390, 232, 80, 25);
+			reliefFileButton.setText("Browse");
+			reliefFileButton.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent e)
+				{
+					reliefFile();
+				}
+			});
+		}
+		return reliefFileButton;
+	}
+
+	protected void elevationMapFile()
+	{
+		JFileChooser fc = new JFileChooser();
+		fc.setSelectedFiles(null);
+		fc.setSelectedFile(null);
+		fc.rescanCurrentDirectory();
+		fc.setApproveButtonMnemonic(0);
+		fc.setDialogTitle("Surface texture image file selection");
+		fc.setVisible(true);
+		fc.setAcceptAllFileFilterUsed(false);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+		fc.addChoosableFileFilter(filter);
+		fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+		int result = fc.showDialog(this, "Ok");
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			String fileName = fc.getSelectedFile().toString();
+			int index = fileName.lastIndexOf(sep);
+			String pathToFile = fileName.substring(0, index);
+			if (pathToFile.equals(Editor.getProperties().getPath()))
+				fileName = fileName.substring(index + 1);
+			elevationMapTextField.setText(fileName);
+		}
+	}
+
+	protected void reliefFile()
+	{
+		JFileChooser fc = new JFileChooser();
+		fc.setSelectedFiles(null);
+		fc.setSelectedFile(null);
+		fc.rescanCurrentDirectory();
+		fc.setApproveButtonMnemonic(0);
+		fc.setDialogTitle("Surface texture image file selection");
+		fc.setVisible(true);
+		fc.setAcceptAllFileFilterUsed(false);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+		fc.addChoosableFileFilter(filter);
+		fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+		int result = fc.showDialog(this, "Ok");
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			String fileName = fc.getSelectedFile().toString();
+			int index = fileName.lastIndexOf(sep);
+			String pathToFile = fileName.substring(0, index);
+			if (pathToFile.equals(Editor.getProperties().getPath()))
+				fileName = fileName.substring(index + 1);
+			reliefFileTextField.setText(fileName);
+		}
 	}
 
 	/**
@@ -538,8 +467,6 @@ public class TerrainProperties extends PropertyPanel
 		private JTextField	objectMapTextField	= null;
 		private JButton		browseButton		= null;
 
-		private final String sep = System.getProperty("file.separator");
-
 		/**
 		 *
 		 */
@@ -657,49 +584,49 @@ public class TerrainProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(getTrackStepTextField().getText(),
+		if (isDifferent(trackStepTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setTrackStep(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBorderMarginTextField().getText(),
+		if (isDifferent(borderMarginTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderMargin(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBorderStepTextField().getText(),
+		if (isDifferent(borderStepTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderStep(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderStep(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getBorderHeightTextField().getText(),
+		if (isDifferent(borderHeightTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getBorderHeight(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setBorderHeight(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getMaximumAltitudeTextField().getText(),
+		if (isDifferent(maximumAltitudeTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getMaximumAltitude(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setMaximumAltitude(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getMinimumAltitudeTextField().getText(),
+		if (isDifferent(minimumAltitudeTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getMinimumAltitude(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setMinimumAltitude(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getGroupSizeTextField().getText(),
+		if (isDifferent(groupSizeTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getGroupSize(), doubleResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setGroupSize(doubleResult.getValue());
@@ -713,14 +640,14 @@ public class TerrainProperties extends PropertyPanel
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getElevationMapTextField().getText(),
+		if (isDifferent(elevationMapTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getElevationMap(), stringResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setElevationMap(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getReliefFileTextField().getText(),
+		if (isDifferent(reliefFileTextField.getText(),
 			Editor.getProperties().getGraphic().getTerrainGeneration().getReliefFile(), stringResult))
 		{
 			Editor.getProperties().getGraphic().getTerrainGeneration().setReliefFile(stringResult.getValue());
