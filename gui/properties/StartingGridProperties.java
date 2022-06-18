@@ -67,21 +67,21 @@ public class StartingGridProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, rowsLabel, "Rows", 140);
-		addLabel(this, 1, polePositionSideLabel, "Pole Position Side", 140);
-		addLabel(this, 2, distanceToStartLabel, "Distance To Start", 140);
-		addLabel(this, 3, distanceBetweenColumnsLabel, "Distance Between Columns", 140);
-		addLabel(this, 4, offsetWithinAColumnLabel, "Offset Within A Column", 140);
-		addLabel(this, 5, initialHeightLabel, "Initial Height", 140);
+		addLabel(this, 0, rowsLabel, "Rows", 170);
+		addLabel(this, 1, polePositionSideLabel, "Pole Position Side", 170);
+		addLabel(this, 2, distanceToStartLabel, "Distance To Start", 170);
+		addLabel(this, 3, distanceBetweenColumnsLabel, "Distance Between Columns", 170);
+		addLabel(this, 4, offsetWithinAColumnLabel, "Offset Within A Column", 170);
+		addLabel(this, 5, initialHeightLabel, "Initial Height", 170);
 
-		addTextField(this, 0, rowsTextField, Editor.getProperties().getStartingGrid().getRows(), 150, 100);
+		addTextField(this, 0, rowsTextField, Editor.getProperties().getStartingGrid().getRows(), 180, 100);
 
 		add(getPolePositionSideComboBox(), null);
 
-		addTextField(this, 2, distanceToStartTextField, Editor.getProperties().getStartingGrid().getDistanceToStart(), 150, 100);
-		addTextField(this, 3, distanceBetweenColumnsTextField, Editor.getProperties().getStartingGrid().getDistanceBetweenColumns(), 150, 100);
-		addTextField(this, 4, offsetWithinAColumnTextField, Editor.getProperties().getStartingGrid().getOffsetWithinAColumn(), 150, 100);
-		addTextField(this, 5, initialHeightTextField, Editor.getProperties().getStartingGrid().getInitialHeight(), 150, 100);
+		addTextField(this, 2, distanceToStartTextField, Editor.getProperties().getStartingGrid().getDistanceToStart(), 180, 100);
+		addTextField(this, 3, distanceBetweenColumnsTextField, Editor.getProperties().getStartingGrid().getDistanceBetweenColumns(), 180, 100);
+		addTextField(this, 4, offsetWithinAColumnTextField, Editor.getProperties().getStartingGrid().getOffsetWithinAColumn(), 180, 100);
+		addTextField(this, 5, initialHeightTextField, Editor.getProperties().getStartingGrid().getInitialHeight(), 180, 100);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class StartingGridProperties extends PropertyPanel
 		{
 			String[] items = {"none", "right", "left"};
 			polePositionSideComboBox = new JComboBox<String>(items);
-			polePositionSideComboBox.setBounds(150, 35, 80, 20);
+			polePositionSideComboBox.setBounds(180, 35, 80, 20);
 			String side = Editor.getProperties().getStartingGrid().getPolePositionSide();
 			if (side == null || side.isEmpty())
 				side = "none";

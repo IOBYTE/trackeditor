@@ -81,7 +81,7 @@ public class EnvMapProperties extends PropertyPanel
 		if (addEnvMapButton == null)
 		{
 			addEnvMapButton = new JButton();
-			addEnvMapButton.setBounds(10, 120, 100, 25);
+			addEnvMapButton.setBounds(10, 120, 120, 25);
 			addEnvMapButton.setText("Add Env Map");
 			addEnvMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -107,7 +107,7 @@ public class EnvMapProperties extends PropertyPanel
 		if (deleteEnvMapButton == null)
 		{
 			deleteEnvMapButton = new JButton();
-			deleteEnvMapButton.setBounds(130, 120, 120, 25);
+			deleteEnvMapButton.setBounds(140, 120, 130, 25);
 			deleteEnvMapButton.setText("Delete Env Map");
 			deleteEnvMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -172,9 +172,9 @@ public class EnvMapProperties extends PropertyPanel
 		{
 			nameLabel = new JLabel();
 			envMapLabel = new JLabel();
-			nameLabel.setBounds(15, 15, 90, 20);
+			nameLabel.setBounds(10, 15, 100, 20);
 			nameLabel.setText("Name");
-			envMapLabel.setBounds(15, 40, 90, 20);
+			envMapLabel.setBounds(10, 40, 100, 20);
 			envMapLabel.setText("Environment Map");
 			add(nameLabel);
 			add(envMapLabel);
@@ -197,7 +197,7 @@ public class EnvMapProperties extends PropertyPanel
 			if (nameTextField == null)
 			{
 				nameTextField = new JTextField();
-				nameTextField.setBounds(105, 15, 60, 20);
+				nameTextField.setBounds(115, 15, 60, 20);
 			}
 			return nameTextField;
 		}
@@ -212,7 +212,7 @@ public class EnvMapProperties extends PropertyPanel
 			if (envMapTextField == null)
 			{
 				envMapTextField = new JTextField();
-				envMapTextField.setBounds(105, 40, 260, 20);
+				envMapTextField.setBounds(115, 40, 250, 20);
 			}
 			return envMapTextField;
 		}

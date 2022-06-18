@@ -108,53 +108,53 @@ public class GraphicProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, descriptionLabel, "Description", 120);
-		addLabel(this, 1, descriptionNightLabel, "Description Night", 120);
-		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 120);
-		addLabel(this, 3, backgroundImageLabel, "Background Image", 120);
-		addLabel(this, 4, backgroundTypeLabel, "Background Type", 120);
-		addLabel(this, 5, backgroundColorRLabel, "Background Color R", 120);
-		addLabel(this, 6, backgroundColorGLabel, "Background Color G", 120);
-		addLabel(this, 7, backgroundColorBLabel, "Background Color B", 120);
-		addLabel(this, 8, ambientColorRLabel, "Ambient Color R", 120);
-		addLabel(this, 9, ambientColorGLabel, "Ambient Color G", 120);
-		addLabel(this, 10, ambientColorBLabel, "Ambient Color B", 120);
-		addLabel(this, 11, diffuseColorRLabel, "Diffuse Color R", 120);
-		addLabel(this, 12, diffuseColorGLabel, "Diffuse Color G", 120);
-		addLabel(this, 13, diffuseColorBLabel, "Diffuse Color B", 120);
-		addLabel(this, 14, specularColorRLabel, "Specular Color R", 120);
-		addLabel(this, 15, specularColorGLabel, "Specular Color G", 120);
-		addLabel(this, 16, specularColorBLabel, "Specular Color B", 120);
-		addLabel(this, 17, lightPositionXLabel, "Light Position X", 120);
-		addLabel(this, 18, lightPositionYLabel, "Light Position Y", 120);
-		addLabel(this, 19, lightPositionZLabel, "Light Position Z", 120);
-		addLabel(this, 20, shininessLabel, "Shininess", 120);
-		addLabel(this, 21, fovFactorLabel, "Fov Factor", 120);
+		addLabel(this, 0, descriptionLabel, "Description", 130);
+		addLabel(this, 1, descriptionNightLabel, "Description Night", 130);
+		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 130);
+		addLabel(this, 3, backgroundImageLabel, "Background Image", 130);
+		addLabel(this, 4, backgroundTypeLabel, "Background Type", 130);
+		addLabel(this, 5, backgroundColorRLabel, "Background Color R", 130);
+		addLabel(this, 6, backgroundColorGLabel, "Background Color G", 130);
+		addLabel(this, 7, backgroundColorBLabel, "Background Color B", 130);
+		addLabel(this, 8, ambientColorRLabel, "Ambient Color R", 130);
+		addLabel(this, 9, ambientColorGLabel, "Ambient Color G", 130);
+		addLabel(this, 10, ambientColorBLabel, "Ambient Color B", 130);
+		addLabel(this, 11, diffuseColorRLabel, "Diffuse Color R", 130);
+		addLabel(this, 12, diffuseColorGLabel, "Diffuse Color G", 130);
+		addLabel(this, 13, diffuseColorBLabel, "Diffuse Color B", 130);
+		addLabel(this, 14, specularColorRLabel, "Specular Color R", 130);
+		addLabel(this, 15, specularColorGLabel, "Specular Color G", 130);
+		addLabel(this, 16, specularColorBLabel, "Specular Color B", 130);
+		addLabel(this, 17, lightPositionXLabel, "Light Position X", 130);
+		addLabel(this, 18, lightPositionYLabel, "Light Position Y", 130);
+		addLabel(this, 19, lightPositionZLabel, "Light Position Z", 130);
+		addLabel(this, 20, shininessLabel, "Shininess", 130);
+		addLabel(this, 21, fovFactorLabel, "Fov Factor", 130);
 
-		addTextField(this, 0, descriptionTextField, Editor.getProperties().getGraphic().getDescription(), 130, 150);
-		addTextField(this, 1, descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight(), 130, 150);
-		addTextField(this, 2, descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight(), 130, 150);
-		addTextField(this, 3, backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage(), 130, 255);
+		addTextField(this, 0, descriptionTextField, Editor.getProperties().getGraphic().getDescription(), 140, 150);
+		addTextField(this, 1, descriptionNightTextField, Editor.getProperties().getGraphic().getDescriptionNight(), 140, 150);
+		addTextField(this, 2, descriptionRainNightTextField, Editor.getProperties().getGraphic().getDescriptionRainNight(), 140, 150);
+		addTextField(this, 3, backgroundImageTextField, Editor.getProperties().getGraphic().getBackgroundImage(), 140, 255);
 
 		add(getBackgroundTypeComboBox(), null);
 
-		addTextField(this, 5, backgroundColorRTextField, Editor.getProperties().getGraphic().getBackgroundColorR(), 130, 80);
-		addTextField(this, 6, backgroundColorGTextField, Editor.getProperties().getGraphic().getBackgroundColorG(), 130, 80);
-		addTextField(this, 7, backgroundColorBTextField, Editor.getProperties().getGraphic().getBackgroundColorB(), 130, 80);
-		addTextField(this, 8, ambientColorRTextField, Editor.getProperties().getGraphic().getAmbientColorR(), 130, 80);
-		addTextField(this, 9, ambientColorGTextField, Editor.getProperties().getGraphic().getAmbientColorG(), 130, 80);
-		addTextField(this, 10, ambientColorBTextField, Editor.getProperties().getGraphic().getAmbientColorB(), 130, 80);
-		addTextField(this, 11, diffuseColorRTextField, Editor.getProperties().getGraphic().getDiffuseColorR(), 130, 80);
-		addTextField(this, 12, diffuseColorGTextField, Editor.getProperties().getGraphic().getDiffuseColorG(), 130, 80);
-		addTextField(this, 13, diffuseColorBTextField, Editor.getProperties().getGraphic().getDiffuseColorB(), 130, 80);
-		addTextField(this, 14, specularColorRTextField, Editor.getProperties().getGraphic().getSpecularColorR(), 130, 80);
-		addTextField(this, 15, specularColorGTextField, Editor.getProperties().getGraphic().getSpecularColorG(), 130, 80);
-		addTextField(this, 16, specularColorBTextField, Editor.getProperties().getGraphic().getSpecularColorB(), 130, 80);
-		addTextField(this, 17, lightPositionXTextField, Editor.getProperties().getGraphic().getLightPositionX(), 130, 80);
-		addTextField(this, 18, lightPositionYTextField, Editor.getProperties().getGraphic().getLightPositionY(), 130, 80);
-		addTextField(this, 19, lightPositionZTextField, Editor.getProperties().getGraphic().getLightPositionZ(), 130, 80);
-		addTextField(this, 20, shininessTextField, Editor.getProperties().getGraphic().getShininess(), 130, 80);
-		addTextField(this, 21, fovFactorTextField, Editor.getProperties().getGraphic().getFovFactor(), 130, 80);
+		addTextField(this, 5, backgroundColorRTextField, Editor.getProperties().getGraphic().getBackgroundColorR(), 140, 80);
+		addTextField(this, 6, backgroundColorGTextField, Editor.getProperties().getGraphic().getBackgroundColorG(), 140, 80);
+		addTextField(this, 7, backgroundColorBTextField, Editor.getProperties().getGraphic().getBackgroundColorB(), 140, 80);
+		addTextField(this, 8, ambientColorRTextField, Editor.getProperties().getGraphic().getAmbientColorR(), 140, 80);
+		addTextField(this, 9, ambientColorGTextField, Editor.getProperties().getGraphic().getAmbientColorG(), 140, 80);
+		addTextField(this, 10, ambientColorBTextField, Editor.getProperties().getGraphic().getAmbientColorB(), 140, 80);
+		addTextField(this, 11, diffuseColorRTextField, Editor.getProperties().getGraphic().getDiffuseColorR(), 140, 80);
+		addTextField(this, 12, diffuseColorGTextField, Editor.getProperties().getGraphic().getDiffuseColorG(), 140, 80);
+		addTextField(this, 13, diffuseColorBTextField, Editor.getProperties().getGraphic().getDiffuseColorB(), 140, 80);
+		addTextField(this, 14, specularColorRTextField, Editor.getProperties().getGraphic().getSpecularColorR(), 140, 80);
+		addTextField(this, 15, specularColorGTextField, Editor.getProperties().getGraphic().getSpecularColorG(), 140, 80);
+		addTextField(this, 16, specularColorBTextField, Editor.getProperties().getGraphic().getSpecularColorB(), 140, 80);
+		addTextField(this, 17, lightPositionXTextField, Editor.getProperties().getGraphic().getLightPositionX(), 140, 80);
+		addTextField(this, 18, lightPositionYTextField, Editor.getProperties().getGraphic().getLightPositionY(), 140, 80);
+		addTextField(this, 19, lightPositionZTextField, Editor.getProperties().getGraphic().getLightPositionZ(), 140, 80);
+		addTextField(this, 20, shininessTextField, Editor.getProperties().getGraphic().getShininess(), 140, 80);
+		addTextField(this, 21, fovFactorTextField, Editor.getProperties().getGraphic().getFovFactor(), 140, 80);
 
 		add(getBrowseButton(), null);
 	}
@@ -171,7 +171,7 @@ public class GraphicProperties extends PropertyPanel
 			String[] types = {"none", "0", "2", "4"};
 			backgroundTypeComboBox = new JComboBox<String>();
 			backgroundTypeComboBox.setModel(new DefaultComboBoxModel<String>(types));
-			backgroundTypeComboBox.setBounds(130, 110, 80, 20);
+			backgroundTypeComboBox.setBounds(140, 110, 80, 20);
 			int value = Editor.getProperties().getGraphic().getBackgroundType();
 			if (value != Integer.MAX_VALUE)
 				backgroundTypeComboBox.setSelectedItem(String.valueOf(value));
@@ -189,7 +189,7 @@ public class GraphicProperties extends PropertyPanel
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(390, 82, 80, 25);
+			browseButton.setBounds(400, 82, 80, 25);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{

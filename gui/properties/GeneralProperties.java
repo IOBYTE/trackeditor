@@ -74,15 +74,15 @@ public class GeneralProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, nameLabel, "Track Name", 100);
-		addLabel(this, 1, categoryLabel, "Track Category", 100);
-		addLabel(this, 2, subcategoryLabel, "Track Subcategory", 100);
-		addLabel(this, 3, versionLabel, "Track Version", 100);
+		addLabel(this, 0, nameLabel, "Track Name", 110);
+		addLabel(this, 1, categoryLabel, "Track Category", 110);
+		addLabel(this, 2, subcategoryLabel, "Track Subcategory", 110);
+		addLabel(this, 3, versionLabel, "Track Version", 110);
 		addLabel(this, 4, pathLabel, "Path", 80);
 		addLabel(this, 5, authorLabel, "Author", 80);
 		addLabel(this, 6, descriptionLabel, "Description", 80);
 
-		addTextField(this, 0, nameTextField, Editor.getProperties().getHeader().getName(), 110, 150);
+		addTextField(this, 0, nameTextField, Editor.getProperties().getHeader().getName(), 130, 150);
 
 		add(getCategoryComboBox(), null);
 		add(getSubcategoryComboBox(), null);
@@ -106,7 +106,7 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"circuit", "development", "dirt", "gprix", "karting", "oval", "road", "speedway", "test"};
 			categoryComboBox = new JComboBox<String>(items);
-			categoryComboBox.setBounds(110, 35, 100, 20);
+			categoryComboBox.setBounds(130, 35, 100, 20);
 			categoryComboBox.setSelectedItem(Editor.getProperties().getHeader().getCategory());
 		}
 		return categoryComboBox;
@@ -123,7 +123,7 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"none", "short", "long"};
 			subcategoryComboBox = new JComboBox<String>(items);
-			subcategoryComboBox.setBounds(110, 60, 100, 20);
+			subcategoryComboBox.setBounds(130, 60, 100, 20);
 			String subcategory = Editor.getProperties().getHeader().getSubcategory();
 			if (subcategory == null)
 				subcategory = "none";
@@ -143,7 +143,7 @@ public class GeneralProperties extends PropertyPanel
 		{
 			String[] items = {"3", "4", "5"};
 			versionComboBox = new JComboBox<String>(items);
-			versionComboBox.setBounds(110, 85, 100, 20);
+			versionComboBox.setBounds(130, 85, 100, 20);
 			versionComboBox.setSelectedItem(Editor.getProperties().getHeader().getVersion() + "");
 		}
 		return versionComboBox;

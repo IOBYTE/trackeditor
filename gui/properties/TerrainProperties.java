@@ -112,17 +112,17 @@ public class TerrainProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, trackStepLabel, "Track Step", 90);
-		addLabel(this, 1, borderMarginLabel, "Border Margin", 90);
-		addLabel(this, 2, borderStepLabel, "Border Step", 90);
-		addLabel(this, 3, borderHeightLabel, "Border Height", 90);
-		addLabel(this, 4, orientationLabel, "Orientation", 90);
-		addLabel(this, 5, maximumAltitudeLabel, "Maximum Altitude", 90);
-		addLabel(this, 6, minimumAltitudeLabel, "Minimum Altitude", 90);
-		addLabel(this, 7, groupSizeLabel, "Group Size", 90);
-		addLabel(this, 8, elevationMapLabel, "Elevation Map", 90);
-		addLabel(this, 9, reliefFileLabel, "Reliefe File", 90);
-		addLabel(this, 10, surfaceLabel, "Surface", 90);
+		addLabel(this, 0, trackStepLabel, "Track Step", 100);
+		addLabel(this, 1, borderMarginLabel, "Border Margin", 100);
+		addLabel(this, 2, borderStepLabel, "Border Step", 100);
+		addLabel(this, 3, borderHeightLabel, "Border Height", 100);
+		addLabel(this, 4, orientationLabel, "Orientation", 100);
+		addLabel(this, 5, maximumAltitudeLabel, "Maximum Altitude", 100);
+		addLabel(this, 6, minimumAltitudeLabel, "Minimum Altitude", 100);
+		addLabel(this, 7, groupSizeLabel, "Group Size", 100);
+		addLabel(this, 8, elevationMapLabel, "Elevation Map", 100);
+		addLabel(this, 9, reliefFileLabel, "Reliefe File", 100);
+		addLabel(this, 10, surfaceLabel, "Surface", 100);
 
 		addTextField(this, 0, trackStepTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getTrackStep(), 120, 100);
 		addTextField(this, 1, borderMarginTextField, Editor.getProperties().getGraphic().getTerrainGeneration().getBorderMargin(), 120, 100);
@@ -394,7 +394,7 @@ public class TerrainProperties extends PropertyPanel
 		if (addObjectMapButton == null)
 		{
 			addObjectMapButton = new JButton();
-			addObjectMapButton.setBounds(10, 400, 120, 25);
+			addObjectMapButton.setBounds(10, 400, 130, 25);
 			addObjectMapButton.setText("Add Object Map");
 			addObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -420,7 +420,7 @@ public class TerrainProperties extends PropertyPanel
 		if (deleteObjectMapButton == null)
 		{
 			deleteObjectMapButton = new JButton();
-			deleteObjectMapButton.setBounds(145, 400, 140, 25);
+			deleteObjectMapButton.setBounds(155, 400, 140, 25);
 			deleteObjectMapButton.setText("Delete Object Map");
 			deleteObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{

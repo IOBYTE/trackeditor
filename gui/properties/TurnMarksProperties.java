@@ -66,15 +66,15 @@ public class TurnMarksProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, widthLabel, "Width", 90);
-		addLabel(this, 1, heightLabel, "Height", 90);
-		addLabel(this, 2, verticalSpaceLabel, "Vertical Space", 90);
-		addLabel(this, 3, horizontalSpaceLabel, "Horizontal Space", 90);
+		addLabel(this, 0, widthLabel, "Width", 100);
+		addLabel(this, 1, heightLabel, "Height", 100);
+		addLabel(this, 2, verticalSpaceLabel, "Vertical Space", 100);
+		addLabel(this, 3, horizontalSpaceLabel, "Horizontal Space", 100);
 
-		addTextField(this, 0, widthTextField, Editor.getProperties().getGraphic().getTurnMarks().getWidth(), 100, 100);
-		addTextField(this, 1, heightTextField, Editor.getProperties().getGraphic().getTurnMarks().getHeight(), 100, 100);
-		addTextField(this, 2, verticalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace(), 100, 100);
-		addTextField(this, 3, horizontalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace(), 100, 100);
+		addTextField(this, 0, widthTextField, Editor.getProperties().getGraphic().getTurnMarks().getWidth(), 120, 100);
+		addTextField(this, 1, heightTextField, Editor.getProperties().getGraphic().getTurnMarks().getHeight(), 120, 100);
+		addTextField(this, 2, verticalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getVerticalSpace(), 120, 100);
+		addTextField(this, 3, horizontalSpaceTextField, Editor.getProperties().getGraphic().getTurnMarks().getHorizontalSpace(), 120, 100);
 
 		add(getDefaultButton(), null);
 		add(getDeleteButton(), null);
