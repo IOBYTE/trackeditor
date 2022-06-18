@@ -63,7 +63,6 @@ public class ObjectProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
 		this.add(getTabbedPane(), null);
 		this.add(getAddObjectButton(), null);
 		this.add(getDeleteObjectButton(), null);
@@ -149,20 +148,20 @@ public class ObjectProperties extends PropertyPanel
 
 	private class ObjectPanel extends JPanel
 	{
-		private JLabel				nameLabel				= null;
-		private JTextField 			nameTextField			= null;
-		private JLabel				objectLabel				= null;
-		private JTextField			objectTextField			= null;
-		private JLabel				colorLabel				= null;
-		private JTextField			colorTextField			= null;
-		private JLabel				orientationTypeLabel	= null;
+		private JLabel				nameLabel				= new JLabel();
+		private JTextField 			nameTextField			= new JTextField();
+		private JLabel				objectLabel				= new JLabel();
+		private JTextField			objectTextField			= new JTextField();
+		private JLabel				colorLabel				= new JLabel();
+		private JTextField			colorTextField			= new JTextField();
+		private JLabel				orientationTypeLabel	= new JLabel();
 		private JComboBox<String>	orientationTypeComboBox	= null;
-		private JLabel				orientationLabel		= null;
-		private JTextField			orientationTextField	= null;
-		private JLabel				deltaHeightLabel		= null;
-		private JTextField			deltaHeightTextField	= null;
-		private JLabel				deltaVertLabel			= null;
-		private JTextField			deltaVertTextField		= null;
+		private JLabel				orientationLabel		= new JLabel();
+		private JTextField			orientationTextField	= new JTextField();
+		private JLabel				deltaHeightLabel		= new JLabel();
+		private JTextField			deltaHeightTextField	= new JTextField();
+		private JLabel				deltaVertLabel			= new JLabel();
+		private JTextField			deltaVertTextField		= new JTextField();
 
 		/**
 		 *
@@ -178,50 +177,26 @@ public class ObjectProperties extends PropertyPanel
 		 */
 		private void initialize(TrackObject object)
 		{
-			nameLabel = new JLabel();
-			objectLabel = new JLabel();
-			colorLabel = new JLabel();
-			orientationTypeLabel = new JLabel();
-			orientationLabel = new JLabel();
-			deltaHeightLabel = new JLabel();
-			deltaVertLabel = new JLabel();
-			nameLabel.setBounds(10, 10, 160, 20);
-			nameLabel.setText("Name");
-			objectLabel.setBounds(10, 35, 160, 20);
-			objectLabel.setText("Object");
-			colorLabel.setBounds(10, 60, 160, 20);
-			colorLabel.setText("Color");
-			orientationTypeLabel.setBounds(10, 85, 160, 20);
-			orientationTypeLabel.setText("Orientation Type");
-			orientationLabel.setBounds(10, 110, 160, 20);
-			orientationLabel.setText("Orientation");
-			deltaHeightLabel.setBounds(10, 135, 160, 20);
-			deltaHeightLabel.setText("Delta Height");
-			deltaVertLabel.setBounds(10, 160, 160, 20);
-			deltaVertLabel.setText("Delta Vert");
-			add(nameLabel);
-			add(objectLabel);
-			add(colorLabel);
-			add(orientationTypeLabel);
-			add(orientationLabel);
-			add(deltaHeightLabel);
-			add(deltaVertLabel);
 			setLayout(null);
-			add(getNameTextField(), null);
-			add(getObjectTextField(), null);
-			add(getColorTextField(), null);
-			add(getOrientationTypeComboBox(), null);
-			add(getOrientationTextField(), null);
-			add(getDeltaHeightTextField(), null);
-			add(getDeltaVertTextField(), null);
 
-			getNameTextField().setText(object.getName());
-			getObjectTextField().setText(object.getObject());
-			getColorTextField().setText(getString(object.getColor()));
+			addLabel(this, 0, nameLabel, "Name", 160);
+			addLabel(this, 1, objectLabel, "Object", 160);
+			addLabel(this, 2, colorLabel, "Color", 160);
+			addLabel(this, 3, orientationTypeLabel, "Orientation Type", 160);
+			addLabel(this, 4, orientationLabel, "Orientation", 160);
+			addLabel(this, 5, deltaHeightLabel, "Delta Height", 160);
+			addLabel(this, 6, deltaVertLabel, "Delta Vert", 160);
+
+			addTextField(this, 0, nameTextField, object.getName(), 120, 100);
+			addTextField(this, 1, objectTextField, object.getObject(), 120, 100);
+			addTextField(this, 2, colorTextField, getString(object.getColor()), 120, 100);
+
+			add(getOrientationTypeComboBox(), null);
 			getOrientationTypeComboBox().setSelectedItem(getString(object.getOrientationType()));
-			getOrientationTextField().setText(getString(object.getOrientation()));
-			getDeltaHeightTextField().setText(getString(object.getDeltaHeight()));
-			getDeltaVertTextField().setText(getString(object.getDeltaVert()));
+
+			addTextField(this, 4, orientationTextField, getString(object.getOrientation()), 120, 100);
+			addTextField(this, 5, deltaHeightTextField, getString(object.getDeltaHeight()), 120, 100);
+			addTextField(this, 6, deltaVertTextField, getString(object.getDeltaVert()), 120, 100);
 		}
 
 		private String getString(double value)
@@ -246,41 +221,6 @@ public class ObjectProperties extends PropertyPanel
 			return string;
 		}
 
-		/**
-		 * This method initializes nameTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getNameTextField()
-		{
-			if (nameTextField == null)
-			{
-				nameTextField = new JTextField();
-				nameTextField.setBounds(120, 10, 100, 20);
-			}
-			return nameTextField;
-		}
-
-		public JTextField getObjectTextField()
-		{
-			if (objectTextField == null)
-			{
-				objectTextField = new JTextField();
-				objectTextField.setBounds(120, 35, 100, 20);
-			}
-			return objectTextField;
-		}
-
-		public JTextField getColorTextField()
-		{
-			if (colorTextField == null)
-			{
-				colorTextField = new JTextField();
-				colorTextField.setBounds(120, 60, 100, 20);
-			}
-			return colorTextField;
-		}
-
 		public JComboBox<String> getOrientationTypeComboBox()
 		{
 			if (orientationTypeComboBox == null)
@@ -290,36 +230,6 @@ public class ObjectProperties extends PropertyPanel
 				orientationTypeComboBox.setBounds(120, 85, 120, 20);
 			}
 			return orientationTypeComboBox;
-		}
-
-		public JTextField getOrientationTextField()
-		{
-			if (orientationTextField == null)
-			{
-				orientationTextField = new JTextField();
-				orientationTextField.setBounds(120, 110, 100, 20);
-			}
-			return orientationTextField;
-		}
-
-		public JTextField getDeltaHeightTextField()
-		{
-			if (deltaHeightTextField == null)
-			{
-				deltaHeightTextField = new JTextField();
-				deltaHeightTextField.setBounds(120, 135, 100, 20);
-			}
-			return deltaHeightTextField;
-		}
-
-		public JTextField getDeltaVertTextField()
-		{
-			if (deltaVertTextField == null)
-			{
-				deltaVertTextField = new JTextField();
-				deltaVertTextField.setBounds(120, 160, 100, 20);
-			}
-			return deltaVertTextField;
 		}
 	}
 
@@ -343,19 +253,19 @@ public class ObjectProperties extends PropertyPanel
             TrackObject object = objects.elementAt(i);
             ObjectPanel panel = (ObjectPanel) tabbedPane.getComponentAt(i);
 
-            if (isDifferent(panel.getNameTextField().getText(), object.getName(), stringResult))
+            if (isDifferent(panel.nameTextField.getText(), object.getName(), stringResult))
             {
                 object.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getObjectTextField().getText(), object.getObject(), stringResult))
+            if (isDifferent(panel.objectTextField.getText(), object.getObject(), stringResult))
             {
                 object.setObject(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorTextField().getText(), object.getColor(), integerResult))
+            if (isDifferent(panel.colorTextField.getText(), object.getColor(), integerResult))
             {
                 object.setColor(integerResult.getValue());
                 frame.documentIsModified = true;
@@ -367,19 +277,19 @@ public class ObjectProperties extends PropertyPanel
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getOrientationTextField().getText(), object.getOrientation(), doubleResult))
+            if (isDifferent(panel.orientationTextField.getText(), object.getOrientation(), doubleResult))
             {
                 object.setOrientation(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getDeltaHeightTextField().getText(), object.getDeltaHeight(), doubleResult))
+            if (isDifferent(panel.deltaHeightTextField.getText(), object.getDeltaHeight(), doubleResult))
             {
                 object.setDeltaHeight(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getDeltaVertTextField().getText(), object.getDeltaVert(), doubleResult))
+            if (isDifferent(panel.deltaVertTextField.getText(), object.getDeltaVert(), doubleResult))
             {
                 object.setDeltaVert(doubleResult.getValue());
                 frame.documentIsModified = true;
@@ -401,13 +311,13 @@ public class ObjectProperties extends PropertyPanel
 	            ObjectPanel panel = (ObjectPanel) tabbedPane.getComponentAt(objects.size());
 				TrackObject object = new TrackObject();
 
-				object.setName(panel.getNameTextField().getText());
-				object.setObject(panel.getObjectTextField().getText());
-				object.setColor(getInteger(panel.getColorTextField().getText()));
-				object.setOrientationType(getString(panel.getOrientationTypeComboBox().getSelectedItem().toString()));
-				object.setOrientation(getDouble(panel.getOrientationTextField().getText()));
-				object.setDeltaHeight(getDouble(panel.getDeltaHeightTextField().getText()));
-				object.setDeltaVert(getDouble(panel.getDeltaVertTextField().getText()));
+				object.setName(panel.nameTextField.getText());
+				object.setObject(panel.objectTextField.getText());
+				object.setColor(getInteger(panel.colorTextField.getText()));
+				object.setOrientationType(getString(panel.orientationTypeComboBox.getSelectedItem().toString()));
+				object.setOrientation(getDouble(panel.orientationTextField.getText()));
+				object.setDeltaHeight(getDouble(panel.deltaHeightTextField.getText()));
+				object.setDeltaVert(getDouble(panel.deltaVertTextField.getText()));
 
 				objects.add(object);
 			}
