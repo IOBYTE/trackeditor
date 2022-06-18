@@ -65,7 +65,6 @@ public class TrackLightProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
 		this.add(getTabbedPane(), null);
 		this.add(getAddTrackLightButton(), null);
 		this.add(getDeleteTrackLightButton(), null);
@@ -151,36 +150,36 @@ public class TrackLightProperties extends PropertyPanel
 
 	private class TrackLightPanel extends JPanel
 	{
-		private JLabel				nameLabel				= null;
-		private JTextField 			nameTextField			= null;
-		private JLabel				roleLabel				= null;
-		private JTextField			roleTextField			= null;
-		private JLabel				topLeftXLabel			= null;
-		private JTextField			topLeftXTextField		= null;
-		private JLabel				topLeftYLabel			= null;
-		private JTextField			topLeftYTextField		= null;
-		private JLabel				topLeftZLabel			= null;
-		private JTextField			topLeftZTextField		= null;
-		private JLabel				bottomRightXLabel		= null;
-		private JTextField			bottomRightXTextField	= null;
-		private JLabel				bottomRightYLabel		= null;
-		private JTextField			bottomRightYTextField	= null;
-		private JLabel				bottomRightZLabel		= null;
-		private JTextField			bottomRightZTextField	= null;
-		private JLabel				textureOnLabel			= null;
-		private JTextField			textureOnTextField		= null;
+		private JLabel				nameLabel				= new JLabel();
+		private JTextField 			nameTextField			= new JTextField();
+		private JLabel				roleLabel				= new JLabel();
+		private JTextField			roleTextField			= new JTextField();
+		private JLabel				topLeftXLabel			= new JLabel();
+		private JTextField			topLeftXTextField		= new JTextField();
+		private JLabel				topLeftYLabel			= new JLabel();
+		private JTextField			topLeftYTextField		= new JTextField();
+		private JLabel				topLeftZLabel			= new JLabel();
+		private JTextField			topLeftZTextField		= new JTextField();
+		private JLabel				bottomRightXLabel		= new JLabel();
+		private JTextField			bottomRightXTextField	= new JTextField();
+		private JLabel				bottomRightYLabel		= new JLabel();
+		private JTextField			bottomRightYTextField	= new JTextField();
+		private JLabel				bottomRightZLabel		= new JLabel();
+		private JTextField			bottomRightZTextField	= new JTextField();
+		private JLabel				textureOnLabel			= new JLabel();
+		private JTextField			textureOnTextField		= new JTextField();
 		private JButton				textureOnButton			= null;
-		private JLabel				textureOffLabel			= null;
-		private JTextField			textureOffTextField		= null;
+		private JLabel				textureOffLabel			= new JLabel();
+		private JTextField			textureOffTextField		= new JTextField();
 		private JButton				textureOffButton		= null;
-		private JLabel				indexLabel				= null;
-		private JTextField			indexTextField			= null;
-		private JLabel				redLabel				= null;
-		private JTextField			redTextField			= null;
-		private JLabel				greenLabel				= null;
-		private JTextField			greenTextField			= null;
-		private JLabel				blueLabel				= null;
-		private JTextField			blueTextField			= null;
+		private JLabel				indexLabel				= new JLabel();
+		private JTextField			indexTextField			= new JTextField();
+		private JLabel				redLabel				= new JLabel();
+		private JTextField			redTextField			= new JTextField();
+		private JLabel				greenLabel				= new JLabel();
+		private JTextField			greenTextField			= new JTextField();
+		private JLabel				blueLabel				= new JLabel();
+		private JTextField			blueTextField			= new JTextField();
 
 		private final String sep = System.getProperty("file.separator");
 
@@ -198,94 +197,40 @@ public class TrackLightProperties extends PropertyPanel
 		 */
 		private void initialize(TrackLight light)
 		{
-			nameLabel = new JLabel();
-			roleLabel = new JLabel();
-			topLeftXLabel = new JLabel();
-			topLeftYLabel = new JLabel();
-			topLeftZLabel = new JLabel();
-			bottomRightXLabel = new JLabel();
-			bottomRightYLabel = new JLabel();
-			bottomRightZLabel = new JLabel();
-			textureOnLabel = new JLabel();
-			textureOffLabel = new JLabel();
-			indexLabel = new JLabel();
-			redLabel = new JLabel();
-			greenLabel = new JLabel();
-			blueLabel = new JLabel();
-			nameLabel.setBounds(10, 10, 160, 20);
-			nameLabel.setText("Name");
-			roleLabel.setBounds(10, 35, 160, 20);
-			roleLabel.setText("Role");
-			topLeftXLabel.setBounds(10, 60, 160, 20);
-			topLeftXLabel.setText("Top Lext X");
-			topLeftYLabel.setBounds(10, 85, 160, 20);
-			topLeftYLabel.setText("Top Left Right");
-			topLeftZLabel.setBounds(10, 110, 160, 20);
-			topLeftZLabel.setText("Top Left Z");
-			bottomRightXLabel.setBounds(10, 135, 160, 20);
-			bottomRightXLabel.setText("Bottom Right X");
-			bottomRightYLabel.setBounds(10, 160, 160, 20);
-			bottomRightYLabel.setText("Bottom Right Y");
-			bottomRightZLabel.setBounds(10, 185, 160, 20);
-			bottomRightZLabel.setText("Bottom Right Z");
-			textureOnLabel.setBounds(10, 210, 160, 20);
-			textureOnLabel.setText("Texture On");
-			textureOffLabel.setBounds(10, 235, 160, 20);
-			textureOffLabel.setText("Texture Off");
-			indexLabel.setBounds(10, 260, 160, 20);
-			indexLabel.setText("Index");
-			redLabel.setBounds(10, 285, 160, 20);
-			redLabel.setText("Red");
-			greenLabel.setBounds(10, 310, 160, 20);
-			greenLabel.setText("Green");
-			blueLabel.setBounds(10, 335, 160, 20);
-			blueLabel.setText("Blue");
-			add(nameLabel);
-			add(roleLabel);
-			add(topLeftXLabel);
-			add(topLeftYLabel);
-			add(topLeftZLabel);
-			add(bottomRightXLabel);
-			add(bottomRightYLabel);
-			add(bottomRightZLabel);
-			add(textureOnLabel);
-			add(textureOffLabel);
-			add(indexLabel);
-			add(redLabel);
-			add(greenLabel);
-			add(blueLabel);
 			setLayout(null);
-			add(getNameTextField(), null);
-			add(getRoleTextField(), null);
-			add(getTopLeftXTextField(), null);
-			add(getTopLeftYTextField(), null);
-			add(getTopLeftZTextField(), null);
-			add(getBottomRightXTextField(), null);
-			add(getBottomRightYTextField(), null);
-			add(getBottomRightZTextField(), null);
-			add(getTextureOnTextField(), null);
-			add(getTextureOffTextField(), null);
-			add(getIndexTextField(), null);
-			add(getRedTextField(), null);
-			add(getGreenTextField(), null);
-			add(getBlueTextField(), null);
+
+			addLabel(this, 0, nameLabel, "Name", 160);
+			addLabel(this, 1, roleLabel, "Role", 160);
+			addLabel(this, 2, topLeftXLabel, "Top Lext X", 160);
+			addLabel(this, 3, topLeftYLabel, "Top Left RY", 160);
+			addLabel(this, 4, topLeftZLabel, "Top Left Z", 160);
+			addLabel(this, 5, bottomRightXLabel, "Bottom Right X", 160);
+			addLabel(this, 6, bottomRightYLabel, "Bottom Right Y", 160);
+			addLabel(this, 7, bottomRightZLabel, "Bottom Right Z", 160);
+			addLabel(this, 8, textureOnLabel, "Texture On", 160);
+			addLabel(this, 9, textureOffLabel, "Texture Off", 160);
+			addLabel(this, 10, indexLabel, "Index", 160);
+			addLabel(this, 11, redLabel, "Red", 160);
+			addLabel(this, 12, greenLabel, "Green", 160);
+			addLabel(this, 13, blueLabel, "Blue", 160);
+
+			addTextField(this, 0, nameTextField, light.getName(), 120, 100);
+			addTextField(this, 1, roleTextField, light.getRole(), 120, 100);
+			addTextField(this, 2, topLeftXTextField, getString(light.getTopLeftX()), 120, 100);
+			addTextField(this, 3, topLeftYTextField, getString(light.getTopLeftY()), 120, 100);
+			addTextField(this, 4, topLeftZTextField, getString(light.getTopLeftZ()), 120, 100);
+			addTextField(this, 5, bottomRightXTextField, getString(light.getBottomRightX()), 120, 100);
+			addTextField(this, 6, bottomRightYTextField, getString(light.getBottomRightY()), 120, 100);
+			addTextField(this, 7, bottomRightZTextField, getString(light.getBottomRightZ()), 120, 100);
+			addTextField(this, 8, textureOnTextField, light.getTextureOn(), 120, 240);
+			addTextField(this, 9, textureOffTextField, light.getTextureOff(), 120, 240);
+			addTextField(this, 10, indexTextField, getString(light.getIndex()), 120, 100);
+			addTextField(this, 11, redTextField, getString(light.getRed()), 120, 100);
+			addTextField(this, 12, greenTextField, getString(light.getGreen()), 120, 100);
+			addTextField(this, 13, blueTextField, getString(light.getBlue()), 120, 100);
+
 			add(getTextureOnButton(), null);
 			add(getTextureOffButton(), null);
-
-			getNameTextField().setText(light.getName());
-			getRoleTextField().setText(light.getRole());
-			getTopLeftXTextField().setText(getString(light.getTopLeftX()));
-			getTopLeftYTextField().setText(getString(light.getTopLeftY()));
-			getTopLeftZTextField().setText(getString(light.getTopLeftZ()));
-			getBottomRightXTextField().setText(getString(light.getBottomRightX()));
-			getBottomRightYTextField().setText(getString(light.getBottomRightY()));
-			getBottomRightZTextField().setText(getString(light.getBottomRightZ()));
-			getTextureOnTextField().setText(light.getTextureOn());
-			getTextureOffTextField().setText(light.getTextureOff());
-			getIndexTextField().setText(getString(light.getIndex()));
-			getRedTextField().setText(getString(light.getRed()));
-			getGreenTextField().setText(getString(light.getGreen()));
-			getBlueTextField().setText(getString(light.getBlue()));
 		}
 
 		private String getString(double value)
@@ -301,101 +246,6 @@ public class TrackLightProperties extends PropertyPanel
 				return Integer.toString(value);
 
 			return null;
-		}
-
-		/**
-		 * This method initializes nameTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getNameTextField()
-		{
-			if (nameTextField == null)
-			{
-				nameTextField = new JTextField();
-				nameTextField.setBounds(120, 10, 100, 20);
-			}
-			return nameTextField;
-		}
-
-		public JTextField getRoleTextField()
-		{
-			if (roleTextField == null)
-			{
-				roleTextField = new JTextField();
-				roleTextField.setBounds(120, 35, 100, 20);
-			}
-			return roleTextField;
-		}
-
-		public JTextField getTopLeftXTextField()
-		{
-			if (topLeftXTextField == null)
-			{
-				topLeftXTextField = new JTextField();
-				topLeftXTextField.setBounds(120, 60, 100, 20);
-			}
-			return topLeftXTextField;
-		}
-
-		public JTextField getTopLeftYTextField()
-		{
-			if (topLeftYTextField == null)
-			{
-				topLeftYTextField = new JTextField();
-				topLeftYTextField.setBounds(120, 85, 100, 20);
-			}
-			return topLeftYTextField;
-		}
-
-		public JTextField getTopLeftZTextField()
-		{
-			if (topLeftZTextField == null)
-			{
-				topLeftZTextField = new JTextField();
-				topLeftZTextField.setBounds(120, 110, 100, 20);
-			}
-			return topLeftZTextField;
-		}
-
-		public JTextField getBottomRightXTextField()
-		{
-			if (bottomRightXTextField == null)
-			{
-				bottomRightXTextField = new JTextField();
-				bottomRightXTextField.setBounds(120, 135, 100, 20);
-			}
-			return bottomRightXTextField;
-		}
-
-		public JTextField getBottomRightYTextField()
-		{
-			if (bottomRightYTextField == null)
-			{
-				bottomRightYTextField = new JTextField();
-				bottomRightYTextField.setBounds(120, 160, 100, 20);
-			}
-			return bottomRightYTextField;
-		}
-
-		public JTextField getBottomRightZTextField()
-		{
-			if (bottomRightZTextField == null)
-			{
-				bottomRightZTextField = new JTextField();
-				bottomRightZTextField.setBounds(120, 185, 100, 20);
-			}
-			return bottomRightZTextField;
-		}
-
-		public JTextField getTextureOnTextField()
-		{
-			if (textureOnTextField == null)
-			{
-				textureOnTextField = new JTextField();
-				textureOnTextField.setBounds(120, 210, 240, 20);
-			}
-			return textureOnTextField;
 		}
 
 		private JButton getTextureOnButton()
@@ -416,16 +266,6 @@ public class TrackLightProperties extends PropertyPanel
 			return textureOnButton;
 		}
 
-		public JTextField getTextureOffTextField()
-		{
-			if (textureOffTextField == null)
-			{
-				textureOffTextField = new JTextField();
-				textureOffTextField.setBounds(120, 235, 240, 20);
-			}
-			return textureOffTextField;
-		}
-
 		private JButton getTextureOffButton()
 		{
 			if (textureOffButton == null)
@@ -442,46 +282,6 @@ public class TrackLightProperties extends PropertyPanel
 				});
 			}
 			return textureOffButton;
-		}
-
-		public JTextField getIndexTextField()
-		{
-			if (indexTextField == null)
-			{
-				indexTextField = new JTextField();
-				indexTextField.setBounds(120, 260, 100, 20);
-			}
-			return indexTextField;
-		}
-
-		public JTextField getRedTextField()
-		{
-			if (redTextField == null)
-			{
-				redTextField = new JTextField();
-				redTextField.setBounds(120, 285, 100, 20);
-			}
-			return redTextField;
-		}
-
-		public JTextField getGreenTextField()
-		{
-			if (greenTextField == null)
-			{
-				greenTextField = new JTextField();
-				greenTextField.setBounds(120, 310, 100, 20);
-			}
-			return greenTextField;
-		}
-
-		public JTextField getBlueTextField()
-		{
-			if (blueTextField == null)
-			{
-				blueTextField = new JTextField();
-				blueTextField.setBounds(120, 335, 100, 20);
-			}
-			return blueTextField;
 		}
 
 		protected void textureOnFile()
@@ -505,7 +305,7 @@ public class TrackLightProperties extends PropertyPanel
 				String pathToFile = fileName.substring(0, index);
 				if (pathToFile.equals(Editor.getProperties().getPath()))
 					fileName = fileName.substring(index + 1);
-				getTextureOnTextField().setText(fileName);
+				textureOnTextField.setText(fileName);
 			}
 		}
 
@@ -530,7 +330,7 @@ public class TrackLightProperties extends PropertyPanel
 				String pathToFile = fileName.substring(0, index);
 				if (pathToFile.equals(Editor.getProperties().getPath()))
 					fileName = fileName.substring(index + 1);
-				getTextureOffTextField().setText(fileName);
+				textureOffTextField.setText(fileName);
 			}
 		}
 	}
@@ -555,67 +355,85 @@ public class TrackLightProperties extends PropertyPanel
             TrackLight light = lights.elementAt(i);
             TrackLightPanel panel = (TrackLightPanel) tabbedPane.getComponentAt(i);
 
-            if (isDifferent(panel.getNameTextField().getText(), light.getName(), stringResult))
+            if (isDifferent(panel.nameTextField.getText(), light.getName(), stringResult))
             {
                 light.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRoleTextField().getText(), light.getRole(), stringResult))
+            if (isDifferent(panel.roleTextField.getText(), light.getRole(), stringResult))
             {
                 light.setRole(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTopLeftXTextField().getText(), light.getTopLeftX(), doubleResult))
+            if (isDifferent(panel.topLeftXTextField.getText(), light.getTopLeftX(), doubleResult))
             {
                 light.setTopLeftX(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTopLeftYTextField().getText(), light.getTopLeftY(), doubleResult))
+            if (isDifferent(panel.topLeftYTextField.getText(), light.getTopLeftY(), doubleResult))
             {
                 light.setTopLeftY(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTopLeftZTextField().getText(), light.getTopLeftZ(), doubleResult))
+            if (isDifferent(panel.topLeftZTextField.getText(), light.getTopLeftZ(), doubleResult))
             {
                 light.setTopLeftZ(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTextureOnTextField().getText(), light.getTextureOn(), stringResult))
+            if (isDifferent(panel.bottomRightXTextField.getText(), light.getBottomRightX(), doubleResult))
+            {
+                light.setBottomRightX(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.bottomRightYTextField.getText(), light.getBottomRightY(), doubleResult))
+            {
+                light.setBottomRightY(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.bottomRightZTextField.getText(), light.getBottomRightZ(), doubleResult))
+            {
+                light.setBottomRightZ(doubleResult.getValue());
+                frame.documentIsModified = true;
+            }
+
+            if (isDifferent(panel.textureOnTextField.getText(), light.getTextureOn(), stringResult))
             {
                 light.setTextureOn(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTextureOffTextField().getText(), light.getTextureOff(), stringResult))
+            if (isDifferent(panel.textureOffTextField.getText(), light.getTextureOff(), stringResult))
             {
                 light.setTextureOff(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getIndexTextField().getText(), light.getIndex(), integerResult))
+            if (isDifferent(panel.indexTextField.getText(), light.getIndex(), integerResult))
             {
                 light.setIndex(integerResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRedTextField().getText(), light.getRed(), doubleResult))
+            if (isDifferent(panel.redTextField.getText(), light.getRed(), doubleResult))
             {
                 light.setRed(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getGreenTextField().getText(), light.getGreen(), doubleResult))
+            if (isDifferent(panel.greenTextField.getText(), light.getGreen(), doubleResult))
             {
                 light.setGreen(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getBlueTextField().getText(), light.getBlue(), doubleResult))
+            if (isDifferent(panel.blueTextField.getText(), light.getBlue(), doubleResult))
             {
                 light.setBlue(doubleResult.getValue());
                 frame.documentIsModified = true;
@@ -637,20 +455,20 @@ public class TrackLightProperties extends PropertyPanel
 	            TrackLightPanel panel = (TrackLightPanel) tabbedPane.getComponentAt(lights.size());
 				TrackLight light = new TrackLight();
 
-				light.setName(panel.getNameTextField().getText());
-				light.setRole(panel.getRoleTextField().getText());
-				light.setTopLeftX(getDouble(panel.getTopLeftXTextField().getText()));
-				light.setTopLeftY(getDouble(panel.getTopLeftYTextField().getText()));
-				light.setTopLeftZ(getDouble(panel.getTopLeftZTextField().getText()));
-				light.setBottomRightX(getDouble(panel.getBottomRightXTextField().getText()));
-				light.setBottomRightY(getDouble(panel.getBottomRightYTextField().getText()));
-				light.setBottomRightZ(getDouble(panel.getBottomRightZTextField().getText()));
-				light.setTextureOn(panel.getTextureOnTextField().getText());
-				light.setTextureOff(panel.getTextureOffTextField().getText());
-				light.setIndex(getInteger(panel.getIndexTextField().getText()));
-				light.setRed(getDouble(panel.getRedTextField().getText()));
-				light.setGreen(getDouble(panel.getGreenTextField().getText()));
-				light.setBlue(getDouble(panel.getBlueTextField().getText()));
+				light.setName(panel.nameTextField.getText());
+				light.setRole(panel.roleTextField.getText());
+				light.setTopLeftX(getDouble(panel.topLeftXTextField.getText()));
+				light.setTopLeftY(getDouble(panel.topLeftYTextField.getText()));
+				light.setTopLeftZ(getDouble(panel.topLeftZTextField.getText()));
+				light.setBottomRightX(getDouble(panel.bottomRightXTextField.getText()));
+				light.setBottomRightY(getDouble(panel.bottomRightYTextField.getText()));
+				light.setBottomRightZ(getDouble(panel.bottomRightZTextField.getText()));
+				light.setTextureOn(panel.textureOnTextField.getText());
+				light.setTextureOff(panel.textureOffTextField.getText());
+				light.setIndex(getInteger(panel.indexTextField.getText()));
+				light.setRed(getDouble(panel.redTextField.getText()));
+				light.setGreen(getDouble(panel.greenTextField.getText()));
+				light.setBlue(getDouble(panel.blueTextField.getText()));
 
 				lights.add(light);
 			}
