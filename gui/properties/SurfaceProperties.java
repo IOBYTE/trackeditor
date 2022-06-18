@@ -66,7 +66,6 @@ public class SurfaceProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-		this.setSize(362, 251);
 		this.add(getTabbedPane(), null);
 		this.add(getAddSurfaceButton(), null);
 		this.add(getDeleteSurfaceButton(), null);
@@ -152,50 +151,50 @@ public class SurfaceProperties extends PropertyPanel
 
 	private class SurfacePanel extends JPanel
 	{
-		private JLabel				nameLabel						= null;
-		private JTextField 			nameTextField					= null;
-		private JLabel				colorR1Label					= null;
-		private JTextField			colorR1TextField				= null;
-		private JLabel				colorG1Label					= null;
-		private JTextField			colorG1TextField				= null;
-		private JLabel				colorB1Label					= null;
-		private JTextField			colorB1TextField				= null;
-		private JLabel				colorR2Label					= null;
-		private JTextField			colorR2TextField				= null;
-		private JLabel				colorG2Label					= null;
-		private JTextField			colorG2TextField				= null;
-		private JLabel				colorB2Label					= null;
-		private JTextField			colorB2TextField				= null;
-		private JLabel				textureNameLabel				= null;
-		private JTextField			textureNameTextField			= null;
-		private JLabel				textureTypeLabel				= null;
+		private JLabel				nameLabel						= new JLabel();
+		private JTextField 			nameTextField					= new JTextField();
+		private JLabel				colorR1Label					= new JLabel();
+		private JTextField			colorR1TextField				= new JTextField();
+		private JLabel				colorG1Label					= new JLabel();
+		private JTextField			colorG1TextField				= new JTextField();
+		private JLabel				colorB1Label					= new JLabel();
+		private JTextField			colorB1TextField				= new JTextField();
+		private JLabel				colorR2Label					= new JLabel();
+		private JTextField			colorR2TextField				= new JTextField();
+		private JLabel				colorG2Label					= new JLabel();
+		private JTextField			colorG2TextField				= new JTextField();
+		private JLabel				colorB2Label					= new JLabel();
+		private JTextField			colorB2TextField				= new JTextField();
+		private JLabel				textureNameLabel				= new JLabel();
+		private JTextField			textureNameTextField			= new JTextField();
+		private JLabel				textureTypeLabel				= new JLabel();
 		private JComboBox<String>	textureTypeComboBox				= null;
-		private JLabel				textureSizeLabel				= null;
-		private JTextField			textureSizeTextField			= null;
-		private JLabel				textureLinkWithPreviousLabel	= null;
+		private JLabel				textureSizeLabel				= new JLabel();
+		private JTextField			textureSizeTextField			= new JTextField();
+		private JLabel				textureLinkWithPreviousLabel	= new JLabel();
 		private JComboBox<String>	textureLinkWithPreviousComboBox	= null;
-		private JLabel				textureStartOnBoundaryLabel		= null;
+		private JLabel				textureStartOnBoundaryLabel		= new JLabel();
 		private JComboBox<String>	textureStartOnBoundaryComboBox	= null;
-		private JLabel				textureMipMapLabel				= null;
-		private JTextField			textureMipMapTextField			= null;
-		private JLabel				frictionLabel					= null;
-		private JTextField 			frictionTextField				= null;
-		private JLabel				rollingResistanceLabel			= null;
-		private JTextField 			rollingResistanceTextField		= null;
-		private JLabel				bumpNameLabel					= null;
-		private JTextField 			bumpNameTextField				= null;
-		private JLabel				bumpSizeLabel					= null;
-		private JTextField 			bumpSizeTextField				= null;
-		private JLabel				roughnessLabel					= null;
-		private JTextField 			roughnessTextField				= null;
-		private JLabel				roughnessWavelengthLabel		= null;
-		private JTextField 			roughnessWavelengthTextField	= null;
-		private JLabel				racelineNameLabel				= null;
-		private JTextField 			racelineNameTextField			= null;
-		private JLabel				damageLabel						= null;
-		private JTextField 			damageTextField					= null;
-		private JLabel				reboundLabel					= null;
-		private JTextField 			reboundTextField				= null;
+		private JLabel				textureMipMapLabel				= new JLabel();
+		private JTextField			textureMipMapTextField			= new JTextField();
+		private JLabel				frictionLabel					= new JLabel();
+		private JTextField 			frictionTextField				= new JTextField();
+		private JLabel				rollingResistanceLabel			= new JLabel();
+		private JTextField 			rollingResistanceTextField		= new JTextField();
+		private JLabel				bumpNameLabel					= new JLabel();
+		private JTextField 			bumpNameTextField				= new JTextField();
+		private JLabel				bumpSizeLabel					= new JLabel();
+		private JTextField 			bumpSizeTextField				= new JTextField();
+		private JLabel				roughnessLabel					= new JLabel();
+		private JTextField 			roughnessTextField				= new JTextField();
+		private JLabel				roughnessWavelengthLabel		= new JLabel();
+		private JTextField 			roughnessWavelengthTextField	= new JTextField();
+		private JLabel				racelineNameLabel				= new JLabel();
+		private JTextField 			racelineNameTextField			= new JTextField();
+		private JLabel				damageLabel						= new JLabel();
+		private JTextField 			damageTextField					= new JTextField();
+		private JLabel				reboundLabel					= new JLabel();
+		private JTextField 			reboundTextField				= new JTextField();
 		private JButton				browseButton					= null;
 
 		private final String sep = System.getProperty("file.separator");
@@ -214,143 +213,62 @@ public class SurfaceProperties extends PropertyPanel
 		 */
 		private void initialize(Surface surface)
 		{
-			nameLabel = new JLabel();
-			colorR1Label = new JLabel();
-			colorG1Label = new JLabel();
-			colorB1Label = new JLabel();
-			colorR2Label = new JLabel();
-			colorG2Label = new JLabel();
-			colorB2Label = new JLabel();
-			textureNameLabel = new JLabel();
-			textureTypeLabel = new JLabel();
-			textureSizeLabel = new JLabel();
-			textureLinkWithPreviousLabel = new JLabel();
-			textureStartOnBoundaryLabel = new JLabel();
-			textureMipMapLabel = new JLabel();
-			frictionLabel = new JLabel();
-			rollingResistanceLabel = new JLabel();
-			bumpNameLabel = new JLabel();
-			bumpSizeLabel = new JLabel();
-			roughnessLabel = new JLabel();
-			roughnessWavelengthLabel = new JLabel();
-			racelineNameLabel = new JLabel();
-			damageLabel = new JLabel();
-			reboundLabel = new JLabel();
-
-			nameLabel.setBounds(10, 10, 160, 20);
-			nameLabel.setText("Name");
-			colorR1Label.setBounds(10, 35, 160, 20);
-			colorR1Label.setText("Color R1");
-			colorG1Label.setBounds(10, 60, 160, 20);
-			colorG1Label.setText("Color G1");
-			colorB1Label.setBounds(10, 85, 160, 20);
-			colorB1Label.setText("Color B1");
-			colorR2Label.setBounds(10, 110, 160, 20);
-			colorR2Label.setText("Color R2");
-			colorG2Label.setBounds(10, 135, 160, 20);
-			colorG2Label.setText("Color G2");
-			colorB2Label.setBounds(10, 160, 160, 20);
-			colorB2Label.setText("Color B2");
-			textureNameLabel.setBounds(10, 185, 160, 20);
-			textureNameLabel.setText("Texture Name");
-			textureTypeLabel.setBounds(10, 210, 160, 20);
-			textureTypeLabel.setText("Texture Type");
-			textureSizeLabel.setBounds(10, 235, 160, 20);
-			textureSizeLabel.setText("Texture Size");
-			textureLinkWithPreviousLabel.setBounds(10, 260, 160, 20);
-			textureLinkWithPreviousLabel.setText("Texture Link With Previous");
-			textureStartOnBoundaryLabel.setBounds(10, 285, 160, 20);
-			textureStartOnBoundaryLabel.setText("Texture Start On Boundary");
-			textureMipMapLabel.setBounds(10, 310, 160, 20);
-			textureMipMapLabel.setText("Texture MipMap");
-			frictionLabel.setBounds(10, 335, 160, 20);
-			frictionLabel.setText("Friction");
-			rollingResistanceLabel.setBounds(10, 360, 160, 20);
-			rollingResistanceLabel.setText("Rolling Resistance");
-			bumpNameLabel.setBounds(10, 385, 160, 20);
-			bumpNameLabel.setText("Bump Name");
-			bumpSizeLabel.setBounds(10, 410, 160, 20);
-			bumpSizeLabel.setText("Bump Size");
-			roughnessLabel.setBounds(10, 435, 160, 20);
-			roughnessLabel.setText("Roughness");
-			roughnessWavelengthLabel.setBounds(10, 460, 160, 20);
-			roughnessWavelengthLabel.setText("Roughness Wavelength");
-			racelineNameLabel.setBounds(10, 485, 160, 20);
-			racelineNameLabel.setText("Raceline Name");
-			damageLabel.setBounds(10, 510, 160, 20);
-			damageLabel.setText("Damage");
-			reboundLabel.setBounds(10, 535, 160, 20);
-			reboundLabel.setText("Rebound");
-
-			add(nameLabel);
-			add(colorR1Label);
-			add(colorG1Label);
-			add(colorB1Label);
-			add(colorR2Label);
-			add(colorG2Label);
-			add(colorB2Label);
-			add(textureNameLabel);
-			add(textureTypeLabel);
-			add(textureSizeLabel);
-			add(textureLinkWithPreviousLabel);
-			add(textureStartOnBoundaryLabel);
-			add(textureMipMapLabel);
-			add(frictionLabel);
-			add(rollingResistanceLabel);
-			add(bumpNameLabel);
-			add(bumpSizeLabel);
-			add(roughnessLabel);
-			add(roughnessWavelengthLabel);
-			add(racelineNameLabel);
-			add(damageLabel);
-			add(reboundLabel);
 			setLayout(null);
-			add(getNameTextField(), null);
-			add(getColorR1TextField(), null);
-			add(getColorG1TextField(), null);
-			add(getColorB1TextField(), null);
-			add(getColorR2TextField(), null);
-			add(getColorG2TextField(), null);
-			add(getColorB2TextField(), null);
-			add(getTextureNameTextField(), null);
-			add(getTextureTypeComboBox(), null);
-			add(getTextureSizeTextField(), null);
-			add(getTextureLinkWithPreviousComboBox(), null);
-			add(getTextureStartOnBoundaryComboBox(), null);
-			add(getTextureMipMapTextField(), null);
-			add(getFrictionTextField(), null);
-			add(getRollingResistanceTextField(), null);
-			add(getBumpNameTextField(), null);
-			add(getBumpSizeTextField(), null);
-			add(getRoughnessTextField(), null);
-			add(getRoughnessWavelengthTextField(), null);
-			add(getRacelineNameTextField(), null);
-			add(getDamageTextField(), null);
-			add(getReboundTextField(), null);
-			add(getBrowseButton(), null);
 
-			getNameTextField().setText(surface.getName());
-			getColorR1TextField().setText(getString(surface.getColorR1()));
-			getColorG1TextField().setText(getString(surface.getColorG1()));
-			getColorB1TextField().setText(getString(surface.getColorB1()));
-			getColorR2TextField().setText(getString(surface.getColorR2()));
-			getColorG2TextField().setText(getString(surface.getColorG2()));
-			getColorB2TextField().setText(getString(surface.getColorB2()));
-			getTextureNameTextField().setText(surface.getTextureName());
+			addLabel(this, 0, nameLabel, "Name", 160);
+			addLabel(this, 1, colorR1Label, "Color R1", 160);
+			addLabel(this, 2, colorG1Label, "Color G1", 160);
+			addLabel(this, 3, colorB1Label, "Color B1", 160);
+			addLabel(this, 4, colorR2Label, "Color R2", 160);
+			addLabel(this, 5, colorG2Label, "Color G2", 160);
+			addLabel(this, 6, colorB2Label, "Color B2", 160);
+			addLabel(this, 7, textureNameLabel, "Texture Name", 160);
+			addLabel(this, 8, textureTypeLabel, "Texture Type", 160);
+			addLabel(this, 9, textureSizeLabel, "Texture Size", 160);
+			addLabel(this, 10, textureLinkWithPreviousLabel, "Texture Link With Previous", 160);
+			addLabel(this, 11, textureStartOnBoundaryLabel, "Texture Start On Boundary", 160);
+			addLabel(this, 12, textureMipMapLabel, "Texture MipMap", 160);
+			addLabel(this, 13, frictionLabel, "Friction", 160);
+			addLabel(this, 14, rollingResistanceLabel, "Rolling Resistance", 160);
+			addLabel(this, 15, bumpNameLabel, "Bump Name", 160);
+			addLabel(this, 16, bumpSizeLabel, "Bump Size", 160);
+			addLabel(this, 17, roughnessLabel, "Roughness", 160);
+			addLabel(this, 18, roughnessWavelengthLabel, "Roughness Wavelength", 160);
+			addLabel(this, 19, racelineNameLabel, "Raceline Name", 160);
+			addLabel(this, 20, damageLabel, "Damage", 160);
+			addLabel(this, 21, reboundLabel, "Rebound", 160);
+
+			addTextField(this, 0, nameTextField, surface.getName(), 180, 100);
+			addTextField(this, 1, colorR1TextField, getString(surface.getColorR1()), 180, 100);
+			addTextField(this, 2, colorG1TextField, getString(surface.getColorG1()), 180, 100);
+			addTextField(this, 3, colorB1TextField, getString(surface.getColorB1()), 180, 100);
+			addTextField(this, 4, colorR2TextField, getString(surface.getColorR2()), 180, 100);
+			addTextField(this, 5, colorG2TextField, getString(surface.getColorG2()), 180, 100);
+			addTextField(this, 6, colorB2TextField, getString(surface.getColorB2()), 180, 100);
+			addTextField(this, 7, textureNameTextField, surface.getTextureName(), 180, 180);
+
+			add(getTextureTypeComboBox(), null);
 			getTextureTypeComboBox().setSelectedItem(getString(surface.getTextureType()));
-			getTextureSizeTextField().setText(getString(surface.getTextureSize()));
+
+			addTextField(this, 9, textureSizeTextField, getString(surface.getTextureSize()), 180, 100);
+
+			add(getTextureLinkWithPreviousComboBox(), null);
 			getTextureLinkWithPreviousComboBox().setSelectedItem(getString(surface.getTextureLinkWithPrevious()));
+			add(getTextureStartOnBoundaryComboBox(), null);
 			getTextureStartOnBoundaryComboBox().setSelectedItem(getString(surface.getTextureStartOnBoundary()));
-			getTextureMipMapTextField().setText(getString(surface.getTextureMipMap()));
-			getFrictionTextField().setText(getString(surface.getFriction()));
-			getRollingResistanceTextField().setText(getString(surface.getRollingResistance()));
-			getBumpNameTextField().setText(surface.getBumpName());
-			getBumpSizeTextField().setText(getString(surface.getBumpSize()));
-			getRoughnessTextField().setText(getString(surface.getRoughness()));
-			getRoughnessWavelengthTextField().setText(getString(surface.getRoughnessWavelength()));
-			getRacelineNameTextField().setText(surface.getRacelineName());
-			getDamageTextField().setText(getString(surface.getDammage()));
-			getReboundTextField().setText(getString(surface.getRebound()));
+
+			addTextField(this, 12, textureMipMapTextField, getString(surface.getTextureMipMap()), 180, 100);
+			addTextField(this, 13, frictionTextField, getString(surface.getFriction()), 180, 100);
+			addTextField(this, 14, rollingResistanceTextField, getString(surface.getRollingResistance()), 180, 100);
+			addTextField(this, 15, bumpNameTextField, surface.getBumpName(), 180, 100);
+			addTextField(this, 16, bumpSizeTextField, getString(surface.getBumpSize()), 180, 100);
+			addTextField(this, 17, roughnessTextField, getString(surface.getRoughness()), 180, 100);
+			addTextField(this, 18, roughnessWavelengthTextField, getString(surface.getRoughnessWavelength()), 180, 100);
+			addTextField(this, 19, racelineNameTextField, surface.getRacelineName(), 180, 100);
+			addTextField(this, 20, damageTextField, surface.getDammage(), 180, 100);
+			addTextField(this, 21, reboundTextField, getString(surface.getRebound()), 180, 100);
+
+			add(getBrowseButton(), null);
 		}
 
 		private String getString(double value)
@@ -368,19 +286,37 @@ public class SurfaceProperties extends PropertyPanel
 			return string;
 		}
 
-		/**
-		 * This method initializes nameTextField
-		 *
-		 * @return javax.swing.JTextField
-		 */
-		public JTextField getNameTextField()
+		public JComboBox<String> getTextureTypeComboBox()
 		{
-			if (nameTextField == null)
+			if (textureTypeComboBox == null)
 			{
-				nameTextField = new JTextField();
-				nameTextField.setBounds(180, 10, 100, 20);
+				String[] items = {"none", "discrete", "continuous"};
+				textureTypeComboBox = new JComboBox<String>(items);
+				textureTypeComboBox.setBounds(180, 210, 120, 20);
 			}
-			return nameTextField;
+			return textureTypeComboBox;
+		}
+
+		public JComboBox<String> getTextureLinkWithPreviousComboBox()
+		{
+			if (textureLinkWithPreviousComboBox == null)
+			{
+				String[] items = {"none", "yes", "no"};
+				textureLinkWithPreviousComboBox = new JComboBox<String>(items);
+				textureLinkWithPreviousComboBox.setBounds(180, 260, 120, 20);
+			}
+			return textureLinkWithPreviousComboBox;
+		}
+
+		public JComboBox<String> getTextureStartOnBoundaryComboBox()
+		{
+			if (textureStartOnBoundaryComboBox == null)
+			{
+				String[] items = {"none", "yes", "no"};
+				textureStartOnBoundaryComboBox = new JComboBox<String>(items);
+				textureStartOnBoundaryComboBox.setBounds(180, 285, 120, 20);
+			}
+			return textureStartOnBoundaryComboBox;
 		}
 
 		/**
@@ -406,219 +342,6 @@ public class SurfaceProperties extends PropertyPanel
 			return browseButton;
 		}
 
-		public JTextField getColorR1TextField()
-		{
-			if (colorR1TextField == null)
-			{
-				colorR1TextField = new JTextField();
-				colorR1TextField.setBounds(180, 35, 100, 20);
-			}
-			return colorR1TextField;
-		}
-
-		public JTextField getColorG1TextField()
-		{
-			if (colorG1TextField == null)
-			{
-				colorG1TextField = new JTextField();
-				colorG1TextField.setBounds(180, 60, 100, 20);
-			}
-			return colorG1TextField;
-		}
-
-		public JTextField getColorB1TextField()
-		{
-			if (colorB1TextField == null)
-			{
-				colorB1TextField = new JTextField();
-				colorB1TextField.setBounds(180, 85, 100, 20);
-			}
-			return colorB1TextField;
-		}
-
-		public JTextField getColorR2TextField()
-		{
-			if (colorR2TextField == null)
-			{
-				colorR2TextField = new JTextField();
-				colorR2TextField.setBounds(180, 110, 100, 20);
-			}
-			return colorR2TextField;
-		}
-
-		public JTextField getColorG2TextField()
-		{
-			if (colorG2TextField == null)
-			{
-				colorG2TextField = new JTextField();
-				colorG2TextField.setBounds(180, 135, 100, 20);
-			}
-			return colorG2TextField;
-		}
-
-		public JTextField getColorB2TextField()
-		{
-			if (colorB2TextField == null)
-			{
-				colorB2TextField = new JTextField();
-				colorB2TextField.setBounds(180, 160, 100, 20);
-			}
-			return colorB2TextField;
-		}
-
-		public JTextField getTextureNameTextField()
-		{
-			if (textureNameTextField == null)
-			{
-				textureNameTextField = new JTextField();
-				textureNameTextField.setBounds(180, 185, 180, 20);
-			}
-			return textureNameTextField;
-		}
-
-		public JComboBox<String> getTextureTypeComboBox()
-		{
-			if (textureTypeComboBox == null)
-			{
-				String[] items = {"none", "discrete", "continuous"};
-				textureTypeComboBox = new JComboBox<String>(items);
-				textureTypeComboBox.setBounds(180, 210, 120, 20);
-			}
-			return textureTypeComboBox;
-		}
-
-		public JTextField getTextureSizeTextField()
-		{
-			if (textureSizeTextField == null)
-			{
-				textureSizeTextField = new JTextField();
-				textureSizeTextField.setBounds(180, 235, 100, 20);
-			}
-			return textureSizeTextField;
-		}
-
-		public JComboBox<String> getTextureLinkWithPreviousComboBox()
-		{
-			if (textureLinkWithPreviousComboBox == null)
-			{
-				String[] items = {"none", "yes", "no"};
-				textureLinkWithPreviousComboBox = new JComboBox<String>(items);
-				textureLinkWithPreviousComboBox.setBounds(180, 260, 120, 20);
-			}
-			return textureLinkWithPreviousComboBox;
-		}
-
-		public JComboBox<String> getTextureStartOnBoundaryComboBox()
-		{
-			if (textureStartOnBoundaryComboBox == null)
-			{
-				String[] items = {"none", "yes", "no"};
-				textureStartOnBoundaryComboBox = new JComboBox<String>(items);
-				textureStartOnBoundaryComboBox.setBounds(180, 285, 120, 20);
-			}
-			return textureStartOnBoundaryComboBox;
-		}
-
-		public JTextField getTextureMipMapTextField()
-		{
-			if (textureMipMapTextField == null)
-			{
-				textureMipMapTextField = new JTextField();
-				textureMipMapTextField.setBounds(180, 310, 100, 20);
-			}
-			return textureMipMapTextField;
-		}
-
-		public JTextField getFrictionTextField()
-		{
-			if (frictionTextField == null)
-			{
-				frictionTextField = new JTextField();
-				frictionTextField.setBounds(180, 335, 100, 20);
-			}
-			return frictionTextField;
-		}
-
-		public JTextField getRollingResistanceTextField()
-		{
-			if (rollingResistanceTextField == null)
-			{
-				rollingResistanceTextField = new JTextField();
-				rollingResistanceTextField.setBounds(180, 360, 100, 20);
-			}
-			return rollingResistanceTextField;
-		}
-
-		public JTextField getBumpNameTextField()
-		{
-			if (bumpNameTextField == null)
-			{
-				bumpNameTextField = new JTextField();
-				bumpNameTextField.setBounds(180, 385, 100, 20);
-			}
-			return bumpNameTextField;
-		}
-
-		public JTextField getBumpSizeTextField()
-		{
-			if (bumpSizeTextField == null)
-			{
-				bumpSizeTextField = new JTextField();
-				bumpSizeTextField.setBounds(180, 410, 100, 20);
-			}
-			return bumpSizeTextField;
-		}
-
-		public JTextField getRoughnessTextField()
-		{
-			if (roughnessTextField == null)
-			{
-				roughnessTextField = new JTextField();
-				roughnessTextField.setBounds(180, 435, 100, 20);
-			}
-			return roughnessTextField;
-		}
-
-		public JTextField getRoughnessWavelengthTextField()
-		{
-			if (roughnessWavelengthTextField == null)
-			{
-				roughnessWavelengthTextField = new JTextField();
-				roughnessWavelengthTextField.setBounds(180, 460, 100, 20);
-			}
-			return roughnessWavelengthTextField;
-		}
-
-		public JTextField getRacelineNameTextField()
-		{
-			if (racelineNameTextField == null)
-			{
-				racelineNameTextField = new JTextField();
-				racelineNameTextField.setBounds(180, 485, 100, 20);
-			}
-			return racelineNameTextField;
-		}
-
-		public JTextField getDamageTextField()
-		{
-			if (damageTextField == null)
-			{
-				damageTextField = new JTextField();
-				damageTextField.setBounds(180, 510, 100, 20);
-			}
-			return damageTextField;
-		}
-
-		public JTextField getReboundTextField()
-		{
-			if (reboundTextField == null)
-			{
-				reboundTextField = new JTextField();
-				reboundTextField.setBounds(180, 535, 100, 20);
-			}
-			return reboundTextField;
-		}
-
 		protected void selectFile()
 		{
 			JFileChooser fc = new JFileChooser();
@@ -640,7 +363,7 @@ public class SurfaceProperties extends PropertyPanel
 				String pathToFile = fileName.substring(0, index);
 				if (pathToFile.equals(Editor.getProperties().getPath()))
 					fileName = fileName.substring(index + 1);
-				getTextureNameTextField().setText(fileName);
+				textureNameTextField.setText(fileName);
 			}
 		}
 	}
@@ -664,49 +387,49 @@ public class SurfaceProperties extends PropertyPanel
             Surface surface = surfaces.elementAt(i);
             SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(i);
 
-            if (isDifferent(panel.getNameTextField().getText(), surface.getName(), stringResult))
+            if (isDifferent(panel.nameTextField.getText(), surface.getName(), stringResult))
             {
                 surface.setName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorR1TextField().getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(panel.colorR1TextField.getText(), surface.getColorR1(), doubleResult))
             {
                 surface.setColorR1(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorG1TextField().getText(), surface.getColorG1(), doubleResult))
+            if (isDifferent(panel.colorG1TextField.getText(), surface.getColorG1(), doubleResult))
             {
                 surface.setColorG1(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorB1TextField().getText(), surface.getColorB1(), doubleResult))
+            if (isDifferent(panel.colorB1TextField.getText(), surface.getColorB1(), doubleResult))
             {
                 surface.setColorB1(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorR2TextField().getText(), surface.getColorR2(), doubleResult))
+            if (isDifferent(panel.colorR2TextField.getText(), surface.getColorR2(), doubleResult))
             {
                 surface.setColorR2(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorG2TextField().getText(), surface.getColorG2(), doubleResult))
+            if (isDifferent(panel.colorG2TextField.getText(), surface.getColorG2(), doubleResult))
             {
                 surface.setColorG2(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getColorB2TextField().getText(), surface.getColorB2(), doubleResult))
+            if (isDifferent(panel.colorB2TextField.getText(), surface.getColorB2(), doubleResult))
             {
                 surface.setColorB2(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTextureNameTextField().getText(), surface.getTextureName(), stringResult))
+            if (isDifferent(panel.textureNameTextField.getText(), surface.getTextureName(), stringResult))
             {
                 surface.setTextureName(stringResult.getValue());
                 frame.documentIsModified = true;
@@ -718,7 +441,7 @@ public class SurfaceProperties extends PropertyPanel
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTextureSizeTextField().getText(), surface.getTextureSize(), doubleResult))
+            if (isDifferent(panel.textureSizeTextField.getText(), surface.getTextureSize(), doubleResult))
             {
                 surface.setTextureSize(doubleResult.getValue());
                 frame.documentIsModified = true;
@@ -736,61 +459,61 @@ public class SurfaceProperties extends PropertyPanel
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getTextureMipMapTextField().getText(), surface.getTextureMipMap(), doubleResult))
+            if (isDifferent(panel.textureMipMapTextField.getText(), surface.getTextureMipMap(), doubleResult))
             {
                 surface.setTextureMipMap(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getFrictionTextField().getText(), surface.getFriction(), doubleResult))
+            if (isDifferent(panel.frictionTextField.getText(), surface.getFriction(), doubleResult))
             {
                 surface.setFriction(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRollingResistanceTextField().getText(), surface.getRollingResistance(), doubleResult))
+            if (isDifferent(panel.rollingResistanceTextField.getText(), surface.getRollingResistance(), doubleResult))
             {
                 surface.setRollingResistance(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getBumpNameTextField().getText(), surface.getBumpName(), stringResult))
+            if (isDifferent(panel.bumpNameTextField.getText(), surface.getBumpName(), stringResult))
             {
-                surface.setBumpName(panel.getBumpNameTextField().getText());
+                surface.setBumpName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getBumpSizeTextField().getText(), surface.getBumpSize(), doubleResult))
+            if (isDifferent(panel.bumpSizeTextField.getText(), surface.getBumpSize(), doubleResult))
             {
                 surface.setBumpSize(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRoughnessTextField().getText(), surface.getRoughness(), doubleResult))
+            if (isDifferent(panel.roughnessTextField.getText(), surface.getRoughness(), doubleResult))
             {
                 surface.setRoughness(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRoughnessWavelengthTextField().getText(), surface.getRoughnessWavelength(), doubleResult))
+            if (isDifferent(panel.roughnessWavelengthTextField.getText(), surface.getRoughnessWavelength(), doubleResult))
             {
                 surface.setRoughnessWavelength(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getRacelineNameTextField().getText(), surface.getRacelineName(), stringResult))
+            if (isDifferent(panel.racelineNameTextField.getText(), surface.getRacelineName(), stringResult))
             {
-                surface.setRacelineName(panel.getRacelineNameTextField().getText());
+                surface.setRacelineName(stringResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getDamageTextField().getText(), surface.getDammage(), doubleResult))
+            if (isDifferent(panel.damageTextField.getText(), surface.getDammage(), doubleResult))
             {
                 surface.setDammage(doubleResult.getValue());
                 frame.documentIsModified = true;
             }
 
-            if (isDifferent(panel.getReboundTextField().getText(), surface.getRebound(), doubleResult))
+            if (isDifferent(panel.reboundTextField.getText(), surface.getRebound(), doubleResult))
             {
                 surface.setRebound(doubleResult.getValue());
                 frame.documentIsModified = true;
@@ -812,28 +535,28 @@ public class SurfaceProperties extends PropertyPanel
 	            SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(surfaces.size());
 				Surface surface = new Surface();
 
-				surface.setName(panel.getNameTextField().getText());
-				surface.setColorR1(getDouble(panel.getColorR1TextField().getText()));
-				surface.setColorG1(getDouble(panel.getColorG1TextField().getText()));
-				surface.setColorB1(getDouble(panel.getColorB1TextField().getText()));
-				surface.setColorR2(getDouble(panel.getColorR2TextField().getText()));
-				surface.setColorG2(getDouble(panel.getColorG2TextField().getText()));
-				surface.setColorB2(getDouble(panel.getColorB2TextField().getText()));
-				surface.setTextureName(panel.getTextureNameTextField().getText());
+				surface.setName(panel.nameTextField.getText());
+				surface.setColorR1(getDouble(panel.colorR1TextField.getText()));
+				surface.setColorG1(getDouble(panel.colorG1TextField.getText()));
+				surface.setColorB1(getDouble(panel.colorB1TextField.getText()));
+				surface.setColorR2(getDouble(panel.colorR2TextField.getText()));
+				surface.setColorG2(getDouble(panel.colorG2TextField.getText()));
+				surface.setColorB2(getDouble(panel.colorB2TextField.getText()));
+				surface.setTextureName(panel.textureNameTextField.getText());
 				surface.setTextureType(getString(panel.getTextureTypeComboBox().getSelectedItem().toString()));
-				surface.setTextureSize(getDouble(panel.getTextureSizeTextField().getText()));
+				surface.setTextureSize(getDouble(panel.textureSizeTextField.getText()));
 				surface.setTextureLinkWithPrevious(getString(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString()));
 				surface.setTextureStartOnBoundary(getString(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString()));
-				surface.setTextureMipMap(getDouble(panel.getTextureMipMapTextField().getText()));
-				surface.setFriction(getDouble(panel.getFrictionTextField().getText()));
-				surface.setRollingResistance(getDouble(panel.getRollingResistanceTextField().getText()));
-				surface.setBumpName(panel.getBumpNameTextField().getText());
-				surface.setBumpSize(getDouble(panel.getBumpSizeTextField().getText()));
-				surface.setRoughness(getDouble(panel.getRoughnessTextField().getText()));
-				surface.setRoughnessWavelength(getDouble(panel.getRoughnessWavelengthTextField().getText()));
-				surface.setRacelineName(panel.getRacelineNameTextField().getText());
-				surface.setDammage(getDouble(panel.getDamageTextField().getText()));
-				surface.setRebound(getDouble(panel.getReboundTextField().getText()));
+				surface.setTextureMipMap(getDouble(panel.textureMipMapTextField.getText()));
+				surface.setFriction(getDouble(panel.frictionTextField.getText()));
+				surface.setRollingResistance(getDouble(panel.rollingResistanceTextField.getText()));
+				surface.setBumpName(panel.bumpNameTextField.getText());
+				surface.setBumpSize(getDouble(panel.bumpSizeTextField.getText()));
+				surface.setRoughness(getDouble(panel.roughnessTextField.getText()));
+				surface.setRoughnessWavelength(getDouble(panel.roughnessWavelengthTextField.getText()));
+				surface.setRacelineName(panel.racelineNameTextField.getText());
+				surface.setDammage(getDouble(panel.damageTextField.getText()));
+				surface.setRebound(getDouble(panel.reboundTextField.getText()));
 
 				surfaces.add(surface);
 			}
