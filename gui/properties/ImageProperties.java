@@ -39,13 +39,13 @@ import utils.Editor;
  */
 public class ImageProperties extends PropertyPanel
 {
-	private JLabel		pathLabel				= null;
-	private JTextField	pathTextField			= null;
+	private JLabel		pathLabel				= new JLabel();
+	private JTextField	pathTextField			= new JTextField();
 	private JButton		browseButton			= null;
-	private JLabel 		imageScaleLabel			= null;
-	private JTextField	imageScaleTextField		= null;
+	private JLabel 		imageScaleLabel			= new JLabel();
+	private JTextField	imageScaleTextField		= new JTextField();
 
-	private String sep = System.getProperty("file.separator");
+	private final String sep = System.getProperty("file.separator");
 
 	/**
 	 *
@@ -61,37 +61,18 @@ public class ImageProperties extends PropertyPanel
 	 */
 	private void initialize()
 	{
-		imageScaleLabel = new JLabel();
-		pathLabel = new JLabel();
-		this.setLayout(null);
-		pathLabel.setBounds(10, 10, 60, 30);
-		pathLabel.setText("Path");
-		imageScaleLabel.setBounds(10, 50, 90, 30);
-		imageScaleLabel.setText("Image scale");
-		this.setSize(420, 230);
-		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-		this.add(getPathTextField(), null);
+		setLayout(null);
+		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+
+		addLabel(this, 0, imageScaleLabel, "Path", 60);
+		addLabel(this, 1, pathLabel, "Image scale", 60);
+
+		addTextField(this, 0, pathTextField, Editor.getProperties().getImage(), 90, 295);
+		addTextField(this, 1, imageScaleTextField, Editor.getProperties().getImageScale(), 90, 50);
+
 		this.add(getBrowseButton(), null);
-		this.add(pathLabel, null);
-		this.add(imageScaleLabel, null);
-		this.add(getImageScaleTextField(), null);
 	}
 
-	/**
-	 * This method initializes pathTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getPathTextField()
-	{
-		if (pathTextField == null)
-		{
-			pathTextField = new JTextField();
-			pathTextField.setBounds(75, 10, 240, 30);
-			pathTextField.setText(Editor.getProperties().getImage());
-		}
-		return pathTextField;
-	}
 	/**
 	 * This method initializes browseButton
 	 *
@@ -102,7 +83,7 @@ public class ImageProperties extends PropertyPanel
 		if (browseButton == null)
 		{
 			browseButton = new JButton();
-			browseButton.setBounds(320, 10, 95, 30);
+			browseButton.setBounds(390, 7, 80, 25);
 			browseButton.setText("Browse");
 			browseButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -114,6 +95,7 @@ public class ImageProperties extends PropertyPanel
 		}
 		return browseButton;
 	}
+
 	/**
 	 *
 	 */
@@ -130,8 +112,9 @@ public class ImageProperties extends PropertyPanel
 		fc.setVisible(true);
 		if(Editor.getProperties().getImage().equals(""))
 		{
-		fc.setCurrentDirectory(new File(System.getProperty("user.dir") +sep+ "tracks"));
-		}else
+			fc.setCurrentDirectory(new File(System.getProperty("user.dir") +sep+ "tracks"));
+		}
+		else
 		{
 			String tmpFile = Editor.getProperties().getImage().substring(0,Editor.getProperties().getImage().lastIndexOf(sep));
 			File file = new File(tmpFile);
@@ -140,36 +123,8 @@ public class ImageProperties extends PropertyPanel
 		int result = fc.showDialog(this, "Ok");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			getPathTextField().setText(fc.getSelectedFile().toString());
+			pathTextField.setText(fc.getSelectedFile().toString());
 		}
-	}
-
-	/**
-	 * This method initializes imageScaleTextField
-	 *
-	 * @return javax.swing.JTextField
-	 */
-	public JTextField getImageScaleTextField() {
-		if (imageScaleTextField == null) {
-			imageScaleTextField = new JTextField();
-			imageScaleTextField.setBounds(105, 50, 90, 30);
-			imageScaleTextField.setText(Double.toString(Editor.getProperties().getImageScale()));
-		}
-		return imageScaleTextField;
-	}
-	/**
-	 * @param imageScaleTextField The imageScaleTextField to set.
-	 */
-	public void setImageScaleTextField(JTextField imageScaleTextField)
-	{
-		this.imageScaleTextField = imageScaleTextField;
-	}
-	/**
-	 * @param pathTextField The pathTextField to set.
-	 */
-	public void setPathTextField(JTextField pathTextField)
-	{
-		this.pathTextField = pathTextField;
 	}
 
 	public void exit()
@@ -177,18 +132,17 @@ public class ImageProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(getPathTextField().getText(), Editor.getProperties().getImage(), stringResult))
+		if (isDifferent(pathTextField.getText(), Editor.getProperties().getImage(), stringResult))
 		{
 			Editor.getProperties().setImage(stringResult.getValue());
 			frame.documentIsModified = true;
 		}
 
-		if (isDifferent(getImageScaleTextField().getText(),
+		if (isDifferent(imageScaleTextField.getText(),
 			Editor.getProperties().getImageScale(), doubleResult))
 		{
 			Editor.getProperties().setImageScale(doubleResult.getValue());
 			frame.documentIsModified = true;
 		}
 	}
-
 }  //  @jve:decl-index=0:visual-constraint="10,10"
