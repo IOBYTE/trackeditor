@@ -2732,8 +2732,8 @@ public class EditorFrame extends JFrame
 		ac3E4Action = new ExportAC3E4Action("AC with track with height steps elevation map", null, "Create AC file and track with height steps elevation map.", null);
 		ac3RacelineAction = new ExportAC3RacelineAction("AC race line", null, "Create AC race line file.", null);
 		calcDeltaAction = new CalcDeltaAction("Delta's", createNavigationIcon("Calc24"), "Calculate Delta's for x,y,z and angle.", KeyEvent.VK_S);
-		importAction = new ImportAction("Speed Dreams", null, "Speed Dreams xml file", null);
-		exportAction = new ExportAction("Speed Dreams", null, "Speed Dreams xml file", null);
+		importAction = new ImportAction("Track XML", null, "Track xml file", null);
+		exportAction = new ExportAction("Track XML", null, "Track xml file", null);
 	}
 
 	public class UndoAction extends AbstractAction
