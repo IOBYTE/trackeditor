@@ -71,12 +71,15 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/view/CircuitView.java
          gui/view/CircuitViewSelectionEvent.java
          gui/view/CircuitViewSelectionListener.java
+         gui/view/SegmentSplitter.java
          miscel/EPMath.java
          miscel/TCPopupEventQueue.java
+         plugin/torcs/GfParmNumbers.java
          plugin/torcs/NoOpEntityResolver.java
          plugin/torcs/XMLOutput.java
          plugin/torcs/XmlReader.java
          plugin/torcs/XmlWriter.java
+         utils/AtomicFile.java
          utils/CustomFileFilter.java
          utils/DoubleValue.java
          utils/Editor.java
@@ -100,6 +103,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/circuit/Camera.java
          utils/circuit/Curve.java
          utils/circuit/EnvironmentMapping.java
+         utils/circuit/GameSides.java
          utils/circuit/Graphic.java
          utils/circuit/GraphicObject.java
          utils/circuit/Header.java

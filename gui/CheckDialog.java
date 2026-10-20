@@ -35,11 +35,13 @@ import utils.ac3d.Ac3dObject;
 import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
+import utils.circuit.GameSides;
 import utils.circuit.GraphicObject;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjectMap;
 import utils.circuit.Pits;
-import utils.circuit.Segment;
+import utils.circuit.Segment;
+import utils.circuit.SegmentSide;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
@@ -159,105 +161,65 @@ public class CheckDialog extends JDialog
 			}
 		}
 		
+		// the editor shows what the game uses (see GameSides); these point out values in the
+		// file that the game ignores or that it takes from an earlier segment
 		for (int i = 0; i < segments.size(); i++)
 		{
 			Segment segment = segments.get(i);
-			
-			if ("plan".equals(segment.getValidLeftBorderStyle(editorFrame)))
-			{
-				double height = segment.getValidLeftBorderHeight(editorFrame);
-				if (height != 0)
-				{
-					textArea.append("Segment " + segment.getName() + " Left border style is plan with " + height + " height (set border style to curb or wall or don't set a height)\n");
-				}
-			}			
-			if ("plan".equals(segment.getValidRightBorderStyle(editorFrame)))
-			{
-				double height = segment.getValidRightBorderHeight(editorFrame);
-				if (height != 0)
-				{
-					textArea.append("Segment " + segment.getName() + " Right border style is plan with " + height + " height (set border style to curb or wall or don't set a height)\n");
-				}
-			}
-			
-			if ("fence".equals(segment.getValidLeftBarrierStyle(editorFrame)))
-			{
-				double width = segment.getValidLeftBarrierWidth(editorFrame);
-				if (width != 0)
-				{
-					textArea.append("Segment " + segment.getName() + " Left barrier style is fence with " + width + " width (set barrier style to wall or don't set a width)\n");
-				}
-			}
-			if ("fence".equals(segment.getValidRightBarrierStyle(editorFrame)))
-			{
-				double width = segment.getValidRightBarrierWidth(editorFrame);
-				if (width != 0)
-				{
-					textArea.append("Segment " + segment.getName() + " Right barrier style is fence with " + width + " width (set barrier style to wall or don't set a width)\n");
-				}
-			}
-			
-			String style = segment.getValidLeftBarrierStyle(editorFrame);
-			if ("curb".equals(style) || "plan".equals(style))
-			{
-				textArea.append("Segment " + segment.getName() + " Left barrier invalid style " + style + "\n");
-			}
-			style = segment.getValidRightBarrierStyle(editorFrame);
-			if ("curb".equals(style) || "plan".equals(style))
-			{
-				textArea.append("Segment " + segment.getName() + " Right barrier invalid style " + style + "\n");
-			}
+			Segment previousSegment = i > 0 ? segments.get(i - 1) : null;
+
+			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
+			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
 		}
-		
-		for (int i = 1; i < segments.size(); i++)
+	}
+
+	private void checkSide(Segment segment, Segment previousSegment, SegmentSide side, String name, boolean right)
+	{
+		GameSides.State state = GameSides.of(segment, right, editorFrame);
+		String prefix = "Segment " + segment.getName() + " " + name;
+
+		// border
+		String borderStyle = side.getBorderStyle();
+		if (borderStyle != null && !borderStyle.isEmpty() &&
+			!borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
 		{
-			Segment segment = segments.get(i);
-			Segment previousSegment = segments.get(i - 1);
-			
-			String style = segment.getValidLeftBorderStyle(editorFrame);
-			String previousStyle = previousSegment.getValidLeftBorderStyle(editorFrame);
-			
-			if (!style.equals(previousStyle))
-			{
-				if (Double.isNaN(segment.getLeft().getBorderHeight()))
-				{
-					textArea.append("Segment " + segment.getName() + " Left border style changed from " + previousStyle + " to " + style + " but new height not set\n");					
-				}
-			}
-			
-			style = segment.getValidRightBorderStyle(editorFrame);
-			previousStyle = previousSegment.getValidRightBorderStyle(editorFrame);
-			
-			if (!style.equals(previousStyle))
-			{
-				if (Double.isNaN(segment.getRight().getBorderHeight()))
-				{
-					textArea.append("Segment " + segment.getName() + " Right border style changed from " + previousStyle + " to " + style + " but new height not set\n");					
-				}
-			}
-			
-			style = segment.getValidLeftBarrierStyle(editorFrame);
-			previousStyle = previousSegment.getValidLeftBarrierStyle(editorFrame);
-			
-			if (!style.equals(previousStyle))
-			{
-				if (Double.isNaN(segment.getLeft().getBarrierWidth()))
-				{
-					textArea.append("Segment " + segment.getName() + " Left barrier style changed from " + previousStyle + " to " + style + " but new width not set\n");					
-				}
-			}
-			
-			style = segment.getValidRightBarrierStyle(editorFrame);
-			previousStyle = previousSegment.getValidRightBarrierStyle(editorFrame);
-			
-			if (!style.equals(previousStyle))
-			{
-				if (Double.isNaN(segment.getRight().getBarrierWidth()))
-				{
-					textArea.append("Segment " + segment.getName() + " Right barrier style changed from " + previousStyle + " to " + style + " but new width not set\n");					
-				}
-			}
-		}		
+			textArea.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
+		}
+		if (state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
+		{
+			textArea.append(prefix + " border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
+		}
+
+		// barrier
+		String barrierStyle = side.getBarrierStyle();
+		boolean fence = state.barrierStyle.startsWith("fence");
+		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") && !barrierStyle.equals("no barrier") &&
+			!barrierStyle.equals("fence") && !(!editorFrame.getCarsSportsRacing() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
+		{
+			textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
+		}
+		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
+		{
+			textArea.append(prefix + " barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
+		}
+		if (state.barrierStyle.equals("no barrier") && !Double.isNaN(side.getBarrierHeight()) && side.getBarrierHeight() != 0)
+		{
+			textArea.append(prefix + " barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)\n");
+		}
+
+		if (previousSegment == null)
+			return;
+
+		// a new style takes its size from the previous segment unless it is set
+		GameSides.State previous = GameSides.of(previousSegment, right, editorFrame);
+		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
+		{
+			textArea.append(prefix + " border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")\n");
+		}
+		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
+		{
+			textArea.append(prefix + " barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")\n");
+		}
 	}
 	
 	public void checkHeader()

@@ -1286,831 +1286,223 @@ public class Segment implements Cloneable
 	}
 
     public double getValidLeftBarrierWidth(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        double	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.barrierWidth;
-            if (!Double.isNaN(value))
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBarrierWidth();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidLeftBarrierStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).barrierWidth;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_WIDTH;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_WIDTH;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidRightBarrierWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.barrierWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBarrierWidth();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidRightBarrierStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).barrierWidth;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_WIDTH;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_WIDTH;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidLeftBarrierHeight(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        double	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.barrierHeight;
-            if (!Double.isNaN(value))
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBarrierHeight();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidLeftBarrierStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).barrierHeight;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_HEIGHT;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidRightBarrierHeight(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.barrierHeight;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBarrierHeight();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidRightBarrierStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).barrierHeight;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_HEIGHT;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidLeftBarrierSurface(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        String	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.barrierSurface;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBarrierSurface();
-        if (value == null || value.isEmpty())
-    	{
-        	String style = getValidLeftBarrierStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).barrierSurface;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_SURFACE;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_SURFACE;
-        		break;
-        	default:
-        		value = null;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidRightBarrierSurface(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        String	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.barrierSurface;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBarrierSurface();
-        if (value == null || value.isEmpty())
-    	{
-        	String style = getValidRightBarrierStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).barrierSurface;
 
-        	switch (style)
-        	{
-        	case "fence":
-        		value = SegmentSide.DEFAULT_BARRIER_FENCE_SURFACE;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BARRIER_WALL_SURFACE;
-        		break;
-        	default:
-        		value = null;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidLeftBarrierStyle(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        String	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.barrierStyle;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBarrierStyle();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_BARRIER_STYLE;
-    	}
+    	return GameSides.of(this, false, editorFrame).barrierStyle;
 
-        return value;
     }
 
     public String getValidRightBarrierStyle(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        String	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.barrierStyle;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBarrierStyle();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_BARRIER_STYLE;
-    	}
+    	return GameSides.of(this, true, editorFrame).barrierStyle;
 
-        return value;
     }
 
     public double getValidLeftBorderWidth(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        double	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.borderWidth;
-            if (!Double.isNaN(value))
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBorderWidth();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidLeftBorderStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).borderWidth;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_WIDTH;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_WIDTH;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_WIDTH;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidRightBorderWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.borderWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBorderWidth();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidRightBorderStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).borderWidth;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_WIDTH;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_WIDTH;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_WIDTH;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidLeftBorderHeight(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        double	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.borderHeight;
-            if (!Double.isNaN(value))
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBorderHeight();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidLeftBorderStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).borderHeight;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_HEIGHT;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_HEIGHT;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_HEIGHT;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public double getValidRightBorderHeight(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.borderHeight;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBorderHeight();
-        if (Double.isNaN(value))
-    	{
-        	String style = getValidRightBorderStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).borderHeight;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_HEIGHT;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_HEIGHT;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_HEIGHT;
-        		break;
-        	default:
-        		value = Double.NaN;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidLeftBorderSurface(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        String	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.borderSurface;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBorderSurface();
-        if (value == null || value.isEmpty())
-    	{
-        	String style = getValidLeftBorderStyle(editorFrame);
+    	return GameSides.of(this, false, editorFrame).borderSurface;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_LEFT_SURFACE;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_LEFT_SURFACE;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_SURFACE;
-        		break;
-        	default:
-        		value = null;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidRightBorderSurface(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        String	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.borderSurface;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBorderSurface();
-        if (value == null || value.isEmpty())
-    	{
-        	String style = getValidRightBorderStyle(editorFrame);
+    	return GameSides.of(this, true, editorFrame).borderSurface;
 
-        	switch (style)
-        	{
-        	case "plan":
-        		value = SegmentSide.DEFAULT_BORDER_PLAN_RIGHT_SURFACE;
-        		break;
-        	case "curb":
-        		value = SegmentSide.DEFAULT_BORDER_CURB_RIGHT_SURFACE;
-        		break;
-        	case "wall":
-        		value = SegmentSide.DEFAULT_BORDER_WALL_SURFACE;
-        		break;
-        	default:
-        		value = null;
-        		break;
-        	}
-    	}
-
-        return value;
     }
 
     public String getValidLeftBorderStyle(EditorFrame editorFrame)
+
     {
-        Segment previous = this;
-        String	value;
 
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.borderStyle;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getBorderStyle();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_BORDER_STYLE;
-    	}
+    	return GameSides.of(this, false, editorFrame).borderStyle;
 
-        return value;
     }
 
     public String getValidRightBorderStyle(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        String	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.borderStyle;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getBorderStyle();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_BORDER_STYLE;
-    	}
+    	return GameSides.of(this, true, editorFrame).borderStyle;
 
-        return value;
     }
 
     public double getValidLeftSideStartWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-		double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (true)
-    	{
-            value = previous.left.sideStartWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-            previous = previous.previousShape;
-            if (previous == null)
-    		{
-                break;
-            }
-            value = previous.left.sideEndWidth;
-            if (!Double.isNaN(value))
-            {
-                return value;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getSideStartWidth();
-        if (Double.isNaN(value))
-    	{
-            value = SegmentSide.DEFAULT_SIDE_START_WIDTH;
-    	}
+    	return GameSides.of(this, false, editorFrame).sideStartWidth;
 
-        return value;
     }
 
     public double getValidLeftSideEndWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-		double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.left.sideEndWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-            }
-            value = previous.left.sideStartWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-            previous = previous.previousShape;
-        }
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getSideEndWidth();
-        if (Double.isNaN(value))
-    	{
-            value = SegmentSide.DEFAULT_SIDE_END_WIDTH;
-    	}
+    	return GameSides.of(this, false, editorFrame).sideEndWidth;
 
-        return value;
     }
 
     public double getValidRightSideStartWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-		double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (true)
-    	{
-            value = previous.right.sideStartWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-            previous = previous.previousShape;
-            if (previous == null)
-    		{
-                break;
-            }
-            value = previous.right.sideEndWidth;
-            if (!Double.isNaN(value))
-            {
-                return value;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getSideStartWidth();
-        if (Double.isNaN(value))
-        {
-            value = SegmentSide.DEFAULT_SIDE_START_WIDTH;
-    	}
+    	return GameSides.of(this, true, editorFrame).sideStartWidth;
 
-        return value;
     }
 
     public double getValidRightSideEndWidth(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-		double	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.sideEndWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-            value = previous.right.sideStartWidth;
-            if (!Double.isNaN(value))
-    		{
-                return value;
-    		}
-            previous = previous.previousShape;
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getSideEndWidth();
-        if (Double.isNaN(value))
-    	{
-            value = SegmentSide.DEFAULT_SIDE_END_WIDTH;
-    	}
+    	return GameSides.of(this, true, editorFrame).sideEndWidth;
 
-        return value;
-	}
+    }
     
     public String getValidLeftSideSurface(EditorFrame editorFrame)
+    
     {
-        Segment previous = this;
-        String	value;
-
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.sideSurface;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
-
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getSideSurface();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_SIDE_SURFACE;
-    	}
-
-        return value;
+    
+    	// what the game uses, see GameSides
+    
+    	return GameSides.of(this, false, editorFrame).sideSurface;
+    
     }
 
     public String getValidRightSideSurface(EditorFrame editorFrame)
+
     {
-    	Segment previous = this;
-        String	value;
 
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.sideSurface;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
+    	// what the game uses, see GameSides
 
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getSideSurface();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_SIDE_SURFACE;
-    	}
+    	return GameSides.of(this, true, editorFrame).sideSurface;
 
-        return value;
     }
 
     public String getValidLeftSideBankingType(EditorFrame editorFrame)
