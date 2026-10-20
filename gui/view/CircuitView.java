@@ -682,7 +682,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					}
 					else
 					{
-						Undo.add(new UndoSegmentChange(editorFrame, selectedShape));
+						// the dialog adds the undo step when something is actually changed
 						openSegmentDialog(selectedShape);
 					}
 				}
@@ -2105,6 +2105,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	{
 		if (segmentParamDialog != null)
 		{
+			// filling in the fields isn't an edit of the previous segment
+			segmentParamDialog.setPendingUndo(null);
 			segmentParamDialog.setShape(shape);
 			segmentParamDialog.setVisible(true);
 		}
@@ -2114,6 +2116,35 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			segmentParamDialog = new SegmentEditorDlg(this, editorFrame, "", false, shape);
 			segmentParamDialog.addWindowListener(this);
 		}
+
+		// the state before any edit in the dialog; it becomes an undo step only
+		// if the segment is changed, so just looking at a segment adds none
+		segmentParamDialog.setPendingUndo(new UndoSegmentChange(editorFrame, shape));
+	}
+
+	/**
+	 * After an undo or redo the open segment dialog shows the segment as it is now,
+	 * and later edits start from that state. It closes if its segment was removed.
+	 */
+	public void undoneOrRedone()
+	{
+		if (segmentParamDialog == null)
+			return;
+
+		Segment shape = segmentParamDialog.getSegment();
+		SegmentVector track = editorFrame.getTrackData().getSegments();
+
+		if (shape == null || track == null || !track.contains(shape))
+		{
+			segmentParamDialog.dispose();
+			segmentParamDialog = null;
+			selectedShape = null;
+			return;
+		}
+
+		segmentParamDialog.setPendingUndo(null);
+		segmentParamDialog.setShape(shape);
+		segmentParamDialog.setPendingUndo(new UndoSegmentChange(editorFrame, shape));
 	}
 
 	private void reliefSelected(ObjShapeRelief shape, MouseEvent me)

@@ -69,6 +69,12 @@ public class TrackgenPanel extends JDialog implements Runnable
 	private JScrollPane			errorsScrollPane	= null;
 	private JTextArea			errorsTextArea		= null;
 	private boolean				acc					= false;
+	// the running trackgen, so closing the window can stop it
+	private volatile Process	process				= null;
+	private volatile boolean	closed				= false;
+	// where the last line of the nodes area starts, and whether it is a progress line
+	private int					lastLineStart		= 0;
+	private boolean				lastLineIsNodes		= false;
 	
 	public TrackgenPanel(EditorFrame editorFrame, String additionalArgs, boolean acc)
 	{
@@ -143,7 +149,9 @@ public class TrackgenPanel extends JDialog implements Runnable
 		{
 			String cmdarray[] = cmd.toArray(new String[cmd.size()]);
 			// each argument is passed as is, so spaces in paths or names are fine
-			Process process = Runtime.getRuntime().exec(cmdarray);
+			process = Runtime.getRuntime().exec(cmdarray);
+			if (closed)
+				process.destroy();
 
 			// read both outputs on their own threads, blocking until there is a
 			// line (no busy waiting), and update the dialog on the Swing thread
@@ -151,18 +159,33 @@ public class TrackgenPanel extends JDialog implements Runnable
 			Thread output = readLines(process.getInputStream(), false);
 
 			result = process.waitFor();
-			errors.join();
-			output.join();
+			// once stopped there's nothing more to show, so don't wait for the readers
+			// (a child process could still hold the output open)
+			if (!closed)
+			{
+				errors.join();
+				output.join();
+			}
 		}
 		catch (IOException e)
 		{
-			final String message = e.getLocalizedMessage();
-			SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message, "Export ac" + (acc ? "c" : ""), JOptionPane.ERROR_MESSAGE));
+			if (!closed)
+			{
+				final String message = e.getLocalizedMessage();
+				SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message, "Export ac" + (acc ? "c" : ""), JOptionPane.ERROR_MESSAGE));
+			}
 		}
 		catch (InterruptedException e)
 		{
 			Thread.currentThread().interrupt();
 		}
+		finally
+		{
+			process = null;
+		}
+
+		if (closed)
+			return;
 
 		final int status = result;
 		SwingUtilities.invokeLater(() ->
@@ -199,7 +222,9 @@ public class TrackgenPanel extends JDialog implements Runnable
 			}
 			catch (IOException e)
 			{
-				e.printStackTrace();
+				// the stream is closed when trackgen is stopped
+				if (!closed)
+					e.printStackTrace();
 			}
 		});
 		thread.setDaemon(true);
@@ -271,24 +296,34 @@ public class TrackgenPanel extends JDialog implements Runnable
 			append(errorsTextArea, ls_str);
 		} else
 		{
-			if (ls_str.endsWith(" Nodes") && nodesTextArea.getText().endsWith(" Nodes"))
+			// the document length, not getText(), which copies all the text for every line
+			int length = nodesTextArea.getDocument().getLength();
+			boolean isNodes = ls_str.endsWith(" Nodes");
+
+			if (isNodes && lastLineIsNodes)
 			{
 				// progress: replace the last line
-				int lastLineBreak = nodesTextArea.getText().lastIndexOf('\n');
-				nodesTextArea.replaceRange(ls_str, lastLineBreak + 1, nodesTextArea.getText().length());
+				nodesTextArea.replaceRange(ls_str, lastLineStart, length);
 			}
 			else
 			{
-				append(nodesTextArea, ls_str);
+				if (length > 0)
+				{
+					nodesTextArea.append(newline);
+					length++;
+				}
+				lastLineStart = length;
+				nodesTextArea.append(ls_str);
 			}
+			lastLineIsNodes = isNodes;
 
-			nodesTextArea.setCaretPosition(nodesTextArea.getText().length());
+			nodesTextArea.setCaretPosition(nodesTextArea.getDocument().getLength());
 		}
 	}
 
 	private void append(JTextArea textArea, String text)
 	{
-		if (textArea.getText().length() > 0)
+		if (textArea.getDocument().getLength() > 0)
 		{
 			textArea.append(newline);
 		}
@@ -443,6 +478,14 @@ public class TrackgenPanel extends JDialog implements Runnable
 		{
 			editorFrame.getProject().setTrackgenDialogX(this.getX());
 			editorFrame.getProject().setTrackgenDialogY(this.getY());
+		}
+		if (e.getID() == WindowEvent.WINDOW_CLOSING || e.getID() == WindowEvent.WINDOW_CLOSED)
+		{
+			// closing the window stops a trackgen that is still running
+			closed = true;
+			Process p = process;
+			if (p != null && p.isAlive())
+				p.destroy();
 		}
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

@@ -50,6 +50,8 @@ import utils.circuit.Curve;
 import utils.circuit.MainTrack;
 import utils.circuit.Segment;
 import utils.circuit.Surface;
+import utils.undo.Undo;
+import utils.undo.UndoInterface;
 import bsh.EvalError;
 import bsh.Interpreter;
 
@@ -65,6 +67,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	CircuitView						view;
 	EditorFrame						editorFrame;
 	public boolean					dirty						= false;
+	// the segment's state before the first edit; added to the undo list on that edit
+	private UndoInterface			pendingUndo					= null;
+	// true while setShape fills in the fields
+	private boolean					filling						= false;
 
 	private JPanel					jContentPane				= null;	//  @jve:decl-index=0:visual-constraint="377,10"
 
@@ -804,7 +810,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 						if (value != shape.getPenalty())
 						{
 							shape.setPenalty(value);
-							editorFrame.documentIsModified = true;
+							changed();
 						}
 					}
 					catch (NumberFormatException ex)
@@ -834,7 +840,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 						if (value != shape.getEnvMapIndex())
 						{
 							shape.setEnvMapIndex(value);
-							editorFrame.documentIsModified = true;
+							changed();
 						}
 					}
 					catch (NumberFormatException ex)
@@ -865,7 +871,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 						if (!(value == old || (Double.isNaN(value) && Double.isNaN(old))))
 						{
 							shape.setDovFactor(value);
-							editorFrame.documentIsModified = true;
+							changed();
 						}
 					}
 					catch (NumberFormatException ex)
@@ -892,6 +898,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
+					// selecting the shown segment's surface isn't an edit
+					if (filling)
+						return;
 					shape.setSurface((String) surfaceComboBox.getSelectedItem());
 					try
 					{
@@ -900,7 +909,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 					{
 						e1.printStackTrace();
 					}
-					editorFrame.documentIsModified = true;
+					changed();
 				}
 			});
 
@@ -913,7 +922,56 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		this.setTitle("Segment " + shape.getCount() + " : " + shape.getName());
 	}
 
+	/**
+	 * Sets the undo step for the shown segment. It is only added to the undo list
+	 * when the segment is changed, so looking at a segment doesn't add one.
+	 */
+	public void setPendingUndo(UndoInterface undo)
+	{
+		pendingUndo = undo;
+	}
+
+	public Segment getSegment()
+	{
+		return shape;
+	}
+
+	/**
+	 * Every edit in the dialog comes here: the track needs saving, and the first
+	 * edit of the shown segment adds its undo step.
+	 */
+	private void changed()
+	{
+		if (filling)
+			return;
+
+		editorFrame.documentIsModified = true;
+		dirty = true;
+
+		if (pendingUndo != null)
+		{
+			Undo.add(pendingUndo);
+			pendingUndo = null;
+		}
+	}
+
+	/**
+	 * Shows a segment. Filling in the fields fires their listeners, which isn't an edit.
+	 */
 	public void setShape(Segment shape)
+	{
+		filling = true;
+		try
+		{
+			fillFields(shape);
+		}
+		finally
+		{
+			filling = false;
+		}
+	}
+
+	private void fillFields(Segment shape)
 	{
 		this.shape = shape;
 		addSurface(roadSurfaceVector, shape.getSurface());
@@ -1038,7 +1096,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		editorFrame.documentIsModified = true;
+		changed();
 		dirty = true;
 	}
 	/**
@@ -1076,7 +1134,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public void sideChanged()
 	{
 		view.redrawCircuit();
-		editorFrame.documentIsModified = true;
+		changed();
 		dirty = true;
 	}
 	/**
@@ -1098,7 +1156,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public void groupChanged()
 	{
 		shape.setType(getGroupButton().getSelected());
-		editorFrame.documentIsModified = true;
+		changed();
 		view.redrawCircuit();
 	}
 
@@ -1151,7 +1209,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			this.getEndTangentLeftSlider().setEnabled(true);
 			this.getEndTangentRightSlider().setEnabled(true);
 		}
-		editorFrame.documentIsModified = true;
+		changed();
 	}
 
 	public void windowClosing(WindowEvent anEvent)
@@ -1207,7 +1265,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		{
 			getLengthSlider().setValue(newLength);
 		}
-		editorFrame.documentIsModified = true;
+		changed();
 		dirty = true;
 	}
 

@@ -2431,6 +2431,7 @@ public class EditorFrame extends JFrame
 			return;
 
 		documentIsModified = true;
+		view.undoneOrRedone();
 
 		if (step instanceof UndoEditRelief || step instanceof UndoDeleteRelief)
 			getReliefs().setChanged(true);
