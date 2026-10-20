@@ -138,7 +138,6 @@ public class Straight extends Segment
 		double currentY = Editor.getProperties().getCurrentY();
 		double currentA = Editor.getProperties().getCurrentA();
 		double showArrows = Editor.getProperties().getShowArrows();
-		double profilStepsLength = getValidProfilStepsLength(editorFrame);
 		double trackWidth = editorFrame.getTrackData().getMainTrack().getWidth();
 		double leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double rightBorderWidth = getValidRightBorderWidth(editorFrame);
@@ -153,14 +152,8 @@ public class Straight extends Segment
 		double leftEndHeight = this.getCalculatedHeightEndLeft();
 		double rightEndHeight = this.getCalculatedHeightEndRight();
 
-		if (hasProfilSteps())
-		{
-			nbSteps = getProfilSteps();
-		}
-		else
-		{
-			nbSteps = (int) (length / profilStepsLength + 0.5) + 1;
-		}
+		// same step count as the game's track loader
+		nbSteps = getValidSteps(editorFrame, length);
 		stepLength = length / nbSteps;
 
 		if (points == null || points.length != 4 * (7 + (showArrows > 0.0 ? 1 : 0)) * nbSteps)

@@ -11,6 +11,7 @@ public class UndoSplitSegment implements UndoInterface
 
 	private Segment		original;	// cloned
 	private Segment		changed;
+	private Segment		changedState;	// cloned: undo copies the original back into changed
 	private int			changedPos;
 
 	private Segment		added;		// undo
@@ -27,6 +28,7 @@ public class UndoSplitSegment implements UndoInterface
 		this.editorFrame = editorFrame;
 		this.original = original;
 		this.changed = changed;
+		this.changedState = (Segment) changed.clone();
 		this.added = added;
 		this.changedPos = data.indexOf(changed);
 		this.addedPos = data.indexOf(added);
@@ -75,7 +77,7 @@ public class UndoSplitSegment implements UndoInterface
 	{
 		SegmentVector data = editorFrame.getTrackData().getSegments();
 
-		data.set(changedPos, changed);
+		data.set(changedPos, (Segment) changedState.clone());
 
 		if (redo.getType() == "str")
 		{

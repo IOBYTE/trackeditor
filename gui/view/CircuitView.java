@@ -81,7 +81,6 @@ import utils.undo.UndoEditRelief;
 import utils.undo.UndoMoveAllGraphicObjects;
 import utils.undo.UndoMoveGraphicObject;
 import utils.undo.UndoSegmentChange;
-import utils.undo.UndoSplitSegment;
 
 
 /**
@@ -460,140 +459,18 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						{
 							return;
 						}
-						SegmentVector data = editorFrame.getTrackData().getSegments();
-						int pos = data.indexOf(handledShape);
-						double splitPoint = 0.5;
-						double profilStepsLength = handledShape.getValidProfilStepsLength(editorFrame);
-						switch (handledShape.getType())
-						{
-							case "lft":
-							{
-								Curve oldShape = (Curve)handledShape;
-								Curve cloneShape = (Curve)oldShape.clone();
-								Curve newShape2 = new Curve("lft", oldShape);
-								double arc = oldShape.getArcDeg();
-								double rStart = oldShape.getRadiusStart();
-								double rEnd = oldShape.getRadiusEnd();
-								double L = (rStart + rEnd) / 2.0 * oldShape.getArcDeg();
-								double nbSteps = (int)(L / profilStepsLength + 0.5) + 1;
-								double stepLength = L / nbSteps;
-								double deltaRadiusStep = (rEnd - rStart) / (nbSteps - 1.0);
-								double tmpAngle = 0.0;
-								double tmpRadius = rStart;
-								for (int curStep = 0; curStep < nbSteps; ++curStep)
-								{
-									tmpAngle += stepLength / tmpRadius;
-									tmpRadius += deltaRadiusStep;
-								}
-								stepLength *= arc / tmpAngle;
-								tmpAngle = 0.0;
-								tmpRadius = rStart;
-								for (int curStep = 0; curStep < nbSteps; ++curStep)
-								{
-									tmpAngle += stepLength / tmpRadius;
-									tmpRadius += deltaRadiusStep;
-									oldShape.setArcDeg(tmpAngle);
-									oldShape.setRadiusEnd(tmpRadius - deltaRadiusStep);
-									redrawCircuit();
-									if (oldShape.contains(mousePoint))
-									{
-										splitPoint = curStep / nbSteps;
-										break;
-									}
-								}
-								newShape2.setArcDeg(arc - tmpAngle);
-								newShape2.setRadiusEnd(rEnd);
-								newShape2.setRadiusStart(tmpRadius);
-								splitSegment(oldShape, newShape2, splitPoint);
-								newShape2.setProfilStepsLength(oldShape.getProfilStepsLength());
-								int count2 = Editor.getProperties().getCurveNameCount() + 1;
-								Editor.getProperties().setCurveNameCount(count2);
-								newShape2.setName("curve " + count2);
-								data.insertElementAt(newShape2, pos + 1);
-								Undo.add(new UndoSplitSegment(editorFrame, oldShape, cloneShape, newShape2));
-								break;
-							}
-							case "rgt":
-							{
-								Curve oldShape = (Curve)this.handledShape;
-								Curve cloneShape = (Curve)oldShape.clone();
-								Curve newShape2 = new Curve("rgt", oldShape);
-								double arc = oldShape.getArcDeg();
-								double rStart = oldShape.getRadiusStart();
-								double rEnd = oldShape.getRadiusEnd();
-								double L = (rStart + rEnd) / 2.0 * oldShape.getArcDeg();
-								double nbSteps = (int)(L / profilStepsLength + 0.5) + 1;
-								double stepLength = L / nbSteps;
-								final double deltaRadiusStep = (rEnd - rStart) / (nbSteps - 1.0);
-								double tmpAngle = 0.0;
-								double tmpRadius = rStart;
-								for (int curStep = 0; curStep < nbSteps; ++curStep)
-								{
-									tmpAngle += stepLength / tmpRadius;
-									tmpRadius += deltaRadiusStep;
-								}
-								stepLength *= arc / tmpAngle;
-								tmpAngle = 0.0;
-								tmpRadius = rStart;
-								for (int curStep = 0; curStep < nbSteps; ++curStep)
-								{
-									tmpAngle += stepLength / tmpRadius;
-									tmpRadius += deltaRadiusStep;
-									oldShape.setArcDeg(tmpAngle);
-									oldShape.setRadiusEnd(tmpRadius - deltaRadiusStep);
-									redrawCircuit();
-									if (oldShape.contains(mousePoint))
-									{
-										splitPoint = curStep / nbSteps;
-										break;
-									}
-								}
-								newShape2.setArcDeg(arc - tmpAngle);
-								newShape2.setRadiusEnd(rEnd);
-								newShape2.setRadiusStart(tmpRadius);
-								splitSegment(oldShape, newShape2, splitPoint);
-								newShape2.setProfilStepsLength(oldShape.getProfilStepsLength());
-								int count2 = Editor.getProperties().getCurveNameCount() + 1;
-								Editor.getProperties().setCurveNameCount(count2);
-								newShape2.setName("curve " + count2);
-								data.insertElementAt(newShape2, pos + 1);
-								Undo.add(new UndoSplitSegment(editorFrame, oldShape, cloneShape, newShape2));
-								break;
-							}
-							case "str":
-							{
-								Straight oldShape = (Straight)this.handledShape;
-								Straight cloneShape = (Straight)oldShape.clone();
-								Straight newShape3 = new Straight();
-								double length = oldShape.getLength();
-								for (int i = 0; i < 100; ++i)
-								{
-									splitPoint = i * 0.01;
-									newShape3.setLength(length * (1.0 - splitPoint));
-									oldShape.setLength(length * splitPoint);
-									redrawCircuit();
-									if (oldShape.contains(mousePoint))
-									{
-										break;
-									}
-								}
-								splitSegment(oldShape, newShape3, splitPoint);
-								newShape3.setProfilStepsLength(oldShape.getProfilStepsLength());
-								int count3 = Editor.getProperties().getStraightNameCount() + 1;
-								Editor.getProperties().setStraightNameCount(count3);
-								newShape3.setName("straight " + count3);
-								data.insertElementAt(newShape3, pos + 1);
-								Undo.add(new UndoSplitSegment(editorFrame, oldShape, cloneShape, newShape3));
-								break;
-							}
-							default:
-								break;
-						}
+						String error = new SegmentSplitter(editorFrame).split(handledShape, mousePoint);
 						handledShape = null;
 						editorFrame.toggleButtonSubdivide.setSelected(false);
+						setState(STATE_NONE);
+						if (error != null)
+						{
+							redrawCircuit();
+							JOptionPane.showMessageDialog(editorFrame, error, "Subdivide", JOptionPane.INFORMATION_MESSAGE);
+							break;
+						}
 						editorFrame.documentIsModified = true;
 						redrawCircuit();
-						setState(STATE_NONE);
 					}
 						break;
 					case STATE_FINISH_LINE :
@@ -627,114 +504,6 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				ex.printStackTrace();
 			}
 		}
-	}
-
-	private void splitSegment(Segment oldShape, Segment newShape, double splitPoint)
-	{
-		double leftSide2 = oldShape.getLeft().getSideStartWidth() + (oldShape.getLeft().getSideEndWidth() - oldShape.getLeft().getSideStartWidth()) * splitPoint;
-		double rightSide2 = oldShape.getRight().getSideStartWidth() + (oldShape.getRight().getSideEndWidth() - oldShape.getRight().getSideStartWidth()) * splitPoint;
-
-		double heightAtSplitPoint = oldShape.getHeightAt(splitPoint, Segment.Where.CENTER);
-		double heightAtSplitPointLeft = oldShape.getHeightAt(splitPoint, Segment.Where.LEFT);
-		double heightAtSplitPointRight = oldShape.getHeightAt(splitPoint, Segment.Where.RIGHT);
-
-		double gradeAtSplitPoint = oldShape.getTangentAt(splitPoint, Segment.Where.CENTER);
-		double gradeAtSplitPointLeft = oldShape.getTangentAt(splitPoint, Segment.Where.LEFT);
-		double gradeAtSplitPointRight = oldShape.getTangentAt(splitPoint, Segment.Where.RIGHT);
-
-		newShape.getLeft().setBorderWidth(oldShape.getLeft().getBorderWidth());
-		newShape.getRight().setBorderWidth(oldShape.getRight().getBorderWidth());
-		newShape.getLeft().setBorderStyle(oldShape.getLeft().getBorderStyle());		
-		newShape.getRight().setBorderStyle(oldShape.getRight().getBorderStyle());		
-		newShape.getLeft().setBorderSurface(oldShape.getLeft().getBorderSurface());
-		newShape.getRight().setBorderSurface(oldShape.getRight().getBorderSurface());
-		newShape.getLeft().setBorderHeight(oldShape.getLeft().getBorderHeight());
-		newShape.getRight().setBorderHeight(oldShape.getRight().getBorderHeight());
-
-		newShape.getLeft().setSideStartWidth(leftSide2);
-		newShape.getRight().setSideStartWidth(rightSide2);
-		newShape.getLeft().setSideEndWidth(oldShape.getLeft().getSideEndWidth());
-		newShape.getRight().setSideEndWidth(oldShape.getRight().getSideEndWidth());
-		newShape.getLeft().setSideBankingType(oldShape.getLeft().getSideBankingType());
-		newShape.getRight().setSideBankingType(oldShape.getRight().getSideBankingType());
-		newShape.getLeft().setSideSurface(oldShape.getLeft().getSideSurface());
-		newShape.getRight().setSideSurface(oldShape.getRight().getSideSurface());
-		oldShape.getLeft().setSideEndWidth(leftSide2);
-		oldShape.getRight().setSideEndWidth(rightSide2);
-
-		newShape.getLeft().setBarrierStyle(oldShape.getLeft().getBarrierStyle());		
-		newShape.getRight().setBarrierStyle(oldShape.getRight().getBarrierStyle());		
-		newShape.getLeft().setBarrierSurface(oldShape.getLeft().getBarrierSurface());
-		newShape.getRight().setBarrierSurface(oldShape.getRight().getBarrierSurface());
-		newShape.getLeft().setBarrierHeight(oldShape.getLeft().getBarrierHeight());
-		newShape.getRight().setBarrierHeight(oldShape.getRight().getBarrierHeight());
-		newShape.getLeft().setBarrierWidth(oldShape.getLeft().getBarrierWidth());
-		newShape.getRight().setBarrierWidth(oldShape.getRight().getBarrierWidth());
-
-		double heightStart = oldShape.getValidHeightStart();
-
-		if (!Double.isNaN(heightStart) && oldShape.hasHeightEnd())
-		{								
-			newShape.setHeightEnd(oldShape.getHeightEnd());
-			newShape.setHeightStart(heightAtSplitPoint);
-			oldShape.setHeightEnd(heightAtSplitPoint);
-		}
-
-		if (!Double.isNaN(heightStart) && oldShape.hasHeightEndLeft())
-		{								
-			newShape.setHeightEnd(oldShape.getHeightEndLeft());
-			newShape.setHeightStartLeft(heightAtSplitPointLeft);
-			oldShape.setHeightEndLeft(heightAtSplitPointLeft);
-		}
-
-		if (!Double.isNaN(heightStart) && oldShape.hasHeightEndRight())
-		{								
-			newShape.setHeightEnd(oldShape.getHeightEndRight());
-			newShape.setHeightStartRight(heightAtSplitPointRight);
-			oldShape.setHeightEndRight(heightAtSplitPointRight);
-		}
-
-		double bankingStart = oldShape.getValidBankingStart(editorFrame);
-
-		if (!Double.isNaN(bankingStart) && oldShape.hasBankingEnd())
-		{
-			newShape.setBankingEnd(oldShape.getBankingEnd());
-			double banking = bankingStart + (oldShape.getBankingEnd() - bankingStart) * splitPoint;
-			newShape.setBankingStart(banking);
-			oldShape.setBankingEnd(banking);
-		}
-		
-		if (gradeAtSplitPointLeft == gradeAtSplitPointRight)
-		{
-			if (oldShape.getCalculatedStartTangent() != gradeAtSplitPoint ||
-				oldShape.getCalculatedEndTangent() != gradeAtSplitPoint)
-			{
-				newShape.setProfilEndTangent(oldShape.getProfilEndTangent());
-				newShape.setProfilStartTangent(gradeAtSplitPoint);
-				oldShape.setProfilEndTangent(gradeAtSplitPoint);
-			}
-		}
-		else
-		{
-			if (oldShape.getCalculatedStartTangentLeft() != gradeAtSplitPointLeft ||
-				oldShape.getCalculatedEndTangentLeft() != gradeAtSplitPointLeft)
-			{
-				newShape.setProfilEndTangentLeft(oldShape.getProfilEndTangentLeft());
-				newShape.setProfilStartTangentLeft(gradeAtSplitPointLeft);
-				oldShape.setProfilEndTangentLeft(gradeAtSplitPointLeft);
-			}
-			
-			if (oldShape.getCalculatedStartTangentRight() != gradeAtSplitPointRight ||
-				oldShape.getCalculatedEndTangentRight() != gradeAtSplitPointRight)
-			{
-				newShape.setProfilEndTangentRight(oldShape.getProfilEndTangentRight());
-				newShape.setProfilStartTangentRight(gradeAtSplitPointRight);
-				oldShape.setProfilEndTangentRight(gradeAtSplitPointRight);
-			}
-		}
-
-		newShape.setGrade(oldShape.getGrade());
-		newShape.setSurface(oldShape.getSurface());
 	}
 
 	private ObjectMap findObjectMap(ObjShapeObject object)

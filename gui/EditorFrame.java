@@ -3521,15 +3521,8 @@ public class EditorFrame extends JFrame
 				object.setTexture(trackSurface.getTextureName());
 			}
 
-			int steps;
-			if (segment.hasProfilSteps())
-			{
-				steps = segment.getProfilSteps();
-			}
-			else
-			{
-				steps = (int) (segment.getLength() / segment.getValidProfilStepsLength(this) + 0.5) + 1;
-			}
+			// the steps the segment was drawn with
+			int steps = segment.nbSteps;
 
 			int stride = segment.points.length / steps;
 

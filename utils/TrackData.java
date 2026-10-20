@@ -253,13 +253,14 @@ public final class TrackData
     {
     	double width = mainTrack.getWidth();
     	boolean hasGrade = false;
+    	// like the game, a segment without an end height uses the last explicit grade
+    	double lastGrade = 0;
 
 		for (int i = 0; i < segments.size(); i++)
 		{
 			Segment segment = segments.get(i);
-			boolean hasSpline = (segment.hasProfil() && segment.getProfil().equals("spline")) ||
-					mainTrack.getProfil() == null ||
-					mainTrack.getProfil().equals("spline");
+			// like the game, the Main Track profil isn't used
+			boolean hasSpline = segment.isSpline();
 
 			if (i == 0)
 			{
@@ -338,6 +339,7 @@ public final class TrackData
 			if (segment.hasGrade())
 			{
 				hasGrade = true;
+				lastGrade = segment.getGrade();
 				segment.setCalculatedGrade(segment.getGrade());
 			}
 
@@ -361,7 +363,8 @@ public final class TrackData
 			}
 			else if (hasGrade)
 			{
-				segment.setCalculatedHeightEnd(segment.getCalculatedHeightStart() + (length * (segment.getCalculatedGrade() / 100)));
+				segment.setCalculatedGrade(lastGrade);
+				segment.setCalculatedHeightEnd(segment.getCalculatedHeightStart() + (length * (lastGrade / 100)));
 			}
 			else
 			{
@@ -419,11 +422,12 @@ public final class TrackData
 			}
 			else
 			{
-				segment.setCalculatedStartTangentLeft((segment.getCalculatedHeightEndLeft() - segment.getCalculatedHeightStartLeft()) / length);
-				segment.setCalculatedEndTangentLeft((segment.getCalculatedHeightEndLeft() - segment.getCalculatedHeightStartLeft()) / length);
+				// tangents are in %, like the profil tangent attributes
+				segment.setCalculatedStartTangentLeft((segment.getCalculatedHeightEndLeft() - segment.getCalculatedHeightStartLeft()) / length * 100);
+				segment.setCalculatedEndTangentLeft((segment.getCalculatedHeightEndLeft() - segment.getCalculatedHeightStartLeft()) / length * 100);
 
-				segment.setCalculatedStartTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length);
-				segment.setCalculatedEndTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length);
+				segment.setCalculatedStartTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length * 100);
+				segment.setCalculatedEndTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length * 100);
 				
 				segment.setCalculatedStartTangent((segment.getCalculatedStartTangentLeft() + segment.getCalculatedStartTangentRight()) / 2);
 				segment.setCalculatedEndTangent((segment.getCalculatedEndTangentLeft() + segment.getCalculatedEndTangentRight()) / 2);

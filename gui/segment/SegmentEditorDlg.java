@@ -47,6 +47,7 @@ import javax.swing.event.DocumentListener;
 
 import utils.SurfaceComboBox;
 import utils.circuit.Curve;
+import utils.circuit.MainTrack;
 import utils.circuit.Segment;
 import utils.circuit.Surface;
 import bsh.EvalError;
@@ -1402,6 +1403,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				else
 				{
 					stepsLength = shape.getValidProfilStepsLength(editorFrame);
+					if (Double.isNaN(stepsLength))
+						stepsLength = MainTrack.DEFAULT_PROFIL_STEPS_LENGTH;
 				}
 				shape.setProfilStepsLength(stepsLength);
 				slider.setValue(shape.getProfilStepsLength());
@@ -1424,7 +1427,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				{
 					length = shape.getLength();
 				}
-				int steps = (int) (length / shape.getValidProfilStepsLength(editorFrame) + 0.5);
+				// start from the steps the game builds now
+				int steps = shape.getValidSteps(editorFrame, length);
 				shape.setProfilSteps(steps);
 				slider.setValue(shape.getProfilSteps());
 

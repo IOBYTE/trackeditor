@@ -1196,7 +1196,8 @@ public class Segment implements Cloneable
 		return surf;
 	}
 
-	// this is not inherited
+	// this is not inherited, and like the game's track loader the Main Track
+	// "profil" isn't used: a segment without its own profil is a spline
 	public String getValidProfil(EditorFrame editorFrame)
 	{
 		if (hasProfil())
@@ -1204,12 +1205,37 @@ public class Segment implements Cloneable
 			return getProfil();
 		}
 
-		if (editorFrame.getTrackData().getMainTrack().getProfil() != null)
-		{
-			return editorFrame.getTrackData().getMainTrack().getProfil();
-		}
+		return "spline";
+	}
 
-		return MainTrack.DEFAULT_PROFIL;
+	/**
+	 * @return true if the game builds this segment's profile as a spline
+	 */
+	public boolean isSpline()
+	{
+		return !hasProfil() || getProfil().equals("spline");
+	}
+
+	/**
+	 * Number of steps the game's track loader builds this segment with: one for
+	 * a linear profile; otherwise "profil steps" (unless it is 1), else from the
+	 * segment's or Main Track's "profil steps length", else one.
+	 *
+	 * @param length the segment's length ((start + end radius) / 2 * arc for a curve)
+	 */
+	public int getValidSteps(EditorFrame editorFrame, double length)
+	{
+		if (!isSpline())
+			return 1;
+
+		if (hasProfilSteps() && getProfilSteps() != 1)
+			return getProfilSteps();
+
+		double profilStepsLength = getValidProfilStepsLength(editorFrame);
+		if (profilStepsLength > 0)
+			return (int) (length / profilStepsLength) + 1;
+
+		return 1;
 	}
 
 	// this is not inherited
@@ -1221,12 +1247,9 @@ public class Segment implements Cloneable
 			return length;
 		}
 
-		length = editorFrame.getTrackData().getMainTrack().getProfilStepsLength();
-		if (Double.isNaN(length))
-		{
-			length = MainTrack.DEFAULT_PROFIL_STEPS_LENGTH;
-		}
-		return length;
+		// NaN when neither the segment nor the Main Track has one: the game
+		// then builds the segment as a single step
+		return editorFrame.getTrackData().getMainTrack().getProfilStepsLength();
 	}
 
     public double getValidLeftBarrierWidth(EditorFrame editorFrame)
@@ -2338,7 +2361,8 @@ public class Segment implements Cloneable
 	public void unoptimize(EditorFrame editorFrame)
 	{
 		surface = getValidSurface(editorFrame);
-		profilStepsLength = getValidProfilStepsLength(editorFrame);
+		if (!Double.isNaN(getValidProfilStepsLength(editorFrame)))
+			profilStepsLength = getValidProfilStepsLength(editorFrame);
 
 		// TODO: elevation, banking and other stuff needs to be implemented
 
@@ -2493,7 +2517,8 @@ public class Segment implements Cloneable
 			break;
 		}
 
-		return trackSpline(zStart, zEnd, tanStart, tanEnd, splitPoint);
+		// the spline's tangents are slopes times the segment length
+		return trackSpline(zStart, zEnd, tanStart * length, tanEnd * length, splitPoint);
 	}
 
 	public double getTangentAt(double splitPoint, Where where)

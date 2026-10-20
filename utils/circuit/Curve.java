@@ -120,7 +120,6 @@ public class Curve extends Segment
 		double	currentA	= Editor.getProperties().getCurrentA();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
-		double	profilStepsLength = getValidProfilStepsLength(editorFrame);
 		double	trackWidth = editorFrame.getTrackData().getMainTrack().getWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double	rightBorderWidth = getValidRightBorderWidth(editorFrame);
@@ -138,14 +137,8 @@ public class Curve extends Segment
 		// calc turn length
 		double arc = getArcRad();
 		length = arc * (radiusStart + radiusEnd) / 2;
-		if (hasProfilSteps())
-		{
-			nbSteps = getProfilSteps();
-		}
-		else
-		{
-			nbSteps = (int) (length / profilStepsLength + 0.5) + 1;
-		}
+		// same step count as the game's track loader
+		nbSteps = getValidSteps(editorFrame, length);
 
 		trackStartDist += length;
 		stepLength = length / nbSteps;
