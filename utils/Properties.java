@@ -34,7 +34,7 @@ public  class Properties
 	private static Properties	instance				= new Properties();
 	private Vector<ActionListener>	propertiesListeners	= new Vector<ActionListener>();
 	public final String			title					= "sd2-trackeditor";
-	public final String			version					= "1.5.0";
+	public final String			version					= "1.7.0";
 	private String				path;
 
 	private double				imageScale				= 1;
