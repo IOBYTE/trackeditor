@@ -121,6 +121,7 @@ public class XmlReader
 	
 	private EditorFrame		editorFrame = null;
 	private String			filename	= null;
+	private List<String>	warnings	= new java.util.ArrayList<String>();
 	
 	public XmlReader(EditorFrame editorFrame)
 	{
@@ -130,6 +131,7 @@ public class XmlReader
     public void readXml(String filename) throws JDOMException, IOException
     {
     	this.filename = filename;
+    	warnings.clear();
     	
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
@@ -1145,130 +1147,106 @@ public class XmlReader
         return out;
     }
 
-    public synchronized double getAttrNumValue(Element element, String name)
+    /**
+     * Problems found while reading numbers: values the game reads differently than they
+     * are written, or units it doesn't know. Shown to the user once the track is read.
+     */
+    public List<String> getWarnings()
     {
-        double out = Double.NaN;
-        Element e = getChildWithName(element, name);
-        if (e != null)
+        return warnings;
+    }
+
+    private void warn(Element e, String message)
+    {
+        String where = e instanceof MyElement ? "line " + ((MyElement) e).getLineNumber() + ": " : "";
+        warnings.add(where + "\"" + e.getAttributeValue("name") + "\" " + message);
+    }
+
+    /**
+     * Reads an attnum value the way the game does. A value that isn't a valid number is
+     * read as far as it is one (like the game) and reported.
+     */
+    private double readNumber(Element e)
+    {
+        String text = e.getAttributeValue("val");
+        boolean[] clean = { false };
+        double value = GfParmNumbers.parse(text, clean);
+
+        if (!clean[0])
         {
-            if (e.getName().equals("attnum"))
-            {
-                try
-                {
-                    out = Double.parseDouble(e.getAttributeValue("val"));
-                }
-                catch (NumberFormatException exception)
-                {
-                	String msg = filename + " : " + ((MyElement)e).getLineNumber() + " : " + e.getAttribute("name").getValue() + " : " + e.getAttributeValue("val");
-                	JOptionPane.showMessageDialog(editorFrame, msg, "Invalid number", JOptionPane.ERROR_MESSAGE);
-                }
-            }
+            warn(e, "has the value \"" + (text == null ? "" : text) + "\", which the game reads as " + format(value) +
+                ". It is saved as " + format(value) + ".");
         }
+
+        return value;
+    }
+
+    private static String format(double value)
+    {
+        if (value == Math.rint(value) && !Double.isInfinite(value))
+            return String.valueOf((long) value);
+        return String.valueOf(value);
+    }
+
+    /**
+     * Converts a value from the file's unit to the unit the editor keeps it in, through SI
+     * like the game. No unit means SI, as it does for the game.
+     */
+    private double toEditorUnit(Element e, double value, String expectedUnit)
+    {
+        String unit = e.getAttributeValue("unit");
+        List<String> unknown = new java.util.ArrayList<String>();
+        double out = GfParmNumbers.convert(value, unit, expectedUnit, editorFrame.getCarsSportsRacing(), unknown);
+
+        for (String u : unknown)
+        {
+            warn(e, "uses the unit \"" + u + "\", which the game doesn't know, so like the game it is taken as SI.");
+        }
+
         return out;
     }
 
+    /**
+     * @return the value in SI, or NaN when there is no such attnum
+     */
+    public synchronized double getAttrNumValue(Element element, String name)
+    {
+        return getAttrNumValue(element, name, null);
+    }
+
+    /**
+     * @return the value and the file's unit, without converting it, or null when there is no such attnum
+     */
     public synchronized DoubleValue getAttrNumUnitsValue(Element element, String name)
     {
-        double out = Double.NaN;
         Element e = getChildWithName(element, name);
-        if (e != null)
+        if (e != null && e.getName().equals("attnum"))
         {
-            if (e.getName().equals("attnum"))
+            double out = readNumber(e);
+
+            if (!Double.isNaN(out))
             {
-                try
-                {
-                    out = Double.parseDouble(e.getAttributeValue("val"));
-                }
-                catch (NumberFormatException exception)
-                {
-                	String msg = filename + " : " + ((MyElement)e).getLineNumber() + " : " + e.getAttribute("name").getValue() + " : " + e.getAttributeValue("val");
-                	JOptionPane.showMessageDialog(editorFrame, msg, "Invalid number", JOptionPane.ERROR_MESSAGE);
-                }
-                
-                if (!Double.isNaN(out))
-                {
-                	return new DoubleValue(out, e.getAttributeValue("unit"));
-                }
+                return new DoubleValue(out, e.getAttributeValue("unit"));
             }
         }
 
         return null;
     }
 
+    /**
+     * @return the value converted to expectedUnit (SI when null), or NaN when there is no such attnum
+     */
     public synchronized double getAttrNumValue(Element element, String name, String expectedUnit)
     {
         double out = Double.NaN;
         Element e = getChildWithName(element, name);
-        if (e != null)
+        if (e != null && e.getName().equals("attnum"))
         {
-            if (e.getName().equals("attnum"))
+            out = readNumber(e);
+
+            if (!Double.isNaN(out))
             {
-                try
-                {
-                    out = Double.parseDouble(e.getAttributeValue("val"));
-                }
-                catch (NumberFormatException exception)
-                {
-                	String msg = filename + " : " + ((MyElement)e).getLineNumber() + " : " + e.getAttribute("name").getValue() + " : " + e.getAttributeValue("val");
-                	JOptionPane.showMessageDialog(editorFrame, msg, "Invalid number", JOptionPane.ERROR_MESSAGE);
-                }
-                
-                if (!Double.isNaN(out))
-                {               
-                	String actualUnit = e.getAttributeValue("unit");
-               
-                	if (actualUnit != null && !actualUnit.isEmpty())
-                	{
-                		if (!actualUnit.equals(expectedUnit))
-                		{
-                			if (expectedUnit.equals("m") && (actualUnit.equals("ft") || actualUnit.equals("feet")))
-                			{
-                				out = out * 0.3048;
-                			}
-                			else if (expectedUnit.equals("m") && (actualUnit.equals("in") || actualUnit.equals("inch") || actualUnit.equals("inches")))
-                			{
-                				out = out * 0.0254;
-                			}
-                			else if (expectedUnit.equals("m") && actualUnit.equals("cm"))
-                			{
-                				out = out * 0.01;
-                			}
-                			else if (expectedUnit.equals("m") && actualUnit.equals("mm"))
-                			{
-                				out = out * 0.001;
-                			}
-                			else if (expectedUnit.equals("rad") && actualUnit.equals("deg"))
-                			{
-                				out = Math.toRadians(out);
-                			}
-                			else if (expectedUnit.equals("s") && (actualUnit.equals("hour") || actualUnit.equals("hours")))
-                			{
-                				out = out * 3600.0;
-                			}
-                			// speeds: convert the value from the file's unit to the one asked for
-                			else if (expectedUnit.equalsIgnoreCase("mph") && actualUnit.equals("m"))
-                	    	{
-                	    		out = out / 0.44704;		// m/s -> mph
-                	        }
-                			else if (expectedUnit.equalsIgnoreCase("mph") && actualUnit.equalsIgnoreCase("kph"))
-                			{
-                				out = out / 1.609344;		// km/h -> mph
-                			}
-                			else if (expectedUnit.equalsIgnoreCase("kph") && actualUnit.equals("m"))
-                			{
-                	            out = out * 3.6;			// m/s -> km/h
-                			}
-                			else if (expectedUnit.equalsIgnoreCase("kph") && actualUnit.equalsIgnoreCase("mph"))
-                			{
-                				out = out * 1.609344;		// mph -> km/h
-                			}
-                			else
-                			{
-                				System.out.println("can't convert " + expectedUnit +" to " + actualUnit);
-                			}
-                		}
-                	}
-                }
+                out = toEditorUnit(e, out, expectedUnit);
             }
         }
         return out;
@@ -1278,33 +1256,28 @@ public class XmlReader
     {
     	int out = Integer.MAX_VALUE;
     	Element e = getChildWithName(element, name);
-    	if (e != null)
+    	if (e != null && e.getName().equals("attnum"))
     	{
-    		if (e.getName().equals("attnum"))
+    		try
     		{
-    			try
+    			out = Integer.decode(e.getAttributeValue("val"));
+    		}
+    		catch (NumberFormatException exception)
+    		{
+    			// the game reads every attnum as a number and the code casts it
+    			double value = toEditorUnit(e, readNumber(e), null);
+
+    			if (Double.isNaN(value) || Double.isInfinite(value))
     			{
-    				out = Integer.decode(e.getAttributeValue("val"));
+    				out = 0;
     			}
-    			catch (NumberFormatException exception1)
+    			else
     			{
-    				try
+    				if (Math.floor(value) != value)
     				{
-    					double value = Double.parseDouble(e.getAttributeValue("val"));
-
-    					if (Math.floor(value) != value)
-    					{
-    						String msg = filename + " : " + ((MyElement)e).getLineNumber() + " : " + e.getAttribute("name").getValue() + " : " + e.getAttributeValue("val");
-    						JOptionPane.showMessageDialog(editorFrame, msg, "Invalid number", JOptionPane.ERROR_MESSAGE);
-    					}
-
-    					out = (int) value;
+    					warn(e, "should be a whole number; the game uses " + (int) value + ".");
     				}
-    				catch (NumberFormatException exception2)
-    				{
-    					String msg = filename + " : " + ((MyElement)e).getLineNumber() + " : " + e.getAttribute("name").getValue() + " : " + e.getAttributeValue("val");
-    					JOptionPane.showMessageDialog(editorFrame, msg, "Invalid number", JOptionPane.ERROR_MESSAGE);
-    				}
+    				out = (int) value;
     			}
     		}
     	}

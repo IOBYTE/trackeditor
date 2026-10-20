@@ -3490,12 +3490,14 @@ public class EditorFrame extends JFrame
 		
 		TrackData previous = trackData;
 		trackData = new TrackData();
+		List<String> numberWarnings = null;
 
 		try
 		{
 			XmlReader xmlReader = new XmlReader(this);
 			
 			xmlReader.readXml(file.getAbsolutePath());
+			numberWarnings = xmlReader.getWarnings();
 			
 			Vector<ObjectMap> objectMaps = trackData.getObjectMaps();
 			for (int i = 0; i < objectMaps.size(); i++)
@@ -3531,7 +3533,28 @@ public class EditorFrame extends JFrame
 		refresh();
 		
 		setTitle(originalTitle + " - Project: " + file.getAbsolutePath());
+
+		showNumberWarnings(file, numberWarnings);
 		return true;
+	}
+
+	/**
+	 * Tells the user about values the game reads differently than they are written,
+	 * since saving the track writes them the way the game reads them.
+	 */
+	private void showNumberWarnings(File file, List<String> warnings)
+	{
+		if (warnings == null || warnings.isEmpty())
+			return;
+
+		final int maxShown = 20;
+		StringBuilder text = new StringBuilder(file.getName() + ":\n\n");
+		for (int i = 0; i < warnings.size() && i < maxShown; i++)
+			text.append(warnings.get(i)).append("\n");
+		if (warnings.size() > maxShown)
+			text.append("... and ").append(warnings.size() - maxShown).append(" more\n");
+
+		JOptionPane.showMessageDialog(this, text.toString(), "Read Track", JOptionPane.WARNING_MESSAGE);
 	}
 
     /**
