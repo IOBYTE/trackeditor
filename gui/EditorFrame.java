@@ -667,7 +667,8 @@ public class EditorFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				openProject(((JMenuItem) e.getSource()).getText());
+				if (canClose())
+					openProject(((JMenuItem) e.getSource()).getText());
 			}
 		});
 		recentFilesMenu.insert(recentFileMenuItem, recentFilesMenu.getItemCount() - 2);
@@ -678,6 +679,9 @@ public class EditorFrame extends JFrame
 	 */
 	protected void openProject()
 	{
+		if (!canClose())
+			return;
+
 		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
 		UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
 		JFileChooser fc = new JFileChooser();
@@ -708,14 +712,17 @@ public class EditorFrame extends JFrame
 	{
 		//System.out.println("openProject reading : " + projectFileName);
 		
+		// read the project into a local first, so a failed open leaves the
+		// current track and its project settings untouched
+		Properties properties;
 		try
 		{
 			XMLDecoder decoder = new XMLDecoder(new FileInputStream(projectFileName));
-			Editor.setProperties((Properties)decoder.readObject());
+			properties = (Properties)decoder.readObject();
 			decoder.close();
 			
 			// update path from project file location
-			Editor.getProperties().setPath(projectFileName.substring(0, projectFileName.lastIndexOf(sep)));
+			properties.setPath(projectFileName.substring(0, projectFileName.lastIndexOf(sep)));
 		}
 		catch (Exception ex)
 		{
@@ -730,6 +737,7 @@ public class EditorFrame extends JFrame
 			JOptionPane.showMessageDialog(this, "File not found : " + trackFileName, "Project Open", JOptionPane.ERROR_MESSAGE);				
 			return;
 		}
+		Editor.setProperties(properties);
 		trackData = null;
 		trackData = new TrackData();		
 		readFile(file);
@@ -811,6 +819,9 @@ public class EditorFrame extends JFrame
 	 */
 	protected void newProjectDialog()
 	{
+		if (!canClose())
+			return;
+
 		NewProjectInfo	newProjectInfo = new NewProjectInfo();
 		
 		NewProjectDialog newProject = new NewProjectDialog(this, newProjectInfo);
@@ -2264,7 +2275,8 @@ public class EditorFrame extends JFrame
 			// ask whether to save or not
 			int Res = JOptionPane.showConfirmDialog(this, "The circuit was modified. Do you want to save it ?",
 					"Closing circuit", JOptionPane.YES_NO_CANCEL_OPTION);
-			if (Res == JOptionPane.CANCEL_OPTION)
+			// closing the dialog (Esc or the window's X) also means cancel
+			if (Res == JOptionPane.CANCEL_OPTION || Res == JOptionPane.CLOSED_OPTION)
 			{
 				// can't close
 				return false;
@@ -3348,11 +3360,9 @@ public class EditorFrame extends JFrame
 
 	public void importTrack()
 	{
-		if (trackData != null)
-		{
-			if (canClose())
-				trackData = null;
-		}
+		// cancel keeps the current track
+		if (trackData != null && !canClose())
+			return;
 		
 		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
 		UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
@@ -3409,7 +3419,9 @@ public class EditorFrame extends JFrame
 					objects.get(j).setName(getObjectColorName(objects.get(j).getRGB()));
 				}
 		 	}			
-			
+
+			// a freshly loaded track has nothing to save
+			documentIsModified = false;
 		}
 		catch (Exception e)
 		{

@@ -85,6 +85,15 @@ public class Undo
 		redoSegments.clear();
 	}
 
+	/**
+	 * Forgets all undo and redo steps, for when a different track is loaded.
+	 */
+	public static void clear()
+	{
+		undoSegments.clear();
+		redoSegments.clear();
+	}
+
 	public static void pop()
 	{
 		if (undoSegments.size() > 0)
