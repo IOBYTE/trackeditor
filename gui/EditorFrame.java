@@ -101,6 +101,9 @@ import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackObject;
 import utils.undo.Undo;
+import utils.undo.UndoDeleteRelief;
+import utils.undo.UndoEditRelief;
+import utils.undo.UndoInterface;
 
 /**
  * @author Patrice Espie , Charalampos Alexopoulos
@@ -743,11 +746,14 @@ public class EditorFrame extends JFrame
 			JOptionPane.showMessageDialog(this, "File not found : " + trackFileName, "Project Open", JOptionPane.ERROR_MESSAGE);				
 			return;
 		}
+		Properties oldProperties = Editor.getProperties();
 		Editor.setProperties(properties);
-		trackData = null;
-		trackData = new TrackData();		
-		Undo.clear();
-		readFile(file);
+		if (!readFile(file))
+		{
+			// the current track is still open, so keep its project settings
+			Editor.setProperties(oldProperties);
+			return;
+		}
 		updateRecentFiles(projectFileName);
 		
 		setTitle(originalTitle + " - Project: " + projectFileName);
@@ -2422,14 +2428,30 @@ public class EditorFrame extends JFrame
 
 	void buttonUndo_actionPerformed(ActionEvent e)
 	{
-		Undo.undo();
+		undoneOrRedone(Undo.undo());
 		view.redrawCircuit();
 	}
 
 	void buttonRedo_actionPerformed(ActionEvent e)
 	{
-		Undo.redo();
+		undoneOrRedone(Undo.redo());
 		view.redrawCircuit();
+	}
+
+	/**
+	 * An undo or redo changes the track like any other edit, so it has to be
+	 * saved, and a relief change also has to rewrite the relief file.
+	 * (Object map changes mark their map themselves.)
+	 */
+	private void undoneOrRedone(UndoInterface step)
+	{
+		if (step == null || trackData == null)
+			return;
+
+		documentIsModified = true;
+
+		if (step instanceof UndoEditRelief || step instanceof UndoDeleteRelief)
+			getReliefs().setChanged(true);
 	}
 
     void toggleButtonSubdivide_actionPerformed(ActionEvent e)
@@ -2450,10 +2472,15 @@ public class EditorFrame extends JFrame
     	fileName = fileName + sep + trackName + "-track.txt";
     	try
     	{
-    		FileOutputStream stream = new FileOutputStream(fileName);
-
-    		PrintStream printStream = new PrintStream(stream);
-    		trackData.getSegments().dump(printStream);
+    		// written through a temporary file, and closed so Windows doesn't keep it locked
+    		utils.AtomicFile.write(Paths.get(fileName), file -> {
+    			try (PrintStream printStream = new PrintStream(new FileOutputStream(file)))
+    			{
+    				trackData.getSegments().dump(printStream);
+    				if (printStream.checkError())
+    					throw new IOException("write error");
+    			}
+    		});
     	}
     	catch (Exception ex)
     	{
@@ -3440,19 +3467,30 @@ public class EditorFrame extends JFrame
 			String xmlFileName = fc.getSelectedFile().toString();
 			String path = xmlFileName;
 			path = path.substring(0, path.lastIndexOf(sep));
+			String oldPath = Editor.getProperties().getPath();
 			Editor.getProperties().setPath(path);
 			File file = new File(xmlFileName);
-			trackData = null;
-			trackData = new TrackData();
-			Undo.clear();
-			readFile(file);
+			if (!readFile(file))
+			{
+				// the current track is still open
+				Editor.getProperties().setPath(oldPath);
+			}
 		}
 	}
 	
-	public void readFile(File file)
+	/**
+	 * Reads a track into a new TrackData. If anything goes wrong the track that
+	 * was open before stays open, so a half-read track can't be saved over the file.
+	 *
+	 * @return true if the track was read
+	 */
+	public boolean readFile(File file)
 	{
 		//System.out.println("readFile : " + file.getAbsolutePath());
 		
+		TrackData previous = trackData;
+		trackData = new TrackData();
+
 		try
 		{
 			XmlReader xmlReader = new XmlReader(this);
@@ -3470,18 +3508,30 @@ public class EditorFrame extends JFrame
 				}
 		 	}			
 
-			// a freshly loaded track has nothing to save
+			// a freshly loaded track has nothing to save, and nothing to undo
 			documentIsModified = false;
+			Undo.clear();
+			// the previous track's object map selection doesn't apply
+			currentObjectMap = -1;
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
+			trackData = previous;
+			String reason = e.getLocalizedMessage();
+			if (reason == null || reason.isEmpty())
+				reason = e.toString();
 			JOptionPane.showMessageDialog(this,
-				"Read file : " + file.getAbsolutePath() + "\n\n" + e.getLocalizedMessage(),
-				"Read Track", JOptionPane.ERROR_MESSAGE);				
+				"Couldn't read : " + file.getAbsolutePath() + "\n\n" + reason +
+				(previous != null ? "\n\nThe track that was open is still open." : ""),
+				"Read Track", JOptionPane.ERROR_MESSAGE);
+			refresh();
+			return false;
 		}
 		refresh();
 		
 		setTitle(originalTitle + " - Project: " + file.getAbsolutePath());
+		return true;
 	}
 
     /**
@@ -3648,7 +3698,9 @@ public class EditorFrame extends JFrame
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(this,
+				"Couldn't write : " + filename + "\n\n" + e.getLocalizedMessage(),
+				"Dump AC3D", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

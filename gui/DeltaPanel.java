@@ -26,12 +26,14 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import utils.Editor;
 import utils.SegmentVector;
@@ -52,6 +54,9 @@ public class DeltaPanel extends JDialog
 	private final static String sep	= System.getProperty("file.separator");
     private EditorFrame editorFrame;
     private Thread worker = null;
+    // the trackgen process running now, so Cancel can stop it
+    private volatile Process process = null;
+    private volatile boolean cancelled = false;
 
     private JPanel jPanel = null;
     private JLabel nameLabel = null;
@@ -164,6 +169,9 @@ public class DeltaPanel extends JDialog
 			ProcessBuilder pb = new ProcessBuilder(trackgen[0], "-z", "-c", category[0], "-n", trackName[0]);
 			pb.redirectErrorStream(true);
 			proc = pb.start();
+			process = proc;
+			if (cancelled)
+				proc.destroy();
 		}
 		catch (IOException e)
 		{
@@ -229,12 +237,17 @@ public class DeltaPanel extends JDialog
 
 			int exitValue = proc.waitFor();
 
+			if (cancelled)
+				throw new TrackgenException(null);
+
 			if (exitValue != 0)
 				throw new TrackgenException(trackgen[0] + " failed (exit status " + exitValue + ")" + output(otherLines));
 		}
 		catch (IOException e)
 		{
 			proc.destroy();
+			if (cancelled)
+				throw new TrackgenException(null);
 			throw new TrackgenException("Couldn't read the output of " + trackgen[0] + "\n\n" + e.getLocalizedMessage());
 		}
 		catch (InterruptedException e)
@@ -242,6 +255,10 @@ public class DeltaPanel extends JDialog
 			proc.destroy();
 			Thread.currentThread().interrupt();
 			throw new TrackgenException(null);
+		}
+		finally
+		{
+			process = null;
 		}
 
 		if (Double.isNaN(length) || Double.isNaN(dX) || Double.isNaN(dY) || Double.isNaN(angle))
@@ -262,16 +279,23 @@ public class DeltaPanel extends JDialog
     /**
      * Runs code on the event dispatch thread and waits for it.
      */
-    private static void onEdt(Runnable code)
+    private void onEdt(Runnable code)
     {
+		// a cancel is handled on the event dispatch thread too, so checking here
+		// means nothing more changes once Cancel was pressed
+		Runnable checked = () -> {
+			if (cancelled)
+				throw new TrackgenException(null);
+			code.run();
+		};
 		if (SwingUtilities.isEventDispatchThread())
 		{
-			code.run();
+			checked.run();
 			return;
 		}
 		try
 		{
-			SwingUtilities.invokeAndWait(code);
+			SwingUtilities.invokeAndWait(checked);
 		}
 		catch (InvocationTargetException e)
 		{
@@ -298,7 +322,9 @@ public class DeltaPanel extends JDialog
 
     /**
      * Runs a calculation on a worker thread so the dialog keeps updating.
-     * The buttons are disabled until it finishes; errors are shown on the event dispatch thread.
+     * While it runs a modal "please wait" window blocks the editor, so the
+     * track can't be edited, closed or replaced between trackgen runs.
+     * Errors are shown on the event dispatch thread.
      */
     private void startCalculation(Runnable calculation)
     {
@@ -306,6 +332,26 @@ public class DeltaPanel extends JDialog
 			return;
 
 		setButtonsEnabled(false);
+		cancelled = false;
+
+		JDialog busy = new JDialog(this, "Trackgen", true);
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> cancelCalculation(cancelButton));
+		JPanel busyPanel = new JPanel(new java.awt.BorderLayout(10, 10));
+		busyPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+		busyPanel.add(new JLabel("Running trackgen. Please wait..."), java.awt.BorderLayout.CENTER);
+		busyPanel.add(cancelButton, java.awt.BorderLayout.EAST);
+		busy.setContentPane(busyPanel);
+		busy.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		busy.addWindowListener(new java.awt.event.WindowAdapter()
+		{
+			public void windowClosing(java.awt.event.WindowEvent e)
+			{
+				cancelCalculation(cancelButton);
+			}
+		});
+		busy.pack();
+		busy.setLocationRelativeTo(this);
 
 		worker = new Thread(() -> {
 			String error = null;
@@ -331,15 +377,36 @@ public class DeltaPanel extends JDialog
 			final String message = error;
 
 			SwingUtilities.invokeLater(() -> {
-				waitLabel.setText(f ? "Calculation failed" : "Calculation finished");
+				busy.dispose();
+				if (cancelled)
+					waitLabel.setText("Calculation cancelled");
+				else
+					waitLabel.setText(f ? "Calculation failed" : "Calculation finished");
 				setButtonsEnabled(true);
-				if (message != null)
+				if (message != null && !cancelled)
 					JOptionPane.showMessageDialog(this, message, "Delta Dialog", JOptionPane.ERROR_MESSAGE);
+				// changes made before a cancel or failure are kept, so show them
+				editorFrame.refresh();
 			});
 		}, "trackgen deltas");
 
 		worker.setDaemon(true);
 		worker.start();
+
+		// blocks here, while still handling events, until the worker disposes it
+		busy.setVisible(true);
+    }
+
+    /**
+     * Stops the calculation: the running trackgen is killed and nothing more is changed.
+     */
+    private void cancelCalculation(JButton cancelButton)
+    {
+		cancelled = true;
+		cancelButton.setEnabled(false);
+		Process p = process;
+		if (p != null)
+			p.destroy();
     }
 
     /**

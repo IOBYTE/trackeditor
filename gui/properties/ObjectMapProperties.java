@@ -2,7 +2,6 @@ package gui.properties;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -245,6 +244,8 @@ public class ObjectMapProperties extends PropertyPanel
 						}
 						catch (IOException ex)
 						{
+							JOptionPane.showMessageDialog(ObjectMapPanel.this, "Couldn't create the object map\n\n" + ex.getLocalizedMessage(),
+									"Create Object Map", JOptionPane.ERROR_MESSAGE);
 						}
 					}
 				});
@@ -273,8 +274,9 @@ public class ObjectMapProperties extends PropertyPanel
 					objectTablePanel.dataChanged();
 					return;
 				}
-				else if (option == 2)
+				else if (option != 0)
 				{
+					// Cancel, or the dialog was closed: leave the file alone
 					return;
 				}
 			}
@@ -283,13 +285,8 @@ public class ObjectMapProperties extends PropertyPanel
 
 			int imageWidth = 1024;
 			int imageHeight = (int)(1024 * (boundingRectangle.height / boundingRectangle.width));
-			BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-			Graphics2D graphic = image.createGraphics();
-			graphic.setColor(new Color(0x00000000));
-			graphic.fillRect(0, 0, imageWidth, imageHeight);
 
-			graphic.dispose();
-			ImageIO.write(image, "png", new File(filename.toString()));
+			ObjectMap.createImage(filename, imageWidth, imageHeight);
 
 			objectMapTextField.setText(filename.getFileName().toString());
 

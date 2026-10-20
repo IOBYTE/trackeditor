@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
+import utils.AtomicFile;
 import utils.Editor;
 
 public class ObjectMap
@@ -178,6 +179,10 @@ public class ObjectMap
 		if (objectMap == null || objectMap.isEmpty())
 			return;
 
+		// no size means the image couldn't be read; writing would replace it with an empty one
+		if (imageWidth <= 0 || imageHeight <= 0)
+			throw new IOException("it couldn't be read when the track was opened, so it wasn't overwritten");
+
 		BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphic = image.createGraphics();
 		graphic.setColor(new Color(0x00000000));
@@ -202,12 +207,43 @@ public class ObjectMap
 			filename = Paths.get(trackPath.toString(), filename.toString());
 		}
 
-		// ImageIO only reports "Can't create an ImageOutputStream!" for a bad folder
-		if (filename.getParent() != null && !java.nio.file.Files.isDirectory(filename.getParent()))
-			throw new IOException("folder doesn't exist: " + filename.getParent());
+		writePng(filename, image);
 
-		if (!ImageIO.write(image, "png", new File(filename.toString())))
-			throw new IOException("no PNG image writer available");
+		// written, so the next save doesn't have to write it again
+		changed = false;
+	}
+
+	/**
+	 * Creates a new object map image: black (no objects), width x height pixels.
+	 */
+	public static void createImage(Path filename, int width, int height) throws IOException
+	{
+		if (width <= 0 || height <= 0)
+			throw new IOException("the image would be " + width + " x " + height + " pixels");
+
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		Graphics2D graphic = image.createGraphics();
+		graphic.setColor(new Color(0x00000000));
+		graphic.fillRect(0, 0, width, height);
+		graphic.dispose();
+
+		writePng(filename, image);
+	}
+
+	/**
+	 * Writes a PNG to a temporary file first, so a failure leaves the old image as it was.
+	 */
+	private static void writePng(Path filename, BufferedImage image) throws IOException
+	{
+		// ImageIO only reports "Can't create an ImageOutputStream!" for a bad folder
+		Path folder = filename.toAbsolutePath().getParent();
+		if (folder != null && !java.nio.file.Files.isDirectory(folder))
+			throw new IOException("folder doesn't exist: " + folder);
+
+		AtomicFile.write(filename, file -> {
+			if (!ImageIO.write(image, "png", file))
+				throw new IOException("no PNG image writer available");
+		});
 	}
 
 	public void dump(String indent)

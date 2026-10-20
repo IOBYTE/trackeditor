@@ -47,7 +47,10 @@ public class Undo
 	 * 
 	 * @see undo.UndoInterface#undo()
 	 */
-	public static void undo()
+	/**
+	 * @return the step that was undone, or null if there was nothing to undo
+	 */
+	public static UndoInterface undo()
 	{
 		if (undoSegments.size() > 0)
 		{
@@ -55,7 +58,9 @@ public class Undo
 			undoSegments.remove(last);
 			redoSegments.add(last);
 			last.undo();
+			return last;
 		}
+		return null;
 	}
 
 	/*
@@ -63,7 +68,10 @@ public class Undo
 	 * 
 	 * @see undo.UndoInterface#redo()
 	 */
-	public static void redo()
+	/**
+	 * @return the step that was redone, or null if there was nothing to redo
+	 */
+	public static UndoInterface redo()
 	{
 		if (redoSegments.size() > 0)
 		{
@@ -71,7 +79,9 @@ public class Undo
 			redoSegments.remove(last);
 			undoSegments.add(last);
 			last.redo();
+			return last;
 		}
+		return null;
 	}
 
 	/*

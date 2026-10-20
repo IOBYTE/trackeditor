@@ -21,6 +21,8 @@ public class Reliefs
 	// what the file holds besides relief lines, written back unchanged
 	private Vector<Ac3dObject>		other		= new Vector<Ac3dObject>();
 	private Boolean					changed		= false;
+	// the file exists but couldn't be read, so writing it would lose what it holds
+	private boolean					unreadable	= false;
 
 
 	public String getFileName() {
@@ -33,7 +35,15 @@ public class Reliefs
 	 */
 	public void setFileName(String fileName) throws IOException, Ac3dException, Exception {
 		this.fileName = fileName;
-		readFile();
+		try
+		{
+			readFile();
+		}
+		catch (Exception e)
+		{
+			unreadable = true;
+			throw e;
+		}
 	}
 
 	/**
@@ -45,10 +55,12 @@ public class Reliefs
 		if (fileName == null || fileName.isEmpty() || !resolve(fileName).toFile().exists())
 		{
 			this.fileName = fileName;
+			unreadable = false;
 			changed = true;
 			return;
 		}
 		String oldName = this.fileName;
+		boolean oldUnreadable = unreadable;
 		try
 		{
 			setFileName(fileName);
@@ -56,6 +68,7 @@ public class Reliefs
 		catch (Exception e)
 		{
 			this.fileName = oldName;
+			unreadable = oldUnreadable;
 			throw e;
 		}
 	}
@@ -65,6 +78,7 @@ public class Reliefs
 	 */
 	public void setNewFileName(String fileName) {
 		this.fileName = fileName;
+		unreadable = false;
 		changed = true;
 	}
 
@@ -125,6 +139,7 @@ public class Reliefs
 		reliefs.addAll(newReliefs);
 		other = newOther;
 		changed = false;
+		unreadable = false;
 	}
 
 	/**
@@ -199,6 +214,11 @@ public class Reliefs
 
 		Path filename = resolve(fileName);
 
+		// keep a file the editor couldn't read: writing only what was drawn would lose the rest
+		if (unreadable && filename.toFile().exists())
+			throw new IOException("it couldn't be read when the track was opened, so it wasn't overwritten. "
+				+ "Fix the file, or choose a new relief file name in the terrain properties");
+
 		Ac3d ac3dFile = new Ac3d();
 
 		Ac3dObject	world = new Ac3dObject("world", 0);
@@ -259,6 +279,9 @@ public class Reliefs
 		}
 
 		ac3dFile.write(filename.toString());
+
+		// written, so the next save doesn't have to write it again
+		changed = false;
 	}
 
 	public void dump(String indent)

@@ -22,10 +22,13 @@ public class UndoEditObject  implements UndoInterface
 	{
 		original = (ObjShapeObject) objectMap.getObjectAt(index).clone();
 		objectMap.getObjectAt(index).set(clone);
+		// the object map image has to be written again
+		objectMap.setChanged(true);
 	}
 
 	public void redo()
 	{
 		objectMap.getObjectAt(index).set(original);
+		objectMap.setChanged(true);
 	}
 }

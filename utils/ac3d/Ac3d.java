@@ -388,23 +388,27 @@ public class Ac3d
 		}
 	}
 
+	/**
+	 * Writes the file through a temporary file, so a failure leaves the old file as it was.
+	 */
 	public void write(String fileName) throws IOException
 	{
-		FileWriter  file = new FileWriter (fileName);
+		utils.AtomicFile.write(java.nio.file.Paths.get(fileName), temp -> {
+			try (FileWriter file = new FileWriter(temp))
+			{
+				if (versionC)
+					file.write("AC3Dc\n");
+				else
+					file.write("AC3Db\n");
 
-		if (versionC)
-			file.write("AC3Dc\n");
-		else
-			file.write("AC3Db\n");
+				for (int i = 0; i < materials.size(); ++i)
+				{
+					materials.get(i).write(file);
+				}
 
-		for (int i = 0; i < materials.size(); ++i)
-		{
-			materials.get(i).write(file);
-		}
-
-		root.write(file);
-
-		file.close();
+				root.write(file);
+			}
+		});
 	}
 
 	public Vector<Ac3dMaterial> getMaterials()

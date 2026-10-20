@@ -25,7 +25,6 @@ import java.awt.event.WindowListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -3000,11 +2998,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		// CSR only has object maps
 		if (editorFrame.getCarsSportsRacing())
 		{
-			if (editorFrame.getObjectMaps().isEmpty())
-			{
-				createObjectMap(me);
-				editorFrame.setCurrentObjectMap(0);
-			}
+			if (editorFrame.getObjectMaps().isEmpty() && !createObjectMap(me))
+				return;
 			addToObjectMap(me);
 			return;
 		}
@@ -3018,9 +3013,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 			if (option == 0)
 			{
-				createObjectMap(me);
-				editorFrame.setCurrentObjectMap(0);
-				addToObjectMap(me);
+				if (createObjectMap(me))
+					addToObjectMap(me);
 			}
 			else if (option == 1)
 			{
@@ -3058,9 +3052,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			}
 			else if (option == 1)
 			{
-				createObjectMap(me);
-				editorFrame.setCurrentObjectMap(0);
-				addToObjectMap(me);
+				if (createObjectMap(me))
+					addToObjectMap(me);
 			}
 		}
 	}
@@ -3101,7 +3094,12 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 	}
 
-	private void createObjectMap(MouseEvent me)
+	/**
+	 * Makes object-map1.png (or uses the existing one) the first object map.
+	 *
+	 * @return true if there is now an object map to add objects to
+	 */
+	private boolean createObjectMap(MouseEvent me)
 	{
 		if (Double.isNaN(editorFrame.getTerrainGeneration().getBorderMargin()))
 		{
@@ -3122,70 +3120,63 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 			if (option1 == 1)
 			{
-				ObjectMap	objectMap = new ObjectMap();
-
-				objectMap.setName("map 1");
-				try
-				{
-					objectMap.setObjectMap(filename.getFileName().toString());
-
-					editorFrame.getObjectMaps().add(objectMap);
-				}
-				catch (IOException ex)
-				{
-				}
-
 				write = false;
 			}
-			else if (option1 == 2)
+			else if (option1 != 0)
 			{
-				return;
+				// Cancel, or the dialog was closed: leave the file alone
+				return false;
 			}
 		}
 
-		if (write)
+		try
 		{
-			int imageWidth = 1024;
-			int imageHeight = (int)Math.round(1024 * (boundingRectangle.height / boundingRectangle.width));
-			BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-			Graphics2D graphic = image.createGraphics();
-			graphic.setColor(new Color(0x00000000));
-			graphic.fillRect(0, 0, imageWidth, imageHeight);
-
-			graphic.dispose();
-
-			try
+			if (write)
 			{
-				ImageIO.write(image, "png", new File(filename.toString()));
+				int imageWidth = 1024;
+				int imageHeight = (int)Math.round(1024 * (boundingRectangle.height / boundingRectangle.width));
 
-				ObjectMap	objectMap = new ObjectMap();
-
-				objectMap.setName("map 1");
-				objectMap.setObjectMap(filename.getFileName().toString());
-
-				editorFrame.getObjectMaps().add(objectMap);
+				ObjectMap.createImage(filename, imageWidth, imageHeight);
 			}
-			catch (IOException ex)
-			{
-			}
+
+			ObjectMap	objectMap = new ObjectMap();
+
+			objectMap.setName("map 1");
+			objectMap.setObjectMap(filename.getFileName().toString());
+
+			editorFrame.getObjectMaps().add(objectMap);
+			editorFrame.documentIsModified = true;
+		}
+		catch (IOException ex)
+		{
+			JOptionPane.showMessageDialog(editorFrame, "Couldn't " + (write ? "create" : "read") + " " + filename + "\n\n" + ex.getLocalizedMessage(),
+					"Create Object Map", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 
 		editorFrame.setCurrentObjectMap(0);
+		return true;
 	}
 
 	private void addToObjectMap(MouseEvent me)
 	{
 		ObjectMap objectMap = null;
-		if (editorFrame.getCurrentObjectMap() == -1)
+		if (editorFrame.getObjectMaps().isEmpty() && !createObjectMap(me))
+			return;
+		if (editorFrame.getCurrentObjectMap() < 0 || editorFrame.getCurrentObjectMap() >= editorFrame.getObjectMaps().size())
 		{
-			if (editorFrame.getObjectMaps().isEmpty())
-			{
-				createObjectMap(me);
-			}
 			editorFrame.setCurrentObjectMap(0);
 		}
 		
 		objectMap = editorFrame.getObjectMaps().get(editorFrame.getCurrentObjectMap());
+
+		// an image that couldn't be read has no size, so objects can't be placed in it
+		if (objectMap.getImageWidth() <= 0 || objectMap.getImageHeight() <= 0)
+		{
+			JOptionPane.showMessageDialog(editorFrame, "The object map image " + objectMap.getObjectMap() + " couldn't be read, so objects can't be added to it.",
+					"Add New Object", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		
 		Point2D.Double real = new Point2D.Double();
 		screenToReal(me, real);
