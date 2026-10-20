@@ -64,6 +64,7 @@ public class Curve extends Segment
 		arcDeg = curve.arcDeg;
 		radiusStart = curve.radiusStart;
 		radiusEnd = curve.radiusEnd;
+		marks = curve.marks;
 	}
 
 	public Segment copyTo(Segment _shape)
@@ -542,6 +543,7 @@ public class Curve extends Segment
 		s.arcDeg = this.arcDeg;
 		s.radiusStart = this.radiusStart;
 		s.radiusEnd = this.radiusEnd;
+		s.marks = this.marks;
 
 		return s; // return the clone
 	}
