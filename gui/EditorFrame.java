@@ -410,9 +410,10 @@ public class EditorFrame extends JFrame
 		cursorCoordinates = preferences.getBoolean(CURSOR_COORDINATES, false);
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
 		checkDefaultObjects = preferences.getBoolean(CHECK_DEFAULT_OBJECTS, false);
-		// the game type is a preference; the app name only supplies the default
-		// (run from Eclipse there is no app name, so only the preference counts)
-		carsSportsRacing = preferences.getBoolean(carsSportsRacingKey(), isCsrApp());
+		// the game type is one preference shared by every way the editor is run
+		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
+		// the default until a game type has been chosen
+		carsSportsRacing = preferences.getBoolean(CARS_SPORTS_RACING, isCsrApp());
 		if (exportMenu != null)
 			updateExportMenu();
 
@@ -593,12 +594,11 @@ public class EditorFrame extends JFrame
 
 	public void setCarsSportsRacing(boolean value)
 	{
-		if (value == carsSportsRacing)
-			return;
-
 		carsSportsRacing = value;
 
-		preferences.putBoolean(carsSportsRacingKey(), carsSportsRacing);
+		// always saved, so a choice that matches this app's default still applies
+		// when the editor is run another way
+		preferences.putBoolean(CARS_SPORTS_RACING, carsSportsRacing);
 
 		if (exportMenu != null)
 			updateExportMenu();
@@ -609,24 +609,6 @@ public class EditorFrame extends JFrame
 		return "csr-trackeditor".equals(TrackEditor.executableName);
 	}
 
-	private static boolean isSdApp()
-	{
-		return "sd2-trackeditor".equals(TrackEditor.executableName);
-	}
-
-	/**
-	 * sd2-trackeditor and csr-trackeditor share one preferences node, so the game
-	 * type is stored per app name. Otherwise choosing a type in one app would change
-	 * the default of the other. Anything else (run from Eclipse, where the name is
-	 * the class folder) uses the plain preference.
-	 */
-	private static String carsSportsRacingKey()
-	{
-		if (isCsrApp() || isSdApp())
-			return CARS_SPORTS_RACING + "." + TrackEditor.executableName;
-
-		return CARS_SPORTS_RACING;
-	}
 
 	private void updateRecentFiles(String filename)
 	{
@@ -3523,6 +3505,8 @@ public class EditorFrame extends JFrame
 			String reason = e.getLocalizedMessage();
 			if (reason == null || reason.isEmpty())
 				reason = e.toString();
+			if (e instanceof RuntimeException)
+				reason = "The editor ran into something in the file it couldn't handle:\n" + e.toString();
 			JOptionPane.showMessageDialog(this,
 				"Couldn't read : " + file.getAbsolutePath() + "\n\n" + reason +
 				(previous != null ? "\n\nThe track that was open is still open." : ""),

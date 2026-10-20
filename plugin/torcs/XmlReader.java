@@ -135,7 +135,64 @@ public class XmlReader
     	
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
+        checkStructure(element);
         setTrackData(element);
+    }
+
+    /**
+     * Rejects what the game's parameter parser rejects (it then can't load the track at all):
+     * a params, section, attnum or attstr element without a name, an attnum or attstr
+     * without a value, or an attnum or attstr that isn't inside a section.
+     */
+    private void checkStructure(Element root) throws JDOMException
+    {
+        try
+        {
+            if (root.getName().equals("params") && root.getAttribute("name") == null)
+                throw new JDOMException(where(root) + "the <params> element has no name.");
+
+            checkChildren(root, true);
+        }
+        catch (JDOMException e)
+        {
+            throw new JDOMException(e.getMessage() + "\n\nThe game can't load a track file like this either.");
+        }
+    }
+
+    private void checkChildren(Element element, boolean isRoot) throws JDOMException
+    {
+        for (Object o : element.getChildren())
+        {
+            Element child = (Element) o;
+            String tag = child.getName();
+
+            if (tag.equals("section"))
+            {
+                if (child.getAttribute("name") == null)
+                    throw new JDOMException(where(child) + "a section" + in(element, isRoot) + " has no name.");
+                checkChildren(child, false);
+            }
+            else if (tag.equals("attnum") || tag.equals("attstr"))
+            {
+                if (isRoot)
+                    throw new JDOMException(where(child) + "<" + tag + "> \"" + child.getAttributeValue("name") + "\" isn't inside a section.");
+                if (child.getAttribute("name") == null)
+                    throw new JDOMException(where(child) + "an <" + tag + ">" + in(element, isRoot) + " has no name.");
+                if (child.getAttribute("val") == null)
+                    throw new JDOMException(where(child) + "<" + tag + "> \"" + child.getAttributeValue("name") + "\"" + in(element, isRoot) + " has no value.");
+            }
+        }
+    }
+
+    private static String where(Element e)
+    {
+        String line = e instanceof MyElement ? "line " + ((MyElement) e).getLineNumber() + ": " : "";
+        return line;
+    }
+
+    private static String in(Element parent, boolean isRoot)
+    {
+        return isRoot ? "" : " in section \"" + parent.getAttributeValue("name") + "\"";
     }
 
     private Document readFromFile(String fname) throws JDOMException, IOException

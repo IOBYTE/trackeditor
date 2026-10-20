@@ -1153,7 +1153,7 @@ public class XmlWriter
 	{
 		if (!Double.isNaN(value))
 		{
-			section.addContent(attnumElement(attribute, units, value + ""));
+			section.addContent(attnumElement(attribute, units, number(value)));
 		}
 	}
 
@@ -1161,8 +1161,21 @@ public class XmlWriter
 	{
 		if (value != null && !Double.isNaN(value.value))
 		{
-			section.addContent(attnumElement(attribute, value.units, value.value + ""));
+			section.addContent(attnumElement(attribute, value.units, number(value.value)));
 		}
+	}
+
+	/**
+	 * The game keeps every number as a float, so write the shortest text that gives the
+	 * same float: no digits the game can't use (1.7453292519943295 becomes 1.7453293,
+	 * 350.52000000000004 becomes 350.52), and nothing it uses is lost.
+	 */
+	static String number(double value)
+	{
+		if (Double.isInfinite(value) || Math.abs(value) > Float.MAX_VALUE)
+			return Double.toString(value);
+
+		return Float.toString((float) value);
 	}
 
 	private synchronized void addContent(Element section, String attribute, String units, int value)
