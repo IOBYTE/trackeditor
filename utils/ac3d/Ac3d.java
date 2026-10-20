@@ -300,7 +300,7 @@ public class Ac3d
 				{
 					while (readLine())
 					{
-						if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isBlank()))
+						if (tokens.length == 0 || (tokens.length == 1 && tokens[0].trim().isEmpty()))
 						{
 							continue;
 						}

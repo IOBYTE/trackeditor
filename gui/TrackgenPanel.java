@@ -25,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -65,12 +66,14 @@ public class TrackgenPanel extends JDialog implements Runnable
 	private JLabel				waitLabel			= null;
 	private JScrollPane			errorsScrollPane	= null;
 	private JTextArea			errorsTextArea		= null;
+	private boolean				acc					= false;
 	
-	public TrackgenPanel(EditorFrame editorFrame, String additionalArgs)
+	public TrackgenPanel(EditorFrame editorFrame, String additionalArgs, boolean acc)
 	{
 		super();
 		this.editorFrame = editorFrame;
 		this.additionalArgs = additionalArgs;
+		this.acc = acc;
 		initialize();
 		ac3d.start();
 	}
@@ -95,40 +98,51 @@ public class TrackgenPanel extends JDialog implements Runnable
 
 	public void run()
 	{
+		int result = -1;
 		String path = Editor.getProperties().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
-		String category = " -c " + editorFrame.getTrackData().getHeader().getCategory();
-		String name = " -n " + trackName;
-		String args = category + name;
-		
+		String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
+		ArrayList<String> cmd = new ArrayList<String>();
+
+		if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
+		{
+			trackgen = editorFrame.getBinDirectory() + sep + trackgen;
+		}
+
+		cmd.add(trackgen);
+		cmd.add("-c");
+		cmd.add(editorFrame.getTrackData().getHeader().getCategory());
+		cmd.add("-n");
+		cmd.add(trackName);
+
+		// each option is its own argument, e.g. " -E 0" -> "-E", "0"
 		if (additionalArgs != null)
 		{
-			args = args + additionalArgs;
-
-			// don't create everything for race line
-			if (!args.contains("-r"))
+			for (String arg : additionalArgs.trim().split("\\s+"))
 			{
-				args += " -a";
+				if (!arg.isEmpty())
+					cmd.add(arg);
 			}
 		}
-		else
+
+		if (acc)
 		{
-			args += " -a";
+			cmd.add("--acc");
+		}
+		// don't create everything for race line
+		else if (!cmd.contains("-r"))
+		{
+			cmd.add("-a");
 		}
 
-		System.out.println(args);
+		System.out.println(cmd);
 
 		try
 		{
 			String ls_str;
 			String tmp = "";
-			String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
-			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
-			{
-				trackgen = editorFrame.getBinDirectory() + sep + trackgen;
-			}
-			
-			Process ls_proc = Runtime.getRuntime().exec(trackgen + args);
+			String cmdarray[] = cmd.toArray(new String[cmd.size()]);
+			Process ls_proc = Runtime.getRuntime().exec(cmdarray);
 			// get its output (your input) stream
 			BufferedReader ls_in = new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
 			BufferedReader ls_err = new BufferedReader(new InputStreamReader(ls_proc.getErrorStream()));
@@ -232,15 +246,28 @@ public class TrackgenPanel extends JDialog implements Runnable
 						}
 					}
 				}
+
+				result = ls_proc.waitFor();
 			} catch (IOException e)
+			{
+				e.printStackTrace();
+			} catch (InterruptedException e)
 			{
 				e.printStackTrace();
 			}
 		} catch (IOException e1)
 		{
-			JOptionPane.showMessageDialog(this, e1.getLocalizedMessage(), "Export AC3D", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, e1.getLocalizedMessage(), "Export ac" + (acc ? "c" : ""), JOptionPane.ERROR_MESSAGE);
 		}
-		this.waitLabel.setText("Track finished");
+
+		if (result == 0)
+		{
+			this.waitLabel.setText("Track finished");
+		}
+		else
+		{
+			this.waitLabel.setText("Failed to generate track with exit status " + result);
+		}
 	}
 
 	private void append(JTextArea textArea, String text)
@@ -270,7 +297,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 			trackgenLabel.setText("Track data");
 			trackgenLabel.setFont(new java.awt.Font("Dialog", java.awt.Font.BOLD, 18));
 			waitLabel.setBounds(10, 412, 290, 25);
-			waitLabel.setText("Constructing the .ac file. Please wait...");
+			waitLabel.setText("Constructing the .ac" + (acc ? "c" : "") + " file. Please wait...");
 			panel.add(trackgenLabel, null);
 			panel.add(waitLabel, null);
 	

@@ -300,6 +300,7 @@ public class TrackLightProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Texture On image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
@@ -328,6 +329,7 @@ public class TrackLightProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Texture Off image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");

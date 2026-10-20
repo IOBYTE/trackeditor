@@ -660,6 +660,7 @@ public class Graphic3DProperties extends PropertyPanel
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("3D objects file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("ac and acc", "ac", "acc");

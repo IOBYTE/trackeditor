@@ -64,6 +64,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -130,7 +131,11 @@ public class EditorFrame extends JFrame
 	HelpAction					helpAction							= null;
 	ImportAction				importAction						= null;
 	ExportAction				exportAction						= null;
+	ExportACCAction				accAction							= null;
+	ExportACCWithRacelineAction	accWithRacelineAction				= null;
 	ExportAllAction				allAction							= null;
+	ExportAllACCAction			allAccAction						= null;
+	ExportAllACCWithRacelineAction	allAccWithRacelineAction		= null;
 	ExportAC3Action				ac3Action							= null;
 	ExportAC3E0Action			ac3E0Action							= null;
 	ExportAC3E1Action			ac3E1Action							= null;
@@ -221,7 +226,12 @@ public class EditorFrame extends JFrame
 	private JMenu				exportMenu							= null;
 	private JMenuItem			exportMenuItem						= null;
 	private JMenuItem			exportAllMenuItem					= null;
+	private JMenuItem			exportAllACCMenuItem				= null;	
+	private JMenuItem			exportAllACCWithRacelineMenuItem	= null;	
 	private JMenuItem			exportAC3MenuItem					= null;
+	private JMenuItem			exportACCMenuItem					= null;
+	private JMenuItem			exportACCWithRacelineMenuItem		= null;
+	private JPopupMenu.Separator	accSeparator					= new JPopupMenu.Separator();
 	private JMenuItem			exportAC3E0MenuItem					= null;
 	private JMenuItem			exportAC3E1MenuItem					= null;
 	private JMenuItem			exportAC3E2MenuItem					= null;
@@ -395,7 +405,10 @@ public class EditorFrame extends JFrame
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
 		checkDefaultObjects = preferences.getBoolean(CHECK_DEFAULT_OBJECTS, false);
 		// the game type is a preference; the app name only supplies the default
-		carsSportsRacing = preferences.getBoolean(carsSportsRacingKey(), TrackEditor.executableName.equals("csr-trackeditor"));
+		// (run from Eclipse there is no app name, so only the preference counts)
+		carsSportsRacing = preferences.getBoolean(carsSportsRacingKey(), isCsrApp());
+		if (exportMenu != null)
+			updateExportMenu();
 
 		if (dataDirectory == null)
 		{
@@ -580,16 +593,33 @@ public class EditorFrame extends JFrame
 		carsSportsRacing = value;
 
 		preferences.putBoolean(carsSportsRacingKey(), carsSportsRacing);
+
+		if (exportMenu != null)
+			updateExportMenu();
+	}
+
+	private static boolean isCsrApp()
+	{
+		return "csr-trackeditor".equals(TrackEditor.executableName);
+	}
+
+	private static boolean isSdApp()
+	{
+		return "sd2-trackeditor".equals(TrackEditor.executableName);
 	}
 
 	/**
 	 * sd2-trackeditor and csr-trackeditor share one preferences node, so the game
 	 * type is stored per app name. Otherwise choosing a type in one app would change
-	 * the default of the other.
+	 * the default of the other. Anything else (run from Eclipse, where the name is
+	 * the class folder) uses the plain preference.
 	 */
 	private static String carsSportsRacingKey()
 	{
-		return CARS_SPORTS_RACING + "." + TrackEditor.executableName;
+		if (isCsrApp() || isSdApp())
+			return CARS_SPORTS_RACING + "." + TrackEditor.executableName;
+
+		return CARS_SPORTS_RACING;
 	}
 
 	private void updateRecentFiles(String filename)
@@ -656,6 +686,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Project path selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
 		if (trackDir == null)
@@ -1562,6 +1593,11 @@ public class EditorFrame extends JFrame
 			exportMenu = new JMenu();
 			exportMenu.setText("Export");
 			exportMenu.add(getExportAllMenuItem());
+			exportMenu.add(getExportAllACCMenuItem());
+			exportMenu.add(getExportAllACCWithRacelineMenuItem());
+			exportMenu.add(accSeparator);
+			exportMenu.add(getExportACCMenuItem());
+			exportMenu.add(getExportACCWithRacelineMenuItem());
 			exportMenu.addSeparator();
 			exportMenu.add(getExportMenuItem());
 			exportMenu.add(getExportAC3MenuItem());
@@ -1571,6 +1607,7 @@ public class EditorFrame extends JFrame
 			exportMenu.add(getExportAC3E3MenuItem());
 			exportMenu.add(getExportAC3E4MenuItem());
 			exportMenu.add(getExportAC3RacelineMenuItem());
+			updateExportMenu();
 		}
 		return exportMenu;
 	}
@@ -1603,6 +1640,80 @@ public class EditorFrame extends JFrame
 			exportAllMenuItem.setIcon(null);
 		}
 		return exportAllMenuItem;
+	}
+	/**
+	 * This method initializes exportAllACCMenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	/**
+	 * Only Speed Dreams trackgen can make acc files, so hide those exports for CSR.
+	 */
+	private void updateExportMenu()
+	{
+		boolean acc = !getCarsSportsRacing();
+
+		getExportAllACCMenuItem().setVisible(acc);
+		getExportAllACCWithRacelineMenuItem().setVisible(acc);
+		accSeparator.setVisible(acc);
+		getExportACCMenuItem().setVisible(acc);
+		getExportACCWithRacelineMenuItem().setVisible(acc);
+	}
+
+	private JMenuItem getExportAllACCMenuItem()
+	{
+		if (exportAllACCMenuItem == null)
+		{
+			exportAllACCMenuItem = new JMenuItem();
+			exportAllACCMenuItem.setAction(allAccAction);
+			exportAllACCMenuItem.setIcon(null);
+		}
+		return exportAllACCMenuItem;
+	}
+	/**
+	 * This method initializes exportAllACCWithRacelineMenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	private JMenuItem getExportAllACCWithRacelineMenuItem()
+	{
+		if (exportAllACCWithRacelineMenuItem == null)
+		{
+			exportAllACCWithRacelineMenuItem = new JMenuItem();
+			exportAllACCWithRacelineMenuItem.setAction(allAccWithRacelineAction);
+			exportAllACCWithRacelineMenuItem.setIcon(null);
+		}
+		return exportAllACCWithRacelineMenuItem;
+	}
+	/**
+	 * This method initializes exportAC3MenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	private JMenuItem getExportACCMenuItem()
+	{
+		if (exportACCMenuItem == null)
+		{
+			exportACCMenuItem = new JMenuItem();
+			exportACCMenuItem.setAction(accAction);
+			exportACCMenuItem.setIcon(null);
+		}
+		return exportACCMenuItem;
+	}
+	/**
+	 * This method initializes exportACCWithRacelineMenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	private JMenuItem getExportACCWithRacelineMenuItem()
+	{
+		if (exportACCWithRacelineMenuItem == null)
+		{
+			exportACCWithRacelineMenuItem = new JMenuItem();
+			exportACCWithRacelineMenuItem.setAction(accWithRacelineAction);
+			exportACCWithRacelineMenuItem.setIcon(null);
+		}
+		return exportACCWithRacelineMenuItem;
 	}
 	/**
 	 * This method initializes exportAC3MenuItem
@@ -2312,6 +2423,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Background image file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
@@ -2396,7 +2508,7 @@ public class EditorFrame extends JFrame
 		return jToolBar;
 	}
 
-	private void exportAc3d(String additionalArgs)
+	private void exportAc3d(String additionalArgs, boolean acc)
 	{
 		//check for graphic objects with same name
 		Vector<GraphicObject> graphicObjects = trackData.getGraphicObjects();
@@ -2406,9 +2518,53 @@ public class EditorFrame extends JFrame
 			{
 				if (graphicObjects.get(i).getName().equals(graphicObjects.get(j).getName()))
 				{
-					JOptionPane.showMessageDialog(this, "Graphic Objects has duplicate name: " + graphicObjects.get(i).getName(), "Exporting AC3", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(this, "Graphic Objects has duplicate name: " + graphicObjects.get(i).getName(), "Exporting AC" + (acc ? "C" : ""), JOptionPane.ERROR_MESSAGE);
 					return;
 				}
+			}
+		}
+
+		if (acc && getCarsSportsRacing())
+		{
+			JOptionPane.showMessageDialog(this, "csr-trackgen can't create acc files", "Exporting ACC", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		// the game loads the file named by the graphic description, so offer to
+		// make it match the file type being created. Not for CSR: its tracks name
+		// the .acc that the build makes from the exported .ac.
+		if (!getCarsSportsRacing())
+		{
+			String description = getTrackData().getGraphic().getDescription();
+			if (description == null)
+			{
+				// the writer uses <track name>.ac when there is no description
+				String path = Editor.getProperties().getPath();
+				description = path.substring(path.lastIndexOf(sep) + 1) + ".ac";
+			}
+			String newDescription = null;
+			if (acc && description.endsWith(".ac"))
+			{
+				if (JOptionPane.showConfirmDialog(this, "Change graphics file type to acc?", "Exporting ACC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+				{
+					newDescription = description + "c";
+				}
+			}
+			else if (!acc && description.endsWith(".acc"))
+			{
+				if (JOptionPane.showConfirmDialog(this, "Change graphics file type to ac?", "Exporting AC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+				{
+					newDescription = description.substring(0, description.length() - 1);
+				}
+			}
+			if (newDescription != null)
+			{
+				getTrackData().getGraphic().setDescription(newDescription);
+				documentIsModified = true;
+
+				// the track xml has to name the new file
+				if (!exportTrack())
+					return;
 			}
 		}
 
@@ -2421,10 +2577,11 @@ public class EditorFrame extends JFrame
 			else
 				newArgs += " -B";
 		}
-		TrackgenPanel tg = new TrackgenPanel(this, newArgs);
+		TrackgenPanel tg = new TrackgenPanel(this, newArgs, acc);
 		tg.setModal(true);
 		tg.setVisible(true);
 	}
+
 	/**
 	 *
 	 */
@@ -2491,14 +2648,18 @@ public class EditorFrame extends JFrame
 		finishLineAction = new FinishLineAction("Finish Line", createNavigationIcon("Finish24"), "Finish Line.", KeyEvent.VK_S);
 		helpAction = new HelpAction("Help", createNavigationIcon("Help24"), "Help.", KeyEvent.VK_S);
 		/** ******************************************************************* */
-		allAction = new ExportAllAction("All", null, "Export both XML file and AC3 file.", null);
-		ac3Action = new ExportAC3Action("AC3", null, "Create AC3 file.", null);
-		ac3E0Action = new ExportAC3E0Action("AC3 with all elevation maps", null, "Create AC3 file and all elevation maps.", null);
-		ac3E1Action = new ExportAC3E1Action("AC3 with terrain and track elevation map", null, "Create AC3 file and terrain and track elevation map.", null);
-		ac3E2Action = new ExportAC3E2Action("AC3 with terrain and white track elevation map", null, "Create AC3 file and terrain and white track elevation map.", null);
-		ac3E3Action = new ExportAC3E3Action("AC3 with track elevation map", null, "Create AC3 file and track elevation map.", null);
-		ac3E4Action = new ExportAC3E4Action("AC3 with track with height steps elevation map", null, "Create AC3 file and track with height steps elevation map.", null);
-		ac3RacelineAction = new ExportAC3RacelineAction("AC3 race line", null, "Create AC3 race line file.", null);
+		allAction = new ExportAllAction("All", null, "Export both XML file and AC file.", null);
+		allAccAction = new ExportAllACCAction("All ACC", null, "Export both XML file and ACC file.", null);
+		allAccWithRacelineAction = new ExportAllACCWithRacelineAction("All ACC raceline", null, "Export both XML file and ACC file with raceline.", null);
+		ac3Action = new ExportAC3Action("AC", null, "Create AC file.", null);
+		accAction = new ExportACCAction("ACC", null, "Create ACC file.", null);
+		accWithRacelineAction = new ExportACCWithRacelineAction("ACC with raceline", null, "Create ACC file with raceline.", null);
+		ac3E0Action = new ExportAC3E0Action("AC with all elevation maps", null, "Create AC file and all elevation maps.", null);
+		ac3E1Action = new ExportAC3E1Action("AC with terrain and track elevation map", null, "Create AC file and terrain and track elevation map.", null);
+		ac3E2Action = new ExportAC3E2Action("AC with terrain and white track elevation map", null, "Create AC file and terrain and white track elevation map.", null);
+		ac3E3Action = new ExportAC3E3Action("AC with track elevation map", null, "Create AC file and track elevation map.", null);
+		ac3E4Action = new ExportAC3E4Action("AC with track with height steps elevation map", null, "Create AC file and track with height steps elevation map.", null);
+		ac3RacelineAction = new ExportAC3RacelineAction("AC race line", null, "Create AC race line file.", null);
 		calcDeltaAction = new CalcDeltaAction("Delta's", createNavigationIcon("Calc24"), "Calculate Delta's for x,y,z and angle.", KeyEvent.VK_S);
 		importAction = new ImportAction("Speed Dreams", null, "Speed Dreams xml file", null);
 		exportAction = new ExportAction("Speed Dreams", null, "Speed Dreams xml file", null);
@@ -2933,7 +3094,45 @@ public class EditorFrame extends JFrame
 				return;
 			}			
 			if (exportTrack())
-				exportAc3d(null);
+				exportAc3d(null, false);
+		}
+	}
+	public class ExportAllACCAction extends AbstractAction
+	{
+		public ExportAllACCAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			if (trackData == null)
+			{
+				message("No track", "Nothing to export");
+				return;
+			}			
+			if (exportTrack())
+				exportAc3d(null, true);
+		}
+	}
+	public class ExportAllACCWithRacelineAction extends AbstractAction
+	{
+		public ExportAllACCWithRacelineAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			if (trackData == null)
+			{
+				message("No track", "Nothing to export");
+				return;
+			}			
+			if (exportTrack())
+				exportAc3d(" -r", true);
 		}
 	}
 	public class ExportAC3Action extends AbstractAction
@@ -2951,9 +3150,46 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(null);
+			exportAc3d(null, false);
 		}
 	}
+	public class ExportACCAction extends AbstractAction
+	{
+		public ExportACCAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			if (trackData == null)
+			{
+				message("No track", "Nothing to export");
+				return;
+			}			
+			exportAc3d(null, true);
+		}
+	}
+	public class ExportACCWithRacelineAction extends AbstractAction
+	{
+		public ExportACCWithRacelineAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			if (trackData == null)
+			{
+				message("No track", "Nothing to export");
+				return;
+			}			
+			exportAc3d(" -r", true);
+		}
+	}
+	
 	public class ExportAC3E0Action extends AbstractAction
 	{
 		public ExportAC3E0Action(String text, ImageIcon icon, String desc, Integer mnemonic)
@@ -2969,7 +3205,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -E 0");
+			exportAc3d(" -E 0", false);
 		}
 	}
 	public class ExportAC3E1Action extends AbstractAction
@@ -2987,7 +3223,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -E 1");
+			exportAc3d(" -E 1", false);
 		}
 	}
 	public class ExportAC3E2Action extends AbstractAction
@@ -3005,7 +3241,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -E 2");
+			exportAc3d(" -E 2", false);
 		}
 	}
 	public class ExportAC3E3Action extends AbstractAction
@@ -3023,7 +3259,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -E 3");
+			exportAc3d(" -E 3", false);
 		}
 	}
 	public class ExportAC3E4Action extends AbstractAction
@@ -3041,7 +3277,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -E 4");
+			exportAc3d(" -E 4", false);
 		}
 	}
 	public class ExportAC3RacelineAction extends AbstractAction
@@ -3059,7 +3295,7 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportAc3d(" -r");
+			exportAc3d(" -r", false);
 		}
 	}
 	public class PropertiesAction extends AbstractAction
@@ -3119,6 +3355,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Import track from Xml");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
 		if (trackDir == null)

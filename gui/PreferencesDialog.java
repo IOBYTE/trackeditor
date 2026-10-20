@@ -145,6 +145,7 @@ public class PreferencesDialog extends JDialog
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Speed Dreams Data Directory selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		String dataDir = editorFrame.getDataDirectory();
@@ -195,6 +196,7 @@ public class PreferencesDialog extends JDialog
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Speed Dreams Bin Directory selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		String binDir = editorFrame.getBinDirectory();
@@ -245,6 +247,7 @@ public class PreferencesDialog extends JDialog
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Speed Dreams Lib Directory selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		String libDir = editorFrame.getLibDirectory();

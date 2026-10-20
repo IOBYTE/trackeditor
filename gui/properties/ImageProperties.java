@@ -122,6 +122,7 @@ public class ImageProperties extends PropertyPanel
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Background image file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		// check parent directory
 		if (filename.getParent() == null || filename.getParent().toString().equals(trackPath.toString()))

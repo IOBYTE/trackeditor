@@ -489,6 +489,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Surface image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
@@ -540,6 +541,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Surface bump image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
@@ -591,6 +593,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Raceline image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");

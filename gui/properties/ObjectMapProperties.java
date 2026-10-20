@@ -330,6 +330,7 @@ public class ObjectMapProperties extends PropertyPanel
 			fc.rescanCurrentDirectory();
 			fc.setApproveButtonMnemonic(0);
 			fc.setDialogTitle("Object Map image file selection");
+			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
