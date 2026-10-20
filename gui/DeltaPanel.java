@@ -642,6 +642,9 @@ public class DeltaPanel extends JDialog
 	private void adjustStraights(boolean alongX, double delta)
 	{
 	    onEdt(() -> {
+		// redraw so the straights' directions reflect the previous pass
+		editorFrame.refresh();
+
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		int size = track.size();
 		double total = 0;
