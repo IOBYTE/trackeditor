@@ -90,6 +90,7 @@ import utils.circuit.GraphicObject;
 import utils.circuit.MainTrack;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjectMap;
+import utils.circuit.Point3D;
 import utils.circuit.Pits;
 import utils.circuit.Reliefs;
 import utils.circuit.Segment;
@@ -3490,17 +3491,24 @@ public class EditorFrame extends JFrame
 		group.setName("track");
 		world.addKid(group);
 
+		// distance along the track, for the texture coordinates
+		double distance = 0;
+
 		for (Segment segment : trackData.getSegments())
 		{
 			Ac3dObject object = new Ac3dObject("poly", 0);
 
 			object.setName(segment.getName());
 
+			// the surface the game uses: the segment's own, else the previous
+			// segment's, else the Main Track's; looked up by name in the track's
+			// surfaces first, then in the default surfaces
+			String surfaceName = segment.getValidSurface(this);
 			Surface trackSurface = null;
 
 			for (Surface surface : trackData.getSurfaces())
 			{
-				if (surface.getName().equals(segment.getSurface()))
+				if (surface.getName().equals(surfaceName))
 				{
 					trackSurface = surface;
 					break;
@@ -3511,14 +3519,20 @@ public class EditorFrame extends JFrame
 			{
 				for (Surface surface : defaultSurfaces)
 				{
-					trackSurface = surface;
-					break;
+					if (surface.getName().equals(surfaceName))
+					{
+						trackSurface = surface;
+						break;
+					}
 				}
 			}
 
+			double textureSize = 10;
 			if (trackSurface != null) 
 			{
 				object.setTexture(trackSurface.getTextureName());
+				if (trackSurface.getTextureSize() > 0)
+					textureSize = trackSurface.getTextureSize();
 			}
 
 			// the steps the segment was drawn with
@@ -3526,9 +3540,27 @@ public class EditorFrame extends JFrame
 
 			int stride = segment.points.length / steps;
 
+			// texture coordinates: along the track and across it, in texture sizes
+			double across = getTrackData().getMainTrack().getWidth() / textureSize;
+			java.util.Vector<double[]> uv = new java.util.Vector<double[]>();
+
 			for (int i = 0; i < steps; i++)
 			{
 				int offset = i * stride;
+
+				Point3D[] p = segment.getPoints();
+				double startX = (p[offset].x + p[offset + 3].x) / 2, startY = (p[offset].y + p[offset + 3].y) / 2;
+				double endX = (p[offset + 1].x + p[offset + 2].x) / 2, endY = (p[offset + 1].y + p[offset + 2].y) / 2;
+
+				if (i == 0)
+				{
+					uv.add(new double[] { distance / textureSize, across });
+					uv.add(new double[] { distance / textureSize, 0 });
+				}
+
+				distance += Math.hypot(endX - startX, endY - startY);
+				uv.add(new double[] { distance / textureSize, across });
+				uv.add(new double[] { distance / textureSize, 0 });
 
 				if (i == 0)
 				{
@@ -3551,17 +3583,11 @@ public class EditorFrame extends JFrame
 					surface.setSmoothShaded();
 					surface.setMat(0);
 
-					if (j == 0)
+					int[] refs = j == 0 ? new int[] { (i * 2) + 0, (i * 2) + 1, (i * 2) + 2 }
+									   : new int[] { (i * 2) + 2, (i * 2) + 1, (i * 2) + 3 };
+					for (int ref : refs)
 					{
-						surface.addRef((i * 2) + 0, 0.0, 0.0);
-						surface.addRef((i * 2) + 1, 0.0, 0.0);
-						surface.addRef((i * 2) + 2, 0.0, 0.0);
-					}
-					else
-					{
-						surface.addRef((i * 2) + 2, 0.0, 0.0);
-						surface.addRef((i * 2) + 1, 0.0, 0.0);
-						surface.addRef((i * 2) + 3, 0.0, 0.0);
+						surface.addRef(ref, uv.get(ref)[0], uv.get(ref)[1]);
 					}
 					object.addSurface(surface);
 				}

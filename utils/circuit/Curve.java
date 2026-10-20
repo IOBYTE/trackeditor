@@ -80,7 +80,8 @@ public class Curve extends Segment
 
 	public boolean contains(Point2D.Double point)
 	{
-		if (!boundingRectangle.contains(point.x, point.y))
+		// barriers count too
+		if (!selectionRectangle.contains(point.x, point.y))
 			return false;
 
 		return super.contains(point);
@@ -149,6 +150,7 @@ public class Curve extends Segment
 		}
 
 		boundingRectangle.setRect(minX, minY, maxX - minX, maxY - minY);
+		setSelectionBounds();
 	}
 
 	public void calcShape(EditorFrame editorFrame) throws Exception

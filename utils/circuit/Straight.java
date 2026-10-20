@@ -59,7 +59,8 @@ public class Straight extends Segment
 		if (points == null)
 			return false;
 
-		if (!boundingRectangle.contains(point.x, point.y))
+		// barriers count too
+		if (!selectionRectangle.contains(point.x, point.y))
 			return false;
 
 		int count = 0;
@@ -132,6 +133,7 @@ public class Straight extends Segment
 		}
 
 		boundingRectangle.setRect(minX, minY, maxX - minX, maxY - minY);
+		setSelectionBounds();
 	}
 
 	public void calcShape(EditorFrame editorFrame) throws Exception

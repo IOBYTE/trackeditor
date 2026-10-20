@@ -2082,7 +2082,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			Rectangle2D.Double r = track.get(i).getBounds();
 
 			if (boundingRectangle == null)
-				boundingRectangle = r;
+				boundingRectangle = new Rectangle2D.Double(r.x, r.y, r.width, r.height);	// a copy, add() changes it
 			else
 				boundingRectangle.add(r);
 		}

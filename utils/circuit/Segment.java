@@ -127,6 +127,8 @@ public class Segment implements Cloneable
 	double dy;
 
 	protected Rectangle2D.Double	boundingRectangle	= new Rectangle2D.Double(0, 0, 0, 0);
+	// everything drawn, barriers included, for finding the segment under the mouse
+	protected Rectangle2D.Double	selectionRectangle	= new Rectangle2D.Double(0, 0, 0, 0);
 
 	protected static final int	TRACK_START_LEFT			= 0;
 	protected static final int	TRACK_END_LEFT				= 1;
@@ -418,6 +420,33 @@ public class Segment implements Cloneable
 		}
 
 		boundingRectangle.setRect(minX, minY, maxX - minX, maxY - minY);
+		selectionRectangle.setRect(boundingRectangle);
+	}
+
+	/**
+	 * Sets selectionRectangle to the extent of all the points, barriers included.
+	 */
+	protected void setSelectionBounds()
+	{
+		if (points == null || points.length == 0)
+			return;
+
+		double minX = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE;
+		double minY = Double.MAX_VALUE;
+		double maxY = -Double.MAX_VALUE;
+
+		for (int i = 0; i < points.length; i++)
+		{
+			minX = Math.min(minX, points[i].x);
+			maxX = Math.max(maxX, points[i].x);
+			minY = Math.min(minY, points[i].y);
+			maxY = Math.max(maxY, points[i].y);
+		}
+
+		// include the game's bounds, which follow the curves between steps
+		selectionRectangle.setRect(minX, minY, maxX - minX, maxY - minY);
+		selectionRectangle.add(boundingRectangle);
 	}
 
 	public void calcShape(EditorFrame editorFrame) throws Exception
@@ -952,6 +981,9 @@ public class Segment implements Cloneable
 		try
 		{
 			s = (Segment) super.clone();
+			// own copies, so recalculating one doesn't move the other
+			s.boundingRectangle = (Rectangle2D.Double) this.boundingRectangle.clone();
+			s.selectionRectangle = (Rectangle2D.Double) this.selectionRectangle.clone();
 			s.left = (SegmentSide) this.left.clone();
 			s.right = (SegmentSide) this.right.clone();
 			s.name = this.name;
@@ -1180,7 +1212,8 @@ public class Segment implements Cloneable
 		String surf;
 		while (previous != null)
 		{
-			surf = surface;
+			// like the game, a segment without a surface uses the previous segment's
+			surf = previous.surface;
 			if (surf != null)
 			{
 				return surf;
