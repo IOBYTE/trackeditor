@@ -42,6 +42,8 @@ public class Curve extends Segment
 	protected double 		radiusEnd;
 
 	public Point2D.Double	center = new Point2D.Double();
+	// rotation centre of each step, for the bounds
+	private double[]		stepCenters = new double[0];
 
 	protected String		marks;
 
@@ -94,20 +96,56 @@ public class Curve extends Segment
 		double minY = Double.MAX_VALUE;
 		double maxY = -Double.MAX_VALUE;
 
-		for (int i = 0; i < points.length; i++)
-		{
-			// don't use barrier points
-			if ((i >= 12 && i <= 15) || (i >= 24 && i <= 27))
-				continue;
+		// like the game's track loader: the track, borders and sides (not the
+		// barriers), following each step's arc in 36 pieces so the bulge of the
+		// curve between step ends counts; reliefs and object maps are placed
+		// relative to this box
+		int stride = points.length / nbSteps;
+		int[][] edges = { { TRACK_START_LEFT, TRACK_END_LEFT }, { TRACK_START_RIGHT, TRACK_END_RIGHT },
+						  { LEFT_BORDER_START_LEFT, LEFT_BORDER_END_LEFT }, { LEFT_BORDER_START_RIGHT, LEFT_BORDER_END_RIGHT },
+						  { LEFT_SIDE_START_LEFT, LEFT_SIDE_END_LEFT }, { LEFT_SIDE_START_RIGHT, LEFT_SIDE_END_RIGHT },
+						  { RIGHT_BORDER_START_RIGHT, RIGHT_BORDER_END_RIGHT }, { RIGHT_BORDER_START_LEFT, RIGHT_BORDER_END_LEFT },
+						  { RIGHT_SIDE_START_RIGHT, RIGHT_SIDE_END_RIGHT }, { RIGHT_SIDE_START_LEFT, RIGHT_SIDE_END_LEFT } };
 
-			if (minX > points[i].x)
-				minX = points[i].x;
-			if (maxX < points[i].x)
-				maxX = points[i].x;
-			if (minY > points[i].y)
-				minY = points[i].y;
-			if (maxY < points[i].y)
-				maxY = points[i].y;
+		for (int n = 0; n < nbSteps; n++)
+		{
+			int base = n * stride;
+			boolean haveCenter = stepCenters.length >= 2 * (n + 1);
+			double cx = haveCenter ? stepCenters[2 * n] : 0;
+			double cy = haveCenter ? stepCenters[2 * n + 1] : 0;
+
+			for (int[] edge : edges)
+			{
+				Point3D start = points[base + edge[0]];
+				Point3D end = points[base + edge[1]];
+
+				minX = Math.min(minX, Math.min(start.x, end.x));
+				maxX = Math.max(maxX, Math.max(start.x, end.x));
+				minY = Math.min(minY, Math.min(start.y, end.y));
+				maxY = Math.max(maxY, Math.max(start.y, end.y));
+
+				if (!haveCenter)
+					continue;
+
+				double radius = Math.hypot(start.x - cx, start.y - cy);
+				double a0 = Math.atan2(start.y - cy, start.x - cx);
+				double da = Math.atan2(end.y - cy, end.x - cx) - a0;
+				while (da > Math.PI)
+					da -= 2 * Math.PI;
+				while (da < -Math.PI)
+					da += 2 * Math.PI;
+
+				for (int j = 1; j < 36; j++)
+				{
+					double a = a0 + da * j / 36;
+					double x = cx + radius * Math.cos(a);
+					double y = cy + radius * Math.sin(a);
+					minX = Math.min(minX, x);
+					maxX = Math.max(maxX, x);
+					minY = Math.min(minY, y);
+					maxY = Math.max(maxY, y);
+				}
+			}
 		}
 
 		boundingRectangle.setRect(minX, minY, maxX - minX, maxY - minY);
@@ -233,7 +271,11 @@ public class Curve extends Segment
 			if (nStep == 0)
 			{
 				center.setLocation(xCenter, yCenter);
+				if (stepCenters.length != 2 * nbSteps)
+					stepCenters = new double[2 * nbSteps];
 			}
+			stepCenters[2 * nStep] = xCenter;
+			stepCenters[2 * nStep + 1] = yCenter;
 
 			double cos = Math.cos(thisStepArc);
 			double sin = Math.sin(thisStepArc);
@@ -537,6 +579,7 @@ public class Curve extends Segment
 		s.radiusStart = this.radiusStart;
 		s.radiusEnd = this.radiusEnd;
 		s.marks = this.marks;
+		s.stepCenters = this.stepCenters.clone();
 
 		return s; // return the clone
 	}

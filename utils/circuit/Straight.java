@@ -111,13 +111,15 @@ public class Straight extends Segment
 		int stride = 4 * (7 + (Editor.getProperties().getShowArrows() > 0.0 ? 1 : 0));
 		int last = stride * (nbSteps - 1);
 
-		// offset to 4 corners of straight
-		int offset[] = { LEFT_BARRIER_START_LEFT,
-						 last + LEFT_BARRIER_END_LEFT,
-						 last + RIGHT_BARRIER_END_RIGHT,
-						 RIGHT_BARRIER_START_RIGHT };
+		// like the game's track loader: the track, borders and sides, not the
+		// barriers (reliefs and object maps are placed relative to this box)
+		int offset[] = { TRACK_START_LEFT, last + TRACK_END_LEFT, last + TRACK_END_RIGHT, TRACK_START_RIGHT,
+						 LEFT_BORDER_START_LEFT, last + LEFT_BORDER_END_LEFT,
+						 LEFT_SIDE_START_LEFT, last + LEFT_SIDE_END_LEFT,
+						 RIGHT_BORDER_START_RIGHT, last + RIGHT_BORDER_END_RIGHT,
+						 RIGHT_SIDE_START_RIGHT, last + RIGHT_SIDE_END_RIGHT };
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < offset.length; i++)
 		{
 			if (minX > points[offset[i]].x)
 				minX = points[offset[i]].x;

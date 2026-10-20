@@ -358,6 +358,7 @@ public class ReliefProperties extends PropertyPanel
 			{
 				relief.setReliefType(stringResult.getValue().equals(panel.reliefTypes[0]) ? ObjShapeRelief.ReliefType.Interior : ObjShapeRelief.ReliefType.Exterior);
 				reliefs.setChanged(true);
+				getEditorFrame().documentIsModified = true;
 			}
 			String lineType = panel.lineTypes[panel.lineTypeIndex];
 			if (isDifferent(panel.lineTypeComboBox.getSelectedItem().toString(), lineType, stringResult))

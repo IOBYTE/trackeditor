@@ -187,7 +187,7 @@ public class TerrainGeneration
 	 */
 	public void setReliefFile(String reliefFile) throws Exception, IOException
 	{
-		this.reliefs.setFileName(reliefFile);
+		this.reliefs.useFile(reliefFile);
 	}
 	public Reliefs getReliefs()
 	{

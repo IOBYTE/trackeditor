@@ -2135,6 +2135,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));					
 					reliefs.get(index).addPoint2D(mousePoint, true);				
+					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
 					invalidate();
@@ -2163,6 +2164,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));					
 					reliefs.get(index).addPoint2D(mousePoint, false);				
+					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
 					invalidate();
@@ -2228,6 +2230,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));
 					reliefs.get(index).deletePoint2D(mousePoint);
+					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
 					invalidate();
@@ -2256,6 +2259,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					Undo.add(new UndoDeleteRelief(reliefs, shape));
 					reliefs.remove(shape);
+					editorFrame.getReliefs().setChanged(true);
 					selectedShape = null;
 					invalidate();
 					repaint();

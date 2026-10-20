@@ -180,9 +180,14 @@ public class Ac3d
 				int wasRead = 0;
 				String data = new String();
 
-				while (wasRead < toRead)
+				while (wasRead < toRead && readLine())
 				{
-					readLine();
+					// the count includes the line breaks inside the data
+					if (wasRead > 0)
+					{
+						data = data + "\n";
+						wasRead++;
+					}
 
 					wasRead += line.length();
 					data = data + line;
@@ -294,26 +299,29 @@ public class Ac3d
 			{
 				int kids = Integer.parseInt(tokens[1]);
 
-				if (kids == 0)
-					break;
-				else
+				// read exactly this many kids, the objects after them belong to the parent
+				int read = 0;
+				while (read < kids && readLine())
 				{
-					while (readLine())
+					if (tokens.length == 0 || (tokens.length == 1 && tokens[0].trim().isEmpty()))
 					{
-						if (tokens.length == 0 || (tokens.length == 1 && tokens[0].trim().isEmpty()))
-						{
-							continue;
-						}
-						else if (tokens[0].equals("OBJECT"))
-						{
-							parseObject(object);
-						}
-						else
-						{
-							throw new Ac3dException("unexpected token: " + tokens[0], linenum);
-						}
+						continue;
+					}
+					else if (tokens[0].equals("OBJECT"))
+					{
+						parseObject(object);
+						read++;
+					}
+					else
+					{
+						throw new Ac3dException("unexpected token: " + tokens[0], linenum);
 					}
 				}
+				if (read < kids)
+				{
+					throw new Ac3dException("expected " + kids + " kids, found " + read, linenum);
+				}
+				break;
 			}
 			else
 			{

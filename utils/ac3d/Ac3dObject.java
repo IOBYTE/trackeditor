@@ -502,21 +502,17 @@ public class Ac3dObject
 			rot = null;
 		}
 
-		Matrix newMatrix = thisMatrix.multiply(matrix);
+		// points are row vectors: world = point * this * parent
+		Matrix newMatrix = matrix.multiply(thisMatrix);
 
-		if ("poly".equals(type))
+		for (int i = 0; i < vertices.size(); i++)
 		{
-			for (int i = 0; i < vertices.size(); i++)
-			{
-				newMatrix.transformPoint(vertices.elementAt(i));
-			}
+			newMatrix.transformPoint(vertices.elementAt(i));
 		}
-		else
+
+		for (int i = 0; i < kids.size(); i++)
 		{
-			for (int i = 0; i < kids.size(); i++)
-			{
-				kids.get(i).transform(newMatrix);
-			}
+			kids.get(i).transform(newMatrix);
 		}
 	}
 }

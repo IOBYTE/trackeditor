@@ -18,6 +18,8 @@ public class Reliefs
 	private String					fileName	= null;
 	private Vector<Ac3dMaterial>	materials	= new Vector<Ac3dMaterial>();
 	private Vector<ObjShapeRelief>	reliefs		= new Vector<ObjShapeRelief>();
+	// what the file holds besides relief lines, written back unchanged
+	private Vector<Ac3dObject>		other		= new Vector<Ac3dObject>();
 	private Boolean					changed		= false;
 
 
@@ -25,9 +27,45 @@ public class Reliefs
 		return fileName;
 	}
 
+	/**
+	 * Sets the relief file and reads it, replacing the current reliefs. If it
+	 * can't be read the name is still kept, so the track keeps referring to it.
+	 */
 	public void setFileName(String fileName) throws IOException, Ac3dException, Exception {
 		this.fileName = fileName;
 		readFile();
+	}
+
+	/**
+	 * Changes the relief file from the editor: an existing file is read and
+	 * replaces the current reliefs; a new file name keeps the current reliefs,
+	 * which are written to it on the next save.
+	 */
+	public void useFile(String fileName) throws IOException, Ac3dException, Exception {
+		if (fileName == null || fileName.isEmpty() || !resolve(fileName).toFile().exists())
+		{
+			this.fileName = fileName;
+			changed = true;
+			return;
+		}
+		String oldName = this.fileName;
+		try
+		{
+			setFileName(fileName);
+		}
+		catch (Exception e)
+		{
+			this.fileName = oldName;
+			throw e;
+		}
+	}
+
+	/**
+	 * Names the file new reliefs are saved to, without reading it.
+	 */
+	public void setNewFileName(String fileName) {
+		this.fileName = fileName;
+		changed = true;
 	}
 
 	public Vector<ObjShapeRelief> getReliefs() {
@@ -46,64 +84,108 @@ public class Reliefs
 		this.changed = changed;
 	}
 
-	public void readFile() throws IOException, Ac3dException, Exception
+	private Path resolve(String name)
 	{
-		Path filename = Paths.get(fileName);
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		Path filename = Paths.get(name);
 
 		// check for parent directory
 		if (filename.getParent() == null)
 		{
 			// use track directory
-			filename = Paths.get(trackPath.toString(), filename.toString());
+			filename = Paths.get(Editor.getProperties().getPath(), filename.toString());
 		}
+		return filename;
+	}
 
+	public void readFile() throws IOException, Ac3dException, Exception
+	{
 		Ac3d ac3dFile = new Ac3d();
 
-		ac3dFile.read(new File(filename.toString()));
-
-		materials = ac3dFile.getMaterials();
+		ac3dFile.read(resolve(fileName).toFile());
 
 		Ac3dObject root = ac3dFile.getRoot();
 
-		root.flatten();
+		Vector<ObjShapeRelief>	newReliefs = new Vector<ObjShapeRelief>();
+		Vector<Ac3dObject>		newOther = new Vector<Ac3dObject>();
 
-		if (root != null && "world".equals(root.getType()))
+		if (root != null)
 		{
-			for (int i = 0; i < root.getKids().size(); i++)
+			// put every point in world coordinates
+			root.flatten();
+
+			for (Ac3dObject kid : root.getKids())
 			{
-				Ac3dObject object = root.getKids().get(i);
+				collect(kid, root.getData(), newReliefs, newOther);
+			}
+		}
 
-				if ("poly".equals(object.getType()))
+		// only replace what we have once the whole file was read
+		materials = ac3dFile.getMaterials();
+		reliefs.clear();
+		reliefs.addAll(newReliefs);
+		other = newOther;
+		changed = false;
+	}
+
+	/**
+	 * Like trackgen, an object's "interior"/"exterior" data applies to it and
+	 * everything below it. Lines become reliefs; anything else is kept as is.
+	 */
+	private void collect(Ac3dObject object, String parentData, Vector<ObjShapeRelief> newReliefs, Vector<Ac3dObject> newOther)
+	{
+		String data = object.getData() != null ? object.getData() : parentData;
+		boolean isRelief = data != null && (data.startsWith("interior") || data.startsWith("exterior"));
+
+		if (!object.getVertices().isEmpty() || !object.getSurfaces().isEmpty())
+		{
+			Ac3dObject kept = null;
+
+			for (Ac3dSurface surface : object.getSurfaces())
+			{
+				if (isRelief && (surface.isOpenLine() || surface.isClosedLine()))
 				{
-					String data = object.getData();
+					ObjShapeRelief.ReliefType type = data.startsWith("interior") ? ObjShapeRelief.ReliefType.Interior : ObjShapeRelief.ReliefType.Exterior;
+					ObjShapeRelief.LineType lineType = surface.isOpenLine() ? ObjShapeRelief.LineType.Open : ObjShapeRelief.LineType.Closed;
+					Vector<double[]> vertices = new Vector<double[]>();
 
-					if (data == null)
+					for (int k = 0; k < surface.getRefs().size(); k++)
 					{
-						continue;
-					}
-					else if (!(data.equals("interior") || data.equals("exterior")))
-					{
-						continue;
+						double[] v = object.getVertices().get(surface.getRefs().get(k).index);
+						vertices.add(new double[] { v[0], v[1], v[2] });
 					}
 
-					ObjShapeRelief.ReliefType type = data.equals("interior") ? ObjShapeRelief.ReliefType.Interior : ObjShapeRelief.ReliefType.Exterior;
-
-					for (int j = 0; j < object.getSurfaces().size(); j++)
+					newReliefs.add(new ObjShapeRelief(object.getName(), type, lineType, vertices));
+				}
+				else
+				{
+					if (kept == null)
 					{
-						Ac3dSurface	surface = object.getSurfaces().get(j);
-						ObjShapeRelief.LineType lineType = surface.isOpenLine() ? ObjShapeRelief.LineType.Open : ObjShapeRelief.LineType.Closed;
-						Vector<double[]> vertices = new Vector<double[]>();
-							
-						for (int k = 0; k < surface.getRefs().size(); k++)
-						{
-							vertices.add(object.getVertices().get(surface.getRefs().get(k).index));
-						}
-							
-						reliefs.add(new ObjShapeRelief(object.getName(), type, lineType, vertices));
+						kept = new Ac3dObject(object.getType(), 0);
+						kept.setName(object.getName());
+						kept.setData(data);
+						kept.setTexture(object.getTexture());
+						kept.setVertices(object.getVertices());
 					}
+					kept.addSurface(surface);
 				}
 			}
+
+			if (kept == null && object.getSurfaces().isEmpty())
+			{
+				// points without surfaces
+				kept = new Ac3dObject(object.getType(), 0);
+				kept.setName(object.getName());
+				kept.setData(data);
+				kept.setVertices(object.getVertices());
+			}
+
+			if (kept != null)
+				newOther.add(kept);
+		}
+
+		for (Ac3dObject kid : object.getKids())
+		{
+			collect(kid, data, newReliefs, newOther);
 		}
 	}
 	
@@ -115,21 +197,18 @@ public class Reliefs
 		if (fileName == null || fileName.isEmpty())
 			return;
 
-		Path filename = Paths.get(fileName);
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
-
-		// check for parent directory
-		if (filename.getParent() == null)
-		{
-			// use track directory
-			filename = Paths.get(trackPath.toString(), filename.toString());
-		}
+		Path filename = resolve(fileName);
 
 		Ac3d ac3dFile = new Ac3d();
 
 		Ac3dObject	world = new Ac3dObject("world", 0);
 
 		ac3dFile.setRoot(world);
+
+		for (Ac3dObject object : other)
+		{
+			world.addKid(object);
+		}
 
 		if (materials.isEmpty())
 		{
