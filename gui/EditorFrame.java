@@ -3070,6 +3070,13 @@ public class EditorFrame extends JFrame
 			xmlWriter.writeXml(fileName, trackName);
 			return true;
 		}
+		catch (XmlWriter.ReferencedFileException e)
+		{
+			JOptionPane.showMessageDialog(this,
+				"Wrote " + fileName + " but couldn't write:\n\n" + e.getLocalizedMessage(),
+				"Export track", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 		catch (Exception e)
 		{
 			JOptionPane.showMessageDialog(this,

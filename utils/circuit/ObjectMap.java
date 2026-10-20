@@ -200,7 +200,12 @@ public class ObjectMap
 			filename = Paths.get(trackPath.toString(), filename.toString());
 		}
 
-		ImageIO.write(image, "png", new File(filename.toString()));
+		// ImageIO only reports "Can't create an ImageOutputStream!" for a bad folder
+		if (filename.getParent() != null && !java.nio.file.Files.isDirectory(filename.getParent()))
+			throw new IOException("folder doesn't exist: " + filename.getParent());
+
+		if (!ImageIO.write(image, "png", new File(filename.toString())))
+			throw new IOException("no PNG image writer available");
 	}
 
 	public void dump(String indent)

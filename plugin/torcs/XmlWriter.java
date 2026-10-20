@@ -23,6 +23,8 @@ package plugin.torcs;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.jdom.Attribute;
@@ -58,6 +60,26 @@ import utils.circuit.TrackObject;
 public class XmlWriter
 {
 	private EditorFrame			editorFrame;
+	private List<String>			fileErrors		= new ArrayList<String>();
+
+	/**
+	 * The track xml was written, but relief or object map files it refers to were not.
+	 */
+	public static class ReferencedFileException extends IOException
+	{
+		private final List<String>	errors;
+
+		public ReferencedFileException(List<String> errors)
+		{
+			super(String.join("\n", errors));
+			this.errors = errors;
+		}
+
+		public List<String> getErrors()
+		{
+			return errors;
+		}
+	}
 	
 	public XmlWriter(EditorFrame editorFrame)
 	{
@@ -68,8 +90,20 @@ public class XmlWriter
 	{
 		Document doc = new Document();
 
+		fileErrors.clear();
 		getXml(doc, trackName);
 		writeToFile(fileName, doc);
+
+		if (!fileErrors.isEmpty())
+			throw new ReferencedFileException(new ArrayList<String>(fileErrors));
+	}
+
+	private void addFileError(String what, String file, Exception e)
+	{
+		String reason = e.getLocalizedMessage();
+		if (reason == null || reason.isEmpty())
+			reason = e.getClass().getSimpleName();
+		fileErrors.add(what + " " + file + " : " + reason);
 	}
 
 	/**
@@ -106,11 +140,12 @@ public class XmlWriter
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException
 	{
-		FileOutputStream out = new FileOutputStream(fileName);
-		XMLOutput op = new XMLOutput(Format.getPrettyFormat());
-		op.output(doc, out);
-		out.flush();
-		out.close();
+		try (FileOutputStream out = new FileOutputStream(fileName))
+		{
+			XMLOutput op = new XMLOutput(Format.getPrettyFormat());
+			op.output(doc, out);
+			out.flush();
+		}
 	}
 
 	/**
@@ -944,9 +979,9 @@ public class XmlWriter
 			{
 				editorFrame.getReliefs().writeFile();
 			}
-			catch (IOException ex)
+			catch (Exception ex)
 			{
-
+				addFileError("Relief file", editorFrame.getTerrainGeneration().getReliefFile(), ex);
 			}
 		}
 
@@ -1034,8 +1069,9 @@ public class XmlWriter
 				{
 					data.writeImage();
 				}
-				catch (IOException e)
+				catch (Exception e)
 				{
+					addFileError("Object map", data.getObjectMap(), e);
 				}
 			}
 		}
