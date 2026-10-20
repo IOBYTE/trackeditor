@@ -48,6 +48,10 @@ public class TrackEditor
 	public static void main(String[] args)
 	{
 		executableName = new File(TrackEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName();
+		// ignore the extension (csr-trackeditor.jar -> csr-trackeditor)
+		int dot = executableName.lastIndexOf('.');
+		if (dot > 0)
+			executableName = executableName.substring(0, dot);
 
 		Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TCPopupEventQueue());
 		

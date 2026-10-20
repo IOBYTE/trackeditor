@@ -36,7 +36,6 @@ import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.Editor;
 import utils.SegmentVector;
-import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
@@ -70,7 +69,6 @@ public class XmlWriter
 		Document doc = new Document();
 
 		getXml(doc, trackName);
-		addPreservedElements(doc.getRootElement());
 		writeToFile(fileName, doc);
 	}
 
@@ -104,45 +102,6 @@ public class XmlWriter
 		root.addContent(getTrack());
 		root.addContent(getCameras());
 		root.addContent(getSectors());
-	}
-
-	/**
-	 * Writes back elements from the original track file that the editor doesn't
-	 * model, under the same parent section. Elements whose parent no longer exists
-	 * (a deleted or renamed segment, camera, ...) or whose name the editor already
-	 * wrote are skipped.
-	 */
-	private synchronized void addPreservedElements(Element root)
-	{
-		for (TrackData.PreservedElement preserved : editorFrame.getTrackData().getPreservedElements())
-		{
-			Element parent = root;
-			for (String name : preserved.parentPath)
-			{
-				parent = findChild(parent, name);
-				if (parent == null || !parent.getName().equals("section"))
-				{
-					parent = null;
-					break;
-				}
-			}
-			if (parent == null)
-				continue;
-			if (findChild(parent, preserved.element.getAttributeValue("name")) != null)
-				continue;
-			parent.addContent((Element) preserved.element.clone());
-		}
-	}
-
-	private Element findChild(Element parent, String name)
-	{
-		for (Object o : parent.getChildren())
-		{
-			Element child = (Element) o;
-			if (name.equals(child.getAttributeValue("name")))
-				return child;
-		}
-		return null;
 	}
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException
@@ -367,7 +326,8 @@ public class XmlWriter
 		addContent(segment, "profil start tangent right", "%", shape.getProfilStartTangentRight());
 		addContent(segment, "profil end tangent right", "%", shape.getProfilEndTangentRight());
 		addContent(segment, "surface", shape.getSurface());
-		addContent(segment, "penalty", null, shape.getPenalty());
+		if (isCarsSportsRacing())
+			addContent(segment, "penalty", null, shape.getPenalty());
 		addContent(segment, "env map index", null, shape.getEnvMapIndex());
 		addContent(segment, "DoV factor", null, shape.getDovFactor());
 		
@@ -434,7 +394,7 @@ public class XmlWriter
 		addContent(side, "width", "m", part.getBarrierWidth());
 		addContent(side, "height", "m", part.getBarrierHeight());
 		addContent(side, "surface", part.getBarrierSurface());
-		addContent(side, "style", part.getBarrierStyle());
+		addContent(side, "style", barrierStyle(part.getBarrierStyle()));
 
 		return side;
 	}
@@ -467,7 +427,7 @@ public class XmlWriter
 		addContent(side, sPart + "barrier width", "m", part.getBarrierWidth());
 		addContent(side, sPart + "barrier height", "m", part.getBarrierHeight());
 		addContent(side, sPart + "barrier surface", part.getBarrierSurface());
-		addContent(side, sPart + "barrier style", part.getBarrierStyle());
+		addContent(side, sPart + "barrier style", barrierStyle(part.getBarrierStyle()));
 	}
 
 	/**
@@ -719,11 +679,33 @@ public class XmlWriter
 			addContent(el, "scale", null, object.getScale());
 			addContent(el, "scale min",null,  object.getScaleMin());
 			addContent(el, "scale max", null, object.getScaleMax());
+			if (!isCarsSportsRacing())
+				addContent(el, "use material", object.getUseMaterial());
 
 			objects.addContent(el);
 		}
 
 		return objects;
+	}
+
+	/**
+	 * @return true when writing for Cars Sports Racing, false for Speed Dreams.
+	 * Only the attributes the selected game reads are written.
+	 */
+	private boolean isCarsSportsRacing()
+	{
+		return editorFrame.getCarsSportsRacing();
+	}
+
+	/**
+	 * CSR has no fence1/fence2 barrier styles (it would build a wall), so write them as fence.
+	 */
+	private String barrierStyle(String style)
+	{
+		if (isCarsSportsRacing() && style != null && (style.equals("fence1") || style.equals("fence2")))
+			return "fence";
+
+		return style;
 	}
 
 	private synchronized String getCredit()
@@ -772,7 +754,10 @@ public class XmlWriter
 		}
 		addContent(header, "category", tmp);
 		addContent(header, "subcategory", editorFrame.getTrackData().getHeader().getSubcategory());
-		addContent(header, "car category", editorFrame.getTrackData().getHeader().getCarCategory());
+		if (isCarsSportsRacing())
+			addContent(header, "car category", editorFrame.getTrackData().getHeader().getCarCategory());
+		else
+			addContent(header, "disabled penalties", editorFrame.getTrackData().getHeader().getDisabledPenalties());
 		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
 		addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
 
@@ -831,7 +816,8 @@ public class XmlWriter
 		addContent(element, "longitude", editorFrame.getTrackData().getLocalInfo().getLongitudeUnits(), editorFrame.getTrackData().getLocalInfo().getLongitude());
 		addContent(element, "climat", null, editorFrame.getTrackData().getLocalInfo().getClimat());
 		addContent(element, "precipitation", null, editorFrame.getTrackData().getLocalInfo().getPrecipitation());
-		addContent(element, "best lap", null, editorFrame.getTrackData().getLocalInfo().getBestLap());
+		if (isCarsSportsRacing())
+			addContent(element, "best lap", null, editorFrame.getTrackData().getLocalInfo().getBestLap());
 
 		return element;
 	}
@@ -870,27 +856,31 @@ public class XmlWriter
 		addContent(element, "3d description night", editorFrame.getTrackData().getGraphic().getDescriptionNight());
 		addContent(element, "3d description rain+night", editorFrame.getTrackData().getGraphic().getDescriptionRainNight());
 
-		addContent(element, "3d separate objects", editorFrame.getTrackData().getGraphic().getSeparateObjects());
-		addContent(element, "3d terrain", editorFrame.getTrackData().getGraphic().getTerrainObjects());
-		addContent(element, "3d road", editorFrame.getTrackData().getGraphic().getRoadObjects());
-		addContent(element, "3d road2", editorFrame.getTrackData().getGraphic().getRoad2Objects());
-		addContent(element, "3d trees", editorFrame.getTrackData().getGraphic().getTreesObjects());
-		addContent(element, "3d building", editorFrame.getTrackData().getGraphic().getBuildingObjects());
-		addContent(element, "3d house", editorFrame.getTrackData().getGraphic().getHouseObjects());
-		addContent(element, "3d cars", editorFrame.getTrackData().getGraphic().getCarsObjects());
-		addContent(element, "3d truck", editorFrame.getTrackData().getGraphic().getTruckObjects());
-		addContent(element, "3d tribunes", editorFrame.getTrackData().getGraphic().getTribunesObjects());
-		addContent(element, "3d pub", editorFrame.getTrackData().getGraphic().getPubObjects());
-		addContent(element, "3d decors", editorFrame.getTrackData().getGraphic().getDecorsObjects());
-		addContent(element, "3d water", editorFrame.getTrackData().getGraphic().getWaterObjects());
-		addContent(element, "3d grass", editorFrame.getTrackData().getGraphic().getGrassObjects());
-		addContent(element, "3d sand", editorFrame.getTrackData().getGraphic().getSandObjects());
-		addContent(element, "3d rock", editorFrame.getTrackData().getGraphic().getRockObjects());
-		addContent(element, "3d curb", editorFrame.getTrackData().getGraphic().getCurbObjects());
-		addContent(element, "3d fence", editorFrame.getTrackData().getGraphic().getFenceObjects());
-		addContent(element, "3d barrier", editorFrame.getTrackData().getGraphic().getBarrierObjects());
-		addContent(element, "3d wall", editorFrame.getTrackData().getGraphic().getWallObjects());
-		addContent(element, "3d environment", editorFrame.getTrackData().getGraphic().getEnvironmentObjects());
+		// the per-type 3d object files are only used by CSR
+		if (isCarsSportsRacing())
+		{
+			addContent(element, "3d separate objects", editorFrame.getTrackData().getGraphic().getSeparateObjects());
+			addContent(element, "3d terrain", editorFrame.getTrackData().getGraphic().getTerrainObjects());
+			addContent(element, "3d road", editorFrame.getTrackData().getGraphic().getRoadObjects());
+			addContent(element, "3d road2", editorFrame.getTrackData().getGraphic().getRoad2Objects());
+			addContent(element, "3d trees", editorFrame.getTrackData().getGraphic().getTreesObjects());
+			addContent(element, "3d building", editorFrame.getTrackData().getGraphic().getBuildingObjects());
+			addContent(element, "3d house", editorFrame.getTrackData().getGraphic().getHouseObjects());
+			addContent(element, "3d cars", editorFrame.getTrackData().getGraphic().getCarsObjects());
+			addContent(element, "3d truck", editorFrame.getTrackData().getGraphic().getTruckObjects());
+			addContent(element, "3d tribunes", editorFrame.getTrackData().getGraphic().getTribunesObjects());
+			addContent(element, "3d pub", editorFrame.getTrackData().getGraphic().getPubObjects());
+			addContent(element, "3d decors", editorFrame.getTrackData().getGraphic().getDecorsObjects());
+			addContent(element, "3d water", editorFrame.getTrackData().getGraphic().getWaterObjects());
+			addContent(element, "3d grass", editorFrame.getTrackData().getGraphic().getGrassObjects());
+			addContent(element, "3d sand", editorFrame.getTrackData().getGraphic().getSandObjects());
+			addContent(element, "3d rock", editorFrame.getTrackData().getGraphic().getRockObjects());
+			addContent(element, "3d curb", editorFrame.getTrackData().getGraphic().getCurbObjects());
+			addContent(element, "3d fence", editorFrame.getTrackData().getGraphic().getFenceObjects());
+			addContent(element, "3d barrier", editorFrame.getTrackData().getGraphic().getBarrierObjects());
+			addContent(element, "3d wall", editorFrame.getTrackData().getGraphic().getWallObjects());
+			addContent(element, "3d environment", editorFrame.getTrackData().getGraphic().getEnvironmentObjects());
+		}
 
 		addContent(element, "background image", editorFrame.getTrackData().getGraphic().getBackgroundImage());
 		addContent(element, "background type", null, editorFrame.getTrackData().getGraphic().getBackgroundType());
@@ -964,10 +954,13 @@ public class XmlWriter
 		addContent(element, "surface", editorFrame.getTerrainGeneration().getSurface());
 		addContent(element, "random seed", null, editorFrame.getTerrainGeneration().getRandomSeed());
 		addContent(element, "use object materials", editorFrame.getTerrainGeneration().getUseObjectMaterials());
-		addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
+		if (!isCarsSportsRacing())
+			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
 
 		element.addContent(getObjectMaps());
-		element.addContent(getGraphicObjects());
+		// only Speed Dreams trackgen places individual graphic objects
+		if (!isCarsSportsRacing())
+			element.addContent(getGraphicObjects());
 
 		return element;
 	}

@@ -106,6 +106,12 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	private JTextField				marksTextField				= null;
 	private JLabel					commentLabel				= null;
 	private JTextField				commentTextField			= null;
+	private JLabel					penaltyLabel				= null;
+	private JTextField				penaltyTextField			= null;
+	private JLabel					envMapIndexLabel			= null;
+	private JTextField				envMapIndexTextField		= null;
+	private JLabel					dovFactorLabel				= null;
+	private JTextField				dovFactorTextField			= null;
 
 	private String[]				roadSurfaceItems			=
 	{"asphalt-lines", "asphalt-l-left", "asphalt-l-right",
@@ -303,9 +309,26 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	        centerPanel.add(surfaceLabel, null);
 			centerPanel.add(marksLabel, null);
 			centerPanel.add(commentLabel, null);
+			penaltyLabel = new JLabel("Penalty");
+			penaltyLabel.setBounds(820, 5, 70, 23);
+			penaltyLabel.setToolTipText("CSR 'penalty' (empty = not set)");
+			if (editorFrame.getCarsSportsRacing())
+				centerPanel.add(penaltyLabel, null);
+			envMapIndexLabel = new JLabel("Env Map");
+			envMapIndexLabel.setBounds(950, 5, 60, 23);
+			envMapIndexLabel.setToolTipText("'env map index' (empty = not set)");
+			centerPanel.add(envMapIndexLabel, null);
+			dovFactorLabel = new JLabel("DoV Factor");
+			dovFactorLabel.setBounds(820, 33, 70, 23);
+			dovFactorLabel.setToolTipText("'DoV factor' (empty = not set)");
+			centerPanel.add(dovFactorLabel, null);
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getMarksTextField(), null);
 			centerPanel.add(getCommentTextField(), null);
+			if (editorFrame.getCarsSportsRacing())
+				centerPanel.add(getPenaltyTextField(), null);
+			centerPanel.add(getEnvMapIndexTextField(), null);
+			centerPanel.add(getDovFactorTextField(), null);
 			centerPanel.add(getSurfaceComboBox(), null);
 			centerPanel.add(getRadiusStartSlider(), null);
 			centerPanel.add(getRadiusEndSlider(), null);
@@ -711,7 +734,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (marksTextField == null)
 		{
 			marksTextField = new JTextField();
-			marksTextField.setBounds(510, 5, 425, 23);
+			marksTextField.setBounds(510, 5, 300, 23);
 			marksTextField.addKeyListener(new KeyAdapter()
 			{
 				public void keyReleased(KeyEvent e)
@@ -735,7 +758,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		if (commentTextField == null)
 		{
 			commentTextField = new JTextField();
-			commentTextField.setBounds(510, 33, 425, 23);
+			commentTextField.setBounds(510, 33, 300, 23);
 			commentTextField.addKeyListener(new KeyAdapter()
 			{
 				public void keyReleased(KeyEvent e)
@@ -745,6 +768,113 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			});
 		}
 		return commentTextField;
+	}
+
+	/**
+	 * Text for an optional int: empty when not set.
+	 */
+	private static String intText(int value)
+	{
+		return value == Integer.MAX_VALUE ? "" : String.valueOf(value);
+	}
+
+	/**
+	 * Text for an optional double: empty when not set.
+	 */
+	private static String doubleText(double value)
+	{
+		return Double.isNaN(value) ? "" : String.valueOf(value);
+	}
+
+	private JTextField getPenaltyTextField()
+	{
+		if (penaltyTextField == null)
+		{
+			penaltyTextField = new JTextField();
+			penaltyTextField.setBounds(890, 5, 50, 23);
+			penaltyTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					String text = penaltyTextField.getText().trim();
+					try
+					{
+						int value = text.isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(text);
+						if (value != shape.getPenalty())
+						{
+							shape.setPenalty(value);
+							editorFrame.documentIsModified = true;
+						}
+					}
+					catch (NumberFormatException ex)
+					{
+						// keep the last valid value while the user is typing
+					}
+				}
+			});
+		}
+		return penaltyTextField;
+	}
+
+	private JTextField getEnvMapIndexTextField()
+	{
+		if (envMapIndexTextField == null)
+		{
+			envMapIndexTextField = new JTextField();
+			envMapIndexTextField.setBounds(1010, 5, 50, 23);
+			envMapIndexTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					String text = envMapIndexTextField.getText().trim();
+					try
+					{
+						int value = text.isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(text);
+						if (value != shape.getEnvMapIndex())
+						{
+							shape.setEnvMapIndex(value);
+							editorFrame.documentIsModified = true;
+						}
+					}
+					catch (NumberFormatException ex)
+					{
+						// keep the last valid value while the user is typing
+					}
+				}
+			});
+		}
+		return envMapIndexTextField;
+	}
+
+	private JTextField getDovFactorTextField()
+	{
+		if (dovFactorTextField == null)
+		{
+			dovFactorTextField = new JTextField();
+			dovFactorTextField.setBounds(890, 33, 50, 23);
+			dovFactorTextField.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent e)
+				{
+					String text = dovFactorTextField.getText().trim();
+					try
+					{
+						double value = text.isEmpty() ? Double.NaN : Double.parseDouble(text);
+						double old = shape.getDovFactor();
+						if (!(value == old || (Double.isNaN(value) && Double.isNaN(old))))
+						{
+							shape.setDovFactor(value);
+							editorFrame.documentIsModified = true;
+						}
+					}
+					catch (NumberFormatException ex)
+					{
+						// keep the last valid value while the user is typing
+					}
+				}
+			});
+		}
+		return dovFactorTextField;
 	}
 	/**
 	 * This method initializes surfaceComboBox
@@ -824,6 +954,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			}
 			getNameTextField().setText(shape.getName());
 			getCommentTextField().setText(shape.getComment());
+			getPenaltyTextField().setText(intText(shape.getPenalty()));
+			getEnvMapIndexTextField().setText(intText(shape.getEnvMapIndex()));
+			getDovFactorTextField().setText(doubleText(shape.getDovFactor()));
 
 			this.updateTitle();
 

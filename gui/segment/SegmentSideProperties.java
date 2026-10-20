@@ -76,6 +76,9 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		sideSurfaceVector		= new Vector<String>();
 	private String[]			barrierStyleItems		= {"none", "no barrier", "wall", "fence", "fence1", "fence2"};
+	// CSR has no fence1/fence2 (they are written as fence)
+	private String[]			csrBarrierStyleItems	= {"none", "no barrier", "wall", "fence"};
+	private boolean				updatingBarrierStyle	= false;
 	private String[]			barrierSurfaceItems		=
 														{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 			"wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -471,17 +474,39 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	 *
 	 * @return javax.swing.JComboBox
 	 */
+	/**
+	 * @return the barrier styles for the current game type. A CSR track never gets
+	 * fence1/fence2, but a style already set (read from a Speed Dreams track) stays
+	 * listed so viewing the segment doesn't change it.
+	 */
+	private String[] barrierStyleItems(String currentStyle)
+	{
+		if (!parent.editorFrame.getCarsSportsRacing())
+			return barrierStyleItems;
+
+		if (currentStyle != null && (currentStyle.equals("fence1") || currentStyle.equals("fence2")))
+		{
+			String[] items = java.util.Arrays.copyOf(csrBarrierStyleItems, csrBarrierStyleItems.length + 1);
+			items[items.length - 1] = currentStyle;
+			return items;
+		}
+
+		return csrBarrierStyleItems;
+	}
+
 	private JComboBox<String> getBarrierStyleComboBox()
 	{
 		if (barrierStyleComboBox == null)
 		{
 			barrierStyleComboBox = new JComboBox<String>();
 			barrierStyleComboBox.setBounds(45, 400, 120, 23);
-			barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(barrierStyleItems));
+			barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(barrierStyleItems(null)));
 			barrierStyleComboBox.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
 				{
+					if (updatingBarrierStyle)
+						return;
 					String oldStyle = side.getBarrierStyle();
 					if (oldStyle == null || oldStyle.isEmpty())
 						oldStyle = "none";
@@ -812,7 +837,11 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		style = side.getBarrierStyle();
 		if (style == null || style.isEmpty())
 			style = "none";
+		// the list depends on the game type and on the current style
+		updatingBarrierStyle = true;
+		getBarrierStyleComboBox().setModel(new DefaultComboBoxModel<String>(barrierStyleItems(style)));
 		getBarrierStyleComboBox().setSelectedItem(style);
+		updatingBarrierStyle = false;
 		switch (style)
 		{
 		case "none":

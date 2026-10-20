@@ -142,7 +142,6 @@ public class TerrainProperties extends PropertyPanel
 		addLabel(this, 11, surfaceLabel, "Surface", 120);
 		addLabel(this, 12, randomSeedLabel, "Random Seed", 120);
 		addLabel(this, 13, useObjectMaterialsLabel, "Use Object Materials", 120);
-		addLabel(this, 14, tiledFileLabel, "Tiled File", 120);
 
 		addTextField(this, 0, trackStepTextField, getEditorFrame().getTerrainGeneration().getTrackStep(), 140, 125);
 		addTextField(this, 1, borderMarginTextField, getEditorFrame().getTerrainGeneration().getBorderMargin(), 140, 125);
@@ -157,7 +156,6 @@ public class TerrainProperties extends PropertyPanel
 		addTextField(this, 8, elevationMapTextField, getEditorFrame().getTerrainGeneration().getElevationMap(), 140, 295);
 		addTextField(this, 9, reliefFileTextField, getEditorFrame().getTerrainGeneration().getReliefFile(), 140, 295);
 		addTextField(this, 12, randomSeedTextField, getEditorFrame().getTerrainGeneration().getRandomSeed(), 140, 125);
-		addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
 
 		this.add(getSurfaceComboBox(), null);
 		this.add(getDefaultButton(), null);
@@ -167,7 +165,13 @@ public class TerrainProperties extends PropertyPanel
 		this.add(getReliefFileButton(), null);
 		this.add(getReliefBorderComboBox(), null);
 		this.add(getUseObjectMaterialsComboBox(), null);
-		this.add(getTiledFileButton(), null);
+		// only Speed Dreams trackgen reads the tiled file
+		if (!getEditorFrame().getCarsSportsRacing())
+		{
+			addLabel(this, 14, tiledFileLabel, "Tiled File", 120);
+			addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
+			this.add(getTiledFileButton(), null);
+		}
 		getReliefBorderComboBox().setSelectedItem(toNoneString(getEditorFrame().getTerrainGeneration().getReliefBorder()));
 		getUseObjectMaterialsComboBox().setSelectedItem(toNoneString(getEditorFrame().getTerrainGeneration().getUseObjectMaterials()));
 	}
@@ -554,7 +558,9 @@ public class TerrainProperties extends PropertyPanel
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 			tabbedPane.setBounds(10, 420, 510, 362);
 
-			tabbedPane.addTab("Objects", null, new GraphicObjectProperties(getEditorFrame()));
+			// only Speed Dreams trackgen places individual graphic objects
+			if (!getEditorFrame().getCarsSportsRacing())
+				tabbedPane.addTab("Objects", null, new GraphicObjectProperties(getEditorFrame()));
 			tabbedPane.addTab("Object Maps", null, new ObjectMapProperties(getEditorFrame()));
 			tabbedPane.addTab("Reliefs", null, new ReliefProperties(getEditorFrame()));
 			SwingUtilities.invokeLater( new Runnable()
@@ -701,24 +707,24 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(tiledFileTextField.getText(),
+		if (!getEditorFrame().getCarsSportsRacing() && isDifferent(tiledFileTextField.getText(),
 			getEditorFrame().getTerrainGeneration().getTiledFile(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setTiledFile(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		Component component0 = tabbedPane.getComponentAt(0);
-		GraphicObjectProperties properties0 = (GraphicObjectProperties)component0;
-		properties0.exit();
-
-		Component component1 = tabbedPane.getComponentAt(1);
-		ObjectMapProperties properties1 = (ObjectMapProperties)component1;
-		properties1.exit();
-
-		Component component2 = tabbedPane.getComponentAt(2);
-		ReliefProperties properties2 = (ReliefProperties)component2;
-		properties2.exit();
+		// the Objects tab only exists for Speed Dreams
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
+		{
+			Component component = tabbedPane.getComponentAt(i);
+			if (component instanceof GraphicObjectProperties)
+				((GraphicObjectProperties)component).exit();
+			else if (component instanceof ObjectMapProperties)
+				((ObjectMapProperties)component).exit();
+			else if (component instanceof ReliefProperties)
+				((ReliefProperties)component).exit();
+		}
 
 		getEditorFrame().getProject().setPropertiesEditorTerrainTab(this.tabbedPane.getSelectedIndex());
 	}

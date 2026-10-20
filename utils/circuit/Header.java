@@ -12,6 +12,7 @@ public class Header {
 	private String	email		= null;
 	private String	copyright	= null;
 	private String	description	= null;
+	private String	disabledPenalties	= null;	// Speed Dreams only: ';' separated list
 
 	/**
 	 * @return Returns the name.
@@ -163,6 +164,58 @@ public class Header {
 		this.email = email;
 	}
 
+	public String getDisabledPenalties()
+	{
+		return disabledPenalties;
+	}
+
+	public void setDisabledPenalties(String disabledPenalties)
+	{
+		this.disabledPenalties = disabledPenalties;
+	}
+
+	/**
+	 * @return true if penalty (e.g. "slowdown") is in the disabled penalties list.
+	 */
+	public boolean hasDisabledPenalty(String penalty)
+	{
+		if (disabledPenalties == null)
+			return false;
+
+		for (String token : disabledPenalties.split(";"))
+		{
+			if (token.equals(penalty))
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Adds or removes one penalty, keeping any other entries in the list.
+	 */
+	public void setDisabledPenalty(String penalty, boolean disabled)
+	{
+		if (hasDisabledPenalty(penalty) == disabled)
+			return;
+
+		java.util.List<String> tokens = new java.util.ArrayList<String>();
+
+		if (disabledPenalties != null)
+		{
+			for (String token : disabledPenalties.split(";"))
+			{
+				if (!token.isEmpty() && !token.equals(penalty))
+					tokens.add(token);
+			}
+		}
+
+		if (disabled)
+			tokens.add(penalty);
+
+		disabledPenalties = tokens.isEmpty() ? null : String.join(";", tokens);
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "Header");
@@ -177,5 +230,6 @@ public class Header {
 		System.out.println(indent + "  email       : " + email);
 		System.out.println(indent + "  copyright   : " + copyright);
 		System.out.println(indent + "  description : " + description);
+		System.out.println(indent + "  disabledPenalties : " + disabledPenalties);
     }
 }

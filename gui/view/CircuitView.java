@@ -1564,7 +1564,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				}
 			}
 
-			for (GraphicObject graphicObject : editorFrame.getGraphicObjects())
+			for (GraphicObject graphicObject : shownGraphicObjects())
 			{
 				ObjShapeObject object = graphicObject.getShape();
 
@@ -1897,7 +1897,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					}
 				}
 
-				for (GraphicObject graphicObject : editorFrame.getGraphicObjects())
+				for (GraphicObject graphicObject : shownGraphicObjects())
 				{
 					ObjShapeObject object = graphicObject.getShape();
 
@@ -2126,6 +2126,18 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 	}
 
+	/**
+	 * Graphic objects are only placed by Speed Dreams trackgen, so they are hidden
+	 * (and not written) when editing a CSR track.
+	 */
+	private Vector<GraphicObject> shownGraphicObjects()
+	{
+		if (editorFrame.getCarsSportsRacing())
+			return new Vector<GraphicObject>();
+
+		return editorFrame.getGraphicObjects();
+	}
+
 	public void setObjects(Vector<GraphicObject> objects)
 	{
 		for (GraphicObject object : objects)
@@ -2191,7 +2203,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		this.showObjects = showObjects;
 		if (showObjects)
 		{
-			if (editorFrame.getGraphicObjects().size() > 0)
+			if (shownGraphicObjects().size() > 0)
 			{
 				editorFrame.setCurrentObjectGraphic(true);
 			}
@@ -2309,7 +2321,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		if (showObjects)
 		{
 			setObjectMaps(editorFrame.getObjectMaps());
-			setObjects(editorFrame.getGraphicObjects());
+			setObjects(shownGraphicObjects());
 		}
 
 		if (showReliefs)
@@ -3144,8 +3156,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	    JMenuItem itemDeleteAll = new JMenuItem("Delete All");
 	    JMenuItem itemDeleteAdjacent = isGraphicObject ? null : new JMenuItem("Delete Adjacent");
 	    JMenuItem itemDeleteAllAdjacent = isGraphicObject ? null : new JMenuItem("Delete All Adjacent");
-	    JMenuItem itemMoveToObjects = isGraphicObject ? null : new JMenuItem("Move To Objects");
-	    JMenuItem itemMoveAllToObjects = isGraphicObject ? null : new JMenuItem("Move To Objects");
+	    boolean canMoveToObjects = !isGraphicObject && !editorFrame.getCarsSportsRacing();
+	    JMenuItem itemMoveToObjects = canMoveToObjects ? new JMenuItem("Move To Objects") : null;
+	    JMenuItem itemMoveAllToObjects = canMoveToObjects ? new JMenuItem("Move To Objects") : null;
 
 	    itemCopy.setAction(copyAction);
 	    itemEdit.setAction(editAction);
@@ -3159,8 +3172,11 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	    	itemEditAll.setAction(editAllAction);
 	    	itemDeleteAdjacent.setAction(deleteAdjacentAction);
 	    	itemDeleteAllAdjacent.setAction(deleteAllAdjacentAction);
-		    itemMoveToObjects.setAction(moveToObjectsAction);
-		    itemMoveAllToObjects.setAction(moveAllToObjectsAction);
+		    if (canMoveToObjects)
+		    {
+			    itemMoveToObjects.setAction(moveToObjectsAction);
+			    itemMoveAllToObjects.setAction(moveAllToObjectsAction);
+		    }
 	    }
 
 	    menu.add(itemCopy);
@@ -3178,9 +3194,12 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		    menu.addSeparator();
 		    menu.add(itemDeleteAdjacent);
 		    menu.add(itemDeleteAllAdjacent);
-		    menu.addSeparator();
-		    menu.add(itemMoveToObjects);
-		    menu.add(itemMoveAllToObjects);
+		    if (canMoveToObjects)
+		    {
+			    menu.addSeparator();
+			    menu.add(itemMoveToObjects);
+			    menu.add(itemMoveAllToObjects);
+		    }
 	    }
 
 	    menu.addPopupMenuListener(new PopupMenuListener()
@@ -3204,6 +3223,18 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	private void addNewObject(MouseEvent me)
 	{
+		// CSR only has object maps
+		if (editorFrame.getCarsSportsRacing())
+		{
+			if (editorFrame.getObjectMaps().isEmpty())
+			{
+				createObjectMap(me);
+				editorFrame.setCurrentObjectMap(0);
+			}
+			addToObjectMap(me);
+			return;
+		}
+
 		if (editorFrame.getObjectMaps().isEmpty() && editorFrame.getGraphicObjects().isEmpty())
 		{
 			String[] options = {"Add to ObjectMap", "Add to Objects", "Cancel"};

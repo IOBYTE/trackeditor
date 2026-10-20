@@ -100,7 +100,9 @@ public class TrackProperties extends PropertyPanel
 	 "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1", "barrier", "barrier2",
 	 "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		sideSurfaceVector			= new Vector<String>(Arrays.asList(sideSurfaceItems));
-	private String[]			barrierStyleItems			= {"none", "fence", "wall"};
+	private String[]			barrierStyleItems			= {"none", "fence", "fence1", "fence2", "wall"};
+	// CSR has no fence1/fence2 (they are written as fence)
+	private String[]			csrBarrierStyleItems		= {"none", "fence", "wall"};
 	private String[]			barrierSurfaceItems			=
 	{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 	 "wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -116,6 +118,26 @@ public class TrackProperties extends PropertyPanel
 	/**
 	 *
 	 */
+	/**
+	 * @return the barrier styles for the current game type. A CSR track never gets
+	 * fence1/fence2, but a style already set (read from a Speed Dreams track) stays
+	 * listed so opening the dialog doesn't change it.
+	 */
+	private String[] getBarrierStyleItems(String currentStyle)
+	{
+		if (!getEditorFrame().getCarsSportsRacing())
+			return barrierStyleItems;
+
+		if (currentStyle != null && (currentStyle.equals("fence1") || currentStyle.equals("fence2")))
+		{
+			String[] items = java.util.Arrays.copyOf(csrBarrierStyleItems, csrBarrierStyleItems.length + 1);
+			items[items.length - 1] = currentStyle;
+			return items;
+		}
+
+		return csrBarrierStyleItems;
+	}
+
 	public TrackProperties(EditorFrame editorFrame)
 	{
 		super(editorFrame);
@@ -371,6 +393,8 @@ public class TrackProperties extends PropertyPanel
 				barrierSurfaceComboBox.setEnabled(false);
 				break;
 			case "fence":
+			case "fence1":
+			case "fence2":
 				barrierWidthTextField.setEnabled(false);
 				barrierHeightTextField.setEnabled(true);
 				barrierSurfaceComboBox.setEnabled(true);
@@ -585,10 +609,10 @@ public class TrackProperties extends PropertyPanel
 			{
 				barrierStyleComboBox = new JComboBox<String>();
 				barrierStyleComboBox.setBounds(150, 307, 125, 23);
-				barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(barrierStyleItems));
 				String style = side.getBarrierStyle();
 				if (style == null || style.isEmpty())
 					style = "none";
+				barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(getBarrierStyleItems(style)));
 				barrierStyleComboBox.setSelectedItem(style);
 				barrierStyleComboBox.addActionListener(new ActionListener()
 				{
@@ -613,6 +637,8 @@ public class TrackProperties extends PropertyPanel
 							barrierSurfaceComboBox.setSelectedIndex(-1);
 							break;
 						case "fence":
+						case "fence1":
+						case "fence2":
 							barrierWidthTextField.setEnabled(false);
 							barrierWidthTextField.setText(Double.toString(SegmentSide.DEFAULT_BARRIER_FENCE_WIDTH));
 							barrierHeightTextField.setEnabled(true);

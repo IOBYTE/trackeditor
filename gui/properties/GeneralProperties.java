@@ -22,6 +22,7 @@ package gui.properties;
 
 import java.io.File;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -58,6 +59,14 @@ public class GeneralProperties extends PropertyPanel
 	private JTextField			copyrightTextField		= new JTextField();
 	private JLabel				descriptionLabel		= new JLabel();
 	private JTextField			descriptionTextField	= new JTextField();
+	private JLabel				carCategoryLabel		= new JLabel();
+	private JTextField			carCategoryTextField	= new JTextField();
+	private JLabel				disabledPenaltiesLabel	= new JLabel();
+	private JCheckBox			slowdownCheckBox		= new JCheckBox("Slowdown");
+	private JCheckBox			wallHitCheckBox			= new JCheckBox("Wall hit invalidates lap time");
+
+	private static final String	SLOWDOWN				= "slowdown";
+	private static final String	WALL_HIT				= "wallhittimeinvalidate";
 
 	private String				lastSubcategory			= null;
 	private final String 		sep						= System.getProperty("file.separator");
@@ -102,6 +111,24 @@ public class GeneralProperties extends PropertyPanel
 		addTextField(this, 7, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
 		addTextField(this, 8, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
 		addTextField(this, 9, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
+		if (getEditorFrame().getCarsSportsRacing())
+		{
+			addLabel(this, 10, carCategoryLabel, "Car Category", 110);
+			addTextField(this, 10, carCategoryTextField, getEditorFrame().getTrackData().getHeader().getCarCategory(), 130, 390);
+			carCategoryTextField.setToolTipText("Car category this track is meant for (empty = any)");
+		}
+		else
+		{
+			addLabel(this, 10, disabledPenaltiesLabel, "Disabled Penalties", 120);
+			slowdownCheckBox.setBounds(130, 280, 100, 23);
+			slowdownCheckBox.setSelected(getEditorFrame().getTrackData().getHeader().hasDisabledPenalty(SLOWDOWN));
+			slowdownCheckBox.setToolTipText("No slowdown penalty for cutting corners on this track");
+			add(slowdownCheckBox);
+			wallHitCheckBox.setBounds(240, 280, 220, 23);
+			wallHitCheckBox.setSelected(getEditorFrame().getTrackData().getHeader().hasDisabledPenalty(WALL_HIT));
+			wallHitCheckBox.setToolTipText("Hitting a wall doesn't invalidate the lap time on this track");
+			add(wallHitCheckBox);
+		}
 	}
 
 	/**
@@ -320,6 +347,25 @@ public class GeneralProperties extends PropertyPanel
 		{
 			getEditorFrame().getTrackData().getHeader().setDescription(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
+		}
+
+		if (getEditorFrame().getCarsSportsRacing())
+		{
+			if (isDifferent(carCategoryTextField.getText(),
+				getEditorFrame().getTrackData().getHeader().getCarCategory(), stringResult))
+			{
+				getEditorFrame().getTrackData().getHeader().setCarCategory(stringResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+		}
+		else
+		{
+			String oldPenalties = getEditorFrame().getTrackData().getHeader().getDisabledPenalties();
+			getEditorFrame().getTrackData().getHeader().setDisabledPenalty(SLOWDOWN, slowdownCheckBox.isSelected());
+			getEditorFrame().getTrackData().getHeader().setDisabledPenalty(WALL_HIT, wallHitCheckBox.isSelected());
+			String newPenalties = getEditorFrame().getTrackData().getHeader().getDisabledPenalties();
+			if (oldPenalties == null ? newPenalties != null : !oldPenalties.equals(newPenalties))
+				getEditorFrame().documentIsModified = true;
 		}
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

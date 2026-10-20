@@ -26,10 +26,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -49,7 +45,6 @@ import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.Editor;
 import utils.SegmentVector;
-import utils.TrackData;
 import utils.ac3d.Ac3dException;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
@@ -126,8 +121,6 @@ public class XmlReader
 	
 	private EditorFrame		editorFrame = null;
 	private String			filename	= null;
-	// every element the reader looked at, so the rest can be preserved
-	private Set<Element>	visited		= Collections.newSetFromMap(new IdentityHashMap<Element, Boolean>());
 	
 	public XmlReader(EditorFrame editorFrame)
 	{
@@ -140,9 +133,7 @@ public class XmlReader
     	
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
-        visited.clear();
         setTrackData(element);
-        editorFrame.getTrackData().setPreservedElements(collectUnvisited(element));
     }
 
     private Document readFromFile(String fname) throws JDOMException, IOException
@@ -276,6 +267,7 @@ public class XmlReader
         editorFrame.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
         editorFrame.getTrackData().getHeader().setCopyright(getAttrStrValue(header, "copyright"));
         editorFrame.getTrackData().getHeader().setDescription(getAttrStrValue(header, "description"));
+        editorFrame.getTrackData().getHeader().setDisabledPenalties(getAttrStrValue(header, "disabled penalties"));
     }
 
     /**
@@ -562,6 +554,7 @@ public class XmlReader
             obj.setScale(getAttrNumValue(object, "scale"));
             obj.setScaleMin(getAttrNumValue(object, "scale min"));
             obj.setScaleMax(getAttrNumValue(object, "scale max"));
+            obj.setUseMaterial(getAttrStrValue(object, "use material"));
 
             objectData.add(obj);
         }
@@ -1087,45 +1080,7 @@ public class XmlReader
                 out = child;
             }
         }
-        if (out != null)
-        {
-            visited.add(out);
-        }
-        visited.add(element);
         return out;
-    }
-
-    /**
-     * Collects the elements the reader never looked at, below sections it did
-     * read, so XmlWriter can write them back unchanged.
-     */
-    private Vector<TrackData.PreservedElement> collectUnvisited(Element root)
-    {
-        Vector<TrackData.PreservedElement> result = new Vector<TrackData.PreservedElement>();
-        collectUnvisited(root, new ArrayList<String>(), result);
-        return result;
-    }
-
-    private void collectUnvisited(Element section, List<String> path, Vector<TrackData.PreservedElement> result)
-    {
-        for (Object o : section.getChildren())
-        {
-            Element child = (Element) o;
-            String name = child.getAttributeValue("name");
-            if (name == null)
-                continue;
-
-            if (!visited.contains(child))
-            {
-                result.add(new TrackData.PreservedElement(path.toArray(new String[path.size()]), (Element) child.clone()));
-            }
-            else if (child.getName().equals("section"))
-            {
-                path.add(name);
-                collectUnvisited(child, path, result);
-                path.remove(path.size() - 1);
-            }
-        }
     }
 
     public synchronized String getSegmentName(Element element)

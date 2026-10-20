@@ -289,6 +289,8 @@ public class ObjectProperties extends PropertyPanel
 		private JTextField			scaleMinTextField		= new JTextField();
 		private JLabel				scaleMaxLabel			= new JLabel();
 		private JTextField			scaleMaxTextField		= new JTextField();		
+		private JLabel				useMaterialLabel		= new JLabel();
+		private JComboBox<String>	useMaterialComboBox		= null;
 		private JButton				objectButton			= null;
 		private JButton				colorButton				= null;
 		
@@ -358,6 +360,14 @@ public class ObjectProperties extends PropertyPanel
 			addTextField(this, 11, scaleMinTextField, object.getScaleMin(), 120, 125);
 			addTextField(this, 12, scaleMaxTextField, object.getScaleMax(), 120, 125);
 
+			// only Speed Dreams trackgen reads "use material"
+			if (!getEditorFrame().getCarsSportsRacing())
+			{
+				addLabel(this, 4, useMaterialLabel, "Use Material", 265, 90);
+				add(getUseMaterialComboBox(), null);
+				getUseMaterialComboBox().setSelectedItem(toNoneString(object.getUseMaterial()));
+			}
+
 			if (defaultObjects)
 			{
 				nameTextField.setEnabled(false);
@@ -372,6 +382,7 @@ public class ObjectProperties extends PropertyPanel
 				scaleTextField.setEnabled(false);
 				scaleMinTextField.setEnabled(false);
 				scaleMaxTextField.setEnabled(false);		
+				getUseMaterialComboBox().setEnabled(false);
 			}
 			else
 			{
@@ -465,6 +476,18 @@ public class ObjectProperties extends PropertyPanel
 				orientationTypeComboBox.setBounds(120, 118, 125, 23);
 			}
 			return orientationTypeComboBox;
+		}
+
+		public JComboBox<String> getUseMaterialComboBox()
+		{
+			if (useMaterialComboBox == null)
+			{
+				String[] items = {"none", "yes", "no"};
+				useMaterialComboBox = new JComboBox<String>(items);
+				useMaterialComboBox.setBounds(360, 118, 80, 23);
+				useMaterialComboBox.setToolTipText("Use the object's own material instead of the terrain's");
+			}
+			return useMaterialComboBox;
 		}
 
 		public JComboBox<String> getScaleTypeComboBox()
@@ -794,6 +817,13 @@ public class ObjectProperties extends PropertyPanel
                 object.setScaleMax(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+
+            if (!getEditorFrame().getCarsSportsRacing() &&
+                isDifferent(panel.getUseMaterialComboBox().getSelectedItem().toString(), object.getUseMaterial(), stringResult))
+            {
+                object.setUseMaterial(stringResult.getValue());
+                getEditorFrame().documentIsModified = true;
+            }
         }
 		if (objects.size() > tabbedPane.getTabCount())
 		{
@@ -832,6 +862,8 @@ public class ObjectProperties extends PropertyPanel
 		object.setScale(getDouble(panel.scaleTextField.getText()));
 		object.setScaleMin(getDouble(panel.scaleMinTextField.getText()));
 		object.setScaleMax(getDouble(panel.scaleMaxTextField.getText()));
+		if (!getEditorFrame().getCarsSportsRacing())
+			object.setUseMaterial(getString(panel.getUseMaterialComboBox().getSelectedItem().toString()));
 	}
 
 	private void setPanelFromObject(TrackObject object, ObjectPanel panel)
@@ -847,5 +879,6 @@ public class ObjectProperties extends PropertyPanel
 		setTextField(panel.scaleTextField, object.getScale());
 		setTextField(panel.scaleMinTextField, object.getScaleMin());
 		setTextField(panel.scaleMaxTextField, object.getScaleMax());
+		panel.getUseMaterialComboBox().setSelectedItem(toNoneString(object.getUseMaterial()));
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

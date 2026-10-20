@@ -14,6 +14,7 @@ public final class TrackObject {
     private double scale			= Double.NaN;
     private double scaleMin			= Double.NaN;
     private double scaleMax			= Double.NaN;
+    private String useMaterial		= null;	// Speed Dreams only: "yes" or "no"
 
     public String getName() {
 		return name;
@@ -119,6 +120,14 @@ public final class TrackObject {
 		this.scaleMax = scaleMax;
 	}
 
+	public String getUseMaterial() {
+		return useMaterial;
+	}
+
+	public void setUseMaterial(String useMaterial) {
+		this.useMaterial = useMaterial;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "TrackObject");
@@ -135,5 +144,6 @@ public final class TrackObject {
 		System.out.println(indent + "  scale           : " + scale);
 		System.out.println(indent + "  scaleMin        : " + scaleMin);
 		System.out.println(indent + "  scaleMax        : " + scaleMax);
+		System.out.println(indent + "  useMaterial     : " + useMaterial);
     }
 }

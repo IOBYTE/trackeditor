@@ -394,10 +394,8 @@ public class EditorFrame extends JFrame
 		cursorCoordinates = preferences.getBoolean(CURSOR_COORDINATES, false);
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
 		checkDefaultObjects = preferences.getBoolean(CHECK_DEFAULT_OBJECTS, false);
-		if (TrackEditor.executableName.equals("csr-trackeditor"))
-			carsSportsRacing = true;
-		else
-			carsSportsRacing = preferences.getBoolean(CARS_SPORTS_RACING, false);
+		// the game type is a preference; the app name only supplies the default
+		carsSportsRacing = preferences.getBoolean(carsSportsRacingKey(), TrackEditor.executableName.equals("csr-trackeditor"));
 
 		if (dataDirectory == null)
 		{
@@ -576,9 +574,22 @@ public class EditorFrame extends JFrame
 
 	public void setCarsSportsRacing(boolean value)
 	{
+		if (value == carsSportsRacing)
+			return;
+
 		carsSportsRacing = value;
 
-		preferences.putBoolean(CARS_SPORTS_RACING, carsSportsRacing);
+		preferences.putBoolean(carsSportsRacingKey(), carsSportsRacing);
+	}
+
+	/**
+	 * sd2-trackeditor and csr-trackeditor share one preferences node, so the game
+	 * type is stored per app name. Otherwise choosing a type in one app would change
+	 * the default of the other.
+	 */
+	private static String carsSportsRacingKey()
+	{
+		return CARS_SPORTS_RACING + "." + TrackEditor.executableName;
 	}
 
 	private void updateRecentFiles(String filename)
