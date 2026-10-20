@@ -477,7 +477,7 @@ public class NewProjectDialog extends JDialog
 		newProjectInfo.name = tmpName;
 		newProjectInfo.category = (String) getTrackCategoryComboBox().getSelectedItem();
 		String subcategory = (String) getTrackSubcategoryComboBox().getSelectedItem();
-		if (subcategory != "none")
+		if (!"none".equals(subcategory))
 			newProjectInfo.subcategory = subcategory;
 		newProjectInfo.version = Integer.parseInt((String) getTrackVersionComboBox().getSelectedItem());
 		newProjectInfo.path = tmpPath + sep + tmpName;

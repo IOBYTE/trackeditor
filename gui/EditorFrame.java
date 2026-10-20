@@ -45,8 +45,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -731,7 +733,10 @@ public class EditorFrame extends JFrame
 			return;
 		}
 		
-		String trackFileName = projectFileName.replaceAll(".prj.xml", ".xml");
+		// not replaceAll: its pattern is a regular expression
+		String trackFileName = projectFileName.endsWith(".prj.xml")
+			? projectFileName.substring(0, projectFileName.length() - ".prj.xml".length()) + ".xml"
+			: projectFileName;
 		File file = new File(trackFileName);
 		if (!file.exists())
 		{
@@ -771,8 +776,12 @@ public class EditorFrame extends JFrame
 
 		//System.out.println("saveProject writing : " + filename);
 
+		// write a temporary file next to the project and only replace the
+		// project once it is complete, so a failure can't leave a broken one
+		Path target = Paths.get(filename).toAbsolutePath();
+		Path temp = target.resolveSibling(target.getFileName() + ".tmp");
 		boolean projectSaved = true;
-		try (FileOutputStream out = new FileOutputStream(filename))
+		try (FileOutputStream out = new FileOutputStream(temp.toFile()))
 		{
 			// XMLEncoder reports problems through this listener instead of throwing
 			final Exception[] encoderError = { null };
@@ -793,9 +802,46 @@ public class EditorFrame extends JFrame
 		} catch (Exception e)
 		{
 			projectSaved = false;
+			try
+			{
+				Files.deleteIfExists(temp);
+			}
+			catch (IOException e2)
+			{
+			}
 			JOptionPane.showMessageDialog(this,
 				"Couldn't write : " + filename + "\n\n" + e.getLocalizedMessage(),
 				"Save Project", JOptionPane.ERROR_MESSAGE);
+		}
+
+		if (projectSaved)
+		{
+			try
+			{
+				try
+				{
+					Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+				}
+				catch (IOException e)
+				{
+					// not every file system can replace atomically
+					Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+				}
+			}
+			catch (IOException e)
+			{
+				projectSaved = false;
+				try
+				{
+					Files.deleteIfExists(temp);
+				}
+				catch (IOException e2)
+				{
+				}
+				JOptionPane.showMessageDialog(this,
+					"Couldn't write : " + filename + "\n\n" + e.getLocalizedMessage(),
+					"Save Project", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 
 		// write the track even if the project file failed, so as much as possible is saved

@@ -803,7 +803,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		if (editorFrame.getTrackData() == null)
 			return;
 
-		if (e.getModifiers() == 4) // right button
+		if (SwingUtilities.isRightMouseButton(e)) // right button, with or without a modifier key
 		{
 			if (objectShape != null && objectDragging == true)
 			{
@@ -868,7 +868,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				repaint();
 			}	
 		}
-		else if (e.getModifiers() == 8) // middle button
+		else if (SwingUtilities.isMiddleMouseButton(e)) // middle button
 		{
 			JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
 			if (viewPort != null)
@@ -2047,12 +2047,13 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		if (editorFrame.getTrackData() == null)
 			return;
 
-		editorFrame.getTrackData().calculateSegmentValues();
-		
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		
+		// a failed import can leave no segments
 		if (track == null)
 			return;
+
+		editorFrame.getTrackData().calculateSegmentValues();
 		
 		int size = track.size();
 		

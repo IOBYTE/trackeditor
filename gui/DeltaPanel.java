@@ -23,12 +23,15 @@ package gui;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayDeque;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import utils.Editor;
 import utils.SegmentVector;
@@ -44,12 +47,11 @@ import javax.swing.JTextField;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class DeltaPanel extends JDialog implements Runnable
+public class DeltaPanel extends JDialog
 {
 	private final static String sep	= System.getProperty("file.separator");
     private EditorFrame editorFrame;
-    private Thread ac3d = null;
-    private String errorMessage = null;
+    private Thread worker = null;
 
     private JPanel jPanel = null;
     private JLabel nameLabel = null;
@@ -72,12 +74,22 @@ public class DeltaPanel extends JDialog implements Runnable
 	private JButton lengthButton = null;
 	private JTextField jTextField = null;
 	
-	private boolean finish = true;
-	
-	private double length = 0;
-	private double dX = 0;
-	private double dY = 0;
-	private double angle = 0;
+	// results of the last trackgen run, only used by the worker thread
+	private double length = Double.NaN;
+	private double dX = Double.NaN;
+	private double dY = Double.NaN;
+	private double angle = Double.NaN;
+
+	/** A failure that stops the current calculation. A null message means it was already reported. */
+	private static class TrackgenException extends RuntimeException
+	{
+		private static final long serialVersionUID = 1L;
+
+		TrackgenException(String message)
+		{
+			super(message);
+		}
+	}
     /**
      *  
      */
@@ -102,95 +114,232 @@ public class DeltaPanel extends JDialog implements Runnable
 
     }
 
-    public synchronized void run()
+    /**
+     * Saves the track and runs trackgen -z on it. Called on the worker thread.
+     * The labels are updated on the event dispatch thread as the output arrives.
+     *
+     * @throws TrackgenException when the track can't be saved, trackgen can't be run,
+     *         trackgen fails or its output doesn't contain the track data
+     */
+    private void runTrackgen()
     {
-		nameLabel.setText(null);
-		authorLabel.setText(null);
-		fileNameLabel.setText(null);
-		lengthLabel.setText(null);
-		widthLabel.setText(null);
-		xSizeLabel.setText(null);
-		ySizeLabel.setText(null);
-		deltaXLabel.setText(null);
-		deltaYLabel.setText(null);
-		deltaAngLabel.setText(null);
-		
-		finish = false;
-		errorMessage = null;
-		waitLabel.setText("Calculating track data. Please wait...");
-		String path = Editor.getProperties().getPath();
-		String trackName = path.substring(path.lastIndexOf(sep) + 1);
+		final String[] trackName = new String[1];
+		final String[] trackgen = new String[1];
+		final String[] category = new String[1];
+		final boolean[] exported = new boolean[1];
 
-		try {
-			String ls_str;
-			String tmp = "";
-			String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
-			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty()) {
-				trackgen = editorFrame.getBinDirectory() + sep + trackgen;
-			}
+		onEdt(() -> {
+			JLabel[] labels = {nameLabel, authorLabel, fileNameLabel, lengthLabel, widthLabel,
+					xSizeLabel, ySizeLabel, deltaXLabel, deltaYLabel, deltaAngLabel};
+			for (JLabel label : labels)
+				label.setText(null);
+			waitLabel.setText("Calculating track data. Please wait...");
 
-			/* Create the ProcessBuilder */
-			ProcessBuilder pb = new ProcessBuilder(trackgen, "-z", "-c",
-					editorFrame.getTrackData().getHeader().getCategory(), "-n", trackName);
+			String path = Editor.getProperties().getPath();
+			trackName[0] = path.substring(path.lastIndexOf(sep) + 1);
+			trackgen[0] = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
+			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
+				trackgen[0] = editorFrame.getBinDirectory() + sep + trackgen[0];
+			category[0] = editorFrame.getTrackData().getHeader().getCategory();
+
+			// don't run trackgen on an old or missing track file
+			exported[0] = editorFrame.exportTrack();
+		});
+
+		if (!exported[0])
+			throw new TrackgenException(null);	// exportTrack already showed why
+
+		length = Double.NaN;
+		dX = Double.NaN;
+		dY = Double.NaN;
+		angle = Double.NaN;
+
+		// the last few lines that weren't track data, to show if trackgen fails
+		ArrayDeque<String> otherLines = new ArrayDeque<String>();
+		final int maxOtherLines = 15;
+
+		Process proc;
+		try
+		{
+			ProcessBuilder pb = new ProcessBuilder(trackgen[0], "-z", "-c", category[0], "-n", trackName[0]);
 			pb.redirectErrorStream(true);
+			proc = pb.start();
+		}
+		catch (IOException e)
+		{
+			throw new TrackgenException("Couldn't run " + trackgen[0] + "\n\n" + e.getLocalizedMessage());
+		}
 
-			/* Start the process */
-			Process proc = pb.start();
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream())))
+		{
+			String line;
 
-			/* Read the process's output */
-			BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+			while ((line = in.readLine()) != null)
+			{
+				JLabel label = null;
+				int equals = line.indexOf("=");
+				String key = equals == -1 ? "" : line.substring(0, equals);
 
-			while ((ls_str = in.readLine()) != null) {
-				if (ls_str.indexOf("=") != -1) {
-					tmp = ls_str.substring(0, ls_str.indexOf("="));
-					if (tmp.equals("name      ")) {
-						nameLabel.setText(ls_str);
-					} else if (tmp.equals("author    ")) {
-						this.authorLabel.setText(ls_str);
-					} else if (tmp.equals("filename  ")) {
-						this.fileNameLabel.setText(ls_str);
-					} else if (tmp.equals("length    ")) {
-						String len = ls_str;
-						this.lengthLabel.setText(len);
-						len = len.substring(len.indexOf("=") + 2);
-						length = Double.valueOf(len).doubleValue();
-					} else if (tmp.equals("width     ")) {
-						this.widthLabel.setText(ls_str);
-					} else if (tmp.equals("XSize     ")) {
-						this.xSizeLabel.setText(ls_str);
-					} else if (tmp.equals("YSize     ")) {
-						this.ySizeLabel.setText(ls_str);
-					} else if (tmp.equals("Delta X   ")) {
-						String len = ls_str;
-						len = len.substring(len.indexOf("=") + 2);
-						dX = Double.valueOf(len).doubleValue();
-						this.deltaXLabel.setText(ls_str);
-					} else if (tmp.equals("Delta Y   ")) {
-						String len = ls_str;
-						len = len.substring(len.indexOf("=") + 2);
-						dY = Double.valueOf(len).doubleValue();
-						this.deltaYLabel.setText(ls_str);
-					} else if (tmp.equals("Delta Ang ")) {
-						String ang = ls_str;
-						ang = ang.substring(ang.indexOf("(") + 1, ang.indexOf(")"));
-						angle = Double.valueOf(ang).doubleValue();
-						this.deltaAngLabel.setText(ls_str);
+				try
+				{
+					if (key.equals("name      ")) {
+						label = nameLabel;
+					} else if (key.equals("authors   ") || key.equals("author    ")) {
+						label = authorLabel;
+					} else if (key.equals("filename  ")) {
+						label = fileNameLabel;
+					} else if (key.equals("length    ")) {
+						length = Double.parseDouble(line.substring(equals + 1).trim());
+						label = lengthLabel;
+					} else if (key.equals("width     ")) {
+						label = widthLabel;
+					} else if (key.equals("XSize     ")) {
+						label = xSizeLabel;
+					} else if (key.equals("YSize     ")) {
+						label = ySizeLabel;
+					} else if (key.equals("Delta X   ")) {
+						dX = Double.parseDouble(line.substring(equals + 1).trim());
+						label = deltaXLabel;
+					} else if (key.equals("Delta Y   ")) {
+						dY = Double.parseDouble(line.substring(equals + 1).trim());
+						label = deltaYLabel;
+					} else if (key.equals("Delta Ang ")) {
+						angle = Double.parseDouble(line.substring(line.indexOf("(") + 1, line.indexOf(")")).trim());
+						label = deltaAngLabel;
 					}
+				}
+				catch (NumberFormatException | IndexOutOfBoundsException e)
+				{
+					label = null;
+				}
+
+				if (label != null)
+				{
+					final JLabel l = label;
+					final String text = line;
+					SwingUtilities.invokeLater(() -> l.setText(text));
+				}
+				else if (!key.isEmpty() || !line.trim().isEmpty())
+				{
+					if (otherLines.size() == maxOtherLines)
+						otherLines.removeFirst();
+					otherLines.addLast(line);
 				}
 			}
 
-			/* Clean-up */
-			proc.destroy();
-		} catch (IOException e1) {
-			errorMessage = e1.getLocalizedMessage();
-			this.waitLabel.setText("Calculation failed");
+			int exitValue = proc.waitFor();
+
+			if (exitValue != 0)
+				throw new TrackgenException(trackgen[0] + " failed (exit status " + exitValue + ")" + output(otherLines));
 		}
-		if (errorMessage == null)
+		catch (IOException e)
 		{
-			this.waitLabel.setText("Calculation finished");
+			proc.destroy();
+			throw new TrackgenException("Couldn't read the output of " + trackgen[0] + "\n\n" + e.getLocalizedMessage());
 		}
-		finish = true;
-		notifyAll();
+		catch (InterruptedException e)
+		{
+			proc.destroy();
+			Thread.currentThread().interrupt();
+			throw new TrackgenException(null);
+		}
+
+		if (Double.isNaN(length) || Double.isNaN(dX) || Double.isNaN(dY) || Double.isNaN(angle))
+			throw new TrackgenException(trackgen[0] + " didn't report the track length and deltas" + output(otherLines));
+    }
+
+    private static String output(ArrayDeque<String> lines)
+    {
+		if (lines.isEmpty())
+			return "";
+
+		StringBuilder text = new StringBuilder("\n\n");
+		for (String line : lines)
+			text.append(line).append("\n");
+		return text.toString();
+    }
+
+    /**
+     * Runs code on the event dispatch thread and waits for it.
+     */
+    private static void onEdt(Runnable code)
+    {
+		if (SwingUtilities.isEventDispatchThread())
+		{
+			code.run();
+			return;
+		}
+		try
+		{
+			SwingUtilities.invokeAndWait(code);
+		}
+		catch (InvocationTargetException e)
+		{
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException)
+				throw (RuntimeException) cause;
+			if (cause instanceof Error)
+				throw (Error) cause;
+			throw new RuntimeException(cause);
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+			throw new TrackgenException(null);
+		}
+    }
+
+    private void setButtonsEnabled(boolean enabled)
+    {
+		getCalcButton().setEnabled(enabled);
+		getAdjustButton().setEnabled(enabled);
+		getLengthButton().setEnabled(enabled);
+    }
+
+    /**
+     * Runs a calculation on a worker thread so the dialog keeps updating.
+     * The buttons are disabled until it finishes; errors are shown on the event dispatch thread.
+     */
+    private void startCalculation(Runnable calculation)
+    {
+		if (worker != null && worker.isAlive())
+			return;
+
+		setButtonsEnabled(false);
+
+		worker = new Thread(() -> {
+			String error = null;
+			boolean failed = false;
+
+			try
+			{
+				calculation.run();
+			}
+			catch (TrackgenException e)
+			{
+				failed = true;
+				error = e.getMessage();
+			}
+			catch (RuntimeException e)
+			{
+				e.printStackTrace();
+				failed = true;
+				error = e.toString();
+			}
+
+			final boolean f = failed;
+			final String message = error;
+
+			SwingUtilities.invokeLater(() -> {
+				waitLabel.setText(f ? "Calculation failed" : "Calculation finished");
+				setButtonsEnabled(true);
+				if (message != null)
+					JOptionPane.showMessageDialog(this, message, "Delta Dialog", JOptionPane.ERROR_MESSAGE);
+			});
+		}, "trackgen deltas");
+
+		worker.setDaemon(true);
+		worker.start();
     }
 
     /**
@@ -304,10 +453,7 @@ public class DeltaPanel extends JDialog implements Runnable
             {
                 public void actionPerformed(java.awt.event.ActionEvent e)
                 {
-                    getCalcButton().setEnabled(false);
-                    getAdjustButton().setEnabled(false);
-                    getLengthButton().setEnabled(false);
-                    calculate();
+                    startCalculation(() -> runTrackgen());
                 }
             });
         }
@@ -328,24 +474,16 @@ public class DeltaPanel extends JDialog implements Runnable
 			adjustButton.addActionListener(new java.awt.event.ActionListener() { 
 				public void actionPerformed(java.awt.event.ActionEvent e) 
 				{  
-				    getCalcButton().setEnabled(false);
-			        getAdjustButton().setEnabled(false);
-			        getLengthButton().setEnabled(false);
 				    int options = JOptionPane.OK_CANCEL_OPTION;
 				    String msg = "This option will change your track permantly.\n"
 				        +"The result will be writed on xml file and no undo has implemented yet.\n\n"
 				        +"If you decide to continue keep in mind that the adjust method is\n"
 				        +"experimental and not propertly tested. As far as i know doing the job but\n"
 				        +"need to use the adjust button two or three times";
-				    int out = JOptionPane.showConfirmDialog(null,msg,"Warning",options);
-				    if(out == JOptionPane.CANCEL_OPTION)
-				    {
-						getCalcButton().setEnabled(true);
-				        getAdjustButton().setEnabled(true);
-				        getLengthButton().setEnabled(true);		
+				    int out = JOptionPane.showConfirmDialog(DeltaPanel.this,msg,"Warning",options);
+				    if(out != JOptionPane.OK_OPTION)
 				        return;
-				    }
-				    adjust();
+				    startCalculation(() -> adjust());
 				}
 			});
 		}
@@ -365,25 +503,34 @@ public class DeltaPanel extends JDialog implements Runnable
 			lengthButton.addActionListener(new java.awt.event.ActionListener() { 
 				public void actionPerformed(java.awt.event.ActionEvent e) 
 				{    
-				    getCalcButton().setEnabled(false);
-                    getAdjustButton().setEnabled(false);
-                    getLengthButton().setEnabled(false);
-                    
+				    double parsed;
+				    try
+				    {
+				        parsed = Double.parseDouble(getJTextField().getText().trim());
+				    }
+				    catch (NumberFormatException ex)
+				    {
+				        parsed = Double.NaN;
+				    }
+				    final double newLength = parsed;
+				    if (!(newLength > 0) || Double.isInfinite(newLength))
+				    {
+				        JOptionPane.showMessageDialog(DeltaPanel.this,
+				            "Enter the new track length in the field next to the Length button.",
+				            "Delta Dialog", JOptionPane.ERROR_MESSAGE);
+				        return;
+				    }
+
 				    int options = JOptionPane.OK_CANCEL_OPTION;
 				    String msg = "This option will change your track permantly.\n"
 				        +"The result will be writed on xml file and no undo has implemented yet.\n\n"
 				        +"If you decide to continue keep in mind that the adjust method is\n"
 				        +"experimental and not propertly tested.";
-				    int out = JOptionPane.showConfirmDialog(null,msg,"Warning",options);
-				    if(out == JOptionPane.CANCEL_OPTION)
-				    {
-						getCalcButton().setEnabled(true);
-				        getAdjustButton().setEnabled(true);
-				        getLengthButton().setEnabled(true);		
+				    int out = JOptionPane.showConfirmDialog(DeltaPanel.this,msg,"Warning",options);
+				    if(out != JOptionPane.OK_OPTION)
 				        return;
-				    }
-				    
-				    adjustLength();
+
+				    startCalculation(() -> adjustLength(newLength));
 				}
 			});
 		}
@@ -404,61 +551,19 @@ public class DeltaPanel extends JDialog implements Runnable
 		return jTextField;
 	}
 	
-    /**
-     * 
-     */
-    protected void startTrackgen()
-    {       
-        // don't run trackgen on an old or missing track file
-        if (!editorFrame.exportTrack())
-            return;
-        ac3d = new Thread(this);
-        ac3d.start();
-    }
-	
-    private synchronized void calculate()
-    {      
-        finish = false;
-        startTrackgen();
-        waitTrackgen();
-        
-        if (errorMessage != null)
-        {
-			JOptionPane.showMessageDialog(this, errorMessage, "Delta Dialog", JOptionPane.ERROR_MESSAGE);
-        }
-        
-        this.getCalcButton().setEnabled(true);
-        this.getAdjustButton().setEnabled(true);
-        this.getLengthButton().setEnabled(true);
-    }
-	
-	private synchronized void adjustLength()
+	/**
+	 * Scales the track to the new length. Called on the worker thread.
+	 */
+	private void adjustLength(double newLength)
 	{
-	    double newLength = 0;
-	    double co = 0;
-	    
-	    finish = false;
-	    startTrackgen();
-	    waitTrackgen();
+	    runTrackgen();
 
-        if (errorMessage != null)
-        {
-			JOptionPane.showMessageDialog(this, errorMessage, "Delta Dialog", JOptionPane.ERROR_MESSAGE);
-			getCalcButton().setEnabled(true);
-	        getAdjustButton().setEnabled(true);
-	        getLengthButton().setEnabled(true);		
-			return;
-        }
-	    try
-	    {
-	        String tmp = getJTextField().getText();
-	        newLength = Double.valueOf(tmp).doubleValue();
-	    }catch(Exception e)
-	    {
-	        System.out.println("Its not a number in length field");
-	        return;
-	    }
-	    co = newLength/length;
+	    if (!(length > 0))
+	        throw new TrackgenException("trackgen reported a track length of " + length);
+
+	    final double co = newLength/length;
+
+	    onEdt(() -> {
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		int size = track.size();
 
@@ -483,30 +588,30 @@ public class DeltaPanel extends JDialog implements Runnable
 			}
 
 		}
-		finish = false;
-		startTrackgen();
-		waitTrackgen();
-		editorFrame.refresh();
-		this.getCalcButton().setEnabled(true);
-        this.getAdjustButton().setEnabled(true);
-        this.getLengthButton().setEnabled(true);		
+	    });
+
+		runTrackgen();
+		onEdt(() -> editorFrame.refresh());
 	}
 	
-	private synchronized void adjust()
+	/**
+	 * Adjusts the curves and straights so the track closes. Called on the worker thread.
+	 */
+	private void adjust()
 	{
-        finish = false;
-	    startTrackgen();
-	    waitTrackgen();
-        if (errorMessage != null)
-        {
-			JOptionPane.showMessageDialog(this, errorMessage, "Delta Dialog", JOptionPane.ERROR_MESSAGE);
-			getCalcButton().setEnabled(true);
-	        getAdjustButton().setEnabled(true);
-	        getLengthButton().setEnabled(true);		
-			return;
-        }
-	    double co = 360/(360+angle);
-	    
+	    runTrackgen();
+	    adjustArcs(360/(360+angle));
+	    runTrackgen();
+	    adjustStraights(false, dY);
+	    runTrackgen();
+	    adjustStraights(true, dX);
+	    runTrackgen();
+	    onEdt(() -> editorFrame.refresh());
+	}
+
+	private void adjustArcs(double co)
+	{
+	    onEdt(() -> {
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		int size = track.size();
 
@@ -527,131 +632,54 @@ public class DeltaPanel extends JDialog implements Runnable
 			}
 
 		}
-		finish = false;
-		startTrackgen();
-		waitTrackgen();
-		
-		double totalY = 0;
-		
-		for(int i=0; i<size; i++)
-		{
-			Segment obj = track.get(i);
-			try
-			{
-				if(obj.getType().equals("str"))
-				{
-				    Straight str = (Straight) obj;
-				    double x = str.getDx();
-				    double y = str.getDy();
-				    if(y > x)
-				    {
-				        totalY += y;
-				    }
-				}
-			} catch (Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		co = (totalY+dY)/totalY;
-		
-		for(int i=0; i<size; i++)
-		{
-			Segment obj = track.get(i);
-			try
-			{
-				if(obj.getType().equals("str"))
-				{
-				    Straight str = (Straight) obj;
-				    double x = str.getDx();
-				    double y = str.getDy();
-				    if(y > x)
-				    {
-				        str.setLength(str.getLength()*co);
-				    }
-				}
-			} catch (Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		finish = false;
-		startTrackgen();
-		waitTrackgen();
-		
-		double totalX = 0;
-		
-		for(int i=0; i<size; i++)
-		{
-			Segment obj = track.get(i);
-			try
-			{
-				if(obj.getType().equals("str"))
-				{
-				    Straight str = (Straight) obj;
-				    double x = str.getDx();
-				    double y = str.getDy();
-				    if(y == 0)
-				    {
-				        totalX += x;
-				    }
-				}
-			} catch (Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		co = (totalX+dX)/totalX;
-		
-		for(int i=0; i<size; i++)
-		{
-			Segment obj = track.get(i);
-			try
-			{
-				if(obj.getType().equals("str"))
-				{
-				    Straight str = (Straight) obj;
-				    double x = str.getDx();
-				    double y = str.getDy();
-				    if(y == 0)
-				    {
-				        str.setLength(str.getLength()*co);
-				    }
-				}
-			} catch (Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		finish = false;
-		startTrackgen();
-		waitTrackgen();
-		editorFrame.refresh();
-		
-        this.getCalcButton().setEnabled(true);
-        this.getAdjustButton().setEnabled(true);
-        this.getLengthButton().setEnabled(true);
+	    });
 	}
-	
-	private synchronized void waitTrackgen()
+
+	/**
+	 * Scales the straights that run mostly along y (or exactly along x)
+	 * so the track end moves by delta in that direction.
+	 */
+	private void adjustStraights(boolean alongX, double delta)
 	{
-	    while(!finish)
-        {
-	        try
-            {
-                wait();
-                //System.out.println("Pass");
-            } catch (InterruptedException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+	    onEdt(() -> {
+		SegmentVector track = editorFrame.getTrackData().getSegments();
+		int size = track.size();
+		double total = 0;
+
+		for(int i=0; i<size; i++)
+		{
+			Segment obj = track.get(i);
+			if(obj.getType().equals("str"))
+			{
+			    Straight str = (Straight) obj;
+			    double x = str.getDx();
+			    double y = str.getDy();
+			    if(alongX ? y == 0 : y > x)
+			    {
+			        total += alongX ? x : y;
+			    }
+			}
+		}
+
+		if (total == 0)
+		    return;
+
+		double co = (total+delta)/total;
+
+		for(int i=0; i<size; i++)
+		{
+			Segment obj = track.get(i);
+			if(obj.getType().equals("str"))
+			{
+			    Straight str = (Straight) obj;
+			    double x = str.getDx();
+			    double y = str.getDy();
+			    if(alongX ? y == 0 : y > x)
+			    {
+			        str.setLength(str.getLength()*co);
+			    }
+			}
+		}
+	    });
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

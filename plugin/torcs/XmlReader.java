@@ -866,15 +866,24 @@ public class XmlReader
 
     private synchronized void setSegments(Element mainTrack)
     {
-    	List<?> segments;
-    	
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
-            segments = getChildWithName(mainTrack, "segments").getChildren();
-        else
-            segments = getChildWithName(mainTrack, "Track Segments").getChildren();
+    	Element segmentsSection;
 
-        if (segments == null)
+        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+            segmentsSection = getChildWithName(mainTrack, "segments");
+        else
+            segmentsSection = getChildWithName(mainTrack, "Track Segments");
+
+        if (segmentsSection == null)
+        {
+            // keep an empty track rather than none, so the editor doesn't crash
+            editorFrame.getTrackData().setSegments(new SegmentVector());
+            JOptionPane.showMessageDialog(editorFrame, "The track has no \"" + (editorFrame.getTrackData().getHeader().getVersion() == 3 ? "segments" : "Track Segments") +
+                "\" section in its Main Track.", "Read Track", JOptionPane.WARNING_MESSAGE);
             return;
+        }
+
+        List<?> segments = segmentsSection.getChildren();
+        int skipped = 0;
 
         SegmentVector trackData = new SegmentVector();
         Iterator<?> it;
@@ -886,6 +895,12 @@ public class XmlReader
         {
             Element e = (Element) it.next();
             String type = getAttrStrValue(e, "type");
+            // like the game, skip a segment without a type (or one it doesn't know)
+            if (type == null || !(type.equals("str") || type.equals("lft") || type.equals("rgt")))
+            {
+                skipped++;
+                continue;
+            }
             if (type.equals("str"))
             {
                 shape = new Straight();
@@ -896,6 +911,13 @@ public class XmlReader
             shape = setSegment(e, shape, prev);
             trackData.add(shape);
             prev = shape;
+        }
+
+        if (skipped > 0)
+        {
+            JOptionPane.showMessageDialog(editorFrame, skipped + " segment" + (skipped == 1 ? " has" : "s have") +
+                " no type (str, lft or rgt) and " + (skipped == 1 ? "was" : "were") + " left out.\n" +
+                "The game skips segments without a type.", "Read Track", JOptionPane.WARNING_MESSAGE);
         }
 
         editorFrame.getTrackData().setSegments(trackData);
@@ -1201,7 +1223,7 @@ public class XmlReader
                 		{
                 			if (expectedUnit.equals("m") && (actualUnit.equals("ft") || actualUnit.equals("feet")))
                 			{
-                				out = out * 0.304801;
+                				out = out * 0.3048;
                 			}
                 			else if (expectedUnit.equals("m") && (actualUnit.equals("in") || actualUnit.equals("inch") || actualUnit.equals("inches")))
                 			{
@@ -1223,21 +1245,22 @@ public class XmlReader
                 			{
                 				out = out * 3600.0;
                 			}
+                			// speeds: convert the value from the file's unit to the one asked for
                 			else if (expectedUnit.equalsIgnoreCase("mph") && actualUnit.equals("m"))
                 	    	{
-                	    		out = out * 0.44704;
+                	    		out = out / 0.44704;		// m/s -> mph
                 	        }
                 			else if (expectedUnit.equalsIgnoreCase("mph") && actualUnit.equalsIgnoreCase("kph"))
                 			{
-                				out = out * 1.60934;
+                				out = out / 1.609344;		// km/h -> mph
                 			}
                 			else if (expectedUnit.equalsIgnoreCase("kph") && actualUnit.equals("m"))
                 			{
-                	            out = out * 0.277778;
+                	            out = out * 3.6;			// m/s -> km/h
                 			}
                 			else if (expectedUnit.equalsIgnoreCase("kph") && actualUnit.equalsIgnoreCase("mph"))
                 			{
-                				out = out * 0.621371;
+                				out = out * 1.609344;		// mph -> km/h
                 			}
                 			else
                 			{

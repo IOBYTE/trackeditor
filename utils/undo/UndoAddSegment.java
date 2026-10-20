@@ -61,7 +61,7 @@ public class UndoAddSegment implements UndoInterface
 	public void undo()
 	{
 		pos = data.indexOf(undo);
-		if (undo.getType() == "str")
+		if ("str".equals(undo.getType()))
 		{
 			int count = Editor.getProperties().getStraightNameCount() - 1;
 			Editor.getProperties().setStraightNameCount(count);
@@ -87,7 +87,7 @@ public class UndoAddSegment implements UndoInterface
 	 */
 	public void redo()
 	{
-		if (redo.getType() == "str")
+		if ("str".equals(redo.getType()))
 		{
 			int count = Editor.getProperties().getStraightNameCount() + 1;
 			Editor.getProperties().setStraightNameCount(count);

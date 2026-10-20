@@ -24,6 +24,7 @@ import java.awt.Point;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
@@ -33,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import utils.Editor;
@@ -139,134 +141,148 @@ public class TrackgenPanel extends JDialog implements Runnable
 
 		try
 		{
-			String ls_str;
-			String tmp = "";
 			String cmdarray[] = cmd.toArray(new String[cmd.size()]);
-			Process ls_proc = Runtime.getRuntime().exec(cmdarray);
-			// get its output (your input) stream
-			BufferedReader ls_in = new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
-			BufferedReader ls_err = new BufferedReader(new InputStreamReader(ls_proc.getErrorStream()));
+			// each argument is passed as is, so spaces in paths or names are fine
+			Process process = Runtime.getRuntime().exec(cmdarray);
 
-			try
+			// read both outputs on their own threads, blocking until there is a
+			// line (no busy waiting), and update the dialog on the Swing thread
+			Thread errors = readLines(process.getErrorStream(), true);
+			Thread output = readLines(process.getInputStream(), false);
+
+			result = process.waitFor();
+			errors.join();
+			output.join();
+		}
+		catch (IOException e)
+		{
+			final String message = e.getLocalizedMessage();
+			SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message, "Export ac" + (acc ? "c" : ""), JOptionPane.ERROR_MESSAGE));
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+		}
+
+		final int status = result;
+		SwingUtilities.invokeLater(() ->
+		{
+			if (status == 0)
 			{
-				while (true)
+				waitLabel.setText("Track finished");
+			}
+			else
+			{
+				waitLabel.setText("Failed to generate track with exit status " + status);
+			}
+		});
+	}
+
+	private Thread readLines(InputStream stream, boolean isError)
+	{
+		Thread thread = new Thread(() ->
+		{
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream)))
+			{
+				String line;
+				while ((line = reader.readLine()) != null)
 				{
-					// done when process terminated and nothing to read
-					if (!ls_proc.isAlive() && !ls_in.ready() && !ls_err.ready())
-						break;
-					
-					if (ls_err.ready())
+					final String text = line;
+					SwingUtilities.invokeLater(() ->
 					{
-						String str = ls_err.readLine();
-						int index = str.indexOf("Error");
-						if (index != -1)
-						{
-							if (!str.contains("not released"))
-							{
-								append(errorsTextArea, str.substring(index));
-							}
-						}
-						index = str.indexOf("Warning");
-						if (index != -1)
-						{
-							append(errorsTextArea, str.substring(index));
-						}
-						index = str.indexOf("FATAL:");
-						if (index != -1)
-						{
-							append(errorsTextArea, str.substring(index));
-						}
-						index = str.indexOf("WARNING:");
-						if (index != -1)
-						{
-							append(errorsTextArea, str.substring(index));
-						}
-						index = str.indexOf("libpng warning:");
-						if (index != -1)
-						{
-							append(errorsTextArea, str.substring(index));
-						}
-					}
-				
-					if (ls_in.ready()) 
-					{
-						ls_str = ls_in.readLine();
-						if (ls_str.indexOf(" ") != -1)
-						{
-							tmp = ls_str.substring(0, ls_str.indexOf(" "));
-							if (tmp.equals("name"))
-							{
-								nameLabel.setText(ls_str);
-							} else if (tmp.equals("authors"))
-							{
-								this.authorLabel.setText(ls_str);
-							} else if (tmp.equals("filename"))
-							{
-								this.fileNameLabel.setText(ls_str);
-							}else if (tmp.equals("length"))
-							{
-								this.lengthLabel.setText(ls_str);
-							}else if (tmp.equals("width"))
-							{
-								this.widthLabel.setText(ls_str);
-							}
-							else if (tmp.equals("XSize"))
-							{
-								this.xSizeLabel.setText(ls_str);
-							}else if (tmp.equals("YSize"))
-							{
-								this.ySizeLabel.setText(ls_str);
-							}else if (tmp.equals("FATAL:"))
-							{
-								append(errorsTextArea, ls_str);
-							}else if (tmp.equals("WARNING:"))
-							{
-								append(errorsTextArea, ls_str);
-							}else
-							{
-								if (ls_str.endsWith(" Nodes"))
-								{
-									if (nodesTextArea.getText().endsWith(" Nodes"))
-									{
-										int lastLineBreak = nodesTextArea.getText().lastIndexOf('\n');
-										nodesTextArea.replaceRange(ls_str, lastLineBreak + 1, nodesTextArea.getText().length());
-									}
-									else
-									{
-										append(nodesTextArea, ls_str);
-									}
-								}
-								else
-								{
-									append(nodesTextArea, ls_str);
-								}
-								
-								nodesTextArea.setCaretPosition(nodesTextArea.getText().length());
-							}
-						}
-					}
+						if (isError)
+							errorLine(text);
+						else
+							outputLine(text);
+					});
 				}
-
-				result = ls_proc.waitFor();
-			} catch (IOException e)
-			{
-				e.printStackTrace();
-			} catch (InterruptedException e)
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
-		} catch (IOException e1)
-		{
-			JOptionPane.showMessageDialog(this, e1.getLocalizedMessage(), "Export ac" + (acc ? "c" : ""), JOptionPane.ERROR_MESSAGE);
-		}
+		});
+		thread.setDaemon(true);
+		thread.start();
+		return thread;
+	}
 
-		if (result == 0)
+	private void errorLine(String str)
+	{
+		int index = str.indexOf("Error");
+		if (index != -1)
 		{
-			this.waitLabel.setText("Track finished");
+			if (!str.contains("not released"))
+			{
+				append(errorsTextArea, str.substring(index));
+			}
 		}
-		else
+		index = str.indexOf("Warning");
+		if (index != -1)
 		{
-			this.waitLabel.setText("Failed to generate track with exit status " + result);
+			append(errorsTextArea, str.substring(index));
+		}
+		index = str.indexOf("FATAL:");
+		if (index != -1)
+		{
+			append(errorsTextArea, str.substring(index));
+		}
+		index = str.indexOf("WARNING:");
+		if (index != -1)
+		{
+			append(errorsTextArea, str.substring(index));
+		}
+		index = str.indexOf("libpng warning:");
+		if (index != -1)
+		{
+			append(errorsTextArea, str.substring(index));
+		}
+	}
+
+	private void outputLine(String ls_str)
+	{
+		if (ls_str.indexOf(" ") == -1)
+			return;
+
+		String tmp = ls_str.substring(0, ls_str.indexOf(" "));
+		if (tmp.equals("name"))
+		{
+			nameLabel.setText(ls_str);
+		} else if (tmp.equals("authors"))
+		{
+			authorLabel.setText(ls_str);
+		} else if (tmp.equals("filename"))
+		{
+			fileNameLabel.setText(ls_str);
+		} else if (tmp.equals("length"))
+		{
+			lengthLabel.setText(ls_str);
+		} else if (tmp.equals("width"))
+		{
+			widthLabel.setText(ls_str);
+		} else if (tmp.equals("XSize"))
+		{
+			xSizeLabel.setText(ls_str);
+		} else if (tmp.equals("YSize"))
+		{
+			ySizeLabel.setText(ls_str);
+		} else if (tmp.equals("FATAL:") || tmp.equals("WARNING:"))
+		{
+			append(errorsTextArea, ls_str);
+		} else
+		{
+			if (ls_str.endsWith(" Nodes") && nodesTextArea.getText().endsWith(" Nodes"))
+			{
+				// progress: replace the last line
+				int lastLineBreak = nodesTextArea.getText().lastIndexOf('\n');
+				nodesTextArea.replaceRange(ls_str, lastLineBreak + 1, nodesTextArea.getText().length());
+			}
+			else
+			{
+				append(nodesTextArea, ls_str);
+			}
+
+			nodesTextArea.setCaretPosition(nodesTextArea.getText().length());
 		}
 	}
 

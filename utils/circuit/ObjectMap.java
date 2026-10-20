@@ -150,6 +150,8 @@ public class ObjectMap
 		}
 
 		BufferedImage image = ImageIO.read(new File(filename.toString()));
+		if (image == null)
+			throw new IOException("not an image format the editor can read (use PNG)");
 		imageWidth = image.getWidth();
 		imageHeight = image.getHeight();
 

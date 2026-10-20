@@ -456,7 +456,7 @@ public class TrackProperties extends PropertyPanel
 					public void actionPerformed(ActionEvent e)
 					{
 						String type = sideBankingTypeComboBox.getSelectedItem().toString();
-						if (type == "none")
+						if ("none".equals(type))
 							type = "";
 						side.setSideBankingType(type);
 					}
@@ -511,7 +511,7 @@ public class TrackProperties extends PropertyPanel
 					public void actionPerformed(ActionEvent e)
 					{
 						String style = borderStyleComboBox.getSelectedItem().toString();
-						if (style == "none")
+						if ("none".equals(style))
 							style = "";
 						side.setBorderStyle(style);
 						
@@ -619,7 +619,7 @@ public class TrackProperties extends PropertyPanel
 					public void actionPerformed(ActionEvent e)
 					{
 						String style = barrierStyleComboBox.getSelectedItem().toString();
-						if (style == "none")
+						if ("none".equals(style))
 							style = "";
 						side.setBarrierStyle(style);
 						

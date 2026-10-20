@@ -311,7 +311,7 @@ public class GeneralProperties extends PropertyPanel
 
 		String skyVersionString = (String) getSkyVersionComboBox().getSelectedItem();
 		int skyVersion;
-		if (skyVersionString == "none")
+		if ("none".equals(skyVersionString))
 			skyVersion = Integer.MAX_VALUE;
 		else
 			skyVersion = Integer.parseInt(skyVersionString);

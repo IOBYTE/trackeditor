@@ -324,7 +324,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					String newStyle = borderStyleComboBox.getSelectedItem().toString();
 					boolean styleChanged = !oldStyle.equals(newStyle);
 					String style = newStyle;
-					if (style == "none")
+					if ("none".equals(style))
 						style = null;
 					side.setBorderStyle(style);
 					if (!styleChanged)
@@ -439,7 +439,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 				public void actionPerformed(ActionEvent e)
 				{
 					String type = sideBankingTypeComboBox.getSelectedItem().toString();
-					if (type == "none")
+					if ("none".equals(type))
 						type = null;
 					side.setSideBankingType(type);
 				}
@@ -513,7 +513,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					String newStyle = barrierStyleComboBox.getSelectedItem().toString();
 					boolean styleChanged = !oldStyle.equals(newStyle);
 					String style = newStyle;
-					if (style == "none")
+					if ("none".equals(style))
 						style = null;
 					side.setBarrierStyle(style);
 					if (!styleChanged)

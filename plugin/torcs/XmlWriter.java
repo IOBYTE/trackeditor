@@ -23,6 +23,10 @@ package plugin.torcs;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -140,11 +144,31 @@ public class XmlWriter
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException
 	{
-		try (FileOutputStream out = new FileOutputStream(fileName))
+		// write a temporary file next to the track and only replace the track
+		// once it is complete, so a failure can't leave a truncated track
+		Path target = Paths.get(fileName).toAbsolutePath();
+		Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+		try
 		{
-			XMLOutput op = new XMLOutput(Format.getPrettyFormat());
-			op.output(doc, out);
-			out.flush();
+			try (FileOutputStream out = new FileOutputStream(temp.toFile()))
+			{
+				XMLOutput op = new XMLOutput(Format.getPrettyFormat());
+				op.output(doc, out);
+				out.flush();
+			}
+			try
+			{
+				Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			}
+			catch (IOException e)
+			{
+				// not every file system can replace atomically
+				Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+		}
+		finally
+		{
+			Files.deleteIfExists(temp);
 		}
 	}
 

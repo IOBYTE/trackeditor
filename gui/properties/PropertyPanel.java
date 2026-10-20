@@ -62,7 +62,7 @@ public class PropertyPanel extends JPanel
 
 	public boolean isDifferent(String newValue, String oldValue, MutableString result)
 	{
-		boolean hasNewValue = !(newValue == null || newValue.isEmpty() || newValue == "none" || newValue == String.valueOf(Integer.MAX_VALUE));
+		boolean hasNewValue = !(newValue == null || newValue.isEmpty() || newValue.equals("none") || newValue.equals(String.valueOf(Integer.MAX_VALUE)));
 		boolean hasOldValue = !(oldValue == null || oldValue.isEmpty());
 
 		if (!hasNewValue && !hasOldValue)
@@ -175,7 +175,7 @@ public class PropertyPanel extends JPanel
 
 	protected String getString(String string)
 	{
-		if (string == null || string == "none" || string.isEmpty())
+		if (string == null || string.equals("none") || string.isEmpty())
 			return null;
 
 		return string;

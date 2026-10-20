@@ -47,7 +47,7 @@ public class UndoSplitSegment implements UndoInterface
 	{
 		SegmentVector data = editorFrame.getTrackData().getSegments();
 
-		if (added.getType() == "str")
+		if ("str".equals(added.getType()))
 		{
 			int count = Editor.getProperties().getStraightNameCount() - 1;
 			Editor.getProperties().setStraightNameCount(count);
@@ -79,7 +79,7 @@ public class UndoSplitSegment implements UndoInterface
 
 		data.set(changedPos, (Segment) changedState.clone());
 
-		if (redo.getType() == "str")
+		if ("str".equals(redo.getType()))
 		{
 			int count = Editor.getProperties().getStraightNameCount() + 1;
 			Editor.getProperties().setStraightNameCount(count);
