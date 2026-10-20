@@ -161,6 +161,25 @@ public class SegmentSlider extends JPanel
 	 * 
 	 * @return javax.swing.JTextField
 	 */
+	// > 0 while the slider changes its own text
+	private int settingText = 0;
+
+	/**
+	 * Sets the text field without that counting as the user typing a value.
+	 */
+	private void setTextQuietly(String text)
+	{
+		settingText++;
+		try
+		{
+			getTextField().setText(text);
+		}
+		finally
+		{
+			settingText--;
+		}
+	}
+
 	private JTextField getTextField()
 	{
 		if (textField == null)
@@ -183,6 +202,11 @@ public class SegmentSlider extends JPanel
 				}
 				private void textChanged(DocumentEvent e)
 				{
+					// only typing is an edit: text the slider sets itself (a new value,
+					// or clearing it when disabled) must not be written back to the track
+					if (settingText > 0)
+						return;
+
 					Runnable doHighlight = new Runnable()
 					{
 						@Override
@@ -216,7 +240,7 @@ public class SegmentSlider extends JPanel
 									catch (Exception ex)
 									{
 										// restore the old value
-										getTextField().setText(nf.format(value));
+										setTextQuietly(nf.format(value));
 									}
 								}
 							}
@@ -369,7 +393,7 @@ public class SegmentSlider extends JPanel
 		this.attLabel.setEnabled(value);
 		if (!value)
 		{
-			this.getTextField().setText("");
+			setTextQuietly("");
 			if (this.optional)
 				this.checkBox.setSelected(false);
 		}
@@ -446,7 +470,7 @@ public class SegmentSlider extends JPanel
 
 		if (Double.isNaN(value))
 		{
-			getTextField().setText("");
+			setTextQuietly("");
 			getTextField().setEnabled(false);
 			setSliderValue(defaultValue);
 			getSlider().setEnabled(false);
@@ -467,7 +491,7 @@ public class SegmentSlider extends JPanel
 				System.out.println("Increasing slider minimum to " + newMinimum + " was " + getMin());
 				setMin(newMinimum);
 			}
-			getTextField().setText(nf.format(value));
+			setTextQuietly(nf.format(value));
 			getTextField().setCaretPosition(0);
 			if (isEnabled())
 			{
@@ -495,7 +519,7 @@ public class SegmentSlider extends JPanel
 
 		if (Double.isNaN(val))
 		{
-			getTextField().setText("");
+			setTextQuietly("");
 			setSliderValue(defaultValue);
 			if (optional)
 				checkBox.setSelected(false);
@@ -514,7 +538,7 @@ public class SegmentSlider extends JPanel
 				System.out.println("Increasing slider minimum to " + newMinimum + " was " + getMin());
 				setMin(newMinimum);
 			}
-			getTextField().setText(nf.format(value));
+			setTextQuietly(nf.format(value));
 			getTextField().setCaretPosition(0);
 			if (isEnabled())
 			{
@@ -543,7 +567,7 @@ public class SegmentSlider extends JPanel
 		}
 		if (Math.abs(textValue - value) >= 0.001)
 		{
-			getTextField().setText(nf.format(value));
+			setTextQuietly(nf.format(value));
 			getTextField().setCaretPosition(0);
 			valueChanged();
 		}
@@ -637,7 +661,7 @@ public class SegmentSlider extends JPanel
 				}
 				if (oldValue != value)
 				{
-					getTextField().setText(nf.format(value));
+					setTextQuietly(nf.format(value));
 					getTextField().setCaretPosition(0);
 					getTextField().setEnabled(true);
 					setSliderValue(value);
@@ -650,7 +674,7 @@ public class SegmentSlider extends JPanel
 				value = Double.NaN;
 				if (!Double.isNaN(oldValue))
 				{
-					getTextField().setText("");
+					setTextQuietly("");
 					getTextField().setEnabled(false);
 					setSliderValue(defaultValue);
 					getSlider().setEnabled(false);
