@@ -1,7 +1,12 @@
 package gui.properties;
 
+import java.awt.Component;
+import java.awt.Container;
+
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
@@ -24,6 +29,17 @@ public class PropertyPanel extends JPanel
 		this.editorFrame = editorFrame;
 	}
 
+	// number fields remember their type and the text they were given, so that a typo can be
+	// caught when Ok is pressed instead of silently removing the value
+	private static final String	NUMBER_TYPE	= "trackeditor.numberType";
+	private static final String	NUMBER_TEXT	= "trackeditor.numberText";
+
+	private static void markNumber(JTextField field, Class<?> type)
+	{
+		field.putClientProperty(NUMBER_TYPE, type);
+		field.putClientProperty(NUMBER_TEXT, field.getText());
+	}
+
 	public void setTextField(JTextField field, int value)
 	{
 		if (value != Integer.MAX_VALUE)
@@ -34,6 +50,7 @@ public class PropertyPanel extends JPanel
 		{
 			field.setText(null);
 		}
+		markNumber(field, Integer.class);
 	}
 
 	public void setTextField(JTextField field, double value)
@@ -46,6 +63,126 @@ public class PropertyPanel extends JPanel
 		{
 			field.setText(null);
 		}
+		markNumber(field, Double.class);
+	}
+
+	public void setHexTextField(JTextField field, int value)
+	{
+		setTextField(field, toHexString(value));
+		markNumber(field, Integer.class);
+	}
+
+	private static boolean isNumber(String text, Class<?> type)
+	{
+		if (text == null || text.trim().isEmpty())
+			return true;	// not set
+
+		try
+		{
+			if (type == Integer.class)
+			{
+				Integer.decode(text.trim());
+				return true;
+			}
+			return Double.isFinite(Double.parseDouble(text));
+		}
+		catch (NumberFormatException e)
+		{
+			return false;
+		}
+	}
+
+	private static JTextField findBadNumber(Container container)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTextField)
+			{
+				JTextField field = (JTextField) component;
+				Class<?> type = (Class<?>) field.getClientProperty(NUMBER_TYPE);
+				String text = field.getText();
+				if (type != null && field.isEnabled() &&
+					!(text != null && text.equals(field.getClientProperty(NUMBER_TEXT))) &&
+					!isNumber(text, type))
+				{
+					return field;
+				}
+			}
+			else if (component instanceof Container)
+			{
+				JTextField field = findBadNumber((Container) component);
+				if (field != null)
+					return field;
+			}
+		}
+		return null;
+	}
+
+	private static String labelFor(JTextField field)
+	{
+		// the panels place a label to the left of each field on the same row
+		JLabel best = null;
+		for (Component component : field.getParent().getComponents())
+		{
+			if (component instanceof JLabel && component.isVisible() &&
+				Math.abs(component.getY() - field.getY()) < 5 && component.getX() < field.getX() &&
+				(best == null || component.getX() > best.getX()))
+			{
+				best = (JLabel) component;
+			}
+		}
+		if (best == null || best.getText() == null || best.getText().trim().isEmpty())
+			return null;
+
+		return best.getText().trim().replaceAll(":$", "");
+	}
+
+	/**
+	 * Checks that every number field in container holds a number or nothing.
+	 * Otherwise shows the bad field, tells the user and returns false.
+	 */
+	public static boolean checkNumbers(Component parent, Container container)
+	{
+		JTextField field = findBadNumber(container);
+		if (field == null)
+			return true;
+
+		// bring the field into view, outer tabs first
+		StringBuilder where = new StringBuilder();
+		java.util.List<Component> path = new java.util.ArrayList<Component>();
+		for (Component c = field; c != null && c != container; c = c.getParent())
+			path.add(0, c);
+		Container outer = container;
+		for (Component c : path)
+		{
+			if (outer instanceof JTabbedPane)
+			{
+				JTabbedPane tabs = (JTabbedPane) outer;
+				int index = tabs.indexOfComponent(c);
+				if (index != -1)
+				{
+					tabs.setSelectedIndex(index);
+					where.append(tabs.getTitleAt(index)).append(" > ");
+				}
+			}
+			if (c instanceof Container)
+				outer = (Container) c;
+		}
+		String label = labelFor(field);
+		if (label != null)
+			where.append(label);
+		else if (where.length() > 0)
+			where.setLength(where.length() - 3);
+
+		Class<?> type = (Class<?>) field.getClientProperty(NUMBER_TYPE);
+		JOptionPane.showMessageDialog(parent,
+			(where.length() > 0 ? where + ": " : "") + "\"" + field.getText().trim() + "\" isn't " +
+			(type == Integer.class ? "a whole number" : "a number") + ".\n\n" +
+			"Fix it or clear the field to leave the value unset.",
+			"Properties", JOptionPane.ERROR_MESSAGE);
+		field.requestFocusInWindow();
+		field.selectAll();
+		return false;
 	}
 
 	public void setTextField(JTextField field, String value)
@@ -120,7 +257,7 @@ public class PropertyPanel extends JPanel
 		boolean changed = false;
 		try
 		{
-			int value = Integer.decode(newValue);
+			int value = Integer.decode(newValue.trim());
 			if (value != oldValue)
 			{
 				result.setValue(value);
@@ -164,7 +301,7 @@ public class PropertyPanel extends JPanel
 
 		try
 		{
-			value = Integer.decode(string);
+			value = Integer.decode(string.trim());
 		}
 		catch (NumberFormatException e)
 		{

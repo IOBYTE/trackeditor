@@ -344,6 +344,7 @@ public class ObjectProperties extends PropertyPanel
 			addTextField(this, 1, objectTextField, object.getObject(), 120, 290);
 			addTextField(this, 2, commentTextField, object.getComment(), 120, 380);
 			addTextField(this, 3, colorTextField, toHexString(object.getColor()), 120, 125);
+			setHexTextField(colorTextField, object.getColor());
 
 			add(getOrientationTypeComboBox(), null);
 			getOrientationTypeComboBox().setSelectedItem(toNoneString(object.getOrientationType()));
@@ -867,7 +868,7 @@ public class ObjectProperties extends PropertyPanel
 	{
 		setTextField(panel.nameTextField, object.getName());
 		setTextField(panel.objectTextField, object.getObject());
-		setTextField(panel.colorTextField, toHexString(object.getColor()));
+		setHexTextField(panel.colorTextField, object.getColor());
 		panel.orientationTypeComboBox.setSelectedItem(toNoneString(object.getOrientationType()));		
 		setTextField(panel.orientationTextField, object.getOrientation());
 		setTextField(panel.deltaHeightTextField, object.getDeltaHeight());

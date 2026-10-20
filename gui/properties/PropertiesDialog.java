@@ -409,6 +409,10 @@ public class PropertiesDialog extends JDialog
 	 */
 	protected void exit()
 	{
+		// a value that isn't a number would be lost, so don't apply anything until it's fixed
+		if (!PropertyPanel.checkNumbers(this, getTabbedPane()))
+			return;
+
 		this.generalProperties.exit();
 		this.trackProperties.exit();
 		this.pitProperties.exit();

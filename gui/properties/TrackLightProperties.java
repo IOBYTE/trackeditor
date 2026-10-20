@@ -222,8 +222,8 @@ public class TrackLightProperties extends PropertyPanel
 
 			addLabel(this, 0, nameLabel, "Name", 160);
 			addLabel(this, 1, roleLabel, "Role", 160);
-			addLabel(this, 2, topLeftXLabel, "Top Lext X", 160);
-			addLabel(this, 3, topLeftYLabel, "Top Left RY", 160);
+			addLabel(this, 2, topLeftXLabel, "Top Left X", 160);
+			addLabel(this, 3, topLeftYLabel, "Top Left Y", 160);
 			addLabel(this, 4, topLeftZLabel, "Top Left Z", 160);
 			addLabel(this, 5, bottomRightXLabel, "Bottom Right X", 160);
 			addLabel(this, 6, bottomRightYLabel, "Bottom Right Y", 160);
