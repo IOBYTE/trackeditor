@@ -409,7 +409,9 @@ public class DeltaPanel extends JDialog implements Runnable
      */
     protected void startTrackgen()
     {       
-        editorFrame.exportTrack();
+        // don't run trackgen on an old or missing track file
+        if (!editorFrame.exportTrack())
+            return;
         ac3d = new Thread(this);
         ac3d.start();
     }

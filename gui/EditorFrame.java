@@ -699,44 +699,62 @@ public class EditorFrame extends JFrame
 	/**
 	 *
 	 */
-	protected void saveProject()
+	/**
+	 * Saves the project file and the track xml.
+	 *
+	 * @return true only if both were written; on failure the user has been
+	 *         shown the error and the document stays marked as modified
+	 */
+	protected boolean saveProject()
 	{
 		if (getTrackData() == null)
 		{
 			message("No track", "Nothing to save");
-			return;
+			return false;
 		}
 
-//		if (documentIsModified)
-		if (true)
+		String filename = Editor.getProperties().getPath();
+		String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
+		filename = filename + sep + trackname + ".prj.xml";
+
+		//System.out.println("saveProject writing : " + filename);
+
+		boolean projectSaved = true;
+		try (FileOutputStream out = new FileOutputStream(filename))
 		{
-			String filename = Editor.getProperties().getPath();
-			String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
-			filename = filename + sep + trackname + ".prj.xml";
-			
-			//System.out.println("saveProject writing : " + filename);
-			
-			try
+			// XMLEncoder reports problems through this listener instead of throwing
+			final Exception[] encoderError = { null };
+			XMLEncoder encoder = new XMLEncoder(out);
+			encoder.setExceptionListener(new ExceptionListener()
 			{
-				XMLEncoder encoder = new XMLEncoder(new FileOutputStream(filename));
-				encoder.setExceptionListener(new ExceptionListener()
+				public void exceptionThrown(Exception e)
 				{
-					public void exceptionThrown(Exception e)
-					{
-					}
-				});
-				encoder.writeObject(Editor.getProperties());
-				encoder.close();
-			} catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(this,
-					"Couldn't write : " + filename + "\n\n" + e.getLocalizedMessage(),
-					"Save Project", JOptionPane.ERROR_MESSAGE);
-			}
-			exportTrack();
-			documentIsModified = false;
-			updateRecentFiles(filename);
+					if (encoderError[0] == null)
+						encoderError[0] = e;
+				}
+			});
+			encoder.writeObject(Editor.getProperties());
+			encoder.close();
+
+			if (encoderError[0] != null)
+				throw encoderError[0];
+		} catch (Exception e)
+		{
+			projectSaved = false;
+			JOptionPane.showMessageDialog(this,
+				"Couldn't write : " + filename + "\n\n" + e.getLocalizedMessage(),
+				"Save Project", JOptionPane.ERROR_MESSAGE);
 		}
+
+		// write the track even if the project file failed, so as much as possible is saved
+		boolean trackSaved = exportTrack();
+
+		if (!projectSaved || !trackSaved)
+			return false;
+
+		documentIsModified = false;
+		updateRecentFiles(filename);
+		return true;
 	}
 
 	void itemCloseCircuit_actionPerformed(ActionEvent e)
@@ -2130,11 +2148,8 @@ public class EditorFrame extends JFrame
 				return false;
 			} else if (Res == JOptionPane.YES_OPTION)
 			{
-				// save
-				saveProject();
-
-				// can close
-				return true;
+				// save, and only close if the save worked
+				return saveProject();
 			} else
 			{
 				// don't save, but can close
@@ -2858,12 +2873,17 @@ public class EditorFrame extends JFrame
 			exportTrack();
 		}
 	}
-	public void exportTrack()
+	/**
+	 * Writes the track xml.
+	 *
+	 * @return true if it was written; on failure the user has been shown the error
+	 */
+	public boolean exportTrack()
 	{
 		if (trackData == null)
 		{
 			message("No track", "Nothing to export");
-			return;
+			return false;
 		}
 		String fileName = Editor.getProperties().getPath();
 		String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
@@ -2876,12 +2896,14 @@ public class EditorFrame extends JFrame
 		try
 		{
 			xmlWriter.writeXml(fileName, trackName);
+			return true;
 		}
 		catch (Exception e)
 		{
 			JOptionPane.showMessageDialog(this,
 				"Couldn't write : " + fileName + "\n\n" + e.getLocalizedMessage(),
 				"Export track", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 	}
 	public class ExportAllAction extends AbstractAction
@@ -2899,8 +2921,8 @@ public class EditorFrame extends JFrame
 				message("No track", "Nothing to export");
 				return;
 			}			
-			exportTrack();
-			exportAc3d(null);
+			if (exportTrack())
+				exportAc3d(null);
 		}
 	}
 	public class ExportAC3Action extends AbstractAction
