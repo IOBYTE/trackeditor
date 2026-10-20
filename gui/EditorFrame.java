@@ -740,6 +740,7 @@ public class EditorFrame extends JFrame
 		Editor.setProperties(properties);
 		trackData = null;
 		trackData = new TrackData();		
+		Undo.clear();
 		readFile(file);
 		updateRecentFiles(projectFileName);
 		
@@ -888,6 +889,7 @@ public class EditorFrame extends JFrame
 
         trackData = null;
         trackData = new TrackData();
+        Undo.clear();
         
         trackData.getHeader().setName(newProjectInfo.name);
         trackData.getHeader().setCategory(newProjectInfo.category);
@@ -3395,6 +3397,7 @@ public class EditorFrame extends JFrame
 			File file = new File(xmlFileName);
 			trackData = null;
 			trackData = new TrackData();
+			Undo.clear();
 			readFile(file);
 		}
 	}
