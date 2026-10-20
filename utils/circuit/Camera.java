@@ -6,6 +6,10 @@ public final class Camera {
 	private String segment	= null;
 	private double toRight	= Double.NaN;
 	private double toStart	= Double.NaN;
+	// unit of "to start" as found in the track file (null = no unit);
+	// only meaningful when toStartUnitsKnown is true
+	private String toStartUnits		= null;
+	private boolean toStartUnitsKnown	= false;
 	private double height	= Double.NaN;
 	private String fovStart	= null;
 	private String fovEnd	= null;
@@ -48,6 +52,16 @@ public final class Camera {
 
 	public void setToStart(double toStart) {
 		this.toStart = toStart;
+	}
+	public String getToStartUnits() {
+		return toStartUnits;
+	}
+	public boolean isToStartUnitsKnown() {
+		return toStartUnitsKnown;
+	}
+	public void setToStartUnits(String units) {
+		this.toStartUnits = units;
+		this.toStartUnitsKnown = true;
 	}
 
 	public double getHeight() {

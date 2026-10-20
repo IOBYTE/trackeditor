@@ -93,6 +93,11 @@ public class Segment implements Cloneable
 	protected double		profilStartTangentRight	= Double.NaN;
 	protected double		profilEndTangentRight	= Double.NaN;
 
+	// Speed Dreams attributes the editor doesn't edit but must preserve
+	protected int			penalty					= Integer.MAX_VALUE;
+	protected int			envMapIndex				= Integer.MAX_VALUE;
+	protected double		dovFactor				= Double.NaN;
+
 	// calculated values
 	protected double		calculatedHeightStart 		= Double.NaN;
 	protected double		calculatedHeightStartLeft 	= Double.NaN;
@@ -203,6 +208,9 @@ public class Segment implements Cloneable
 		profilEndTangentLeft = segment.profilEndTangentLeft;
 		profilStartTangentRight = segment.profilStartTangentRight;
 		profilEndTangentRight = segment.profilEndTangentRight;
+		penalty = segment.penalty;
+		envMapIndex = segment.envMapIndex;
+		dovFactor = segment.dovFactor;
 		calculatedHeightStart = segment.calculatedHeightStart;
 		calculatedHeightStartLeft = segment.calculatedHeightStartLeft;
 		calculatedHeightStartRight = segment.calculatedHeightStartRight;
@@ -811,6 +819,33 @@ public class Segment implements Cloneable
 		return !Double.isNaN(profilEndTangentRight);
 	}
 
+	public int getPenalty()
+	{
+		return penalty;
+	}
+	public void setPenalty(int penalty)
+	{
+		this.penalty = penalty;
+	}
+
+	public int getEnvMapIndex()
+	{
+		return envMapIndex;
+	}
+	public void setEnvMapIndex(int envMapIndex)
+	{
+		this.envMapIndex = envMapIndex;
+	}
+
+	public double getDovFactor()
+	{
+		return dovFactor;
+	}
+	public void setDovFactor(double dovFactor)
+	{
+		this.dovFactor = dovFactor;
+	}
+
 	/**
 	 * @return Returns the length.
 	 */
@@ -944,6 +979,9 @@ public class Segment implements Cloneable
 			s.profilEndTangentLeft = this.profilEndTangentLeft;
 			s.profilStartTangentRight = this.profilStartTangentRight;
 			s.profilEndTangentRight = this.profilEndTangentRight;
+			s.penalty = this.penalty;
+			s.envMapIndex = this.envMapIndex;
+			s.dovFactor = this.dovFactor;
 			s.calculatedHeightStart = this.calculatedHeightStart;
 			s.calculatedHeightStartLeft = this.calculatedHeightStartLeft;
 			s.calculatedHeightStartRight = this.calculatedHeightStartRight;

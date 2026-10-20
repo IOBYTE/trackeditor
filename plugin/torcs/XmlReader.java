@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -45,6 +49,7 @@ import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.Editor;
 import utils.SegmentVector;
+import utils.TrackData;
 import utils.ac3d.Ac3dException;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
@@ -121,6 +126,8 @@ public class XmlReader
 	
 	private EditorFrame		editorFrame = null;
 	private String			filename	= null;
+	// every element the reader looked at, so the rest can be preserved
+	private Set<Element>	visited		= Collections.newSetFromMap(new IdentityHashMap<Element, Boolean>());
 	
 	public XmlReader(EditorFrame editorFrame)
 	{
@@ -133,7 +140,9 @@ public class XmlReader
     	
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
+        visited.clear();
         setTrackData(element);
+        editorFrame.getTrackData().setPreservedElements(collectUnvisited(element));
     }
 
     private Document readFromFile(String fname) throws JDOMException, IOException
@@ -260,6 +269,7 @@ public class XmlReader
         editorFrame.getTrackData().getHeader().setShortName(getAttrStrValue(header, "short name"));
         editorFrame.getTrackData().getHeader().setCategory(getAttrStrValue(header, "category"));
         editorFrame.getTrackData().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
+        editorFrame.getTrackData().getHeader().setCarCategory(getAttrStrValue(header, "car category"));
         editorFrame.getTrackData().getHeader().setVersion(getAttrIntValue(header, "version"));
         editorFrame.getTrackData().getHeader().setSkyVersion(getAttrIntValue(header, "sky version"));
         editorFrame.getTrackData().getHeader().setAuthor(getAttrStrValue(header, "author"));
@@ -297,7 +307,12 @@ public class XmlReader
             cam.setSegment(getAttrStrValue(camera, "segment"));
             cam.setToRight(getAttrNumValue(camera, "to right"));
             // units can be meters for straights or degrees for curves
-            cam.setToStart(getAttrNumValue(camera, "to start"));
+            DoubleValue toStart = getAttrNumUnitsValue(camera, "to start");
+            if (toStart != null)
+            {
+                cam.setToStart(toStart.value);
+                cam.setToStartUnits(toStart.units);
+            }
             cam.setHeight(getAttrNumValue(camera, "height"));
             cam.setFovStart(getAttrStrValue(camera, "fov start"));
             cam.setFovEnd(getAttrStrValue(camera, "fov end"));
@@ -427,8 +442,18 @@ public class XmlReader
         data.setTimeOfDay(getAttrNumValue(element, "time of day", "hour"));
         data.setSunAscension(getAttrNumValue(element, "sun ascension", "deg"));
         data.setAltitude(getAttrNumValue(element, "altitude", "m"));
-        data.setLatitude(getAttrNumValue(element, "latitude", "deg"));
-        data.setLongitude(getAttrNumValue(element, "longitude", "deg"));
+        DoubleValue latitude = getAttrNumUnitsValue(element, "latitude");
+        if (latitude != null)
+        {
+            data.setLatitude(latitude.value);
+            data.setLatitudeUnits(latitude.units);
+        }
+        DoubleValue longitude = getAttrNumUnitsValue(element, "longitude");
+        if (longitude != null)
+        {
+            data.setLongitude(longitude.value);
+            data.setLongitudeUnits(longitude.units);
+        }
         data.setClimat(getAttrIntValue(element, "climat"));
         data.setPrecipitation(getAttrNumValue(element, "precipitation"));
         data.setBestLap(getAttrNumValue(element, "best lap"));
@@ -813,6 +838,7 @@ public class XmlReader
        editorFrame.getPits().setStart(getAttrStrValue(mainTrack, "pit start"));
        editorFrame.getPits().setStartBuildings(getAttrStrValue(mainTrack, "start buildings"));
        editorFrame.getPits().setStopBuildings(getAttrStrValue(mainTrack, "stop buildings"));
+       editorFrame.getPits().setMaxPits(getAttrIntValue(mainTrack, "max pits"));
        editorFrame.getPits().setEnd(getAttrStrValue(mainTrack, "pit end"));
        editorFrame.getPits().setExit(getAttrStrValue(mainTrack, "pit exit"));
        editorFrame.getPits().setLength(getAttrNumValue(mainTrack, "pit length", "m"));
@@ -959,6 +985,9 @@ public class XmlReader
         }
 
         shape.setSurface(getAttrStrValue(seg, "surface"));
+        shape.setPenalty(getAttrIntValue(seg, "penalty"));
+        shape.setEnvMapIndex(getAttrIntValue(seg, "env map index"));
+        shape.setDovFactor(getAttrNumValue(seg, "DoV factor"));
 
         shape.setHeightStart(getAttrNumValue(seg, "z start", "m"));
         shape.setHeightStartLeft(getAttrNumValue(seg, "z start left", "m"));
@@ -1048,23 +1077,55 @@ public class XmlReader
     private synchronized Element getChildWithName(Element element,
             String name)
     {
+        // Speed Dreams' parameter parser keeps the last of duplicate names, so do the same.
         Element out = null;
-        int count = 0;
-        List<?> all = element.getChildren();
-        Iterator<?> it;
-        it = all.iterator();
-
-        while (it.hasNext()
-                && !((Element) it.next()).getAttribute("name").getValue()
-                        .equals(name))
+        for (Object o : element.getChildren())
         {
-            count++;
+            Element child = (Element) o;
+            if (name.equals(child.getAttributeValue("name")))
+            {
+                out = child;
+            }
         }
-        if (count < all.size())
+        if (out != null)
         {
-            out = (Element) all.get(count);
+            visited.add(out);
         }
+        visited.add(element);
         return out;
+    }
+
+    /**
+     * Collects the elements the reader never looked at, below sections it did
+     * read, so XmlWriter can write them back unchanged.
+     */
+    private Vector<TrackData.PreservedElement> collectUnvisited(Element root)
+    {
+        Vector<TrackData.PreservedElement> result = new Vector<TrackData.PreservedElement>();
+        collectUnvisited(root, new ArrayList<String>(), result);
+        return result;
+    }
+
+    private void collectUnvisited(Element section, List<String> path, Vector<TrackData.PreservedElement> result)
+    {
+        for (Object o : section.getChildren())
+        {
+            Element child = (Element) o;
+            String name = child.getAttributeValue("name");
+            if (name == null)
+                continue;
+
+            if (!visited.contains(child))
+            {
+                result.add(new TrackData.PreservedElement(path.toArray(new String[path.size()]), (Element) child.clone()));
+            }
+            else if (child.getName().equals("section"))
+            {
+                path.add(name);
+                collectUnvisited(child, path, result);
+                path.remove(path.size() - 1);
+            }
+        }
     }
 
     public synchronized String getSegmentName(Element element)

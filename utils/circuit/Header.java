@@ -5,6 +5,7 @@ public class Header {
 	private String	shortName	= null;
 	private String	category	= "road";
 	private String	subcategory	= null;
+	private String	carCategory	= null;
 	private int		version		= 4;
 	private int		skyVersion	= Integer.MAX_VALUE;
 	private String	author		= null;
@@ -67,6 +68,15 @@ public class Header {
 	public void setSubcategory(String subcategory)
 	{
 		this.subcategory = subcategory;
+	}
+
+	public String getCarCategory()
+	{
+		return carCategory;
+	}
+	public void setCarCategory(String carCategory)
+	{
+		this.carCategory = carCategory;
 	}
 
 	/**
@@ -160,6 +170,7 @@ public class Header {
 		System.out.println(indent + "  shortName   : " + shortName);
 		System.out.println(indent + "  category    : " + category);
 		System.out.println(indent + "  subcategory : " + subcategory);
+		System.out.println(indent + "  carCategory : " + carCategory);
 		System.out.println(indent + "  version     : " + version);
 		System.out.println(indent + "  skyVersion  : " + skyVersion);
 		System.out.println(indent + "  author      : " + author);

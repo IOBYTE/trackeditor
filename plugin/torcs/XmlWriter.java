@@ -36,6 +36,7 @@ import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.Editor;
 import utils.SegmentVector;
+import utils.TrackData;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
@@ -69,6 +70,7 @@ public class XmlWriter
 		Document doc = new Document();
 
 		getXml(doc, trackName);
+		addPreservedElements(doc.getRootElement());
 		writeToFile(fileName, doc);
 	}
 
@@ -102,6 +104,45 @@ public class XmlWriter
 		root.addContent(getTrack());
 		root.addContent(getCameras());
 		root.addContent(getSectors());
+	}
+
+	/**
+	 * Writes back elements from the original track file that the editor doesn't
+	 * model, under the same parent section. Elements whose parent no longer exists
+	 * (a deleted or renamed segment, camera, ...) or whose name the editor already
+	 * wrote are skipped.
+	 */
+	private synchronized void addPreservedElements(Element root)
+	{
+		for (TrackData.PreservedElement preserved : editorFrame.getTrackData().getPreservedElements())
+		{
+			Element parent = root;
+			for (String name : preserved.parentPath)
+			{
+				parent = findChild(parent, name);
+				if (parent == null || !parent.getName().equals("section"))
+				{
+					parent = null;
+					break;
+				}
+			}
+			if (parent == null)
+				continue;
+			if (findChild(parent, preserved.element.getAttributeValue("name")) != null)
+				continue;
+			parent.addContent((Element) preserved.element.clone());
+		}
+	}
+
+	private Element findChild(Element parent, String name)
+	{
+		for (Object o : parent.getChildren())
+		{
+			Element child = (Element) o;
+			if (name.equals(child.getAttributeValue("name")))
+				return child;
+		}
+		return null;
 	}
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException
@@ -214,7 +255,7 @@ public class XmlWriter
 	{
 		if (editorFrame.getPits().getStyle() == 0)
 		{
-			addContent(pits, "pit type", "no pits");
+			addContent(pits, "pit type", "no pit");
 		}
 		else if (editorFrame.getPits().getStyle() == 1)
 		{
@@ -230,6 +271,7 @@ public class XmlWriter
 		addContent(pits, "pit start", editorFrame.getPits().getStart());
 		addContent(pits, "start buildings", editorFrame.getPits().getStartBuildings());
 		addContent(pits, "stop buildings", editorFrame.getPits().getStopBuildings());
+		addContent(pits, "max pits", null, editorFrame.getPits().getMaxPits());
 		addContent(pits, "pit end", editorFrame.getPits().getEnd());
 		addContent(pits, "pit exit", editorFrame.getPits().getExit());
 		addContent(pits, "pit length", "m", editorFrame.getPits().getLength());
@@ -325,6 +367,9 @@ public class XmlWriter
 		addContent(segment, "profil start tangent right", "%", shape.getProfilStartTangentRight());
 		addContent(segment, "profil end tangent right", "%", shape.getProfilEndTangentRight());
 		addContent(segment, "surface", shape.getSurface());
+		addContent(segment, "penalty", null, shape.getPenalty());
+		addContent(segment, "env map index", null, shape.getEnvMapIndex());
+		addContent(segment, "DoV factor", null, shape.getDovFactor());
 		
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
@@ -414,15 +459,15 @@ public class XmlWriter
 		addContent(side, sPart + "side surface", part.getSideSurface());
 		addContent(side, sPart + "side type", part.getSideBankingType());
 
-		addContent(side, sPart + "border start width", "m", part.getBorderWidth());
-		addContent(side, sPart + "border start height", "m", part.getBorderHeight());
+		addContent(side, sPart + "border width", "m", part.getBorderWidth());
+		addContent(side, sPart + "border height", "m", part.getBorderHeight());
 		addContent(side, sPart + "border surface", part.getBorderSurface());
-		addContent(side, sPart + "border type", part.getBorderStyle());
+		addContent(side, sPart + "border style", part.getBorderStyle());
 
-		addContent(side, sPart + "barrier start width", "m", part.getBarrierWidth());
-		addContent(side, sPart + "barrier start height", "m", part.getBarrierHeight());
+		addContent(side, sPart + "barrier width", "m", part.getBarrierWidth());
+		addContent(side, sPart + "barrier height", "m", part.getBarrierHeight());
 		addContent(side, sPart + "barrier surface", part.getBarrierSurface());
-		addContent(side, sPart + "barrier type", part.getBarrierStyle());
+		addContent(side, sPart + "barrier style", part.getBarrierStyle());
 	}
 
 	/**
@@ -488,7 +533,7 @@ public class XmlWriter
 			addContent(el, "texture name", surface.getTextureName());
 			addContent(el, "texture type", surface.getTextureType());
 			addContent(el, "texture size", "m", surface.getTextureSize());
-			addContent(el, "texture radnomness", "m", surface.getTextureRandomness());
+			addContent(el, "texture randomness", "m", surface.getTextureRandomness());
 			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
 			addContent(el, "texture mipmap", "m", surface.getTextureMipMap());
@@ -540,7 +585,13 @@ public class XmlWriter
 			addContent(el, "to right", null, camera.getToRight());
 			// units can be meters for straights or degrees for curves
 			Segment segment = editorFrame.getSegment(camera.getSegment());
-			if (segment != null && !segment.getType().equals("str"))
+			if (camera.isToStartUnitsKnown())
+			{
+				// keep the unit the track file used: Speed Dreams converts deg to rad,
+				// so adding or dropping it would change the camera position
+				addContent(el, "to start", camera.getToStartUnits(), camera.getToStart());
+			}
+			else if (segment != null && !segment.getType().equals("str"))
 			{
 				addContent(el, "to start", "deg", camera.getToStart());
 			}
@@ -721,6 +772,7 @@ public class XmlWriter
 		}
 		addContent(header, "category", tmp);
 		addContent(header, "subcategory", editorFrame.getTrackData().getHeader().getSubcategory());
+		addContent(header, "car category", editorFrame.getTrackData().getHeader().getCarCategory());
 		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
 		addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
 
@@ -773,8 +825,10 @@ public class XmlWriter
 		addContent(element, "time of day", "hour", editorFrame.getTrackData().getLocalInfo().getTimeOfDay());
 		addContent(element, "sun ascension", "deg", editorFrame.getTrackData().getLocalInfo().getSunAscension());
 		addContent(element, "altitude", "m", editorFrame.getTrackData().getLocalInfo().getAltitude());
-		addContent(element, "latitude", "deg", editorFrame.getTrackData().getLocalInfo().getLatitude());
-		addContent(element, "longitude", "deg", editorFrame.getTrackData().getLocalInfo().getLongitude());
+		// Speed Dreams reads latitude/longitude without a unit and expects plain degrees,
+		// so only write a unit if the track file had one
+		addContent(element, "latitude", editorFrame.getTrackData().getLocalInfo().getLatitudeUnits(), editorFrame.getTrackData().getLocalInfo().getLatitude());
+		addContent(element, "longitude", editorFrame.getTrackData().getLocalInfo().getLongitudeUnits(), editorFrame.getTrackData().getLocalInfo().getLongitude());
 		addContent(element, "climat", null, editorFrame.getTrackData().getLocalInfo().getClimat());
 		addContent(element, "precipitation", null, editorFrame.getTrackData().getLocalInfo().getPrecipitation());
 		addContent(element, "best lap", null, editorFrame.getTrackData().getLocalInfo().getBestLap());

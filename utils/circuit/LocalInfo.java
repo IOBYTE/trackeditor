@@ -12,6 +12,9 @@ public class LocalInfo {
 	private double altitude					= Double.NaN;
 	private double latitude					= Double.NaN;
 	private double longitude				= Double.NaN;
+	// units as found in the track file (null = no unit, which Speed Dreams reads as plain degrees)
+	private String latitudeUnits			= null;
+	private String longitudeUnits			= null;
 	private int    climat					= Integer.MAX_VALUE;
 	private double precipitation			= Double.NaN;
 	private double bestLap					= Double.NaN;
@@ -75,6 +78,18 @@ public class LocalInfo {
 	}
 	public void setLongitude(double longitude) {
 		this.longitude = longitude;
+	}
+	public String getLatitudeUnits() {
+		return latitudeUnits;
+	}
+	public void setLatitudeUnits(String units) {
+		this.latitudeUnits = units;
+	}
+	public String getLongitudeUnits() {
+		return longitudeUnits;
+	}
+	public void setLongitudeUnits(String units) {
+		this.longitudeUnits = units;
 	}
 	public int getClimat() {
 		return climat;

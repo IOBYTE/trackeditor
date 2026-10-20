@@ -22,6 +22,8 @@ package utils;
 
 import java.util.Vector;
 
+import org.jdom.Element;
+
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.Graphic;
@@ -59,6 +61,25 @@ public final class TrackData
     private MainTrack			mainTrack				= new MainTrack();
     private SegmentVector		segments				= null;
     private Vector<Sector>		sectors					= new Vector<Sector>();
+
+    /**
+     * An XML element from the track file that the editor doesn't model.
+     * It is written back unchanged under the same parent section so that
+     * loading and saving a track doesn't lose anything.
+     */
+    public static final class PreservedElement
+    {
+        public final String[]	parentPath;	// section names from the root, empty for the root
+        public final Element	element;		// detached copy
+
+        public PreservedElement(String[] parentPath, Element element)
+        {
+            this.parentPath = parentPath;
+            this.element = element;
+        }
+    }
+
+    private Vector<PreservedElement>	preservedElements	= new Vector<PreservedElement>();
    
 	/**
 	 * @return Returns the header.
@@ -220,6 +241,15 @@ public final class TrackData
 		this.trackObjects = trackObjects;
 	}
 	
+	public Vector<PreservedElement> getPreservedElements()
+	{
+		return preservedElements;
+	}
+	public void setPreservedElements(Vector<PreservedElement> preservedElements)
+	{
+		this.preservedElements = preservedElements;
+	}
+
 	public Vector<Sector> getSectors()
 	{
 		return sectors;
