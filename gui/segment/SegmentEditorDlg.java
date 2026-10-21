@@ -1253,8 +1253,11 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		
 		if (shape.getValidProfil(editorFrame).equals("linear"))
 		{
+			// a linear profile has no tangents
 			shape.setProfilStartTangent(Double.NaN);
 			shape.setProfilEndTangent(Double.NaN);
+			shape.setProfilStartTangentLeft(Double.NaN);
+			shape.setProfilStartTangentRight(Double.NaN);
 			shape.setProfilEndTangentLeft(Double.NaN);
 			shape.setProfilEndTangentRight(Double.NaN);
 			this.getStartTangentSlider().setEnabled(false);

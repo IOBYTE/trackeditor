@@ -76,8 +76,9 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			"barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		sideSurfaceVector		= new Vector<String>();
 	private String[]			barrierStyleItems		= {"none", "no barrier", "wall", "fence", "fence1", "fence2"};
-	// CSR has no fence1/fence2 (they are written as fence)
-	private String[]			csrBarrierStyleItems	= {"none", "no barrier", "wall", "fence"};
+	// CSR has no fence1/fence2 (they are written as fence), and its track loader reads past
+	// the end of its style list for the segment after a "no barrier" side
+	private String[]			csrBarrierStyleItems	= {"none", "wall", "fence"};
 	private boolean				updatingBarrierStyle	= false;
 	// true while setSide fills in the controls: that isn't an edit
 	private boolean				filling					= false;
@@ -506,15 +507,15 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	 */
 	/**
 	 * @return the barrier styles for the current game type. A CSR track never gets
-	 * fence1/fence2, but a style already set (read from a Speed Dreams track) stays
-	 * listed so viewing the segment doesn't change it.
+	 * fence1/fence2 or no barrier, but a style already set (read from a Speed Dreams
+	 * track) stays listed so viewing the segment doesn't change it.
 	 */
 	private String[] barrierStyleItems(String currentStyle)
 	{
 		if (!parent.editorFrame.getCarsSportsRacing())
 			return barrierStyleItems;
 
-		if (currentStyle != null && (currentStyle.equals("fence1") || currentStyle.equals("fence2")))
+		if (currentStyle != null && (currentStyle.equals("fence1") || currentStyle.equals("fence2") || currentStyle.equals("no barrier")))
 		{
 			String[] items = java.util.Arrays.copyOf(csrBarrierStyleItems, csrBarrierStyleItems.length + 1);
 			items[items.length - 1] = currentStyle;
@@ -1021,10 +1022,18 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private void checkBarrierInvalid(Segment segment, SegmentSide side)
 	{
 		// fix up bad value (plan and curb are not a valid style)
-		String[] options = { "Set style to none", "Set style to no barrier", "Set style to fence", "Set style to wall", "Ignore" };
-		switch (JOptionPane.showOptionDialog(null, "Found " + side.getName() + getBarrierStyleText(segment, side) + " with" +
-				getBarrierWidthText(segment, side) + getBarrierHeightText(segment, side) + getBarrierSurfaceText(segment, side), 
-				"Invalid Barrier Style", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[4]))
+		// CSR isn't offered no barrier (see csrBarrierStyleItems)
+		boolean csr = parent.editorFrame.getCarsSportsRacing();
+		String[] options = csr ?
+			new String[] { "Set style to none", "Set style to fence", "Set style to wall", "Ignore" } :
+			new String[] { "Set style to none", "Set style to no barrier", "Set style to fence", "Set style to wall", "Ignore" };
+		int choice = JOptionPane.showOptionDialog(null, "Found " + side.getName() + getBarrierStyleText(segment, side) + " with" +
+				getBarrierWidthText(segment, side) + getBarrierHeightText(segment, side) + getBarrierSurfaceText(segment, side),
+				"Invalid Barrier Style", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[options.length - 1]);
+		// the choices after none are one further on in the full list
+		if (csr && choice >= 1)
+			choice++;
+		switch (choice)
 		{
 		case 0: // none
 			side.setBarrierStyle(null);

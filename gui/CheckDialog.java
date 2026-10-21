@@ -221,6 +221,15 @@ public class CheckDialog extends JDialog
 		{
 			textArea.append(prefix + " barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")\n");
 		}
+		// CSR's track loader takes a missing barrier style from a list that has no
+		// "no barrier", so after one it reads past the end of the list (once per run
+		// of segments: reported where the run starts)
+		SegmentSide previousSide = right ? previousSegment.getRight() : previousSegment.getLeft();
+		if (editorFrame.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
+			(barrierStyle == null || barrierStyle.isEmpty()))
+		{
+			textArea.append(prefix + " follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash\n");
+		}
 	}
 	
 	public void checkHeader()
