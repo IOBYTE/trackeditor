@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import utils.circuit.Camera;
 import utils.circuit.Curve;
+import utils.circuit.Georeference;
 import utils.circuit.Graphic;
 import utils.circuit.GraphicObject;
 import utils.circuit.Header;
@@ -59,6 +60,8 @@ public final class TrackData
     private MainTrack			mainTrack				= new MainTrack();
     private SegmentVector		segments				= null;
     private Vector<Sector>		sectors					= new Vector<Sector>();
+	// TORCS only
+	private Georeference		georeference			= new Georeference();
    
 	/**
 	 * @return Returns the header.
@@ -90,6 +93,19 @@ public final class TrackData
     {
         this.localInfo = localInfo;
     }
+
+	/**
+	 * @return the TORCS georeference
+	 */
+	public Georeference getGeoreference()
+	{
+		return georeference;
+	}
+
+	public void setGeoreference(Georeference georeference)
+	{
+		this.georeference = georeference;
+	}
 
     /**
      * @return Returns the startingGrid.

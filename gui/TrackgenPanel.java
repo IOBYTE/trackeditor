@@ -109,7 +109,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 		int result = -1;
 		String path = Editor.getProperties().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
-		String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
+		String trackgen = editorFrame.getGameType().getTrackgen();
 		ArrayList<String> cmd = new ArrayList<String>();
 
 		if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())

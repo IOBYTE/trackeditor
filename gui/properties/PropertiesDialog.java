@@ -64,6 +64,8 @@ public class PropertiesDialog extends JDialog
 	private CameraProperties		cameraProperties		= null;
 	private TrackLightProperties	trackLightProperties	= null;
 	private SectorProperties		sectorProperties		= null;
+	// TORCS only
+	private GeoreferenceProperties	georeferenceProperties	= null;
 
 	/**
 	 *
@@ -119,11 +121,17 @@ public class PropertiesDialog extends JDialog
 			tabbedPane.addTab("Lights", null, getTrackLightProperties(), null);
 			tabbedPane.addTab("Sectors", null, getSectorProperties(), null);			
 			tabbedPane.addTab("Image", null, getImageProperties(), null);			
+			// last, so the other tabs keep their places in every game mode
+			if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
+				tabbedPane.addTab("Georeference", null, getGeoreferenceProperties(), null);
 			SwingUtilities.invokeLater( new Runnable()
 			{
 				public void run()
 				{
-					tabbedPane.setSelectedIndex(editorFrame.getProject().getPropertiesEditorTab());
+					// the tab last shown may be one this game mode doesn't have
+					int tab = editorFrame.getProject().getPropertiesEditorTab();
+					if (tab >= 0 && tab < tabbedPane.getTabCount())
+						tabbedPane.setSelectedIndex(tab);
 				}
 			});
 		}
@@ -280,6 +288,13 @@ public class PropertiesDialog extends JDialog
 	 *
 	 * @return gui.properties.LocalInfoProperties
 	 */
+	private GeoreferenceProperties getGeoreferenceProperties()
+	{
+		if (georeferenceProperties == null)
+			georeferenceProperties = new GeoreferenceProperties(editorFrame);
+		return georeferenceProperties;
+	}
+
 	private LocalInfoProperties getLocalInfoProperties() {
 		if (localInfoProperties == null) {
 			localInfoProperties = new LocalInfoProperties(editorFrame);
@@ -424,6 +439,13 @@ public class PropertiesDialog extends JDialog
 		}
 		if (!this.imageProperties.checkScale(this, getTabbedPane()))
 			return;
+		String georeferenceProblem = this.georeferenceProperties == null ? null : this.georeferenceProperties.problem();
+		if (georeferenceProblem != null)
+		{
+			getTabbedPane().setSelectedComponent(this.georeferenceProperties);
+			javax.swing.JOptionPane.showMessageDialog(this, georeferenceProblem, "Properties", javax.swing.JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 
 		this.generalProperties.exit();
 		this.trackProperties.exit();
@@ -441,6 +463,8 @@ public class PropertiesDialog extends JDialog
 		this.cameraProperties.exit();
 		this.trackLightProperties.exit();
 		this.sectorProperties.exit();
+		if (this.georeferenceProperties != null)
+			this.georeferenceProperties.exit();
 		Editor.getProperties().valueChanged();
 		APPROVE = true;
 		cancel();

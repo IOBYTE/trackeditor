@@ -8,6 +8,7 @@ import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -36,7 +37,8 @@ public class PreferencesDialog extends JDialog
 	private JCheckBox			cursorCoordinatesCheckBox	= null;
 	private JCheckBox			cursorNamesCheckBox			= null;
 	private JCheckBox			checkDefaultObjectsCheckBox	= null;
-	private JCheckBox			carsSportsRacingCheckBox	= null;
+	private JLabel				gameTypeLabel				= null;
+	private JComboBox<EditorFrame.GameType>	gameTypeComboBox	= null;
 	private JButton				okButton					= null;
 	private JButton				cancelButton				= null;
 
@@ -84,12 +86,16 @@ public class PreferencesDialog extends JDialog
 			recentFilesMaxLabel = new JLabel();
 			recentFilesMaxLabel.setBounds(10, 109, 190, 23);
 			recentFilesMaxLabel.setText("Recent Files Maximum");
+			gameTypeLabel = new JLabel();
+			gameTypeLabel.setBounds(10, 227, 190, 23);
+			gameTypeLabel.setText("Game");
 			jPanel = new JPanel();
 			jPanel.setLayout(null);
 			jPanel.add(dataDirectoryLabel, null);
 			jPanel.add(binDirectoryLabel, null);
 			jPanel.add(libDirectoryLabel, null);
 			jPanel.add(recentFilesMaxLabel, null);
+			jPanel.add(gameTypeLabel, null);
 			jPanel.add(getDataDirectoryTextField(), null);
 			jPanel.add(getDataDirectoryButton(), null);
 			jPanel.add(getBinDirectoryTextField(), null);
@@ -101,7 +107,7 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(getCursorCoordinatesCheckBox(), null);
 			jPanel.add(getCursorNamesCheckBox(), null);
 			jPanel.add(getCheckDefaultObjectsCheckBox(), null);
-			jPanel.add(getCarsSportsRacingCheckBox(), null);
+			jPanel.add(getGameTypeComboBox(), null);
 			jPanel.add(getOkButton(), null);
 			jPanel.add(getCancelButton(), null);
 			updateGameLabels();
@@ -112,13 +118,13 @@ public class PreferencesDialog extends JDialog
 	/** The game the directories are for, as chosen in this dialog */
 	private String gameName()
 	{
-		return getCarsSportsRacingCheckBox().isSelected() ? "Cars Sports Racing" : "Speed Dreams";
+		return getGameType().getName();
 	}
 
 	private void updateGameLabels()
 	{
 		// the labels are 190 pixels wide, so CSR is abbreviated
-		String game = getCarsSportsRacingCheckBox().isSelected() ? "CSR" : "Speed Dreams";
+		String game = getGameType().getShortName();
 		dataDirectoryLabel.setText(game + " Data Directory");
 		binDirectoryLabel.setText(game + " Bin Directory");
 		libDirectoryLabel.setText(game + " Lib Directory");
@@ -336,15 +342,14 @@ public class PreferencesDialog extends JDialog
 		return checkDefaultObjectsCheckBox;
 	}
 
-	private JCheckBox getCarsSportsRacingCheckBox()
+	private JComboBox<EditorFrame.GameType> getGameTypeComboBox()
 	{
-		if (carsSportsRacingCheckBox == null)
+		if (gameTypeComboBox == null)
 		{
-			carsSportsRacingCheckBox = new JCheckBox();
-			carsSportsRacingCheckBox.setBounds(200, 227, 290, 23);
-			carsSportsRacingCheckBox.setText("Cars Sports Racing Support");
-			carsSportsRacingCheckBox.setSelected(editorFrame.getCarsSportsRacing());
-			carsSportsRacingCheckBox.addItemListener(new java.awt.event.ItemListener()
+			gameTypeComboBox = new JComboBox<EditorFrame.GameType>(EditorFrame.GameType.values());
+			gameTypeComboBox.setBounds(200, 227, 170, 23);
+			gameTypeComboBox.setSelectedItem(editorFrame.getGameType());
+			gameTypeComboBox.addItemListener(new java.awt.event.ItemListener()
 			{
 				public void itemStateChanged(java.awt.event.ItemEvent e)
 				{
@@ -353,7 +358,7 @@ public class PreferencesDialog extends JDialog
 				}
 			});
 		}
-		return carsSportsRacingCheckBox;
+		return gameTypeComboBox;
 	}
 
 	private JButton getOkButton()
@@ -461,9 +466,9 @@ public class PreferencesDialog extends JDialog
 		return getCheckDefaultObjectsCheckBox().isSelected();
 	}
 
-	public boolean getCarsSportsRacing()
+	public EditorFrame.GameType getGameType()
 	{
-		return getCarsSportsRacingCheckBox().isSelected();
+		return (EditorFrame.GameType) getGameTypeComboBox().getSelectedItem();
 	}
 
 	protected void processWindowEvent(WindowEvent e)

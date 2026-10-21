@@ -49,6 +49,7 @@ import utils.ac3d.Ac3dException;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
+import utils.circuit.Georeference;
 import utils.circuit.Graphic;
 import utils.circuit.GraphicObject;
 import utils.circuit.LocalInfo;
@@ -271,8 +272,29 @@ public class XmlReader
         setCameras(root);
         setMainTrack(root);
         setSectors(root);
+        setGeoreference(root);
         editorFrame.getTrackData().calculateSegmentValues();
     }
+
+	/**
+	 * The TORCS Georeference section (degrees, and metres for the altitude, like TORCS).
+	 */
+	private void setGeoreference(Element root)
+	{
+		Element element = getChildWithName(root, "Georeference");
+
+		if (element == null)
+			return;
+
+		Georeference data = new Georeference();
+
+		data.setLatitude(getAttrNumValue(element, "latitude", "deg"));
+		data.setLongitude(getAttrNumValue(element, "longitude", "deg"));
+		data.setAltitude(getAttrNumValue(element, "altitude", "m"));
+		data.setHeading(getAttrNumValue(element, "heading", "deg"));
+
+		editorFrame.getTrackData().setGeoreference(data);
+	}
 
     private synchronized void setMainTrack(Element root)
     {

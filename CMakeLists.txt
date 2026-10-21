@@ -40,6 +40,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/properties/CameraProperties.java
          gui/properties/EnvMapProperties.java
          gui/properties/GeneralProperties.java
+         gui/properties/GeoreferenceProperties.java
          gui/properties/GraphicObjectData.java
          gui/properties/GraphicObjectProperties.java
          gui/properties/GraphicProperties.java
@@ -104,6 +105,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/circuit/Curve.java
          utils/circuit/EnvironmentMapping.java
          utils/circuit/GameSides.java
+         utils/circuit/Georeference.java
          utils/circuit/Graphic.java
          utils/circuit/GraphicObject.java
          utils/circuit/Header.java

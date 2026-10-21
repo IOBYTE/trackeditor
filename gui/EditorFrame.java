@@ -271,7 +271,57 @@ public class EditorFrame extends JFrame
 	private final static String	CURSOR_NAMES						= "CursorNames";
 	private boolean				checkDefaultObjects					= false;
 	private final static String	CHECK_DEFAULT_OBJECTS				= "CheckDefaultObjects";
-	private boolean				carsSportsRacing					= false;
+	/** The game the tracks are edited for */
+	public enum GameType
+	{
+		SPEED_DREAMS("Speed Dreams", "Speed Dreams", "sd2-trackgen"),
+		CARS_SPORTS_RACING("Cars Sports Racing", "CSR", "csr-trackgen"),
+		TORCS("TORCS", "TORCS", "trackgen");
+
+		private final String	name;
+		private final String	shortName;
+		private final String	trackgen;
+
+		GameType(String name, String shortName, String trackgen)
+		{
+			this.name = name;
+			this.shortName = shortName;
+			this.trackgen = trackgen;
+		}
+
+		/** @return the game's name, like "Cars Sports Racing" */
+		public String getName()
+		{
+			return name;
+		}
+
+		/** @return a short name for narrow labels, like "CSR" */
+		public String getShortName()
+		{
+			return shortName;
+		}
+
+		/** @return the game's trackgen program */
+		public String getTrackgen()
+		{
+			return trackgen;
+		}
+
+		/** @return whether the game's trackgen can make acc files (only Speed Dreams') */
+		public boolean canExportAcc()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	private GameType			gameType							= GameType.SPEED_DREAMS;
+	private final static String	GAME_TYPE							= "GameType";
+	// the preference before there were more than two games: true for CSR
 	private final static String	CARS_SPORTS_RACING					= "CarsSportsRacing";
 	
 	private TrackData			trackData							= null;
@@ -423,19 +473,19 @@ public class EditorFrame extends JFrame
 		// the game type is one preference shared by every way the editor is run
 		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
 		// the default until a game type has been chosen
-		carsSportsRacing = preferences.getBoolean(CARS_SPORTS_RACING, isCsrApp());
+		gameType = readGameType();
 		if (exportMenu != null)
 			updateExportMenu();
 
 		if (dataDirectory == null)
 		{
 			JOptionPane.showMessageDialog(this,
-					"You need to specify the " + (getCarsSportsRacing() ? "Cars Sports Racing" : "Speed Dreams") + " data directory in order to\n" +
+					"You need to specify the " + gameType.getName() + " data directory in order to\n" +
 					"load the default surfaces, textures and objects.\n" +
 					"Make sure you have write permission if you intend to edit or add\n" +
 					"tracks in this directory.\n\n" +
-					"You may need to specify the bin directory where " + 
-					(getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen") + " is\n" +
+					"You may need to specify the bin directory where " +
+					gameType.getTrackgen() + " is\n" +
 					"located if it is not in your executable path.",
 					"First Time Setup",
 					JOptionPane.INFORMATION_MESSAGE);
@@ -615,21 +665,51 @@ public class EditorFrame extends JFrame
 		preferences.putBoolean(CHECK_DEFAULT_OBJECTS, checkDefaultObjects);
 	}
 
+	/** @return true when editing for Cars Sports Racing */
 	public boolean getCarsSportsRacing()
 	{
-		return carsSportsRacing;
+		return gameType == GameType.CARS_SPORTS_RACING;
 	}
 
-	public void setCarsSportsRacing(boolean value)
+	public GameType getGameType()
 	{
-		carsSportsRacing = value;
+		return gameType;
+	}
+
+	public void setGameType(GameType value)
+	{
+		gameType = value;
 
 		// always saved, so a choice that matches this app's default still applies
 		// when the editor is run another way
-		preferences.putBoolean(CARS_SPORTS_RACING, carsSportsRacing);
+		preferences.put(GAME_TYPE, gameType.name());
+		// for editors from before TORCS was added
+		preferences.putBoolean(CARS_SPORTS_RACING, gameType == GameType.CARS_SPORTS_RACING);
 
 		if (exportMenu != null)
 			updateExportMenu();
+	}
+
+	/**
+	 * @return the game type preference, or the old CSR one from before TORCS was
+	 * added, or this app's default
+	 */
+	private GameType readGameType()
+	{
+		String name = preferences.get(GAME_TYPE, null);
+		if (name != null)
+		{
+			try
+			{
+				return GameType.valueOf(name);
+			}
+			catch (IllegalArgumentException e)
+			{
+				// from a newer editor: use the old preference
+			}
+		}
+
+		return preferences.getBoolean(CARS_SPORTS_RACING, isCsrApp()) ? GameType.CARS_SPORTS_RACING : GameType.SPEED_DREAMS;
 	}
 
 	private static boolean isCsrApp()
@@ -1635,7 +1715,7 @@ public class EditorFrame extends JFrame
 			setCursorCoordinates(preferencesDialog.getCursorCoordinates());
 			setCursorNames(preferencesDialog.getCursorNames());
 			setCheckDefaultObjects(preferencesDialog.getCheckDefaultObjects());
-			setCarsSportsRacing(preferencesDialog.getCarsSportsRacing());
+			setGameType(preferencesDialog.getGameType());
 			readDefaultSurfaces();
 			readDefaultObjects();
 			view.redrawCircuit();
@@ -1772,11 +1852,11 @@ public class EditorFrame extends JFrame
 	 * @return javax.swing.JMenuItem
 	 */
 	/**
-	 * Only Speed Dreams trackgen can make acc files, so hide those exports for CSR.
+	 * Only Speed Dreams trackgen can make acc files, so hide those exports for the other games.
 	 */
 	private void updateExportMenu()
 	{
-		boolean acc = !getCarsSportsRacing();
+		boolean acc = gameType.canExportAcc();
 
 		getExportAllACCMenuItem().setVisible(acc);
 		getExportAllACCWithRacelineMenuItem().setVisible(acc);
@@ -2679,9 +2759,9 @@ public class EditorFrame extends JFrame
 			}
 		}
 
-		if (acc && getCarsSportsRacing())
+		if (acc && !gameType.canExportAcc())
 		{
-			JOptionPane.showMessageDialog(this, "csr-trackgen can't create acc files", "Exporting ACC", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, gameType.getTrackgen() + " can't create acc files", "Exporting ACC", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 

@@ -46,6 +46,7 @@ import utils.SegmentVector;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
+import utils.circuit.Georeference;
 import utils.circuit.GraphicObject;
 import utils.circuit.ObjectMap;
 import utils.circuit.Sector;
@@ -141,6 +142,10 @@ public class XmlWriter
 		root.addContent(getTrack());
 		root.addContent(getCameras());
 		root.addContent(getSectors());
+		// only TORCS reads it
+		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
+			!editorFrame.getTrackData().getGeoreference().isEmpty())
+			root.addContent(getGeoreference());
 	}
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException
@@ -688,6 +693,21 @@ public class XmlWriter
 	private static boolean isSet(TrackLight.Corner corner)
 	{
 		return corner != null && !(Double.isNaN(corner.x) && Double.isNaN(corner.y) && Double.isNaN(corner.z));
+	}
+
+	private synchronized Element getGeoreference()
+	{
+		Element element = new Element("section");
+		element.setAttribute(new Attribute("name", "Georeference"));
+
+		Georeference data = editorFrame.getTrackData().getGeoreference();
+
+		addContent(element, "latitude", "deg", data.getLatitude());
+		addContent(element, "longitude", "deg", data.getLongitude());
+		addContent(element, "altitude", "m", data.getAltitude());
+		addContent(element, "heading", "deg", data.getHeading());
+
+		return element;
 	}
 
 	private synchronized Element getSectors()

@@ -142,7 +142,7 @@ public class DeltaPanel extends JDialog
 
 			String path = Editor.getProperties().getPath();
 			trackName[0] = path.substring(path.lastIndexOf(sep) + 1);
-			trackgen[0] = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
+			trackgen[0] = editorFrame.getGameType().getTrackgen();
 			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
 				trackgen[0] = editorFrame.getBinDirectory() + sep + trackgen[0];
 			category[0] = editorFrame.getTrackData().getHeader().getCategory();
