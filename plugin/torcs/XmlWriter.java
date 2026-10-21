@@ -140,6 +140,10 @@ public class XmlWriter
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
+		// only TORCS reads it; its track manual puts it after the header
+		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
+			!editorFrame.getTrackData().getGeoreference().isEmpty())
+			root.addContent(getGeoreference());
 		if (extensions)
 			root.addContent(getLocal());
 		root.addContent(getGraphic());
@@ -148,10 +152,6 @@ public class XmlWriter
 		root.addContent(getCameras());
 		if (extensions)
 			root.addContent(getSectors());
-		// only TORCS reads it
-		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
-			!editorFrame.getTrackData().getGeoreference().isEmpty())
-			root.addContent(getGeoreference());
 	}
 
 	private synchronized void writeToFile(String fileName, Document doc) throws FileNotFoundException, IOException, SecurityException

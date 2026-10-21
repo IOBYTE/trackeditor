@@ -132,6 +132,7 @@ public class DeltaPanel extends JDialog
 		final String[] trackgen = new String[1];
 		final String[] category = new String[1];
 		final boolean[] exported = new boolean[1];
+		final String[] problem = new String[1];
 
 		onEdt(() -> {
 			JLabel[] labels = {nameLabel, authorLabel, fileNameLabel, lengthLabel, widthLabel,
@@ -142,17 +143,19 @@ public class DeltaPanel extends JDialog
 
 			String path = Editor.getProperties().getPath();
 			trackName[0] = path.substring(path.lastIndexOf(sep) + 1);
-			trackgen[0] = editorFrame.getGameType().getTrackgen();
-			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
-				trackgen[0] = editorFrame.getBinDirectory() + sep + trackgen[0];
+			trackgen[0] = editorFrame.getTrackgenPath();
 			category[0] = editorFrame.getTrackData().getHeader().getCategory();
 
 			// don't run trackgen on an old or missing track file
 			exported[0] = editorFrame.exportTrack();
+			if (exported[0])
+				problem[0] = editorFrame.getTrackgenProblem();
 		});
 
 		if (!exported[0])
 			throw new TrackgenException(null);	// exportTrack already showed why
+		if (problem[0] != null)
+			throw new TrackgenException(problem[0]);
 
 		length = Double.NaN;
 		dX = Double.NaN;
@@ -168,6 +171,8 @@ public class DeltaPanel extends JDialog
 		{
 			ProcessBuilder pb = new ProcessBuilder(trackgen[0], "-z", "-c", category[0], "-n", trackName[0]);
 			pb.redirectErrorStream(true);
+			// TORCS trackgen reads the track from the directory it runs in
+			pb.directory(editorFrame.getTrackgenDirectory());
 			proc = pb.start();
 			process = proc;
 			if (cancelled)

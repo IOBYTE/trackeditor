@@ -752,6 +752,68 @@ public class EditorFrame extends JFrame
 		return getDirectory(gameType, DATA_DIRECTORY);
 	}
 
+	/**
+	 * @return the game's trackgen, in the bin directory when one is set. TORCS is
+	 * installed with trackgen in its data directory, so it is used from there too.
+	 */
+	public String getTrackgenPath()
+	{
+		String trackgen = gameType.getTrackgen();
+		String bin = getBinDirectory();
+		if (bin != null && !bin.isEmpty())
+			return bin + sep + trackgen;
+		String data = getDataDirectory();
+		if (gameType == GameType.TORCS && data != null && !data.isEmpty() &&
+			(new File(data, trackgen).isFile() || new File(data, trackgen + ".exe").isFile()))
+			return data + sep + trackgen;
+		return trackgen;
+	}
+
+	/**
+	 * @return the directory trackgen runs in: TORCS trackgen reads the track (and its
+	 * other files) from tracks/<category>/<name> and data/ in the directory it runs
+	 * in, its data directory; null for the others (they find their data themselves)
+	 */
+	public File getTrackgenDirectory()
+	{
+		String data = getDataDirectory();
+		if (gameType != GameType.TORCS || data == null || data.isEmpty())
+			return null;
+		return new File(data);
+	}
+
+	/**
+	 * @return why trackgen can't read this track, or null: TORCS trackgen only reads
+	 * tracks/<category>/<name>/<name>.xml in its data directory
+	 */
+	public String getTrackgenProblem()
+	{
+		if (gameType != GameType.TORCS)
+			return null;
+
+		String data = getDataDirectory();
+		if (data == null || data.isEmpty())
+			return "Set the TORCS data directory (the folder TORCS is installed in) in Preferences:\n" +
+				"TORCS trackgen runs there and reads the track from its tracks folder.";
+
+		String path = Editor.getProperties().getPath();
+		String name = path.substring(path.lastIndexOf(sep) + 1);
+		File expected = new File(data + sep + "tracks" + sep + trackData.getHeader().getCategory() + sep + name);
+		try
+		{
+			if (java.nio.file.Files.isSameFile(new File(path).toPath(), expected.toPath()))
+				return null;
+		}
+		catch (IOException | SecurityException e)
+		{
+			// not the same: one of them doesn't exist
+		}
+		return "TORCS trackgen only reads the track from its data directory, at\n" + expected +
+			"\n\nbut this track is in\n" + path +
+			"\n\nSave the track there (its folder is the track's category, \"" + trackData.getHeader().getCategory() + "\"),\n" +
+			"or set the TORCS data directory in Preferences.";
+	}
+
 	public void setDataDirectory(String dataDirectory)
 	{
 		setDirectory(gameType, DATA_DIRECTORY, dataDirectory);
@@ -3051,6 +3113,12 @@ public class EditorFrame extends JFrame
 				newArgs = new String(" -B");
 			else
 				newArgs += " -B";
+		}
+		String problem = getTrackgenProblem();
+		if (problem != null)
+		{
+			JOptionPane.showMessageDialog(this, problem, "Exporting AC" + (acc ? "C" : ""), JOptionPane.ERROR_MESSAGE);
+			return;
 		}
 		TrackgenPanel tg = new TrackgenPanel(this, newArgs, acc);
 		tg.setModal(true);

@@ -68,6 +68,8 @@ public class NewProjectDialog extends JDialog
 	private JTextField 			descriptionTextField		= null;
 	
 	private EditorFrame.NewProjectInfo	newProjectInfo;
+	// the category the path last followed (see followCategory)
+	private String						lastCategory		= "road";
 	
 	private final String sep = System.getProperty("file.separator");
 	
@@ -98,6 +100,28 @@ public class NewProjectDialog extends JDialog
 		p.y = editorFrame.getProject().getNewProjectDialogY();
 		this.setLocation(p);
 		this.setTitle("New Project");
+
+		// TORCS has no subcategory, email or copyright (and the editor only makes
+		// version 4 tracks for it), so leave them out and close up the rows
+		if (!editorFrame.getGameType().hasSpeedDreamsExtensions())
+		{
+			javax.swing.JComponent[] hidden = {trackSubcategoryLabel, getTrackSubcategoryComboBox(),
+				emailLabel, getEmailTextField(), copyrightLabel, getCopyrightTextField()};
+			for (javax.swing.JComponent component : hidden)
+				jPanel.remove(component);
+			int[] hiddenRows = {trackSubcategoryLabel.getY(), emailLabel.getY(), copyrightLabel.getY()};
+			for (java.awt.Component component : jPanel.getComponents())
+			{
+				int up = 0;
+				for (int y : hiddenRows)
+				{
+					if (y < component.getY())
+						up += 27;
+				}
+				component.setLocation(component.getX(), component.getY() - up);
+			}
+			this.setSize(getWidth(), getHeight() - 27 * hiddenRows.length);
+		}
 		this.getContentPane().setSize(547, 335);
 	}
 	/**
@@ -200,6 +224,7 @@ public class NewProjectDialog extends JDialog
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
+					followCategory();
 					if ("speedway".equals(trackCategoryComboBox.getSelectedItem()))
 					{
 						trackSubcategoryComboBox.setSelectedItem("none");
@@ -215,6 +240,23 @@ public class NewProjectDialog extends JDialog
 		}
 		return trackCategoryComboBox;
 	}
+	/**
+	 * When the path is the data directory's folder for the category chosen before, it
+	 * becomes the folder for the new category: the game finds the track by its category.
+	 */
+	private void followCategory()
+	{
+		String category = (String) trackCategoryComboBox.getSelectedItem();
+		String dataDirectory = editorFrame.getDataDirectory();
+		if (pathTextField != null && lastCategory != null && dataDirectory != null && !dataDirectory.isEmpty())
+		{
+			File tracks = new File(dataDirectory, "tracks");
+			if (new File(pathTextField.getText()).getAbsoluteFile().equals(new File(tracks, lastCategory).getAbsoluteFile()))
+				pathTextField.setText(new File(tracks, category).getAbsolutePath());
+		}
+		lastCategory = category;
+	}
+
 	/**
 	 * This method initializes trackSubcategoryComboBox
 	 *
@@ -251,6 +293,8 @@ public class NewProjectDialog extends JDialog
 		{
 			String[] items =
 			{"3", "4", "5"};
+			if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
+				items = new String[] {"4"};
 			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem("4");
 			trackVersionComboBox.setBounds(145, 91, 170, 23);
@@ -277,8 +321,9 @@ public class NewProjectDialog extends JDialog
 			pathTextField.setBounds(95, 118, 331, 23);
 			
 			String path = null;
-			File dataDir = new File(editorFrame.getDataDirectory());
-			if (dataDir.isDirectory() && dataDir.canWrite())
+			String dataDirectory = editorFrame.getDataDirectory();
+			File dataDir = new File(dataDirectory == null ? "" : dataDirectory);
+			if (dataDirectory != null && dataDir.isDirectory() && dataDir.canWrite())
 			{
 				File tracksDir = new File(dataDir.getAbsolutePath() + sep + "tracks");
 				if (tracksDir.exists() && tracksDir.isDirectory() && tracksDir.canWrite())

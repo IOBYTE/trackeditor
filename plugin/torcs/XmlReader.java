@@ -1193,11 +1193,8 @@ public class XmlReader
             }
             part.setSideSurface(getAttrStrValue(el, "surface"));
             part.setSideBankingType(getAttrStrValue(el, "banking type"));
-            // try alternate representation used by some TORCS tracks
-            if (part.getSideBankingType() == null)
-            {
-                part.setSideBankingType(getAttrStrValue(el, "type"));            	
-            }
+			// (some TORCS tracks have a side "type", but no game reads it: reading it as the
+			// banking type would make the game use it once the track is saved)
         }
 
         el = getChildWithName(seg, sPart + " Border");
@@ -1222,17 +1219,22 @@ public class XmlReader
     private synchronized Element getChildWithName(Element element,
             String name)
     {
-        // Speed Dreams' parameter parser keeps the last of duplicate names, so do the same.
-        Element out = null;
-        for (Object o : element.getChildren())
-        {
-            Element child = (Element) o;
-            if (name.equals(child.getAttributeValue("name")))
-            {
-                out = child;
-            }
-        }
-        return out;
+		// the games' parameter parser keeps every value of a duplicate name, but finds the
+		// first one (libs/tgf: GfHashGetStr), so use the first; the others are reported
+		// once and not saved
+		Element out = null;
+		for (Object o : element.getChildren())
+		{
+			Element child = (Element) o;
+			if (name.equals(child.getAttributeValue("name")))
+			{
+				if (out == null)
+					out = child;
+				else if (!child.getName().equals("section") && reportedDuplicates.add(child))
+					warn(child, "is in its section more than once: like the game, the first one is used, so this one isn't saved.");
+			}
+		}
+		return out;
     }
 
     public synchronized String getSegmentName(Element element)
@@ -1279,6 +1281,10 @@ public class XmlReader
      * Problems found while reading numbers: values the game reads differently than they
      * are written, or units it doesn't know. Shown to the user once the track is read.
      */
+	// duplicate values already reported
+	private final java.util.Set<Element>	reportedDuplicates	=
+		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+
     public List<String> getWarnings()
     {
         return warnings;

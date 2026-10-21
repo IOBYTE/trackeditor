@@ -109,13 +109,8 @@ public class TrackgenPanel extends JDialog implements Runnable
 		int result = -1;
 		String path = Editor.getProperties().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
-		String trackgen = editorFrame.getGameType().getTrackgen();
+		String trackgen = editorFrame.getTrackgenPath();
 		ArrayList<String> cmd = new ArrayList<String>();
-
-		if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
-		{
-			trackgen = editorFrame.getBinDirectory() + sep + trackgen;
-		}
 
 		cmd.add(trackgen);
 		cmd.add("-c");
@@ -149,7 +144,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 		{
 			String cmdarray[] = cmd.toArray(new String[cmd.size()]);
 			// each argument is passed as is, so spaces in paths or names are fine
-			process = Runtime.getRuntime().exec(cmdarray);
+			process = Runtime.getRuntime().exec(cmdarray, null, editorFrame.getTrackgenDirectory());
 			if (closed)
 				process.destroy();
 
@@ -234,6 +229,14 @@ public class TrackgenPanel extends JDialog implements Runnable
 
 	private void errorLine(String str)
 	{
+		// TORCS trackgen writes its errors ("Cannot find ...") without a keyword
+		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
+		{
+			if (!str.trim().isEmpty())
+				append(errorsTextArea, str);
+			return;
+		}
+
 		int index = str.indexOf("Error");
 		if (index != -1)
 		{
@@ -273,7 +276,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 		if (tmp.equals("name"))
 		{
 			nameLabel.setText(ls_str);
-		} else if (tmp.equals("authors"))
+		} else if (tmp.equals("authors") || tmp.equals("author"))
 		{
 			authorLabel.setText(ls_str);
 		} else if (tmp.equals("filename"))
