@@ -144,6 +144,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	private int					reliefPointIndex				= 0;
 	private boolean				showReliefs						= false;
 	private boolean				reliefDragging					= false;
+	// the undo step of a right-button drag, added when the drag first moves something
+	private utils.undo.UndoInterface	pendingDragUndo				= null;
 	private Point2D.Double		reliefOffset					= new Point2D.Double();
 
 	/** mouse presses point */
@@ -485,15 +487,13 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 						JOptionPane.showMessageDialog(editorFrame, "Not implemented yet!", "Moving Finish Line", JOptionPane.INFORMATION_MESSAGE);
 						
+						// nothing was changed
 						handledShape = null;
-						editorFrame.documentIsModified = true;
 
 						this.redrawCircuit();
 
 						setState(STATE_NONE);
 						editorFrame.finishLineToggleButton.setSelected(false);
-
-						editorFrame.documentIsModified = true;
 					}
 						break;
 				}
@@ -532,7 +532,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			{
 				objectDragging = true;
 				objectShape = (ObjShapeObject) obj;
-				Undo.add(new UndoEditObject(findObjectMap(objectShape), objectShape));
+				pendingDragUndo = new UndoEditObject(findObjectMap(objectShape), objectShape);
 
 				Point2D.Double real = new Point2D.Double(0, 0);
 				screenToReal(e, real);
@@ -546,7 +546,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					if (graphicObject.getShape() == objectShape)
 					{
-						Undo.add(new UndoEditGraphicObject(editorFrame.getGraphicObjects(), graphicObject));
+						pendingDragUndo = new UndoEditGraphicObject(editorFrame.getGraphicObjects(), graphicObject);
 	
 						Point2D.Double real = new Point2D.Double(0, 0);
 						screenToReal(e, real);
@@ -559,7 +559,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			{
 				reliefDragging = true;
 				reliefShape = (ObjShapeRelief) obj;
-				Undo.add(new UndoEditRelief(editorFrame.getReliefs().getReliefs(), reliefShape));
+				pendingDragUndo = new UndoEditRelief(editorFrame.getReliefs().getReliefs(), reliefShape);
 
 				Point2D.Double real = new Point2D.Double(0, 0);
 				screenToReal(e, real);
@@ -760,11 +760,13 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 		else if (e.getButton() == MouseEvent.BUTTON3 && objectDragging)
 		{
+			pendingDragUndo = null;
 			objectDragging = false;
 			objectShape = null;
 		}
 		else if (e.getButton() == MouseEvent.BUTTON3 && reliefDragging)
 		{
+			pendingDragUndo = null;
 			reliefDragging = false;
 			reliefShape = null;
 			reliefPointIndex = -1;
@@ -778,6 +780,55 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	/** input events management */
 	public void mouseExited(MouseEvent e)
 	{
+	}
+
+	private void addPendingDragUndo()
+	{
+		if (pendingDragUndo != null)
+		{
+			Undo.add(pendingDragUndo);
+			pendingDragUndo = null;
+		}
+	}
+
+	/**
+	 * A graphic object name no other graphic object (or name in also) uses: the game
+	 * keeps only one of the objects that share a name.
+	 */
+	private String uniqueGraphicObjectName(String base, java.util.Set<String> also)
+	{
+		if (base == null || base.isEmpty())
+			base = "object";
+		java.util.Set<String> used = new java.util.HashSet<String>();
+		for (GraphicObject object : editorFrame.getGraphicObjects())
+			used.add(object.getName());
+		if (also != null)
+			used.addAll(also);
+		if (!used.contains(base))
+			return base;
+		int number = 1;
+		while (used.contains(base + "-" + number))
+			number++;
+		return base + "-" + number;
+	}
+
+	/**
+	 * The object map new objects go into, or null (after telling the user) if there is
+	 * none or its image couldn't be read: a pixel of an empty image can't be written.
+	 */
+	private ObjectMap currentObjectMapToAddTo()
+	{
+		int index = editorFrame.getCurrentObjectMap();
+		if (index < 0 || index >= editorFrame.getObjectMaps().size())
+			return null;
+		ObjectMap objectMap = editorFrame.getObjectMaps().get(index);
+		if (objectMap.getImageWidth() <= 0 || objectMap.getImageHeight() <= 0)
+		{
+			JOptionPane.showMessageDialog(editorFrame, "The object map image " + objectMap.getObjectMap() + " couldn't be read, so objects can't be added to it.",
+					"Add New Object", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		return objectMap;
 	}
 
 	private ObjectMap getObjectMapFromObject(ObjShapeObject shape)
@@ -805,6 +856,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		{
 			if (objectShape != null && objectDragging == true)
 			{
+				addPendingDragUndo();
 				Point2D.Double real = new Point2D.Double();
 				screenToReal(e, real);
 
@@ -837,6 +889,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			}
 			else if (reliefShape != null && reliefDragging == true)
 			{
+				addPendingDragUndo();
 				Point2D.Double real = new Point2D.Double();
 				screenToReal(e, real);
 				
@@ -858,6 +911,11 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				int x = (int) (imgOffsetPrev.getX() + (tmp.getX() - imgOffsetStart.getX()));
 				int y = (int) (imgOffsetPrev.getY() + (tmp.getY() - imgOffsetStart.getY()));
 				 
+				if (offset.getX() != x || offset.getY() != y)
+				{
+					// saved with the project, like the offset in Properties > Image
+					editorFrame.documentIsModified = true;
+				}
 				offset.setLocation(x, y);
 				Editor.getProperties().setImgOffset(offset);
 
@@ -2169,6 +2227,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	private void reliefSelected(ObjShapeRelief shape, MouseEvent me)
 	{
+		// where the menu was opened: the pointer can move before an item is picked
+		final Point2D.Double menuPoint = new Point2D.Double(mousePoint.x, mousePoint.y);
+
 		class AddPointBeforeAction extends AbstractAction
 		{
 			public AddPointBeforeAction(String text, ImageIcon icon, String desc)
@@ -2184,7 +2245,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				if (index != -1)
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));					
-					reliefs.get(index).addPoint2D(mousePoint, true);				
+					reliefs.get(index).addPoint2D(menuPoint, true);
 					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
@@ -2213,7 +2274,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				if (index != -1)
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));					
-					reliefs.get(index).addPoint2D(mousePoint, false);				
+					reliefs.get(index).addPoint2D(menuPoint, false);
 					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
@@ -2279,7 +2340,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				if (index != -1)
 				{
 					Undo.add(new UndoEditRelief(reliefs, shape));
-					reliefs.get(index).deletePoint2D(mousePoint);
+					reliefs.get(index).deletePoint2D(menuPoint);
 					editorFrame.getReliefs().setChanged(true);
 					reliefs.get(index).calcShape(boundingRectangle);
 					selectedShape = null;
@@ -2543,6 +2604,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					{
 						if (objects.elementAt(j) == shape)
 						{
+							// the dialog works on the current object map
+							editorFrame.setCurrentObjectMap(i);
+
 							int originalRGB = shape.getRGB();	// save the original rgb
 							TrackObjectDialog editObjectsDialog = new TrackObjectDialog(editorFrame, true, shape, me.getXOnScreen(), me.getYOnScreen());
 
@@ -2575,18 +2639,16 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 								Undo.add(new UndoEditAllObjects(editedObjects));
 
-								// change all the objects
+								// change all the objects; every map with one of them has to be written again
 								for (int k = 0; k < editedObjects.size(); k++)
 								{
-									editedObjects.get(k).object.setRGB(newRGB);	
+									editedObjects.get(k).object.setRGB(newRGB);
+									editedObjects.get(k).objectMap.setChanged(true);
 								}
 
 								editorFrame.documentIsModified = true;
 							}
-							else
-							{
-								Undo.pop();
-							}
+							// (no undo step was added for a cancelled dialog, so there is none to remove)
 
 							selectedShape = null;
 							invalidate();
@@ -2894,14 +2956,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				editorFrame.setPasteObject(false);
 				
 				String name = editorFrame.getObjectColorName(shape.getRGB());
-				for (GraphicObject object : editorFrame.getGraphicObjects())
-				{
-					if (object.getName().equals(name))
-					{
-						name = new String(name + "-" + editorFrame.getGraphicObjects().size());
-						break;
-					}
-				}
+				name = uniqueGraphicObjectName(name, null);
 				GraphicObject graphicObject = new GraphicObject(name, shape.getRGB(), shape.getTrackLocation());
 				editorFrame.getGraphicObjects().add(graphicObject);
 				ObjectMap	shapeObjectMap = null;
@@ -2937,6 +2992,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			public void actionPerformed(ActionEvent e)
 			{
 				Vector<MovedObject>	movedObjects = new Vector<MovedObject>();
+				java.util.Set<String>	newNames = new java.util.HashSet<String>();
 				int 				rgb = shape.getRGB();
 
 				editorFrame.setPasteObject(false);
@@ -2947,8 +3003,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					{
 						if (rgb == object.getRGB())
 						{
-							// TODO fix name
-							String name = editorFrame.getObjectColorName(rgb) + "-" + movedObjects.size();
+							// a name no graphic object (or object moved before it) uses
+							String name = uniqueGraphicObjectName(editorFrame.getObjectColorName(rgb), newNames);
+							newNames.add(name);
 							MovedObject movedObject = new MovedObject(new GraphicObject(name, rgb, object.getTrackLocation()), new ObjectMapObject(objectMap, object));
 							movedObjects.add(movedObject);
 						}
@@ -3114,17 +3171,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		Point2D.Double real = new Point2D.Double();
 		screenToReal(me, real);
 
-		// TODO fix name
-		String name = editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor());
-
-		for (GraphicObject object : editorFrame.getGraphicObjects())
-		{
-			if (object.getName().equals(name))
-			{
-				name = new String(name + "-" + editorFrame.getGraphicObjects().size());
-				break;
-			}
-		}
+		// named after its type, made unique: the game keeps one object per name
+		String name = uniqueGraphicObjectName(editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor()), null);
 
 		GraphicObject	graphicObject = new GraphicObject(name, editorFrame.getCurrentObjectColor(), real);
 
@@ -3343,17 +3391,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 				if (editorFrame.isCurrentObjectGraphic())
 				{
-					// TODO fix name
-					String name = editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor()); // this is wrong
-
-					for (GraphicObject object : editorFrame.getGraphicObjects())
-					{
-						if (object.getName().equals(name))
-						{
-							name = new String(name + "-" + editorFrame.getGraphicObjects().size());
-							break;
-						}
-					}
+					// named after its type, made unique: the game keeps one object per name
+					String name = uniqueGraphicObjectName(editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor()), null);
 
 					GraphicObject	object = new GraphicObject(name, editorFrame.getCurrentObjectColor(), real);
 					editorFrame.getGraphicObjects().add(object);
@@ -3361,7 +3400,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				}
 				else
 				{
-					ObjectMap objectMap = editorFrame.getObjectMaps().get(editorFrame.getCurrentObjectMap());
+					ObjectMap objectMap = currentObjectMapToAddTo();
+					if (objectMap == null)
+						return;
 
 					int imageXY[] = { 0, 0 };
 					realToImage(real, objectMap.getImageWidth(), objectMap.getImageHeight(), imageXY);
@@ -3384,17 +3425,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 			if (editorFrame.isCurrentObjectGraphic())
 			{
-				// TODO fix name
-				String name = editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor()); // this is wrong
-
-				for (GraphicObject object : editorFrame.getGraphicObjects())
-				{
-					if (object.getName().equals(name))
-					{
-						name = new String(name + "-" + editorFrame.getGraphicObjects().size());
-						break;
-					}
-				}
+				// named after its type, made unique: the game keeps one object per name
+				String name = uniqueGraphicObjectName(editorFrame.getObjectColorName(editorFrame.getCurrentObjectColor()), null);
 
 				GraphicObject	object = new GraphicObject(name, editorFrame.getCurrentObjectColor(), real);
 				editorFrame.getGraphicObjects().add(object);
@@ -3406,7 +3438,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			}
 			else if (editorFrame.getCurrentObjectMap() != -1)
 			{
-				ObjectMap objectMap = editorFrame.getObjectMaps().get(editorFrame.getCurrentObjectMap());
+				ObjectMap objectMap = currentObjectMapToAddTo();
+				if (objectMap == null)
+					return;
 
 				int imageXY[] = { 0, 0 };
 				realToImage(real, objectMap.getImageWidth(), objectMap.getImageHeight(), imageXY);

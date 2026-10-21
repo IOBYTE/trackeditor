@@ -3498,6 +3498,9 @@ public class EditorFrame extends JFrame
 		if (view != null)
 			view.trackReplaced();
 
+		// a copied object belongs to the track that was open
+		setPasteObject(false);
+
 		for (Window window : Window.getWindows())
 		{
 			if (window.isDisplayable() &&
