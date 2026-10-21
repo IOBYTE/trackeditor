@@ -299,7 +299,10 @@ public class ReliefProperties extends PropertyPanel
 				scrollPane = new JScrollPane(table);
 				table.getColumnModel().getColumn(0).setPreferredWidth(25);
 				table.setAutoCreateRowSorter(true);
-				table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+				// not terminateEditOnFocusLost: it silently drops a value the cell refuses,
+				// instead Ok keeps a good value and reports a bad one (PropertyPanel.checkNumbers)
+				for (int column = 1; column <= 3; column++)
+					table.getColumnModel().getColumn(column).setCellEditor(NumberCellEditor.decimal(false));
 
 				JPopupMenu popupMenu = new JPopupMenu();
 				JMenuItem deleteItem = new JMenuItem("Delete Row");

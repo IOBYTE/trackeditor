@@ -9,12 +9,14 @@ public class GraphicObjectData
 	public Double	trackY;
 	public Double	orientation;
 	public Double	height;
+	public final Integer	originalColor;	// what "Unknown" goes back to
 
 	GraphicObjectData(String name, String comment, Integer color, double trackX, double trackY, double orientation, double height)
 	{
 		this.name = name;
 		this.comment = comment;
 		this.color = color;
+		this.originalColor = color;
 		this.trackX = trackX;
 		this.trackY = trackY;
 		this.orientation = orientation;

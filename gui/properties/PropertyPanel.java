@@ -1,13 +1,18 @@
 package gui.properties;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.util.function.IntSupplier;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
 
 import gui.EditorFrame;
 import utils.MutableDouble;
@@ -138,19 +143,14 @@ public class PropertyPanel extends JPanel
 	}
 
 	/**
-	 * Checks that every number field in container holds a number or nothing.
-	 * Otherwise shows the bad field, tells the user and returns false.
+	 * Selects the tabs that hold component, outer tabs first, and returns where it
+	 * is, like "Terrain > Reliefs > relief 1 > ".
 	 */
-	public static boolean checkNumbers(Component parent, Container container)
+	private static String showComponent(Container container, Component component)
 	{
-		JTextField field = findBadNumber(container);
-		if (field == null)
-			return true;
-
-		// bring the field into view, outer tabs first
 		StringBuilder where = new StringBuilder();
 		java.util.List<Component> path = new java.util.ArrayList<Component>();
-		for (Component c = field; c != null && c != container; c = c.getParent())
+		for (Component c = component; c != null && c != container; c = c.getParent())
 			path.add(0, c);
 		Container outer = container;
 		for (Component c : path)
@@ -168,6 +168,60 @@ public class PropertyPanel extends JPanel
 			if (c instanceof Container)
 				outer = (Container) c;
 		}
+		return where.toString();
+	}
+
+	private static JTable findBadTableEdit(Container container)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTable)
+			{
+				JTable table = (JTable) component;
+				// a cell still being edited: keep a good value, report a bad one
+				if (table.isEditing() && !table.getCellEditor().stopCellEditing())
+					return table;
+			}
+			else if (component instanceof Container)
+			{
+				JTable table = findBadTableEdit((Container) component);
+				if (table != null)
+					return table;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Checks that every number field in container holds a number or nothing, and
+	 * that no table cell is left holding a value it can't take.
+	 * Otherwise shows the bad field, tells the user and returns false.
+	 */
+	public static boolean checkNumbers(Component parent, Container container)
+	{
+		JTable table = findBadTableEdit(container);
+		if (table != null)
+		{
+			String where = showComponent(container, table);
+			String problem = table.getCellEditor() instanceof NumberCellEditor ?
+				((NumberCellEditor) table.getCellEditor()).problem() : "isn't a valid value";
+			// the row number shown in the table's first column is the model row
+			int row = table.convertRowIndexToModel(table.getEditingRow()) + 1;
+			JOptionPane.showMessageDialog(parent,
+				where + "row " + row + ", " + table.getColumnName(table.getEditingColumn()) + ": " + problem + ".\n\n" +
+				"Fix it, or press Escape in the cell to keep the old value.",
+				"Properties", JOptionPane.ERROR_MESSAGE);
+			Component editor = table.getEditorComponent();
+			if (editor != null)
+				editor.requestFocusInWindow();
+			return false;
+		}
+
+		JTextField field = findBadNumber(container);
+		if (field == null)
+			return true;
+
+		StringBuilder where = new StringBuilder(showComponent(container, field));
 		String label = labelFor(field);
 		if (label != null)
 			where.append(label);
@@ -183,6 +237,109 @@ public class PropertyPanel extends JPanel
 		field.requestFocusInWindow();
 		field.selectAll();
 		return false;
+	}
+
+	/**
+	 * Table cell editor for numbers. Unlike the default one it refuses NaN and
+	 * infinity, can refuse an empty cell, and can limit a pixel to the image size.
+	 * A refused value gets a red border and a tool tip saying what is wrong.
+	 */
+	public static class NumberCellEditor extends DefaultCellEditor
+	{
+		private final boolean		whole;
+		private final boolean		allowEmpty;
+		private final IntSupplier	size;	// pixels must be from 0 to size - 1
+		private Object				value;
+
+		private NumberCellEditor(boolean whole, boolean allowEmpty, IntSupplier size)
+		{
+			super(new JTextField());
+			this.whole = whole;
+			this.allowEmpty = allowEmpty;
+			this.size = size;
+			((JTextField) getComponent()).setHorizontalAlignment(JTextField.RIGHT);
+		}
+
+		/** A decimal number; allowEmpty for a value that may be unset */
+		public static NumberCellEditor decimal(boolean allowEmpty)
+		{
+			return new NumberCellEditor(false, allowEmpty, null);
+		}
+
+		/** A pixel position in an image that is size pixels wide or high */
+		public static NumberCellEditor pixel(IntSupplier size)
+		{
+			return new NumberCellEditor(true, false, size);
+		}
+
+		/** Why the text can't be used, or null if it can (and the value is set) */
+		public String problem()
+		{
+			String text = ((JTextField) getComponent()).getText();
+			text = text == null ? "" : text.trim();
+			if (text.isEmpty())
+			{
+				value = null;
+				return allowEmpty ? null : "a value is needed";
+			}
+			try
+			{
+				if (whole)
+				{
+					int number = Integer.parseInt(text);
+					if (size != null && (number < 0 || number >= size.getAsInt()))
+					{
+						return size.getAsInt() > 0 ?
+							"\"" + text + "\" is outside the image, use 0 to " + (size.getAsInt() - 1) :
+							"the image couldn't be read, so positions in it can't be changed";
+					}
+					value = number;
+				}
+				else
+				{
+					double number = Double.parseDouble(text);
+					if (!Double.isFinite(number))
+						return "\"" + text + "\" isn't a number";
+					value = number;
+				}
+				return null;
+			}
+			catch (NumberFormatException e)
+			{
+				return "\"" + text + "\" isn't " + (whole ? "a whole number" : "a number");
+			}
+		}
+
+		@Override
+		public boolean stopCellEditing()
+		{
+			JTextField field = (JTextField) getComponent();
+			String problem = problem();
+			if (problem != null)
+			{
+				field.setBorder(new LineBorder(Color.RED));
+				field.setToolTipText(problem);
+				return false;
+			}
+			return super.stopCellEditing();
+		}
+
+		@Override
+		public Object getCellEditorValue()
+		{
+			return value;
+		}
+
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
+		{
+			JTextField field = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			field.setBorder(new LineBorder(Color.BLACK));
+			field.setToolTipText(null);
+			field.setText(value == null ? "" : value.toString());
+			this.value = value;
+			return field;
+		}
 	}
 
 	public void setTextField(JTextField field, String value)

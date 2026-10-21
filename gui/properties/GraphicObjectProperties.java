@@ -243,7 +243,9 @@ public class GraphicObjectProperties extends PropertyPanel
 				String objectName = (String) value;
 				if ("Unknown".equals(objectName))
 				{
-					datum.color = graphicObjects.get(rowIndex).getColor();
+					// the row's own color: rows can be deleted or added, so the row
+					// number doesn't match the track's objects any more
+					datum.color = datum.originalColor;
 				}
 				else
 				{
@@ -329,11 +331,16 @@ public class GraphicObjectProperties extends PropertyPanel
 			table.setDefaultRenderer(Integer.class, new ColorRenderer());
 			table.setDefaultRenderer(String.class, new ColorRenderer());
 			table.setAutoCreateRowSorter(true);
-			table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+			// not terminateEditOnFocusLost: it silently drops a value the cell refuses,
+			// instead Ok keeps a good value and reports a bad one (PropertyPanel.checkNumbers)
 
 			Set<String> names = getEditorFrame().getObjectColorNames();
 
 			setUpNameColumn(table, table.getColumnModel().getColumn(OBJECT_INDEX), names);
+			table.getColumnModel().getColumn(TRACK_X_INDEX).setCellEditor(NumberCellEditor.decimal(false));
+			table.getColumnModel().getColumn(TRACK_Y_INDEX).setCellEditor(NumberCellEditor.decimal(false));
+			table.getColumnModel().getColumn(ORIENTATION_INDEX).setCellEditor(NumberCellEditor.decimal(true));
+			table.getColumnModel().getColumn(HEIGHT_INDEX).setCellEditor(NumberCellEditor.decimal(true));
 
 			table.addMouseListener(new MouseAdapter()
 			{
@@ -390,7 +397,9 @@ public class GraphicObjectProperties extends PropertyPanel
 				int row = panel.table.getSelectedRow();
 				if (row != -1)
 				{
-					GraphicObjectData datum = data.elementAt(panel.table.convertRowIndexToModel(row));
+					// the model row: with the table sorted the row on screen is a different one
+					row = panel.table.convertRowIndexToModel(row);
+					GraphicObjectData datum = data.elementAt(row);
 
 					TrackObjectDialog editObjectDialog = new TrackObjectDialog(getEditorFrame(), false, datum, data);
 

@@ -8,11 +8,13 @@ public class ObjectData
 	public Integer	imageY;
 	public Double	trackX;
 	public Double	trackY;
+	public final Integer	originalColor;	// what "Unknown" goes back to
 	
 	public ObjectData(String name, Integer color, Integer imageX, Integer imageY, double trackX, double trackY)
 	{
 		this.name = name;
 		this.color = color;
+		this.originalColor = color;
 		this.imageX = imageX;
 		this.imageY = imageY;
 		this.trackX = trackX;

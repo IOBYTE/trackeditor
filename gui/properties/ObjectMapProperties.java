@@ -158,6 +158,10 @@ public class ObjectMapProperties extends PropertyPanel
 
 		private Vector<ObjectData> data = new Vector<ObjectData>();
 
+		// the size of the image the rows come from, which limits Image X and Image Y
+		private int					imageWidth				= 0;
+		private int					imageHeight				= 0;
+
 		public Vector<ObjectData> getData()
 		{
 			return data;
@@ -170,6 +174,8 @@ public class ObjectMapProperties extends PropertyPanel
 		{
 			super();
 			this.objectMap = objectMap;
+			imageWidth = objectMap.getImageWidth();
+			imageHeight = objectMap.getImageHeight();
 			initialize();
 		}
 
@@ -366,8 +372,10 @@ public class ObjectMapProperties extends PropertyPanel
 			if (file.exists())
 			{
 				BufferedImage image = ImageIO.read(file);
-				int imageWidth = image.getWidth();
-				int imageHeight = image.getHeight();
+				if (image == null)
+					throw new IOException("not an image format the editor can read (use PNG)");
+				imageWidth = image.getWidth();
+				imageHeight = image.getHeight();
 
 				for (int x = 0; x < imageWidth; x++)
 				{
@@ -405,7 +413,7 @@ public class ObjectMapProperties extends PropertyPanel
 				}
 
 				Point2D.Double real = new Point2D.Double();
-				getEditorFrame().getCircuitView().imageToReal(object.getImageX(), object.getImageY(), objectMap.getImageWidth(), objectMap.getImageHeight(), real);
+				getEditorFrame().getCircuitView().imageToReal(object.getImageX(), object.getImageY(), imageWidth, imageHeight, real);
 				data.add(new ObjectData(name, object.getRGB(), object.getImageX(), object.getImageY(), real.x, real.y));
 			}
     	}
@@ -533,7 +541,8 @@ public class ObjectMapProperties extends PropertyPanel
 
 			        if (value.equals("Unknown"))
 			        {
-			        	datum.color = objectMap.getObjects().get(rowIndex).getRGB();
+			        	// the row's own color: after a delete the row number points at another object
+			        	datum.color = datum.originalColor;
 			        }
 			        else
 			        {
@@ -550,14 +559,14 @@ public class ObjectMapProperties extends PropertyPanel
 				case IMAGE_X_INDEX:
 					datum.imageX = (Integer) value;
 					fireTableCellUpdated(rowIndex, columnIndex);			        
-					getEditorFrame().getCircuitView().imageToReal(datum.imageX, datum.imageY, objectMap.getImageWidth(), objectMap.getImageHeight(), real);
+					getEditorFrame().getCircuitView().imageToReal(datum.imageX, datum.imageY, imageWidth, imageHeight, real);
 					datum.trackX = real.x;
 					fireTableCellUpdated(rowIndex, TRACK_X_INDEX);			        
 					break;
 				case IMAGE_Y_INDEX:
 					datum.imageY = (Integer) value;
 					fireTableCellUpdated(rowIndex, columnIndex);			        
-					getEditorFrame().getCircuitView().imageToReal(datum.imageX, datum.imageY, objectMap.getImageWidth(), objectMap.getImageHeight(), real);
+					getEditorFrame().getCircuitView().imageToReal(datum.imageX, datum.imageY, imageWidth, imageHeight, real);
 					datum.trackY = real.y;
 					fireTableCellUpdated(rowIndex, TRACK_Y_INDEX);			        
 					break;
@@ -617,11 +626,15 @@ public class ObjectMapProperties extends PropertyPanel
 		        table.getColumnModel().getColumn(OBJECT_INDEX).setPreferredWidth(120);
 		        table.setDefaultRenderer(Integer.class, new ColorRenderer());
 		        table.setAutoCreateRowSorter(true);
-		        table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+		        // not terminateEditOnFocusLost: it silently drops a value the cell refuses,
+		        // instead Ok keeps a good value and reports a bad one (PropertyPanel.checkNumbers)
 
 		        Set<String> names = getEditorFrame().getObjectColorNames();
 
 		        setUpNameColumn(table, table.getColumnModel().getColumn(OBJECT_INDEX), names);
+		        // a pixel outside the image can't be written, so the object would be lost
+		        table.getColumnModel().getColumn(IMAGE_X_INDEX).setCellEditor(NumberCellEditor.pixel(() -> imageWidth));
+		        table.getColumnModel().getColumn(IMAGE_Y_INDEX).setCellEditor(NumberCellEditor.pixel(() -> imageHeight));
 
 		        table.addMouseListener(new MouseAdapter()
 		        {
@@ -682,7 +695,9 @@ public class ObjectMapProperties extends PropertyPanel
 					int row = panel.table.getSelectedRow();
 					if (row != -1)
 					{
-						ObjectData datum = data.elementAt(panel.table.convertRowIndexToModel(row));
+						// the model row: with the table sorted the row on screen is a different one
+						row = panel.table.convertRowIndexToModel(row);
+						ObjectData datum = data.elementAt(row);
 
 						TrackObjectDialog editObjectDialog = new TrackObjectDialog(getEditorFrame(), false, datum);
 
