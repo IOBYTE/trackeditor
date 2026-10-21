@@ -41,11 +41,21 @@ public class PreferencesDialog extends JDialog
 	private JComboBox<EditorFrame.GameType>	gameTypeComboBox	= null;
 	private JButton				okButton					= null;
 	private JButton				cancelButton				= null;
+	// each game's data, bin and lib directories, as edited in this dialog
+	private java.util.EnumMap<EditorFrame.GameType, String[]>	directories	=
+		new java.util.EnumMap<EditorFrame.GameType, String[]>(EditorFrame.GameType.class);
 
 	public PreferencesDialog(EditorFrame editorFrame)
 	{
 		super();
 		this.editorFrame = editorFrame;
+		for (EditorFrame.GameType game : EditorFrame.GameType.values())
+		{
+			directories.put(game, new String[] {
+				editorFrame.getDirectory(game, EditorFrame.DATA_DIRECTORY),
+				editorFrame.getDirectory(game, EditorFrame.BIN_DIRECTORY),
+				editorFrame.getDirectory(game, EditorFrame.LIB_DIRECTORY) });
+		}
 		initialize();
 	}
 	
@@ -353,8 +363,22 @@ public class PreferencesDialog extends JDialog
 			{
 				public void itemStateChanged(java.awt.event.ItemEvent e)
 				{
-					if (dataDirectoryLabel != null)
-						updateGameLabels();
+					// each game has its own directories: keep what was typed for the
+					// game left, and show the ones of the game chosen
+					EditorFrame.GameType game = (EditorFrame.GameType) e.getItem();
+					if (e.getStateChange() == java.awt.event.ItemEvent.DESELECTED)
+					{
+						keepDirectories(game);
+					}
+					else
+					{
+						String[] values = directories.get(game);
+						getDataDirectoryTextField().setText(values[EditorFrame.DATA_DIRECTORY]);
+						getBinDirectoryTextField().setText(values[EditorFrame.BIN_DIRECTORY]);
+						getLibDirectoryTextField().setText(values[EditorFrame.LIB_DIRECTORY]);
+						if (dataDirectoryLabel != null)
+							updateGameLabels();
+					}
 				}
 			});
 		}
@@ -426,6 +450,23 @@ public class PreferencesDialog extends JDialog
 		this.dispose();
 	}
 	
+	/** Remembers the directories shown as the given game's */
+	private void keepDirectories(EditorFrame.GameType game)
+	{
+		directories.put(game, new String[] {
+			getDataDirectoryTextField().getText(),
+			getBinDirectoryTextField().getText(),
+			getLibDirectoryTextField().getText() });
+	}
+
+	/** @return the game's data, bin and lib directories */
+	public String[] getDirectories(EditorFrame.GameType game)
+	{
+		keepDirectories(getGameType());
+		return directories.get(game).clone();
+	}
+
+	/** @return the data directory of the game chosen */
 	public String getDataDirectory()
 	{
 		return getDataDirectoryTextField().getText();

@@ -327,12 +327,15 @@ public class EditorFrame extends JFrame
 	private TrackData			trackData							= null;
 	private Vector<Surface>		defaultSurfaces						= new Vector<Surface>();
 	private Vector<TrackObject>	defaultObjects						= new Vector<TrackObject>();
-	private String				dataDirectory						= null;
-	private String				binDirectory						= null;
-	private String				libDirectory						= null;
-	private final static String	SD_DATA_DIRECTORY					= "DataDirectory";
-	private final static String	SD_BIN_DIRECTORY					= "BinDirectory";
-	private final static String	SD_LIB_DIRECTORY					= "LibDirectory";
+	// each game's data, bin and lib directories (null when not set)
+	private final java.util.EnumMap<GameType, String[]>	directories	= new java.util.EnumMap<GameType, String[]>(GameType.class);
+	public final static int		DATA_DIRECTORY						= 0;
+	public final static int		BIN_DIRECTORY						= 1;
+	public final static int		LIB_DIRECTORY						= 2;
+	// the preferences, saved for each game as "<game>.DataDirectory" and so on; without
+	// the game they are the directories from before each game had its own, still
+	// written for the game in use so older editors keep working
+	private final static String[]	DIRECTORY_KEYS					= { "DataDirectory", "BinDirectory", "LibDirectory" };
 
 	private DefaultSurfacesDialog	defaultSurfacesDialog			= null;
 	private DefaultObjectsDialog	defaultObjectsDialog			= null;
@@ -462,9 +465,6 @@ public class EditorFrame extends JFrame
 			closeSplash(started);
 		}
 
-		dataDirectory = preferences.get(SD_DATA_DIRECTORY, null);
-		binDirectory = preferences.get(SD_BIN_DIRECTORY, null);
-		libDirectory = preferences.get(SD_LIB_DIRECTORY, null);
 		recentFilesMax = readRecentFilesMax();
 		interactiveFixes = preferences.getBoolean(INTERACTIVE_FIXES, false);
 		cursorCoordinates = preferences.getBoolean(CURSOR_COORDINATES, false);
@@ -474,10 +474,11 @@ public class EditorFrame extends JFrame
 		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
 		// the default until a game type has been chosen
 		gameType = readGameType();
+		readDirectories();
 		if (exportMenu != null)
 			updateExportMenu();
 
-		if (dataDirectory == null)
+		if (getDataDirectory() == null)
 		{
 			JOptionPane.showMessageDialog(this,
 					"You need to specify the " + gameType.getName() + " data directory in order to\n" +
@@ -500,6 +501,9 @@ public class EditorFrame extends JFrame
 	
 	private void readDefaultSurfaces()
 	{
+		// read again when the directory or game changes: don't keep the old ones
+		defaultSurfaces.clear();
+		String dataDirectory = getDataDirectory();
 		if (dataDirectory != null && !dataDirectory.isEmpty())
 		{
 			String defaultSurfaceFile = dataDirectory + sep + "data" + sep + "tracks" + sep + "surfaces.xml";
@@ -522,6 +526,8 @@ public class EditorFrame extends JFrame
 
 	private void readDefaultObjects()
 	{
+		defaultObjects.clear();
+		String dataDirectory = getDataDirectory();
 		if (dataDirectory != null && !dataDirectory.isEmpty())
 		{
 			String defaultSurfaceFile = dataDirectory + sep + "data" + sep + "tracks" + sep + "objects.xml";
@@ -542,40 +548,86 @@ public class EditorFrame extends JFrame
 		return defaultObjects;
 	}
 
+	/**
+	 * Reads each game's directories. A game with none set yet takes the shared
+	 * ones from before each game had its own, if it's the game in use.
+	 */
+	private void readDirectories()
+	{
+		for (GameType game : GameType.values())
+		{
+			String[] values = new String[DIRECTORY_KEYS.length];
+			boolean any = false;
+			for (int i = 0; i < DIRECTORY_KEYS.length; i++)
+			{
+				values[i] = preferences.get(game.name() + "." + DIRECTORY_KEYS[i], null);
+				any |= values[i] != null;
+			}
+			if (!any && game == gameType)
+			{
+				for (int i = 0; i < DIRECTORY_KEYS.length; i++)
+					values[i] = preferences.get(DIRECTORY_KEYS[i], null);
+			}
+			directories.put(game, values);
+		}
+	}
+
+	/**
+	 * @param kind DATA_DIRECTORY, BIN_DIRECTORY or LIB_DIRECTORY
+	 * @return the game's directory, or null when not set
+	 */
+	public String getDirectory(GameType game, int kind)
+	{
+		return directories.get(game)[kind];
+	}
+
+	public void setDirectory(GameType game, int kind, String directory)
+	{
+		directories.get(game)[kind] = directory;
+		putOrRemove(game.name() + "." + DIRECTORY_KEYS[kind], directory);
+		if (game == gameType)
+			putOrRemove(DIRECTORY_KEYS[kind], directory);
+	}
+
+	private void putOrRemove(String key, String value)
+	{
+		if (value == null)
+			preferences.remove(key);
+		else
+			preferences.put(key, value);
+	}
+
+	/** @return the data directory of the game in use */
 	public String getDataDirectory()
 	{
-		return dataDirectory;
+		return getDirectory(gameType, DATA_DIRECTORY);
 	}
-	
+
 	public void setDataDirectory(String dataDirectory)
 	{
-		this.dataDirectory = dataDirectory;
-		
-		preferences.put(SD_DATA_DIRECTORY, this.dataDirectory);
+		setDirectory(gameType, DATA_DIRECTORY, dataDirectory);
 	}
 
+	/** @return the bin directory of the game in use */
 	public String getBinDirectory()
 	{
-		return binDirectory;
-	}
-	
-	public void setBinDirectory(String binDirectory)
-	{
-		this.binDirectory = binDirectory;
-		
-		preferences.put(SD_BIN_DIRECTORY, this.binDirectory);
+		return getDirectory(gameType, BIN_DIRECTORY);
 	}
 
+	public void setBinDirectory(String binDirectory)
+	{
+		setDirectory(gameType, BIN_DIRECTORY, binDirectory);
+	}
+
+	/** @return the lib directory of the game in use */
 	public String getLibDirectory()
 	{
-		return libDirectory;
+		return getDirectory(gameType, LIB_DIRECTORY);
 	}
-	
+
 	public void setLibDirectory(String libDirectory)
 	{
-		this.libDirectory = libDirectory;
-		
-		preferences.put(SD_LIB_DIRECTORY, this.libDirectory);
+		setDirectory(gameType, LIB_DIRECTORY, libDirectory);
 	}
 
 	public int getRecentFilesMax()
@@ -683,8 +735,13 @@ public class EditorFrame extends JFrame
 		// always saved, so a choice that matches this app's default still applies
 		// when the editor is run another way
 		preferences.put(GAME_TYPE, gameType.name());
-		// for editors from before TORCS was added
+		// for editors from before TORCS was added, or before each game had its own directories
 		preferences.putBoolean(CARS_SPORTS_RACING, gameType == GameType.CARS_SPORTS_RACING);
+		if (!directories.isEmpty())
+		{
+			for (int i = 0; i < DIRECTORY_KEYS.length; i++)
+				putOrRemove(DIRECTORY_KEYS[i], getDirectory(gameType, i));
+		}
 
 		if (exportMenu != null)
 			updateExportMenu();
@@ -788,7 +845,7 @@ public class EditorFrame extends JFrame
 		fc.setDialogTitle("Project path selection");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
-		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
+		String trackDir = getDataDirectory();
 		if (trackDir == null)
 			trackDir = System.getProperty("user.dir");
 		fc.setCurrentDirectory(new File(trackDir + sep + "tracks"));
@@ -1707,15 +1764,19 @@ public class EditorFrame extends JFrame
 		preferencesDialog.setVisible(true);
 		if (PreferencesDialog.APPROVE)
 		{
-			setDataDirectory(preferencesDialog.getDataDirectory());
-			setBinDirectory(preferencesDialog.getBinDirectory());
-			setLibDirectory(preferencesDialog.getLibDirectory());
+			// the game first, so the directories the old preferences keep are its own
+			setGameType(preferencesDialog.getGameType());
+			for (GameType game : GameType.values())
+			{
+				String[] values = preferencesDialog.getDirectories(game);
+				for (int i = 0; i < values.length; i++)
+					setDirectory(game, i, values[i]);
+			}
 			setRecentFilesMax(preferencesDialog.getRecentFilesMax());
 			setInteractiveFixes(preferencesDialog.getInteractiveFixes());
 			setCursorCoordinates(preferencesDialog.getCursorCoordinates());
 			setCursorNames(preferencesDialog.getCursorNames());
 			setCheckDefaultObjects(preferencesDialog.getCheckDefaultObjects());
-			setGameType(preferencesDialog.getGameType());
 			readDefaultSurfaces();
 			readDefaultObjects();
 			view.redrawCircuit();
@@ -3597,7 +3658,7 @@ public class EditorFrame extends JFrame
 		fc.setDialogTitle("Import track from Xml");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
-		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
+		String trackDir = getDataDirectory();
 		if (trackDir == null)
 			trackDir = System.getProperty("user.dir");
 		fc.setCurrentDirectory(new File(trackDir + sep + "tracks"));
