@@ -422,6 +422,8 @@ public class PropertiesDialog extends JDialog
 			javax.swing.JOptionPane.showMessageDialog(this, pitProblem, "Properties", javax.swing.JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		if (!this.imageProperties.checkScale(this, getTabbedPane()))
+			return;
 
 		this.generalProperties.exit();
 		this.trackProperties.exit();

@@ -21,12 +21,15 @@
 package gui.properties;
 
 import java.io.File;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -53,6 +56,10 @@ public class ImageProperties extends PropertyPanel
 	private JTextField	imageOffsetXTextField	= new JTextField();
 	private JLabel 		imageOffsetYLabel		= new JLabel();
 	private JTextField	imageOffsetYTextField	= new JTextField();
+
+	// what an empty field means
+	private static final String	DEFAULT_SCALE	= "1";
+	private static final String	DEFAULT_OFFSET	= "0";
 
 	/**
 	 *
@@ -112,8 +119,17 @@ public class ImageProperties extends PropertyPanel
 	 */
 	protected void selectPath()
 	{
-		Path filename = Paths.get(pathTextField.getText());
 		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		Path filename;
+		try
+		{
+			filename = Paths.get(pathTextField.getText());
+		}
+		catch (InvalidPathException e)
+		{
+			// a name with characters the file system doesn't allow: start in the track directory
+			filename = trackPath.resolve("image.png");
+		}
 		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
 		UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
 		JFileChooser fc = new JFileChooser();
@@ -164,36 +180,71 @@ public class ImageProperties extends PropertyPanel
 		}
 	}
 
+	private static String orDefault(String text, String value)
+	{
+		if (text == null || text.trim().isEmpty())
+			return value;
+
+		return text.trim();
+	}
+
+	/**
+	 * Checks that the image scale is greater than 0 (empty means 1).
+	 * Otherwise shows the field, tells the user and returns false.
+	 */
+	public boolean checkScale(java.awt.Component parent, JTabbedPane tabs)
+	{
+		double scale = getDouble(orDefault(imageScaleTextField.getText(), DEFAULT_SCALE));
+		if (scale > 0)
+			return true;
+
+		tabs.setSelectedComponent(this);
+		JOptionPane.showMessageDialog(parent,
+			"Image > Image scale: \"" + imageScaleTextField.getText().trim() + "\" must be greater than 0.\n\n" +
+			"Fix it or clear the field to use 1.",
+			"Properties", JOptionPane.ERROR_MESSAGE);
+		imageScaleTextField.requestFocusInWindow();
+		imageScaleTextField.selectAll();
+		return false;
+	}
+
 	public void exit()
 	{
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
+		boolean reload = false;
 
 		if (isDifferent(pathTextField.getText(), Editor.getProperties().getImage(), stringResult))
 		{
 			Editor.getProperties().setImage(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
+			reload = true;
 		}
 
-		if (isDifferent(imageScaleTextField.getText(),
+		if (isDifferent(orDefault(imageScaleTextField.getText(), DEFAULT_SCALE),
 			Editor.getProperties().getImageScale(), doubleResult))
 		{
 			Editor.getProperties().setImageScale(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
+			reload = true;
 		}
 
-		if (isDifferent(imageOffsetXTextField.getText(),
+		if (isDifferent(orDefault(imageOffsetXTextField.getText(), DEFAULT_OFFSET),
 			Editor.getProperties().getImgOffset().getX(), doubleResult))
 		{
 			Editor.getProperties().getImgOffset().setX(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(imageOffsetYTextField.getText(),
+		if (isDifferent(orDefault(imageOffsetYTextField.getText(), DEFAULT_OFFSET),
 			Editor.getProperties().getImgOffset().getY(), doubleResult))
 		{
 			Editor.getProperties().getImgOffset().setY(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
+
+		// the view loads the image and works out its size from the scale
+		if (reload)
+			getEditorFrame().getCircuitView().setBackgroundImage(Editor.getProperties().getImage());
 	}
 }  //  @jve:decl-index=0:visual-constraint="10,10"

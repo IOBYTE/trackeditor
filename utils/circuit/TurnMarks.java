@@ -4,7 +4,7 @@ public class TurnMarks {
 	public static final	double	DEFAULT_WIDTH				= 1;
 	public static final	double	DEFAULT_HEIGHT				= 1;
 	public static final	double	DEFAULT_VERTICAL_SPACE		= 0;
-	public static final	double	DEFAULT_HORIZONTAL_SPACE	= 2;
+	public static final	double	DEFAULT_HORIZONTAL_SPACE	= 0;
 
 	private double				width						= Double.NaN;
 	private double				height						= Double.NaN;

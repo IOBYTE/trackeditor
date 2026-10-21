@@ -79,6 +79,7 @@ import plugin.torcs.XmlReader;
 import plugin.torcs.XmlWriter;
 import utils.CustomFileFilter;
 import utils.Editor;
+import utils.EditorPoint;
 import utils.Project;
 import utils.Properties;
 import utils.SegmentVector;
@@ -757,8 +758,30 @@ public class EditorFrame extends JFrame
 			return;
 		}
 		updateRecentFiles(projectFileName);
+		showBackgroundImage();
 		
 		setTitle(originalTitle + " - Project: " + projectFileName);
+	}
+
+	/**
+	 * Shows the project's background image, if the background is shown (turning
+	 * it on loads the image).
+	 */
+	private void showBackgroundImage()
+	{
+		if (view.isShowBackground())
+			view.setBackgroundImage(Editor.getProperties().getImage());
+	}
+
+	/**
+	 * A track opened without its project, or a new track, has no background image:
+	 * the image settings of the track that was open don't apply to it.
+	 */
+	private void clearBackgroundImage()
+	{
+		Editor.getProperties().setImage("");
+		Editor.getProperties().setImageScale(1);
+		Editor.getProperties().setImgOffset(new EditorPoint());
 	}
 
 	/**
@@ -946,6 +969,7 @@ public class EditorFrame extends JFrame
         trackData = new TrackData();
         Undo.clear();
         closeTrackWindows();
+        clearBackgroundImage();
         
         trackData.getHeader().setName(newProjectInfo.name);
         trackData.getHeader().setCategory(newProjectInfo.category);
@@ -2533,7 +2557,14 @@ public class EditorFrame extends JFrame
 			{
 				selectedFile = selectedFile.getFileName();
 			}
-			view.setBackgroundImage(selectedFile.toString());
+			// saved with the project, like the image in Properties > Image
+			String image = selectedFile.toString();
+			if (!image.equals(Editor.getProperties().getImage()))
+			{
+				Editor.getProperties().setImage(image);
+				documentIsModified = true;
+			}
+			view.setBackgroundImage(image);
 		}
 	}
 
@@ -3478,6 +3509,10 @@ public class EditorFrame extends JFrame
 			{
 				// the current track is still open
 				Editor.getProperties().setPath(oldPath);
+			}
+			else
+			{
+				clearBackgroundImage();
 			}
 		}
 	}

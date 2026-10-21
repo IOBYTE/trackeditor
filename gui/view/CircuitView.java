@@ -1900,36 +1900,61 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 //		}
 //	}
 
+	/**
+	 * Loads the background image shown behind the track, or removes it when
+	 * fileName is empty. Only shows the image: the caller records it in the
+	 * project and marks the track modified if that changed.
+	 */
 	public void setBackgroundImage(String fileName)
 	{
-		Path imagePath = Paths.get(fileName);
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		backgroundImg = null;
 
-		// add path to track to image file name if none present
-		if (imagePath.getParent() == null)
+		if (fileName != null && !fileName.isEmpty())
 		{
-			imagePath = Paths.get(trackPath.toString(), fileName);
+			ImageIcon image = null;
+			try
+			{
+				Path imagePath = Paths.get(fileName);
+				Path trackPath = Paths.get(Editor.getProperties().getPath());
+
+				// add path to track to image file name if none present
+				if (imagePath.getParent() == null)
+				{
+					imagePath = Paths.get(trackPath.toString(), fileName);
+				}
+
+				File img = new File(imagePath.toString());
+
+				if (img.isFile())
+				{
+					image = new ImageIcon(imagePath.toString());
+					if (image.getImageLoadStatus() != java.awt.MediaTracker.COMPLETE)
+						image = null;
+				}
+			}
+			catch (java.nio.file.InvalidPathException e)
+			{
+				// a name with characters the file system doesn't allow
+			}
+
+			if (image != null)
+			{
+				backgroundImg = image;
+				int width = backgroundImg.getIconWidth();
+				int height = backgroundImg.getIconHeight();
+				double scale = Editor.getProperties().getImageScale();
+				if (!(scale > 0))
+					scale = 1;
+				backgroundRectangle.setFrame(0, 0, width*scale, height*scale);
+			}
+			else
+			{
+				JOptionPane.showMessageDialog(editorFrame, "Couldn't open : " + fileName, "Background Image", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 
-		File img = new File(imagePath.toString());
-
-		if (img.exists())
-		{
-			backgroundImg = new ImageIcon(imagePath.toString());
-			int width = backgroundImg.getIconWidth();
-			int height = backgroundImg.getIconHeight();
-			double scale = Editor.getProperties().getImageScale();
-			backgroundRectangle.setFrame(0, 0, width*scale, height*scale);
-			editorFrame.documentIsModified = true;
-
-			invalidate();
-			repaint();
-		}
-		else
-		{
-			JOptionPane.showMessageDialog(editorFrame, "Couldn't open : " + fileName, "Background Image", JOptionPane.ERROR_MESSAGE);
-			backgroundImg = null;
-		}
+		invalidate();
+		repaint();
 	}
 	
 	/**
@@ -2193,6 +2218,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		boolean mustFire = (selectedShape != null);
 		selectedShape = null;
 		handledShape = null;
+		// the background image belongs to the track that was open
+		backgroundImg = null;
 
 		if (segmentParamDialog != null)
 		{
