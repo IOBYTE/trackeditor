@@ -7,6 +7,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
@@ -69,6 +70,11 @@ public class TCPopupEventQueue extends EventQueue {
 		createPopupMenu((JTextComponent)comp);
 		showPopup((Component)me.getSource(), me);
 	}
+	/** The shortcut for key with the platform's menu key (Ctrl, or Cmd on macOS) */
+	private static KeyStroke shortcut(int key)
+	{
+		return KeyStroke.getKeyStroke(key, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+	}
 	public abstract class BasicAction extends AbstractAction{
 		JTextComponent comp;
 		
@@ -84,19 +90,19 @@ public class TCPopupEventQueue extends EventQueue {
 	public class CutAction extends BasicAction {
 		public CutAction(String text, Icon icon) {
 			super(text, icon);
-			putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("ctrl X"));
+			putValue(Action.ACCELERATOR_KEY, shortcut(KeyEvent.VK_X));
 		}
 		public void actionPerformed(ActionEvent e){
 			comp.cut();
 		}
 		public boolean isEnabled(){
-			return comp != null && comp.isEditable() && comp.getSelectedText() != null;
+			return comp != null && comp.isEnabled() && comp.isEditable() && comp.getSelectedText() != null;
 		}
 	}
 	public class CopyAction extends BasicAction{
 		public CopyAction(String text, Icon icon){
 			super(text,icon);
-			putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("ctrl C"));
+			putValue(Action.ACCELERATOR_KEY, shortcut(KeyEvent.VK_C));
 		}
 		public void actionPerformed(ActionEvent e) {
 			comp.copy();
@@ -108,21 +114,31 @@ public class TCPopupEventQueue extends EventQueue {
 	public class PasteAction extends BasicAction{
 		public PasteAction(String text, Icon icon){
 			super(text,icon);
-			putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("ctrl V"));
+			putValue(Action.ACCELERATOR_KEY, shortcut(KeyEvent.VK_V));
 		}
 		public void actionPerformed(ActionEvent e) {
 			comp.paste();
 		}
 		public boolean isEnabled() {
-			Transferable content = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-			return comp != null && comp.isEnabled() && comp.isEditable() 
-						&& content.isDataFlavorSupported(DataFlavor.stringFlavor);
+			if (comp == null || !comp.isEnabled() || !comp.isEditable())
+				return false;
+			try
+			{
+				// null when the clipboard is empty
+				Transferable content = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+				return content != null && content.isDataFlavorSupported(DataFlavor.stringFlavor);
+			}
+			catch (IllegalStateException e)
+			{
+				// another program has the clipboard open (Windows)
+				return false;
+			}
 		}
 	}
 	public class SelectAllAction extends BasicAction{
 		public SelectAllAction(String text, Icon icon){
 			super(text,icon);
-			putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("ctrl A"));
+			putValue(Action.ACCELERATOR_KEY, shortcut(KeyEvent.VK_A));
 		}
 		public void actionPerformed(ActionEvent e){
 			comp.selectAll();
