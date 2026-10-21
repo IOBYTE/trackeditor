@@ -94,11 +94,40 @@ public class Ac3d
 
 		if (line != null)
 		{
-			tokens = tokenizeLine(line);
+			// count the line first, so an error in it reports its own number
 			linenum++;
+			tokens = tokenizeLine(line);
 		}
 
 		return line != null;
+	}
+
+	/**
+	 * Reads the next line, which must be there.
+	 */
+	private void requireLine(String what) throws IOException
+	{
+		if (!readLine())
+			throw new Ac3dException("unexpected end of file in the " + what, linenum);
+	}
+
+	/**
+	 * Reads the next line of object data: free text, so it isn't split into tokens.
+	 */
+	private void requireDataLine() throws IOException
+	{
+		line = br.readLine();
+
+		if (line == null)
+			throw new Ac3dException("unexpected end of file in the object data", linenum);
+
+		linenum++;
+	}
+
+	/** The line being read, for messages */
+	private String text()
+	{
+		return line == null ? "" : line.trim();
 	}
 
 	private void parseMaterial() throws Ac3dException
@@ -180,8 +209,10 @@ public class Ac3d
 				int wasRead = 0;
 				String data = new String();
 
-				while (wasRead < toRead && readLine())
+				while (wasRead < toRead)
 				{
+					requireDataLine();
+
 					// the count includes the line breaks inside the data
 					if (wasRead > 0)
 					{
@@ -245,7 +276,7 @@ public class Ac3d
 
 				for (int i = 0; i < numvert; i++)
 				{
-					readLine();
+					requireLine("vertices");
 
 					object.addVertex(tokens);
 				}
@@ -279,7 +310,7 @@ public class Ac3d
 
 							for (int j = 0; j < refs; j++)
 							{
-								readLine();
+								requireLine("surface references");
 
 								surface.addRef(tokens);
 							}
@@ -336,11 +367,15 @@ public class Ac3d
 	
 	public void read(File file) throws Exception, IOException
 	{
-		try
+		// closed whatever goes wrong, so the file isn't left locked (Windows)
+		try (BufferedReader reader = new BufferedReader(new FileReader(file)))
 		{
-			br = new BufferedReader(new FileReader(file));
+			br = reader;
 
-			readLine();
+			if (!readLine() || tokens.length == 0)
+			{
+				throw new Ac3dException("not an AC3D file: it doesn't start with AC3Db or AC3Dc", 1);
+			}
 
 			if ("AC3Db".equals(tokens[0]))
 			{
@@ -378,13 +413,22 @@ public class Ac3d
 					throw new Ac3dException("unexpected token: " + tokens[0], linenum);
 				}
 			}
-
-			br.close();
 		}
 		catch (Ac3dException e)
 		{
-			br.close();
 			throw new Exception("line " + e.getLineNumber() + " " + e.getLocalizedMessage());
+		}
+		catch (NumberFormatException e)
+		{
+			throw new Exception("line " + linenum + " \"" + text() + "\" has a value that isn't a number");
+		}
+		catch (IndexOutOfBoundsException e)
+		{
+			throw new Exception("line " + linenum + " \"" + text() + "\" is missing a value");
+		}
+		finally
+		{
+			br = null;
 		}
 	}
 
