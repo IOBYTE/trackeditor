@@ -2499,15 +2499,15 @@ public class EditorFrame extends JFrame
     	fileName = fileName + sep + trackName + "-track.txt";
     	try
     	{
-    		// written through a temporary file, and closed so Windows doesn't keep it locked
-    		utils.AtomicFile.write(Paths.get(fileName), file -> {
-    			try (PrintStream printStream = new PrintStream(new FileOutputStream(file)))
-    			{
-    				trackData.getSegments().dump(printStream);
-    				if (printStream.checkError())
-    					throw new IOException("write error");
-    			}
-    		});
+			// written through a temporary file, and closed so Windows doesn't keep it locked
+			utils.AtomicFile.write(Paths.get(fileName), file -> {
+				try (PrintStream printStream = new PrintStream(new FileOutputStream(file)))
+				{
+					trackData.getSegments().dump(printStream);
+					if (printStream.checkError())
+						throw new IOException("write error");
+				}
+			});
     	}
     	catch (Exception ex)
     	{

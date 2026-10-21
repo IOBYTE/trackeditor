@@ -1312,134 +1312,134 @@ public class Segment implements Cloneable
 
     public double getValidLeftBarrierWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).barrierWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).barrierWidth;
     }
 
     public double getValidRightBarrierWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).barrierWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).barrierWidth;
     }
 
     public double getValidLeftBarrierHeight(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).barrierHeight;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).barrierHeight;
     }
 
     public double getValidRightBarrierHeight(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).barrierHeight;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).barrierHeight;
     }
 
     public String getValidLeftBarrierSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).barrierSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).barrierSurface;
     }
 
     public String getValidRightBarrierSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).barrierSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).barrierSurface;
     }
 
     public String getValidLeftBarrierStyle(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).barrierStyle;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).barrierStyle;
     }
 
     public String getValidRightBarrierStyle(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).barrierStyle;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).barrierStyle;
     }
 
     public double getValidLeftBorderWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).borderWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).borderWidth;
     }
 
     public double getValidRightBorderWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).borderWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).borderWidth;
     }
 
     public double getValidLeftBorderHeight(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).borderHeight;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).borderHeight;
     }
 
     public double getValidRightBorderHeight(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).borderHeight;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).borderHeight;
     }
 
     public String getValidLeftBorderSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).borderSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).borderSurface;
     }
 
     public String getValidRightBorderSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).borderSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).borderSurface;
     }
 
     public String getValidLeftBorderStyle(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).borderStyle;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).borderStyle;
     }
 
     public String getValidRightBorderStyle(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).borderStyle;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).borderStyle;
     }
 
     public double getValidLeftSideStartWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).sideStartWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).sideStartWidth;
     }
 
     public double getValidLeftSideEndWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).sideEndWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).sideEndWidth;
     }
 
     public double getValidRightSideStartWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).sideStartWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).sideStartWidth;
     }
 
     public double getValidRightSideEndWidth(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).sideEndWidth;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).sideEndWidth;
     }
     
     public String getValidLeftSideSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, false, editorFrame).sideSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, false, editorFrame).sideSurface;
     }
 
     public String getValidRightSideSurface(EditorFrame editorFrame)
     {
-    	// what the game uses, see GameSides
-    	return GameSides.of(this, true, editorFrame).sideSurface;
+		// what the game uses, see GameSides
+		return GameSides.of(this, true, editorFrame).sideSurface;
     }
 
     public String getValidLeftSideBankingType(EditorFrame editorFrame)
@@ -1626,7 +1626,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-        			return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
+					return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
             previous = previous.previousShape;
@@ -1650,7 +1650,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-        			return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
+					return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
     	}

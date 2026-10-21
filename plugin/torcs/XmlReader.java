@@ -131,7 +131,7 @@ public class XmlReader
     public void readXml(String filename) throws JDOMException, IOException
     {
     	this.filename = filename;
-    	warnings.clear();
+		warnings.clear();
     	
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
@@ -925,7 +925,7 @@ public class XmlReader
 
     private synchronized void setSegments(Element mainTrack)
     {
-    	Element segmentsSection;
+		Element segmentsSection;
 
         if (editorFrame.getTrackData().getHeader().getVersion() == 3)
             segmentsSection = getChildWithName(mainTrack, "segments");
@@ -1313,29 +1313,23 @@ public class XmlReader
     {
     	int out = Integer.MAX_VALUE;
     	Element e = getChildWithName(element, name);
-    	if (e != null && e.getName().equals("attnum"))
+		if (e != null && e.getName().equals("attnum"))
     	{
-    		try
-    		{
-    			out = Integer.decode(e.getAttributeValue("val"));
-    		}
-    		catch (NumberFormatException exception)
-    		{
-    			// the game reads every attnum as a number and the code casts it
-    			double value = toEditorUnit(e, readNumber(e), null);
+			// the game reads every attnum as a number (decimal, or hexadecimal after "0x",
+			// so "010" is 10, not octal 8), converts its unit and the code casts it
+			double value = toEditorUnit(e, readNumber(e), null);
 
-    			if (Double.isNaN(value) || Double.isInfinite(value))
+			if (Double.isNaN(value) || Double.isInfinite(value))
+    		{
+				out = 0;
+    		}
+			else
+    		{
+				if (Math.floor(value) != value)
     			{
-    				out = 0;
+					warn(e, "should be a whole number; the game uses " + (int) value + ".");
     			}
-    			else
-    			{
-    				if (Math.floor(value) != value)
-    				{
-    					warn(e, "should be a whole number; the game uses " + (int) value + ".");
-    				}
-    				out = (int) value;
-    			}
+				out = (int) value;
     		}
     	}
     	return out;

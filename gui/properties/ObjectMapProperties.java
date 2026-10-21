@@ -542,8 +542,8 @@ public class ObjectMapProperties extends PropertyPanel
 
 			        if (value.equals("Unknown"))
 			        {
-			        	// the row's own color: after a delete the row number points at another object
-			        	datum.color = datum.originalColor;
+						// the row's own color: after a delete the row number points at another object
+						datum.color = datum.originalColor;
 			        }
 			        else
 			        {
@@ -931,7 +931,7 @@ public class ObjectMapProperties extends PropertyPanel
             	}
             	catch (IOException e)
             	{
-            		readFailed(objectMap, e);
+					readFailed(objectMap, e);
             	}
                 getEditorFrame().documentIsModified = true;
             }

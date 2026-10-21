@@ -283,8 +283,8 @@ public final class TrackData
     {
     	double width = mainTrack.getWidth();
     	boolean hasGrade = false;
-    	// like the game, a segment without an end height uses the last explicit grade
-    	double lastGrade = 0;
+		// like the game, a segment without an end height uses the last explicit grade
+		double lastGrade = 0;
 
 		for (int i = 0; i < segments.size(); i++)
 		{
