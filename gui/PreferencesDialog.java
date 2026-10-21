@@ -59,10 +59,19 @@ public class PreferencesDialog extends JDialog
 		initialize();
 	}
 	
+	// the fields start right after the widest label, and the directory fields are wide
+	// enough to show a whole path
+	private static final int	LABEL_X			= 10;
+	private static final int	GAP				= 10;
+	private static final int	FIELD_WIDTH		= 560;
+	private static final int	BUTTON_WIDTH	= 80;
+	private int					fieldX			= 200;
+
 	private void initialize()
 	{
-		this.setSize(600, 334);
 		this.setContentPane(getJPanel());
+		// the panel's width plus the dialog's borders
+		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 334);
 		this.setModal(true);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -99,6 +108,7 @@ public class PreferencesDialog extends JDialog
 			gameTypeLabel = new JLabel();
 			gameTypeLabel.setBounds(10, 227, 190, 23);
 			gameTypeLabel.setText("Game");
+			layOutLabels();
 			jPanel = new JPanel();
 			jPanel.setLayout(null);
 			jPanel.add(dataDirectoryLabel, null);
@@ -125,6 +135,32 @@ public class PreferencesDialog extends JDialog
 		return jPanel;
 	}
 
+	/**
+	 * Makes the labels as wide as the widest one can be (with any game's name),
+	 * and puts the fields right after them.
+	 */
+	private void layOutLabels()
+	{
+		int width = Math.max(recentFilesMaxLabel.getPreferredSize().width, gameTypeLabel.getPreferredSize().width);
+		// the directory labels start with the game's name, so measure them with each one
+		for (EditorFrame.GameType game : EditorFrame.GameType.values())
+		{
+			for (String kind : new String[] { " Data Directory", " Bin Directory", " Lib Directory" })
+			{
+				JLabel test = new JLabel(game.getShortName() + kind);
+				test.setFont(dataDirectoryLabel.getFont());
+				width = Math.max(width, test.getPreferredSize().width);
+			}
+		}
+
+		JLabel[] labels = { dataDirectoryLabel, binDirectoryLabel, libDirectoryLabel, recentFilesMaxLabel, gameTypeLabel };
+
+		for (JLabel label : labels)
+			label.setSize(width, label.getHeight());
+
+		fieldX = LABEL_X + width + GAP;
+	}
+
 	/** The game the directories are for, as chosen in this dialog */
 	private String gameName()
 	{
@@ -133,7 +169,7 @@ public class PreferencesDialog extends JDialog
 
 	private void updateGameLabels()
 	{
-		// the labels are 190 pixels wide, so CSR is abbreviated
+		// CSR is abbreviated, so the labels don't take up much of the width
 		String game = getGameType().getShortName();
 		dataDirectoryLabel.setText(game + " Data Directory");
 		binDirectoryLabel.setText(game + " Bin Directory");
@@ -145,7 +181,7 @@ public class PreferencesDialog extends JDialog
 		if (dataDirectoryTextField == null)
 		{
 			dataDirectoryTextField = new JTextField();
-			dataDirectoryTextField.setBounds(200, 10, 290, 23);
+			dataDirectoryTextField.setBounds(fieldX, 10, FIELD_WIDTH, 23);
 			dataDirectoryTextField.setText(editorFrame.getDataDirectory());
 		}
 		return dataDirectoryTextField;
@@ -156,7 +192,7 @@ public class PreferencesDialog extends JDialog
 		if (dataDirectoryButton == null)
 		{
 			dataDirectoryButton = new JButton();
-			dataDirectoryButton.setBounds(495, 10, 80, 25);
+			dataDirectoryButton.setBounds(fieldX + FIELD_WIDTH + 5, 10, BUTTON_WIDTH, 25);
 			dataDirectoryButton.setText("Browse");
 			dataDirectoryButton.addActionListener(new ActionListener()
 			{
@@ -196,7 +232,7 @@ public class PreferencesDialog extends JDialog
 		if (binDirectoryTextField == null)
 		{
 			binDirectoryTextField = new JTextField();
-			binDirectoryTextField.setBounds(200, 43, 290, 23);
+			binDirectoryTextField.setBounds(fieldX, 43, FIELD_WIDTH, 23);
 			binDirectoryTextField.setText(editorFrame.getBinDirectory());
 		}
 		return binDirectoryTextField;
@@ -207,7 +243,7 @@ public class PreferencesDialog extends JDialog
 		if (binDirectoryButton == null)
 		{
 			binDirectoryButton = new JButton();
-			binDirectoryButton.setBounds(495, 43, 80, 25);
+			binDirectoryButton.setBounds(fieldX + FIELD_WIDTH + 5, 43, BUTTON_WIDTH, 25);
 			binDirectoryButton.setText("Browse");
 			binDirectoryButton.addActionListener(new ActionListener()
 			{
@@ -247,7 +283,7 @@ public class PreferencesDialog extends JDialog
 		if (libDirectoryTextField == null)
 		{
 			libDirectoryTextField = new JTextField();
-			libDirectoryTextField.setBounds(200, 76, 290, 23);
+			libDirectoryTextField.setBounds(fieldX, 76, FIELD_WIDTH, 23);
 			libDirectoryTextField.setText(editorFrame.getLibDirectory());
 		}
 		return libDirectoryTextField;
@@ -258,7 +294,7 @@ public class PreferencesDialog extends JDialog
 		if (libDirectoryButton == null)
 		{
 			libDirectoryButton = new JButton();
-			libDirectoryButton.setBounds(495, 76, 80, 25);
+			libDirectoryButton.setBounds(fieldX + FIELD_WIDTH + 5, 76, BUTTON_WIDTH, 25);
 			libDirectoryButton.setText("Browse");
 			libDirectoryButton.addActionListener(new ActionListener()
 			{
@@ -298,7 +334,7 @@ public class PreferencesDialog extends JDialog
 		if (recentFilesMaxTextField == null)
 		{
 			recentFilesMaxTextField = new JTextField();
-			recentFilesMaxTextField.setBounds(200, 109, 290, 23);
+			recentFilesMaxTextField.setBounds(fieldX, 109, 60, 23);
 			recentFilesMaxTextField.setText(editorFrame.getRecentFilesMax()+"");
 		}
 		return recentFilesMaxTextField;
@@ -309,7 +345,7 @@ public class PreferencesDialog extends JDialog
 		if (interactiveFixesCheckBox == null)
 		{
 			interactiveFixesCheckBox = new JCheckBox();
-			interactiveFixesCheckBox.setBounds(200, 139, 290, 23);
+			interactiveFixesCheckBox.setBounds(fieldX, 139, 290, 23);
 			interactiveFixesCheckBox.setText("Interactive Fixes");
 			interactiveFixesCheckBox.setSelected(editorFrame.getInteractiveFixes());
 		}
@@ -321,7 +357,7 @@ public class PreferencesDialog extends JDialog
 		if (cursorCoordinatesCheckBox == null)
 		{
 			cursorCoordinatesCheckBox = new JCheckBox();
-			cursorCoordinatesCheckBox.setBounds(200, 161, 290, 23);
+			cursorCoordinatesCheckBox.setBounds(fieldX, 161, 290, 23);
 			cursorCoordinatesCheckBox.setText("Cursor Track Coordinates");
 			cursorCoordinatesCheckBox.setSelected(editorFrame.getCursorCoordinates());
 		}
@@ -333,7 +369,7 @@ public class PreferencesDialog extends JDialog
 		if (cursorNamesCheckBox == null)
 		{
 			cursorNamesCheckBox = new JCheckBox();
-			cursorNamesCheckBox.setBounds(200, 183, 290, 23);
+			cursorNamesCheckBox.setBounds(fieldX, 183, 290, 23);
 			cursorNamesCheckBox.setText("Cursor Names");
 			cursorNamesCheckBox.setSelected(editorFrame.getCursorNames());
 		}
@@ -345,7 +381,7 @@ public class PreferencesDialog extends JDialog
 		if (checkDefaultObjectsCheckBox == null)
 		{
 			checkDefaultObjectsCheckBox = new JCheckBox();
-			checkDefaultObjectsCheckBox.setBounds(200, 205, 290, 23);
+			checkDefaultObjectsCheckBox.setBounds(fieldX, 205, 290, 23);
 			checkDefaultObjectsCheckBox.setText("Check Default Objects");
 			checkDefaultObjectsCheckBox.setSelected(editorFrame.getCheckDefaultObjects());
 		}
@@ -357,7 +393,7 @@ public class PreferencesDialog extends JDialog
 		if (gameTypeComboBox == null)
 		{
 			gameTypeComboBox = new JComboBox<EditorFrame.GameType>(EditorFrame.GameType.values());
-			gameTypeComboBox.setBounds(200, 227, 170, 23);
+			gameTypeComboBox.setBounds(fieldX, 227, 170, 23);
 			gameTypeComboBox.setSelectedItem(editorFrame.getGameType());
 			gameTypeComboBox.addItemListener(new java.awt.event.ItemListener()
 			{
@@ -390,7 +426,9 @@ public class PreferencesDialog extends JDialog
 		if (okButton == null)
 		{
 			okButton = new JButton();
-			okButton.setBounds(160, 259, 78, 25);
+			// Ok and Cancel centred under the fields
+			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
+			okButton.setBounds(middle - 78 - 40, 259, 78, 25);
 			okButton.setText("Ok");
 			okButton.addActionListener(new ActionListener()
 			{
@@ -408,7 +446,8 @@ public class PreferencesDialog extends JDialog
 		if (cancelButton == null)
 		{
 			cancelButton = new JButton();
-			cancelButton.setBounds(350, 259, 78, 25);
+			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
+			cancelButton.setBounds(middle + 40, 259, 78, 25);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new ActionListener()
 			{
