@@ -347,16 +347,6 @@ public class SurfaceProperties extends PropertyPanel
 			addLabel(this, 13, textureStartOnBoundaryLabel, "Texture Start On Boundary", 180);
 			addLabel(this, 14, textureMipMapLabel, "Texture MipMap", 180);
 			addLabel(this, 15, frictionLabel, "Friction", 180);
-			addLabel(this, 16, frictionRainLabel, "Friction Rain", 180);
-			addLabel(this, 17, rollingResistanceLabel, "Rolling Resistance", 180);
-			addLabel(this, 18, rollingResistanceRainLabel, "Rolling Resistance Rain", 180);
-			addLabel(this, 19, bumpNameLabel, "Bump Name", 180);
-			addLabel(this, 20, bumpSizeLabel, "Bump Size", 180);
-			addLabel(this, 21, roughnessLabel, "Roughness", 180);
-			addLabel(this, 22, roughnessWavelengthLabel, "Roughness Wavelength", 180);
-			addLabel(this, 23, racelineNameLabel, "Raceline Name", 180);
-			addLabel(this, 24, damageLabel, "Damage", 180);
-			addLabel(this, 25, reboundLabel, "Rebound", 180);
 
 			addTextField(this, 0, nameTextField, surface.getName(), 190, 125);
 			markItemName(nameTextField);
@@ -382,16 +372,36 @@ public class SurfaceProperties extends PropertyPanel
 
 			addTextField(this, 14, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
 			addTextField(this, 15, frictionTextField, surface.getFriction(), 190, 125);
-			addTextField(this, 16, frictionRainTextField, surface.getFrictionRain(), 190, 125);
-			addTextField(this, 17, rollingResistanceTextField, surface.getRollingResistance(), 190, 125);
-			addTextField(this, 18, rollingResistanceRainTextField, surface.getRollingResistanceRain(), 190, 125);
-			addTextField(this, 19, bumpNameTextField, surface.getBumpName(), 190, 220);
-			addTextField(this, 20, bumpSizeTextField, surface.getBumpSize(), 190, 125);
-			addTextField(this, 21, roughnessTextField, surface.getRoughness(), 190, 125);
-			addTextField(this, 22, roughnessWavelengthTextField, surface.getRoughnessWavelength(), 190, 125);
-			addTextField(this, 23, racelineNameTextField, surface.getRacelineName(), 190, 220);
-			addTextField(this, 24, damageTextField, surface.getDammage(), 190, 125);
-			addTextField(this, 25, reboundTextField, surface.getRebound(), 190, 125);
+
+			// TORCS has no rain values
+			boolean rain = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
+			int row = 16;
+			if (rain)
+			{
+				addLabel(this, row, frictionRainLabel, "Friction Rain", 180);
+				addTextField(this, row++, frictionRainTextField, surface.getFrictionRain(), 190, 125);
+			}
+			addLabel(this, row, rollingResistanceLabel, "Rolling Resistance", 180);
+			addTextField(this, row++, rollingResistanceTextField, surface.getRollingResistance(), 190, 125);
+			if (rain)
+			{
+				addLabel(this, row, rollingResistanceRainLabel, "Rolling Resistance Rain", 180);
+				addTextField(this, row++, rollingResistanceRainTextField, surface.getRollingResistanceRain(), 190, 125);
+			}
+			addLabel(this, row, bumpNameLabel, "Bump Name", 180);
+			addTextField(this, row++, bumpNameTextField, surface.getBumpName(), 190, 220);
+			addLabel(this, row, bumpSizeLabel, "Bump Size", 180);
+			addTextField(this, row++, bumpSizeTextField, surface.getBumpSize(), 190, 125);
+			addLabel(this, row, roughnessLabel, "Roughness", 180);
+			addTextField(this, row++, roughnessTextField, surface.getRoughness(), 190, 125);
+			addLabel(this, row, roughnessWavelengthLabel, "Roughness Wavelength", 180);
+			addTextField(this, row++, roughnessWavelengthTextField, surface.getRoughnessWavelength(), 190, 125);
+			addLabel(this, row, racelineNameLabel, "Raceline Name", 180);
+			addTextField(this, row++, racelineNameTextField, surface.getRacelineName(), 190, 220);
+			addLabel(this, row, damageLabel, "Damage", 180);
+			addTextField(this, row++, damageTextField, surface.getDammage(), 190, 125);
+			addLabel(this, row, reboundLabel, "Rebound", 180);
+			addTextField(this, row++, reboundTextField, surface.getRebound(), 190, 125);
 
 			if (defaultSurfaces)
 			{
@@ -427,6 +437,9 @@ public class SurfaceProperties extends PropertyPanel
 				add(getTextureNameButton(), null);
 				add(getRacelineNameButton(), null);
 				add(getBumpNameButton(), null);
+				// next to their fields, which move up when TORCS's rain rows aren't shown
+				getRacelineNameButton().setLocation(420, racelineNameTextField.getY() - 1);
+				getBumpNameButton().setLocation(420, bumpNameTextField.getY() - 1);
 			}
 		}
 
@@ -733,7 +746,9 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.frictionRainTextField.getText(), surface.getFrictionRain(), doubleResult))
+			// (not shown for TORCS, so they are left as they are)
+			if (getEditorFrame().getGameType().hasSpeedDreamsExtensions() &&
+				isDifferent(panel.frictionRainTextField.getText(), surface.getFrictionRain(), doubleResult))
             {
                 surface.setFrictionRain(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -745,7 +760,8 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.rollingResistanceRainTextField.getText(), surface.getRollingResistanceRain(), doubleResult))
+			if (getEditorFrame().getGameType().hasSpeedDreamsExtensions() &&
+				isDifferent(panel.rollingResistanceRainTextField.getText(), surface.getRollingResistanceRain(), doubleResult))
             {
                 surface.setRollingResistanceRain(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;

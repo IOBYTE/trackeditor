@@ -88,29 +88,46 @@ public class GeneralProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, nameLabel, "Name", 110);
-		addLabel(this, 1, shortNameLabel, "Short Name", 110);
-		addLabel(this, 2, categoryLabel, "Category", 110);
-		addLabel(this, 3, subcategoryLabel, "Subcategory", 110);
-		addLabel(this, 4, versionLabel, "Version", 110);
-		addLabel(this, 5, skyVersionLabel, "Sky Version", 110);
-		addLabel(this, 6, authorLabel, "Author", 80);
-		addLabel(this, 7, emailLabel, "Email", 80);
-		addLabel(this, 8, copyrightLabel, "Copyright", 80);
-		addLabel(this, 9, descriptionLabel, "Description", 80);
+		// TORCS has no short name, subcategory, sky version, email or copyright
+		boolean extensions = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
+		int row = 0;
 
-		addTextField(this, 0, nameTextField, getEditorFrame().getTrackData().getHeader().getName(), 130, 200);
-		addTextField(this, 1, shortNameTextField, getEditorFrame().getTrackData().getHeader().getShortName(), 130, 200);
-
+		addLabel(this, row, nameLabel, "Name", 110);
+		addTextField(this, row++, nameTextField, getEditorFrame().getTrackData().getHeader().getName(), 130, 200);
+		if (extensions)
+		{
+			addLabel(this, row, shortNameLabel, "Short Name", 110);
+			addTextField(this, row++, shortNameTextField, getEditorFrame().getTrackData().getHeader().getShortName(), 130, 200);
+		}
+		addLabel(this, row, categoryLabel, "Category", 110);
 		add(getCategoryComboBox(), null);
-		add(getSubcategoryComboBox(), null);
+		getCategoryComboBox().setBounds(130, rowY(row++), 125, 23);
+		if (extensions)
+		{
+			addLabel(this, row, subcategoryLabel, "Subcategory", 110);
+			add(getSubcategoryComboBox(), null);
+			getSubcategoryComboBox().setBounds(130, rowY(row++), 125, 23);
+		}
+		addLabel(this, row, versionLabel, "Version", 110);
 		add(getVersionComboBox(), null);
-		add(getSkyVersionComboBox(), null);
-
-		addTextField(this, 6, authorTextField, getEditorFrame().getTrackData().getHeader().getAuthor(), 85, 435);
-		addTextField(this, 7, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
-		addTextField(this, 8, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
-		addTextField(this, 9, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
+		getVersionComboBox().setBounds(130, rowY(row++), 125, 23);
+		if (extensions)
+		{
+			addLabel(this, row, skyVersionLabel, "Sky Version", 110);
+			add(getSkyVersionComboBox(), null);
+			getSkyVersionComboBox().setBounds(130, rowY(row++), 125, 23);
+		}
+		addLabel(this, row, authorLabel, "Author", 80);
+		addTextField(this, row++, authorTextField, getEditorFrame().getTrackData().getHeader().getAuthor(), 85, 435);
+		if (extensions)
+		{
+			addLabel(this, row, emailLabel, "Email", 80);
+			addTextField(this, row++, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
+			addLabel(this, row, copyrightLabel, "Copyright", 80);
+			addTextField(this, row++, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
+		}
+		addLabel(this, row, descriptionLabel, "Description", 80);
+		addTextField(this, row++, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
 		if (getEditorFrame().getGameType().hasCarCategory())
 		{
 			addLabel(this, 10, carCategoryLabel, "Car Category", 110);
@@ -129,6 +146,11 @@ public class GeneralProperties extends PropertyPanel
 			wallHitCheckBox.setToolTipText("Hitting a wall doesn't invalidate the lap time on this track");
 			add(wallHitCheckBox);
 		}
+	}
+
+	private static int rowY(int row)
+	{
+		return 10 + row * 27;
 	}
 
 	/**
@@ -256,7 +278,10 @@ public class GeneralProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(shortNameTextField.getText(), getEditorFrame().getTrackData().getHeader().getShortName(), stringResult))
+		// the fields TORCS doesn't have aren't shown, so they are left as they are
+		boolean extensions = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
+
+		if (extensions && isDifferent(shortNameTextField.getText(), getEditorFrame().getTrackData().getHeader().getShortName(), stringResult))
 		{
 			getEditorFrame().getTrackData().getHeader().setShortName(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
@@ -277,7 +302,7 @@ public class GeneralProperties extends PropertyPanel
 			path.mkdirs();
 		}
 
-		if (isDifferent((String) getSubcategoryComboBox().getSelectedItem(),
+		if (extensions && isDifferent((String) getSubcategoryComboBox().getSelectedItem(),
 			getEditorFrame().getTrackData().getHeader().getSubcategory(), stringResult))
 		{
 			getEditorFrame().getTrackData().getHeader().setSubcategory(stringResult.getValue());
@@ -297,7 +322,7 @@ public class GeneralProperties extends PropertyPanel
 			skyVersion = Integer.MAX_VALUE;
 		else
 			skyVersion = Integer.parseInt(skyVersionString);
-		if (skyVersion != getEditorFrame().getTrackData().getHeader().getSkyVersion())
+		if (extensions && skyVersion != getEditorFrame().getTrackData().getHeader().getSkyVersion())
 		{
 			getEditorFrame().getTrackData().getHeader().setSkyVersion(skyVersion);
 			getEditorFrame().documentIsModified = true;
@@ -310,14 +335,14 @@ public class GeneralProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(emailTextField.getText(),
+		if (extensions && isDifferent(emailTextField.getText(),
 			getEditorFrame().getTrackData().getHeader().getEmail(), stringResult))
 		{
 			getEditorFrame().getTrackData().getHeader().setEmail(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(copyrightTextField.getText(),
+		if (extensions && isDifferent(copyrightTextField.getText(),
 			getEditorFrame().getTrackData().getHeader().getCopyright(), stringResult))
 		{
 			getEditorFrame().getTrackData().getHeader().setCopyright(stringResult.getValue());

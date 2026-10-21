@@ -64,6 +64,8 @@ public class PropertiesDialog extends JDialog
 	private CameraProperties		cameraProperties		= null;
 	private TrackLightProperties	trackLightProperties	= null;
 	private SectorProperties		sectorProperties		= null;
+	// for each tab, in order, whether this game mode shows it
+	private java.util.List<Boolean>	tabShown				= new java.util.ArrayList<Boolean>();
 	// TORCS only
 	private GeoreferenceProperties	georeferenceProperties	= null;
 
@@ -105,32 +107,32 @@ public class PropertiesDialog extends JDialog
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.addTab("General", null, getGeneralProperties(), null);
-			tabbedPane.addTab("Track", null, getTrackProperties(), null);
-			tabbedPane.addTab("Pit", null, getPitProperties(), null);
-			tabbedPane.addTab("Terrain", null, getTerrainProperties(), null);
-			tabbedPane.addTab("Turn Marks", null, getTurnMarksProperties(), null);
-			tabbedPane.addTab("Local Info", null, getLocalInfoProperties(), null);
-			tabbedPane.addTab("Grid", null, getStartingGridProperties(), null);
-			tabbedPane.addTab("Graphic", null, getGraphicProperties(), null);
-			tabbedPane.addTab("Graphic 3D", null, getGraphic3DProperties(), null);
-			tabbedPane.addTab("Env Map", null, getEnvMapProperties(), null);
-			tabbedPane.addTab("Surfaces", null, getSurfaceProperties(), null);
-			tabbedPane.addTab("Objects", null, getObjectProperties(), null);
-			tabbedPane.addTab("Cameras", null, getCameraProperties(), null);
-			tabbedPane.addTab("Lights", null, getTrackLightProperties(), null);
-			tabbedPane.addTab("Sectors", null, getSectorProperties(), null);			
-			tabbedPane.addTab("Image", null, getImageProperties(), null);			
-			// last, so the other tabs keep their places in every game mode
-			if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
-				tabbedPane.addTab("Georeference", null, getGeoreferenceProperties(), null);
+			// TORCS has no Local Info, Lights or Sectors; only TORCS has a Georeference
+			boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
+			addTab("General", getGeneralProperties());
+			addTab("Track", getTrackProperties());
+			addTab("Pit", getPitProperties());
+			addTab("Terrain", getTerrainProperties());
+			addTab("Turn Marks", getTurnMarksProperties());
+			addTab("Local Info", extensions ? getLocalInfoProperties() : null);
+			addTab("Grid", getStartingGridProperties());
+			addTab("Graphic", getGraphicProperties());
+			addTab("Graphic 3D", getGraphic3DProperties());
+			addTab("Env Map", getEnvMapProperties());
+			addTab("Surfaces", getSurfaceProperties());
+			addTab("Objects", getObjectProperties());
+			addTab("Cameras", getCameraProperties());
+			addTab("Lights", extensions ? getTrackLightProperties() : null);
+			addTab("Sectors", extensions ? getSectorProperties() : null);
+			addTab("Image", getImageProperties());
+			addTab("Georeference", editorFrame.getGameType() == EditorFrame.GameType.TORCS ? getGeoreferenceProperties() : null);
 			SwingUtilities.invokeLater( new Runnable()
 			{
 				public void run()
 				{
 					// the tab last shown may be one this game mode doesn't have
-					int tab = editorFrame.getProject().getPropertiesEditorTab();
-					if (tab >= 0 && tab < tabbedPane.getTabCount())
+					int tab = toShownTab(editorFrame.getProject().getPropertiesEditorTab());
+					if (tab >= 0)
 						tabbedPane.setSelectedIndex(tab);
 				}
 			});
@@ -408,6 +410,44 @@ public class PropertiesDialog extends JDialog
 
 	//	 Exit when window close
 
+	/**
+	 * Adds a tab, or only notes its place when the game mode doesn't have it (panel is
+	 * null). The tab remembered in the project is its place among all the tabs, so it
+	 * stays the same tab in every game mode.
+	 */
+	private void addTab(String title, javax.swing.JPanel panel)
+	{
+		tabShown.add(panel != null);
+		if (panel != null)
+			tabbedPane.addTab(title, null, panel, null);
+	}
+
+	/** @return the tab's place among all the tabs */
+	private int toAllTabs(int shownTab)
+	{
+		int shown = -1;
+		for (int i = 0; i < tabShown.size(); i++)
+		{
+			if (tabShown.get(i) && ++shown == shownTab)
+				return i;
+		}
+		return -1;
+	}
+
+	/** @return the shown tab at that place among all the tabs, or -1 when it isn't shown */
+	private int toShownTab(int tab)
+	{
+		if (tab < 0 || tab >= tabShown.size() || !tabShown.get(tab))
+			return -1;
+		int shown = 0;
+		for (int i = 0; i < tab; i++)
+		{
+			if (tabShown.get(i))
+				shown++;
+		}
+		return shown;
+	}
+
 	protected void processWindowEvent(WindowEvent e)
 	{
 		super.processWindowEvent(e);
@@ -415,7 +455,7 @@ public class PropertiesDialog extends JDialog
 		{
 			editorFrame.getProject().setPropertiesEditorX(this.getX());
 			editorFrame.getProject().setPropertiesEditorY(this.getY());
-			editorFrame.getProject().setPropertiesEditorTab(this.tabbedPane.getSelectedIndex());
+			editorFrame.getProject().setPropertiesEditorTab(toAllTabs(this.tabbedPane.getSelectedIndex()));
 		}
 	}
 
@@ -453,7 +493,8 @@ public class PropertiesDialog extends JDialog
 		this.imageProperties.exit();
 		this.terrainProperties.exit();
 		this.turnMarksProperties.exit();
-		this.localInfoProperties.exit();
+		if (this.localInfoProperties != null)
+			this.localInfoProperties.exit();
 		this.startingGridProperties.exit();
 		this.graphicProperties.exit();
 		this.graphic3DProperties.exit();
@@ -461,8 +502,10 @@ public class PropertiesDialog extends JDialog
 		this.surfaceProperties.exit();
 		this.objectProperties.exit();
 		this.cameraProperties.exit();
-		this.trackLightProperties.exit();
-		this.sectorProperties.exit();
+		if (this.trackLightProperties != null)
+			this.trackLightProperties.exit();
+		if (this.sectorProperties != null)
+			this.sectorProperties.exit();
 		if (this.georeferenceProperties != null)
 			this.georeferenceProperties.exit();
 		Editor.getProperties().valueChanged();
@@ -478,7 +521,7 @@ public class PropertiesDialog extends JDialog
 		editorFrame.setGraphicObjectProperties(null);
 		editorFrame.getProject().setPropertiesEditorX(this.getX());
 		editorFrame.getProject().setPropertiesEditorY(this.getY());
-		editorFrame.getProject().setPropertiesEditorTab(this.tabbedPane.getSelectedIndex());
+		editorFrame.getProject().setPropertiesEditorTab(toAllTabs(this.tabbedPane.getSelectedIndex()));
 		this.dispose();
 	}
 } //  @jve:decl-index=0:visual-constraint="6,6"

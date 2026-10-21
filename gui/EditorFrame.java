@@ -393,6 +393,17 @@ public class EditorFrame extends JFrame
 		}
 
 		/**
+		 * @return whether the game has what Speed Dreams added to the track file: Local
+		 * Info, Sectors, Track Lights, the header's short name, subcategory, email,
+		 * copyright and sky version, a segment's DoV factor, the night 3d descriptions and
+		 * a surface's rain values (not TORCS: it reads none of them)
+		 */
+		public boolean hasSpeedDreamsExtensions()
+		{
+			return this != TORCS;
+		}
+
+		/**
 		 * @return whether a segment barrier style other than fence is a wall (TORCS: there
 		 * are only fences and walls); the others ignore a style they don't know
 		 */

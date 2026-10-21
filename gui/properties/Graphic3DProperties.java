@@ -107,8 +107,13 @@ public class Graphic3DProperties extends PropertyPanel
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
 		addLabel(this, 0, descriptionLabel, "Description", 150);
-		addLabel(this, 1, descriptionNightLabel, "Description Night", 150);
-		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 150);
+		// TORCS has no night descriptions
+		boolean night = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
+		if (night)
+		{
+			addLabel(this, 1, descriptionNightLabel, "Description Night", 150);
+			addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 150);
+		}
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
@@ -136,8 +141,11 @@ public class Graphic3DProperties extends PropertyPanel
 		}
 
 		addTextField(this, 0, descriptionTextField, getEditorFrame().getTrackData().getGraphic().getDescription(), 160, 200);
-		addTextField(this, 1, descriptionNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), 160, 200);
-		addTextField(this, 2, descriptionRainNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), 160, 200);
+		if (night)
+		{
+			addTextField(this, 1, descriptionNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), 160, 200);
+			addTextField(this, 2, descriptionRainNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), 160, 200);
+		}
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
@@ -692,14 +700,16 @@ public class Graphic3DProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(descriptionNightTextField.getText(),
+		// (not shown for TORCS, so they are left as they are)
+		boolean night = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
+		if (night && isDifferent(descriptionNightTextField.getText(),
 			getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), stringResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().setDescriptionNight(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(descriptionRainNightTextField.getText(),
+		if (night && isDifferent(descriptionRainNightTextField.getText(),
 			getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), stringResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().setDescriptionRainNight(stringResult.getValue());

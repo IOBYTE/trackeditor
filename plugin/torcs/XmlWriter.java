@@ -132,16 +132,21 @@ public class XmlWriter
 		doc.addContent(com);
 		doc.addContent(type);
 		doc.setRootElement(root);
-		root.addContent(getLights());
+		// TORCS reads none of Track Lights, Local Info and Sectors
+		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
+		if (extensions)
+			root.addContent(getLights());
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
-		root.addContent(getLocal());
+		if (extensions)
+			root.addContent(getLocal());
 		root.addContent(getGraphic());
 		root.addContent(getGrid());
 		root.addContent(getTrack());
 		root.addContent(getCameras());
-		root.addContent(getSectors());
+		if (extensions)
+			root.addContent(getSectors());
 		// only TORCS reads it
 		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
 			!editorFrame.getTrackData().getGeoreference().isEmpty())
@@ -404,7 +409,8 @@ public class XmlWriter
 		if (editorFrame.getGameType().hasSegmentPenalty())
 			addContent(segment, "penalty", null, shape.getPenalty());
 		addContent(segment, "env map index", null, shape.getEnvMapIndex());
-		addContent(segment, "DoV factor", null, shape.getDovFactor());
+		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+			addContent(segment, "DoV factor", null, shape.getDovFactor());
 		
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
@@ -579,9 +585,11 @@ public class XmlWriter
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
 			addContent(el, "texture mipmap", "m", surface.getTextureMipMap());
 			addContent(el, "friction", null, surface.getFriction());
-			addContent(el, "friction rain", null, surface.getFrictionRain());
+			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+				addContent(el, "friction rain", null, surface.getFrictionRain());
 			addContent(el, "rolling resistance", null, surface.getRollingResistance());
-			addContent(el, "rolling resistance rain", null, surface.getRollingResistanceRain());
+			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+				addContent(el, "rolling resistance rain", null, surface.getRollingResistanceRain());
 			addContent(el, "bump name", surface.getBumpName());
 			addContent(el, "bump size", "m", surface.getBumpSize());
 			addContent(el, "roughness", "m", surface.getRoughness());
@@ -836,8 +844,11 @@ public class XmlWriter
 		Element header = new Element("section");
 		header.setAttribute(name);
 
+		// TORCS reads none of short name, subcategory, sky version, copyright and email
+		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
 		addContent(header, "name", editorFrame.getTrackData().getHeader().getName());
-		addContent(header, "short name", editorFrame.getTrackData().getHeader().getShortName());
+		if (extensions)
+			addContent(header, "short name", editorFrame.getTrackData().getHeader().getShortName());
 
 		if (editorFrame.getTrackData().getHeader().getCategory() != null)
 		{
@@ -847,13 +858,15 @@ public class XmlWriter
 			tmp = "road";
 		}
 		addContent(header, "category", tmp);
-		addContent(header, "subcategory", editorFrame.getTrackData().getHeader().getSubcategory());
+		if (extensions)
+			addContent(header, "subcategory", editorFrame.getTrackData().getHeader().getSubcategory());
 		if (editorFrame.getGameType().hasCarCategory())
 			addContent(header, "car category", editorFrame.getTrackData().getHeader().getCarCategory());
 		if (editorFrame.getGameType().hasDisabledPenalties())
 			addContent(header, "disabled penalties", editorFrame.getTrackData().getHeader().getDisabledPenalties());
 		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
-		addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
+		if (extensions)
+			addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
 
 		if (editorFrame.getTrackData().getHeader().getAuthor() != null)
 		{
@@ -864,13 +877,13 @@ public class XmlWriter
 		}
 		addContent(header, "author", tmp);
 
-		if (editorFrame.getTrackData().getHeader().getCopyright() != null)
+		if (extensions && editorFrame.getTrackData().getHeader().getCopyright() != null)
 		{
 			tmp = editorFrame.getTrackData().getHeader().getCopyright();
 			addContent(header, "copyright", tmp);
 		}
 
-		if (editorFrame.getTrackData().getHeader().getEmail() != null)
+		if (extensions && editorFrame.getTrackData().getHeader().getEmail() != null)
 		{
 			tmp = editorFrame.getTrackData().getHeader().getEmail();
 			addContent(header, "email", tmp);
@@ -947,8 +960,11 @@ public class XmlWriter
 			addContent(element, "3d description", trackname + ".ac");
 		else
 			addContent(element, "3d description", editorFrame.getTrackData().getGraphic().getDescription());
-		addContent(element, "3d description night", editorFrame.getTrackData().getGraphic().getDescriptionNight());
-		addContent(element, "3d description rain+night", editorFrame.getTrackData().getGraphic().getDescriptionRainNight());
+		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+		{
+			addContent(element, "3d description night", editorFrame.getTrackData().getGraphic().getDescriptionNight());
+			addContent(element, "3d description rain+night", editorFrame.getTrackData().getGraphic().getDescriptionRainNight());
+		}
 
 		// the per-type 3d object files are only used by CSR
 		if (editorFrame.getGameType().hasTypeObjectFiles())
@@ -1231,7 +1247,9 @@ public class XmlWriter
 
 	private synchronized void addContent(Element section, String attribute, String string)
 	{
-		if (string != null && !string.isEmpty())
+		// an empty value is written too: for some keys the game uses its default only when
+		// the key is missing ("background image" is then background.png)
+		if (string != null)
 		{
 			section.addContent(attstrElement(attribute, string.replace("\"", "&quot;")));
 		}

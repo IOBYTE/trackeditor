@@ -328,14 +328,16 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			dovFactorLabel = new JLabel("DoV Factor");
 			dovFactorLabel.setBounds(820, 33, 70, 23);
 			dovFactorLabel.setToolTipText("'DoV factor' (empty = not set)");
-			centerPanel.add(dovFactorLabel, null);
+			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+				centerPanel.add(dovFactorLabel, null);
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getMarksTextField(), null);
 			centerPanel.add(getCommentTextField(), null);
 			if (editorFrame.getGameType().hasSegmentPenalty())
 				centerPanel.add(getPenaltyTextField(), null);
 			centerPanel.add(getEnvMapIndexTextField(), null);
-			centerPanel.add(getDovFactorTextField(), null);
+			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+				centerPanel.add(getDovFactorTextField(), null);
 			centerPanel.add(getSurfaceComboBox(), null);
 			centerPanel.add(getRadiusStartSlider(), null);
 			centerPanel.add(getRadiusEndSlider(), null);

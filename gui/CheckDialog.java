@@ -108,7 +108,8 @@ public class CheckDialog extends JDialog
 	    		checkObjects();
 	    		checkTerrainGeneration();
 	    		checkEnvironmentMapping();
-	    		checkTrackLights();
+				if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+					checkTrackLights();
 	    		checkGraphic();
 	    		checkPits();
 	    		checkTrack();
