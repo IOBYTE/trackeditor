@@ -101,8 +101,8 @@ public class TrackProperties extends PropertyPanel
 	 "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		sideSurfaceVector			= new Vector<String>(Arrays.asList(sideSurfaceItems));
 	private String[]			barrierStyleItems			= {"none", "fence", "fence1", "fence2", "wall"};
-	// CSR has no fence1/fence2 (they are written as fence)
-	private String[]			csrBarrierStyleItems		= {"none", "fence", "wall"};
+	// only Speed Dreams has fence1/fence2 (for the others they are written as fence)
+	private String[]			basicBarrierStyleItems		= {"none", "fence", "wall"};
 	private String[]			barrierSurfaceItems			=
 	{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 	 "wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -119,23 +119,23 @@ public class TrackProperties extends PropertyPanel
 	 *
 	 */
 	/**
-	 * @return the barrier styles for the current game type. A CSR track never gets
-	 * fence1/fence2, but a style already set (read from a Speed Dreams track) stays
+	 * @return the barrier styles for the current game type. Only a Speed Dreams track
+	 * gets fence1/fence2, but a style already set (read from a Speed Dreams track) stays
 	 * listed so opening the dialog doesn't change it.
 	 */
 	private String[] getBarrierStyleItems(String currentStyle)
 	{
-		if (!getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasFence1Fence2())
 			return barrierStyleItems;
 
 		if (currentStyle != null && (currentStyle.equals("fence1") || currentStyle.equals("fence2")))
 		{
-			String[] items = java.util.Arrays.copyOf(csrBarrierStyleItems, csrBarrierStyleItems.length + 1);
+			String[] items = java.util.Arrays.copyOf(basicBarrierStyleItems, basicBarrierStyleItems.length + 1);
 			items[items.length - 1] = currentStyle;
 			return items;
 		}
 
-		return csrBarrierStyleItems;
+		return basicBarrierStyleItems;
 	}
 
 	public TrackProperties(EditorFrame editorFrame)

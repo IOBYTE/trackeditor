@@ -369,7 +369,7 @@ public class ObjectProperties extends PropertyPanel
 			addTextField(this, 12, scaleMaxTextField, object.getScaleMax(), 120, 125);
 
 			// only Speed Dreams trackgen reads "use material"
-			if (!getEditorFrame().getCarsSportsRacing())
+			if (getEditorFrame().getGameType().hasUseMaterial())
 			{
 				addLabel(this, 4, useMaterialLabel, "Use Material", 265, 90);
 				add(getUseMaterialComboBox(), null);
@@ -821,7 +821,7 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (!getEditorFrame().getCarsSportsRacing() &&
+			if (getEditorFrame().getGameType().hasUseMaterial() &&
                 isDifferent(panel.getUseMaterialComboBox().getSelectedItem().toString(), object.getUseMaterial(), stringResult))
             {
                 object.setUseMaterial(stringResult.getValue());
@@ -851,7 +851,7 @@ public class ObjectProperties extends PropertyPanel
 		object.setScale(getDouble(panel.scaleTextField.getText()));
 		object.setScaleMin(getDouble(panel.scaleMinTextField.getText()));
 		object.setScaleMax(getDouble(panel.scaleMaxTextField.getText()));
-		if (!getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasUseMaterial())
 			object.setUseMaterial(getString(panel.getUseMaterialComboBox().getSelectedItem().toString()));
 	}
 

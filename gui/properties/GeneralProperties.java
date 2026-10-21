@@ -111,13 +111,13 @@ public class GeneralProperties extends PropertyPanel
 		addTextField(this, 7, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
 		addTextField(this, 8, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
 		addTextField(this, 9, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasCarCategory())
 		{
 			addLabel(this, 10, carCategoryLabel, "Car Category", 110);
 			addTextField(this, 10, carCategoryTextField, getEditorFrame().getTrackData().getHeader().getCarCategory(), 130, 390);
 			carCategoryTextField.setToolTipText("Car category this track is meant for (empty = any)");
 		}
-		else
+		else if (getEditorFrame().getGameType().hasDisabledPenalties())
 		{
 			addLabel(this, 10, disabledPenaltiesLabel, "Disabled Penalties", 120);
 			slowdownCheckBox.setBounds(130, 280, 100, 23);
@@ -140,11 +140,7 @@ public class GeneralProperties extends PropertyPanel
 	{
 		if (categoryComboBox == null)
 		{
-			String[] items;
-			if (getEditorFrame().getCarsSportsRacing())
-				items = new String[] {"circuit", "development", "dirt", "grandprix", "road", "speedway"};
-			else
-				items = new String[] {"circuit", "development", "dirt", "gprix", "karting", "road", "speedway"};
+			String[] items = getEditorFrame().getGameType().getTrackCategories();
 			categoryComboBox = new JComboBox<String>(items);
 			categoryComboBox.setBounds(130, 64, 125, 23);
 			selectItem(categoryComboBox, getEditorFrame().getTrackData().getHeader().getCategory());
@@ -335,7 +331,7 @@ public class GeneralProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasCarCategory())
 		{
 			if (isDifferent(carCategoryTextField.getText(),
 				getEditorFrame().getTrackData().getHeader().getCarCategory(), stringResult))
@@ -344,7 +340,7 @@ public class GeneralProperties extends PropertyPanel
 				getEditorFrame().documentIsModified = true;
 			}
 		}
-		else
+		else if (getEditorFrame().getGameType().hasDisabledPenalties())
 		{
 			String oldPenalties = getEditorFrame().getTrackData().getHeader().getDisabledPenalties();
 			getEditorFrame().getTrackData().getHeader().setDisabledPenalty(SLOWDOWN, slowdownCheckBox.isSelected());

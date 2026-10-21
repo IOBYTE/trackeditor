@@ -59,9 +59,9 @@ public final class GameSides
 	 */
 	public static State of(Segment segment, boolean right, EditorFrame editorFrame)
 	{
-		boolean speedDreams = !editorFrame.getCarsSportsRacing();
+		boolean fence1Fence2 = editorFrame.getGameType().hasFence1Fence2();
 		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
-		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), speedDreams);
+		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), fence1Fence2);
 
 		// the segments from the first one to this one
 		ArrayList<Segment> chain = new ArrayList<Segment>();
@@ -72,13 +72,13 @@ public final class GameSides
 		for (int i = chain.size() - 1; i >= 0; i--)
 		{
 			Segment s = chain.get(i);
-			apply(state, right ? s.getRight() : s.getLeft(), speedDreams);
+			apply(state, right ? s.getRight() : s.getLeft(), fence1Fence2);
 		}
 
 		return state;
 	}
 
-	private static State start(SegmentSide main, boolean speedDreams)
+	private static State start(SegmentSide main, boolean fence1Fence2)
 	{
 		State s = new State();
 
@@ -97,7 +97,7 @@ public final class GameSides
 		s.barrierSurface = text(main.getBarrierSurface(), "barrier");
 		s.barrierHeight = number(main.getBarrierHeight(), 0.6);
 		String style = text(main.getBarrierStyle(), "fence");
-		if (isFence(style, speedDreams))
+		if (isFence(style, fence1Fence2))
 		{
 			s.barrierStyle = style;
 			s.barrierWidth = 0.0;
@@ -111,7 +111,7 @@ public final class GameSides
 		return s;
 	}
 
-	private static void apply(State s, SegmentSide side, boolean speedDreams)
+	private static void apply(State s, SegmentSide side, boolean fence1Fence2)
 	{
 		// side
 		double start = side.getSideStartWidth();
@@ -130,7 +130,7 @@ public final class GameSides
 		s.barrierSurface = text(side.getBarrierSurface(), s.barrierSurface);
 		s.barrierHeight = number(side.getBarrierHeight(), s.barrierHeight);
 		String style = text(side.getBarrierStyle(), s.barrierStyle);
-		if (isFence(style, speedDreams))
+		if (isFence(style, fence1Fence2))
 		{
 			s.barrierStyle = style;
 			s.barrierWidth = 0.0;
@@ -166,9 +166,9 @@ public final class GameSides
 		}
 	}
 
-	private static boolean isFence(String style, boolean speedDreams)
+	private static boolean isFence(String style, boolean fence1Fence2)
 	{
-		return style.equals("fence") || (speedDreams && (style.equals("fence1") || style.equals("fence2")));
+		return style.equals("fence") || (fence1Fence2 && (style.equals("fence1") || style.equals("fence2")));
 	}
 
 	private static double number(double value, double inherited)

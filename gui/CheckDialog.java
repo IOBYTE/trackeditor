@@ -195,7 +195,7 @@ public class CheckDialog extends JDialog
 		String barrierStyle = side.getBarrierStyle();
 		boolean fence = state.barrierStyle.startsWith("fence");
 		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") && !barrierStyle.equals("no barrier") &&
-			!barrierStyle.equals("fence") && !(!editorFrame.getCarsSportsRacing() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
+			!barrierStyle.equals("fence") && !(editorFrame.getGameType().hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
 		{
 			textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
 		}

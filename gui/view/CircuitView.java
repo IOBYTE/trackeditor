@@ -1982,7 +1982,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	 */
 	private Vector<GraphicObject> shownGraphicObjects()
 	{
-		if (editorFrame.getCarsSportsRacing())
+		if (!editorFrame.getGameType().hasGraphicObjects())
 			return new Vector<GraphicObject>();
 
 		return editorFrame.getGraphicObjects();
@@ -3063,7 +3063,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	    JMenuItem itemDeleteAll = new JMenuItem("Delete All");
 	    JMenuItem itemDeleteAdjacent = isGraphicObject ? null : new JMenuItem("Delete Adjacent");
 	    JMenuItem itemDeleteAllAdjacent = isGraphicObject ? null : new JMenuItem("Delete All Adjacent");
-	    boolean canMoveToObjects = !isGraphicObject && !editorFrame.getCarsSportsRacing();
+	    boolean canMoveToObjects = !isGraphicObject && editorFrame.getGameType().hasGraphicObjects();
 	    JMenuItem itemMoveToObjects = canMoveToObjects ? new JMenuItem("Move To Objects") : null;
 	    JMenuItem itemMoveAllToObjects = canMoveToObjects ? new JMenuItem("Move To Objects") : null;
 
@@ -3130,8 +3130,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	private void addNewObject(MouseEvent me)
 	{
-		// CSR only has object maps
-		if (editorFrame.getCarsSportsRacing())
+		// only Speed Dreams has graphic objects: the others only have object maps
+		if (!editorFrame.getGameType().hasGraphicObjects())
 		{
 			if (editorFrame.getObjectMaps().isEmpty() && !createObjectMap(me))
 				return;

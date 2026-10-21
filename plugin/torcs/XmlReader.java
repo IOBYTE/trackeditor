@@ -1304,7 +1304,7 @@ public class XmlReader
     {
         String unit = e.getAttributeValue("unit");
         List<String> unknown = new java.util.ArrayList<String>();
-        double out = GfParmNumbers.convert(value, unit, expectedUnit, editorFrame.getCarsSportsRacing(), unknown);
+		double out = GfParmNumbers.convert(value, unit, expectedUnit, editorFrame.getGameType(), unknown);
 
         for (String u : unknown)
         {

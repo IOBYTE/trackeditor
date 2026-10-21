@@ -192,11 +192,7 @@ public class NewProjectDialog extends JDialog
 	{
 		if (trackCategoryComboBox == null)
 		{
-			String[] items;
-			if (editorFrame.getCarsSportsRacing())
-				items = new String[] {"circuit", "development", "dirt", "grandprix", "road", "speedway"};
-			else
-				items = new String[] {"circuit", "development", "dirt", "gprix", "karting", "road", "speedway"};			
+			String[] items = editorFrame.getGameType().getTrackCategories();
 			trackCategoryComboBox = new JComboBox<String>(items);
 			trackCategoryComboBox.setSelectedItem("road");
 			trackCategoryComboBox.setBounds(145, 37, 170, 23);

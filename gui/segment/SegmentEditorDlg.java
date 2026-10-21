@@ -319,7 +319,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			penaltyLabel = new JLabel("Penalty");
 			penaltyLabel.setBounds(820, 5, 70, 23);
 			penaltyLabel.setToolTipText("CSR 'penalty' (empty = not set)");
-			if (editorFrame.getCarsSportsRacing())
+			if (editorFrame.getGameType().hasSegmentPenalty())
 				centerPanel.add(penaltyLabel, null);
 			envMapIndexLabel = new JLabel("Env Map");
 			envMapIndexLabel.setBounds(950, 5, 60, 23);
@@ -332,7 +332,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(getNameTextField(), null);
 			centerPanel.add(getMarksTextField(), null);
 			centerPanel.add(getCommentTextField(), null);
-			if (editorFrame.getCarsSportsRacing())
+			if (editorFrame.getGameType().hasSegmentPenalty())
 				centerPanel.add(getPenaltyTextField(), null);
 			centerPanel.add(getEnvMapIndexTextField(), null);
 			centerPanel.add(getDovFactorTextField(), null);

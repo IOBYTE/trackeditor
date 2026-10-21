@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gui.EditorFrame;
+
 /**
  * Reads numbers and units the way the game's parameter library does
  * (libs/tgf/params.cpp: getValNumFromStr, GfParmUnit2SI and GfParmSI2Unit),
@@ -25,6 +27,7 @@ public final class GfParmNumbers
 	private static final Pattern	HEX		= Pattern.compile("0[xX][0-9a-fA-F]+");
 
 	private static final double		ZEROC	= 273.15;
+	private static final double		G		= 9.80665;	// TORCS's lbf
 
 	private GfParmNumbers()
 	{
@@ -87,17 +90,17 @@ public final class GfParmNumbers
 	 * Converts a value in the given unit to SI, like GfParmUnit2SI.
 	 * Units the game doesn't know are taken as SI; they are added to unknown.
 	 */
-	public static double toSI(String unit, double value, boolean csr, List<String> unknown)
+	public static double toSI(String unit, double value, EditorFrame.GameType game, List<String> unknown)
 	{
-		return convert(unit, value, false, csr, unknown);
+		return convert(unit, value, false, game, unknown);
 	}
 
 	/**
 	 * Converts an SI value to the given unit, like GfParmSI2Unit.
 	 */
-	public static double fromSI(String unit, double value, boolean csr, List<String> unknown)
+	public static double fromSI(String unit, double value, EditorFrame.GameType game, List<String> unknown)
 	{
-		return convert(unit, value, true, csr, unknown);
+		return convert(unit, value, true, game, unknown);
 	}
 
 	/**
@@ -105,7 +108,7 @@ public final class GfParmNumbers
 	 * file uses a different unit than the one the value is read in.
 	 * A missing unit means SI, as it does for the game.
 	 */
-	public static double convert(double value, String fromUnit, String toUnit, boolean csr, List<String> unknown)
+	public static double convert(double value, String fromUnit, String toUnit, EditorFrame.GameType game, List<String> unknown)
 	{
 		String from = fromUnit == null ? "" : fromUnit;
 		String to = toUnit == null ? "" : toUnit;
@@ -113,12 +116,12 @@ public final class GfParmNumbers
 		if (from.equals(to))
 			return value;
 
-		return fromSI(to, toSI(from, value, csr, unknown), csr, unknown);
+		return fromSI(to, toSI(from, value, game, unknown), game, unknown);
 	}
 
 	// GfParmUnit2SI / GfParmSI2Unit: units are separated by '.', a '/' inverts the
 	// ones after it, and a '2' squares the one before it
-	private static double convert(String unit, double value, boolean toUnit, boolean csr, List<String> unknown)
+	private static double convert(String unit, double value, boolean toUnit, EditorFrame.GameType game, List<String> unknown)
 	{
 		if (unit == null || unit.isEmpty())
 			return value;
@@ -133,17 +136,17 @@ public final class GfParmNumbers
 			switch (c)
 			{
 				case '.':
-					evalUnit(buf.toString(), dest, invert, csr, unknown);
+					evalUnit(buf.toString(), dest, invert, game, unknown);
 					buf.setLength(0);
 					break;
 				case '/':
-					evalUnit(buf.toString(), dest, invert, csr, unknown);
+					evalUnit(buf.toString(), dest, invert, game, unknown);
 					buf.setLength(0);
 					invert = !toUnit;
 					break;
 				case '2':
-					evalUnit(buf.toString(), dest, invert, csr, unknown);
-					evalUnit(buf.toString(), dest, invert, csr, unknown);
+					evalUnit(buf.toString(), dest, invert, game, unknown);
+					evalUnit(buf.toString(), dest, invert, game, unknown);
 					buf.setLength(0);
 					break;
 				default:
@@ -152,12 +155,18 @@ public final class GfParmNumbers
 			}
 		}
 
-		evalUnit(buf.toString(), dest, invert, csr, unknown);
+		evalUnit(buf.toString(), dest, invert, game, unknown);
 		return dest[0];
 	}
 
-	private static void evalUnit(String unit, double[] dest, boolean invert, boolean csr, List<String> unknown)
+	private static void evalUnit(String unit, double[] dest, boolean invert, EditorFrame.GameType game, List<String> unknown)
 	{
+		if (game == EditorFrame.GameType.TORCS)
+		{
+			evalTorcsUnit(unit, dest, invert, unknown);
+			return;
+		}
+
 		double coeff;
 
 		switch (unit)
@@ -192,12 +201,53 @@ public final class GfParmNumbers
 
 			case "ci":
 				// Speed Dreams only
-				if (!csr)
+				if (game == EditorFrame.GameType.SPEED_DREAMS)
 				{
 					coeff = 0.0163871;
 					break;
 				}
 				// fall through: unknown to CSR
+
+			default:
+				// the game uses unknown units as they are
+				if (unknown != null && !unit.isEmpty() && !unknown.contains(unit))
+					unknown.add(unit);
+				return;
+		}
+
+		if (invert)
+			dest[0] /= coeff;
+		else
+			dest[0] *= coeff;
+	}
+
+	// TORCS's evalUnit: fewer units than the others, and lbf
+	private static void evalTorcsUnit(String unit, double[] dest, boolean invert, List<String> unknown)
+	{
+		double coeff;
+
+		switch (unit)
+		{
+			case "m": case "kg": case "s": case "rad": case "Pa":
+				return;
+
+			case "feet": case "ft":		coeff = 0.304801; break;	// the game's value, not 0.3048
+			case "deg":					coeff = Math.PI / 180.0; break;
+			case "h": case "hour": case "hours":	coeff = 3600.0; break;
+			case "day": case "days":	coeff = 24 * 3600.0; break;
+			case "km":					coeff = 1000.0; break;
+			case "mm":					coeff = 0.001; break;
+			case "cm":					coeff = 0.01; break;
+			case "in": case "inch": case "inches":	coeff = 0.0254; break;
+			case "lbs": case "lb":		coeff = 0.45359237; break;
+			case "lbf":					coeff = 0.45359237 * G; break;
+			case "slug": case "slugs":	coeff = 14.59484546; break;
+			case "kPa":					coeff = 1000.0; break;
+			case "MPa":					coeff = 1000000.0; break;
+			case "PSI": case "psi":		coeff = 6894.76; break;
+			case "rpm": case "RPM":		coeff = 0.104719755; break;
+			case "percent": case "%":	coeff = 0.01; break;
+			case "mph": case "MPH":		coeff = 0.44704; break;
 
 			default:
 				// the game uses unknown units as they are

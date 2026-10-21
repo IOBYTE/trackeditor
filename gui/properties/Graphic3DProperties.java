@@ -110,7 +110,7 @@ public class Graphic3DProperties extends PropertyPanel
 		addLabel(this, 1, descriptionNightLabel, "Description Night", 150);
 		addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 150);
 
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
 			addLabel(this, 3, separateObjectsLabel, "Seperate Objects", 150);
 			addLabel(this, 4, terrainObjectsLabel, "Terrain", 150);
@@ -139,7 +139,7 @@ public class Graphic3DProperties extends PropertyPanel
 		addTextField(this, 1, descriptionNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), 160, 200);
 		addTextField(this, 2, descriptionRainNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), 160, 200);
 
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
 			addTextField(this, 3, separateObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), 160, 200);
 			addTextField(this, 4, terrainObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTerrainObjects(), 160, 275);
@@ -164,7 +164,7 @@ public class Graphic3DProperties extends PropertyPanel
 			addTextField(this, 23, environmentObjectsTextField, getEditorFrame().getTrackData().getGraphic().getEnvironmentObjects(), 160, 275);
 		}
 
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
 			add(getTerrainObjectsButton(), null);
 			add(getRoadObjectsButton(), null);
@@ -707,8 +707,8 @@ public class Graphic3DProperties extends PropertyPanel
 		}
 
 		// the per-type 3d object files are CSR only: their fields aren't shown (or set)
-		// for Speed Dreams, so comparing them would remove a CSR track's files
-		if (!getEditorFrame().getCarsSportsRacing())
+		// for the other games, so comparing them would remove a CSR track's files
+		if (!getEditorFrame().getGameType().hasTypeObjectFiles())
 			return;
 
 		if (isDifferent(separateObjectsTextField.getText(),

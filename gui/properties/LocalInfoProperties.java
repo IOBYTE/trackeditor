@@ -108,7 +108,7 @@ public class LocalInfoProperties extends PropertyPanel
 		addTextField(this, 10, climatTextField, getEditorFrame().getTrackData().getLocalInfo().getClimat(), 170, 125);
 		addTextField(this, 11, precipitationTextField, getEditorFrame().getTrackData().getLocalInfo().getPrecipitation(), 170, 125);
 		
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasBestLap())
 		{
 			addLabel(this, 12, bestLapLabel, "Best Lap", 150);
 			addTextField(this, 12, bestLapTextField, getEditorFrame().getTrackData().getLocalInfo().getBestLap(), 170, 125);
@@ -208,7 +208,7 @@ public class LocalInfoProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasBestLap())
 		{
 			if (isDifferent(bestLapTextField.getText(),
 				getEditorFrame().getTrackData().getLocalInfo().getBestLap(), doubleResult))

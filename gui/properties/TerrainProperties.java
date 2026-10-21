@@ -166,7 +166,7 @@ public class TerrainProperties extends PropertyPanel
 		this.add(getReliefBorderComboBox(), null);
 		this.add(getUseObjectMaterialsComboBox(), null);
 		// only Speed Dreams trackgen reads the tiled file
-		if (!getEditorFrame().getCarsSportsRacing())
+		if (getEditorFrame().getGameType().hasTiledFile())
 		{
 			addLabel(this, 14, tiledFileLabel, "Tiled File", 120);
 			addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
@@ -562,7 +562,7 @@ public class TerrainProperties extends PropertyPanel
 			tabbedPane.setBounds(10, 420, 510, 362);
 
 			// only Speed Dreams trackgen places individual graphic objects
-			if (!getEditorFrame().getCarsSportsRacing())
+			if (getEditorFrame().getGameType().hasGraphicObjects())
 				tabbedPane.addTab("Objects", null, new GraphicObjectProperties(getEditorFrame()));
 			tabbedPane.addTab("Object Maps", null, new ObjectMapProperties(getEditorFrame()));
 			tabbedPane.addTab("Reliefs", null, new ReliefProperties(getEditorFrame()));
@@ -714,7 +714,7 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (!getEditorFrame().getCarsSportsRacing() && isDifferent(tiledFileTextField.getText(),
+		if (getEditorFrame().getGameType().hasTiledFile() && isDifferent(tiledFileTextField.getText(),
 			getEditorFrame().getTerrainGeneration().getTiledFile(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setTiledFile(stringResult.getValue());

@@ -313,6 +313,90 @@ public class EditorFrame extends JFrame
 			return this == SPEED_DREAMS;
 		}
 
+		/** @return whether the game has the fence1 and fence2 barrier styles (only Speed Dreams) */
+		public boolean hasFence1Fence2()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether the game has the "no barrier" barrier style (only Speed Dreams) */
+		public boolean hasNoBarrier()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether segments have a "penalty" (only CSR) */
+		public boolean hasSegmentPenalty()
+		{
+			return this == CARS_SPORTS_RACING;
+		}
+
+		/** @return whether the header has a "car category" (only CSR) */
+		public boolean hasCarCategory()
+		{
+			return this == CARS_SPORTS_RACING;
+		}
+
+		/** @return whether the header has "disabled penalties" (only Speed Dreams) */
+		public boolean hasDisabledPenalties()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether Local Info has a "best lap" (only CSR) */
+		public boolean hasBestLap()
+		{
+			return this == CARS_SPORTS_RACING;
+		}
+
+		/** @return whether the graphic section has the per-type 3d object files (only CSR) */
+		public boolean hasTypeObjectFiles()
+		{
+			return this == CARS_SPORTS_RACING;
+		}
+
+		/** @return whether trackgen reads an object's "use material" (only Speed Dreams') */
+		public boolean hasUseMaterial()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether trackgen reads the terrain's "tiled file" (only Speed Dreams') */
+		public boolean hasTiledFile()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether trackgen places individual graphic objects (only Speed Dreams'): the others only have object maps */
+		public boolean hasGraphicObjects()
+		{
+			return this == SPEED_DREAMS;
+		}
+
+		/**
+		 * @return whether the game loads the 3d file the graphic description names, so it
+		 * should match the file trackgen makes (not CSR: its tracks name the .acc its build
+		 * makes from the exported .ac)
+		 */
+		public boolean loadsDescribedFile()
+		{
+			return this != CARS_SPORTS_RACING;
+		}
+
+		/** @return the track categories: the directories the game's tracks are in */
+		public String[] getTrackCategories()
+		{
+			switch (this)
+			{
+				case CARS_SPORTS_RACING:
+					return new String[] {"circuit", "development", "dirt", "grandprix", "road", "speedway"};
+				case TORCS:
+					return new String[] {"dirt", "experimental", "oval", "road"};
+				default:
+					return new String[] {"circuit", "development", "dirt", "gprix", "karting", "road", "speedway"};
+			}
+		}
+
 		public String toString()
 		{
 			return name;
@@ -2848,9 +2932,8 @@ public class EditorFrame extends JFrame
 		}
 
 		// the game loads the file named by the graphic description, so offer to
-		// make it match the file type being created. Not for CSR: its tracks name
-		// the .acc that the build makes from the exported .ac.
-		if (!getCarsSportsRacing())
+		// make it match the file type being created
+		if (gameType.loadsDescribedFile())
 		{
 			String description = getTrackData().getGraphic().getDescription();
 			if (description == null)
