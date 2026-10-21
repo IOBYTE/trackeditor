@@ -22,8 +22,9 @@ import gui.EditorFrame;
  *     default: no side or border (width 0, "grass", "plan"), and a "fence" barrier
  *     0.6 m high on "barrier".</li>
  * <li>A segment value that isn't set is the previous segment's.</li>
- * <li>A side "width" sets both widths; otherwise the start width is the previous
- *     end width and the end width is the start width. The Main Track only has "width".</li>
+ * <li>A side's start width that isn't set is the previous end width, and an end width
+ *     that isn't set is the start width. The Main Track only has "width". (A side "width"
+ *     sets both widths; in TORCS it is the end width: XmlReader reads it as that.)</li>
  * <li>A "plan" border has height 0, and that 0 carries on to later segments.</li>
  * <li>A border style other than "plan" or "curb" is a wall.</li>
  * <li>A fence has width 0 and "no barrier" has width and height 0; both carry on.

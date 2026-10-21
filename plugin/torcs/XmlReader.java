@@ -348,8 +348,8 @@ public class XmlReader
         }
         else
         {
-            setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "Left");
-            setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "Right");
+			setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "Left", true);
+			setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "Right", true);
             setPits(mainTrack);
         }
 
@@ -1142,8 +1142,8 @@ public class XmlReader
         }
         else
         {
-        	setSide(seg, left, "Left");
-        	setSide(seg, right, "Right");
+			setSide(seg, left, "Left", false);
+			setSide(seg, right, "Right", false);
         }
 
         return shape;
@@ -1155,13 +1155,26 @@ public class XmlReader
      * @param string
      */
     private synchronized void setSide(Element seg, SegmentSide part,
-            String sPart)
+			String sPart, boolean mainTrack)
     {
         Element el = getChildWithName(seg, sPart + " Side");
         if (el != null)
         {
             double width = getAttrNumValue(el, "width", "m");
-            if (Double.isNaN(width))
+			if (!mainTrack && !editorFrame.getGameType().widthSetsBothSideWidths())
+			{
+				// TORCS: the start width is "start width" (or else the previous end width),
+				// the end width is "end width", or else "width", or else the start width
+				part.setSideStartWidth(getAttrNumValue(el, "start width", "m"));
+				double endWidth = getAttrNumValue(el, "end width", "m");
+				if (Double.isNaN(endWidth) && !Double.isNaN(width))
+				{
+					endWidth = width;
+					part.setEndWidthAsWidth(true);
+				}
+				part.setSideEndWidth(endWidth);
+			}
+			else if (Double.isNaN(width))
             {
                 part.setSideStartWidth(getAttrNumValue(el, "start width", "m"));
                 part.setSideEndWidth(getAttrNumValue(el, "end width", "m"));

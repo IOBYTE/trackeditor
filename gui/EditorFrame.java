@@ -383,6 +383,24 @@ public class EditorFrame extends JFrame
 			return this != CARS_SPORTS_RACING;
 		}
 
+		/**
+		 * @return whether a segment side's "width" sets both its widths (not TORCS: there it
+		 * is the end width, and the start width is "start width" or the previous end width)
+		 */
+		public boolean widthSetsBothSideWidths()
+		{
+			return this != TORCS;
+		}
+
+		/**
+		 * @return whether the pits have a style, buildings, max pits and an indicator (not
+		 * TORCS: it only has track side pits)
+		 */
+		public boolean hasPitOptions()
+		{
+			return this != TORCS;
+		}
+
 		/** @return the track categories: the directories the game's tracks are in */
 		public String[] getTrackCategories()
 		{
@@ -391,7 +409,7 @@ public class EditorFrame extends JFrame
 				case CARS_SPORTS_RACING:
 					return new String[] {"circuit", "development", "dirt", "grandprix", "road", "speedway"};
 				case TORCS:
-					return new String[] {"dirt", "experimental", "oval", "road"};
+					return new String[] {"dirt", "experimental", "oval", "road", "test"};
 				default:
 					return new String[] {"circuit", "development", "dirt", "gprix", "karting", "road", "speedway"};
 			}

@@ -138,44 +138,68 @@ public class PitProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		addLabel(this, 0, styleLabel, "Type", 110);
-		addLabel(this, 1, sideLabel, "Side", 110);
-		addLabel(this, 2, entryLabel, "Entry", 110);
-		addLabel(this, 3, startLabel, "Start", 110);
-		addLabel(this, 4, startBuildingsLabel, "Start Buildings", 110);
-		addLabel(this, 5, stopBuildingsLabel, "Stop Buildings", 110);
-		addLabel(this, 6, maxPitsLabel, "Max Pits", 110);
-		addLabel(this, 7, endLabel, "End", 110);
-		addLabel(this, 8, exitLabel, "Exit", 110);
-		addLabel(this, 9, widthLabel, "Width", 110);
-		addLabel(this, 10, lengthLabel, "Length", 110);
-		addLabel(this, 11, indicatorLabel, "Indicator", 110);
-		addLabel(this, 12, speedLimitLabel, "Speed Limit", 110);
-		addLabel(this, 14, generatePitsLabel, "Generate Pits", 110);
-
-		add(getStyleComboBox(), null);
-		add(getSideComboBox(), null);
-
 		Pits pits = getEditorFrame().getPits();
+		// TORCS only has track side pits, without buildings, max pits or an indicator
+		boolean options = getEditorFrame().getGameType().hasPitOptions();
+		int row = 0;
 
-		addTextField(this, 2, entryTextField, pits.getEntry(), 120, 125);
-		addTextField(this, 3, startTextField, pits.getStart(), 120, 125);
-		addTextField(this, 4, startBuildingsTextField, pits.getStartBuildings(), 120, 125);
-		addTextField(this, 5, stopBuildingsTextField, pits.getStopBuildings(), 120, 125);
-		addTextField(this, 6, maxPitsTextField, pits.getMaxPits(), 120, 125);
-		addTextField(this, 7, endTextField, pits.getEnd(), 120, 125);
-		addTextField(this, 8, exitTextField, pits.getExit(), 120, 125);
-		addTextField(this, 9, widthTextField, pits.getWidth(), 120, 125);
-		addTextField(this, 10, lengthTextField, pits.getLength(), 120, 125);
-
-		add(getIndicatorComboBox(), null);
-
-		addTextField(this, 12, speedLimitTextField, pits.getSpeedLimitValue(), 120, 125);
+		if (options)
+		{
+			addLabel(this, row, styleLabel, "Type", 110);
+			add(getStyleComboBox(), null);
+			getStyleComboBox().setBounds(120, rowY(row++), 125, 23);
+		}
+		addLabel(this, row, sideLabel, "Side", 110);
+		add(getSideComboBox(), null);
+		getSideComboBox().setBounds(120, rowY(row++), 125, 23);
+		addLabel(this, row, entryLabel, "Entry", 110);
+		addTextField(this, row++, entryTextField, pits.getEntry(), 120, 125);
+		addLabel(this, row, startLabel, "Start", 110);
+		addTextField(this, row++, startTextField, pits.getStart(), 120, 125);
+		if (options)
+		{
+			addLabel(this, row, startBuildingsLabel, "Start Buildings", 110);
+			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 125);
+			addLabel(this, row, stopBuildingsLabel, "Stop Buildings", 110);
+			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 125);
+			addLabel(this, row, maxPitsLabel, "Max Pits", 110);
+			addTextField(this, row++, maxPitsTextField, pits.getMaxPits(), 120, 125);
+		}
+		addLabel(this, row, endLabel, "End", 110);
+		addTextField(this, row++, endTextField, pits.getEnd(), 120, 125);
+		addLabel(this, row, exitLabel, "Exit", 110);
+		addTextField(this, row++, exitTextField, pits.getExit(), 120, 125);
+		addLabel(this, row, widthLabel, "Width", 110);
+		addTextField(this, row++, widthTextField, pits.getWidth(), 120, 125);
+		widthTextField.setToolTipText("Width of each pit (empty = 5 m)");
+		addLabel(this, row, lengthLabel, "Length", 110);
+		addTextField(this, row++, lengthTextField, pits.getLength(), 120, 125);
+		lengthTextField.setToolTipText("Length of each pit (empty = 15 m)");
+		if (options)
+		{
+			addLabel(this, row, indicatorLabel, "Indicator", 110);
+			add(getIndicatorComboBox(), null);
+			getIndicatorComboBox().setBounds(120, rowY(row++), 175, 23);
+		}
+		addLabel(this, row, speedLimitLabel, "Speed Limit", 110);
+		addTextField(this, row, speedLimitTextField, pits.getSpeedLimitValue(), 120, 125);
+		speedLimitTextField.setToolTipText("Pit lane speed limit (empty = 25 m/s, 90 km/h)");
 		add(getSpeedLimitUnitsLabel(), null);
+		getSpeedLimitUnitsLabel().setBounds(260, rowY(row), 40, 23);
 		add(getSpeedLimitUnitsComboBox(), null);
+		getSpeedLimitUnitsComboBox().setBounds(300, rowY(row), 140, 23);
+		row += 2;
 
+		addLabel(this, row, generatePitsLabel, "Generate Pits", 110);
 		add(getGeneratePitsCheckBox(), null);
-		add(getTabbedPane(), null);		
+		getGeneratePitsCheckBox().setBounds(120, rowY(row) + 2, 20, 20);
+		add(getTabbedPane(), null);
+		getTabbedPane().setLocation(10, rowY(row + 2));
+	}
+
+	private static int rowY(int row)
+	{
+		return 10 + row * 27;
 	}
 	
 	private void addDefaultSurfaces(Vector<String> surfaceVector)
@@ -291,6 +315,7 @@ public class PitProperties extends PropertyPanel
 		if (speedLimitUnitsComboBox == null)
 		{
 			String[] items = {"none", "meters per second", "kilometers per hour", "miles per hour"};
+			// TORCS track files use km/h
 			speedLimitUnitsComboBox = new JComboBox<String>(items);
 			speedLimitUnitsComboBox.setBounds(300, 334, 140, 23);
 			DoubleValue speedLimit = getEditorFrame().getPits().getSpeedLimit();
@@ -300,7 +325,7 @@ public class PitProperties extends PropertyPanel
 				indicator = 0;
 			else if (speedLimit.units.equals("m") || speedLimit.units.equalsIgnoreCase("mps"))
 				indicator = 1;
-			else if (speedLimit.units.equalsIgnoreCase("kph"))
+			else if (isKilometersPerHour(speedLimit.units))
 				indicator = 2;
 			else if (speedLimit.units.equalsIgnoreCase("mph"))
 				indicator = 3;
@@ -751,22 +776,32 @@ public class PitProperties extends PropertyPanel
 	/**
 	 *
 	 */
+	private static boolean isKilometersPerHour(String units)
+	{
+		return units != null && (units.equalsIgnoreCase("kph") || units.equalsIgnoreCase("km/h"));
+	}
+
 	public void exit()
 	{
+		// the TORCS settings that aren't shown are left as they are
+		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		int index = getStyleComboBox().getSelectedIndex();
 		int style = getEditorFrame().getPits().getStyle();
-		if (index == 0)
+		if (options)
 		{
-			if (style != Integer.MAX_VALUE)
+			if (index == 0)
 			{
-				getEditorFrame().getPits().setStyle(Integer.MAX_VALUE);
+				if (style != Integer.MAX_VALUE)
+				{
+					getEditorFrame().getPits().setStyle(Integer.MAX_VALUE);
+					getEditorFrame().documentIsModified = true;
+				}
+			}
+			else if (style == Integer.MAX_VALUE || style != index - 1)
+			{
+				getEditorFrame().getPits().setStyle(index - 1);
 				getEditorFrame().documentIsModified = true;
 			}
-		}
-		else if (style == Integer.MAX_VALUE || style != index - 1)
-		{
-			getEditorFrame().getPits().setStyle(index - 1);
-			getEditorFrame().documentIsModified = true;
 		}
 
 		MutableString stringResult = new MutableString();
@@ -794,21 +829,21 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(startBuildingsTextField.getText(),
+		if (options && isDifferent(startBuildingsTextField.getText(),
 			getEditorFrame().getPits().getStartBuildings(), stringResult))
 		{
 			getEditorFrame().getPits().setStartBuildings(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(stopBuildingsTextField.getText(),
+		if (options && isDifferent(stopBuildingsTextField.getText(),
 			getEditorFrame().getPits().getStopBuildings(), stringResult))
 		{
 			getEditorFrame().getPits().setStopBuildings(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(maxPitsTextField.getText(),
+		if (options && isDifferent(maxPitsTextField.getText(),
 			getEditorFrame().getPits().getMaxPits(), integerResult))
 		{
 			getEditorFrame().getPits().setMaxPits(integerResult.getValue());
@@ -845,18 +880,21 @@ public class PitProperties extends PropertyPanel
 
 		index = getIndicatorComboBox().getSelectedIndex();
 		int indicator = getEditorFrame().getPits().getIndicator();
-		if (index == 0)
+		if (options)
 		{
-			if (indicator != Integer.MAX_VALUE)
+			if (index == 0)
 			{
-				getEditorFrame().getPits().setIndicator(Integer.MAX_VALUE);
+				if (indicator != Integer.MAX_VALUE)
+				{
+					getEditorFrame().getPits().setIndicator(Integer.MAX_VALUE);
+					getEditorFrame().documentIsModified = true;
+				}
+			}
+			else if (indicator == Integer.MAX_VALUE || indicator != index - 1)
+			{
+				getEditorFrame().getPits().setIndicator(index - 1);
 				getEditorFrame().documentIsModified = true;
 			}
-		}
-		else if (indicator == Integer.MAX_VALUE || indicator != index - 1)
-		{
-			getEditorFrame().getPits().setIndicator(index - 1);
-			getEditorFrame().documentIsModified = true;
 		}
 
 		if (isDifferent(speedLimitTextField.getText(),
@@ -868,7 +906,7 @@ public class PitProperties extends PropertyPanel
 
 		index = getSpeedLimitUnitsComboBox().getSelectedIndex();
 		String	units = getEditorFrame().getPits().getSpeedLimitUnits();
-		String[] items = {null, "m", "kph", "mph"};
+		String[] items = {null, "m", options ? "kph" : "km/h", "mph"};
 		if (index == 0)
 		{
 			if (units != null)
@@ -877,7 +915,8 @@ public class PitProperties extends PropertyPanel
 				getEditorFrame().documentIsModified = true;
 			}
 		}
-		else if (index != -1 && !items[index].equalsIgnoreCase(units))
+		else if (index != -1 && !items[index].equalsIgnoreCase(units) &&
+			!(index == 2 && isKilometersPerHour(units)))
 		{
 			getEditorFrame().getPits().setSpeedLimitUnits(items[index]);
 			getEditorFrame().documentIsModified = true;

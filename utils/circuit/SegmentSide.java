@@ -76,6 +76,9 @@ public class SegmentSide implements Cloneable
 	private boolean				hasSide						= false;
 	protected double			sideStartWidth				= Double.NaN;
 	protected double			sideEndWidth				= Double.NaN;
+	// TORCS: the end width was read from "width" (which TORCS reads as the end width), so
+	// it is written as "width" again
+	protected boolean			endWidthAsWidth				= false;
 	protected String			sideSurface					= null;
 	protected String			sideBankingType				= null;
 
@@ -115,6 +118,7 @@ public class SegmentSide implements Cloneable
 		sideBankingType = side.sideBankingType;
 		sideEndWidth = side.sideEndWidth;
 		sideStartWidth = side.sideStartWidth;
+		endWidthAsWidth = side.endWidthAsWidth;
 		sideSurface = side.sideSurface;
 		hasSide = side.hasSide;
 		hasBorder = side.hasBorder;
@@ -364,6 +368,19 @@ public class SegmentSide implements Cloneable
 	}
 
 	/**
+	 * @return whether TORCS's end width is written as "width", as the track file had it
+	 */
+	public boolean getEndWidthAsWidth()
+	{
+		return endWidthAsWidth;
+	}
+
+	public void setEndWidthAsWidth(boolean endWidthAsWidth)
+	{
+		this.endWidthAsWidth = endWidthAsWidth;
+	}
+
+	/**
 	 * @return Returns the sideStartWidth.
 	 */
 	public double getSideStartWidth()
@@ -431,6 +448,7 @@ public class SegmentSide implements Cloneable
 			s.sideBankingType = this.sideBankingType;
 			s.sideEndWidth = this.sideEndWidth;
 			s.sideStartWidth = this.sideStartWidth;
+			s.endWidthAsWidth = this.endWidthAsWidth;
 			s.sideSurface = this.sideSurface;
 			s.hasSide = this.hasSide;
 			s.hasBorder = this.hasBorder;

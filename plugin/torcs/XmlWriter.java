@@ -223,7 +223,7 @@ public class XmlWriter
 			com = new Comment("Left part of track");
 			track.addContent(com);
 			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasSide())
-				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getLeft(), "Left"));
+				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getLeft(), "Left", true));
 			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasBorder())
 				track.addContent(getBorder(editorFrame.getTrackData().getMainTrack().getLeft(), "Left"));
 			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasBarrier())
@@ -233,7 +233,7 @@ public class XmlWriter
 			com = new Comment("Right part of track");
 			track.addContent(com);
 			if (editorFrame.getTrackData().getMainTrack().getRight().getHasSide())
-				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getRight(), "Right"));
+				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getRight(), "Right", true));
 			if (editorFrame.getTrackData().getMainTrack().getRight().getHasBorder())
 				track.addContent(getBorder(editorFrame.getTrackData().getMainTrack().getRight(), "Right"));
 			if (editorFrame.getTrackData().getMainTrack().getRight().getHasBarrier())
@@ -255,18 +255,28 @@ public class XmlWriter
 		Element pits = new Element("section");
 		pits.setAttribute(new Attribute("name", "Pits"));
 
-		addContent(pits, "pit style", null, editorFrame.getPits().getStyle());
+		// TORCS only has track side pits, without buildings, max pits or an indicator
+		boolean options = editorFrame.getGameType().hasPitOptions();
+		if (options)
+			addContent(pits, "pit style", null, editorFrame.getPits().getStyle());
+		else if (editorFrame.getPits().getStyle() == 1)
+			// TORCS track files name the pit type, though the game doesn't read it
+			addContent(pits, "type", "track side");
 		addContent(pits, "side", editorFrame.getPits().getSide());
 		addContent(pits, "entry", editorFrame.getPits().getEntry());
 		addContent(pits, "start", editorFrame.getPits().getStart());
-		addContent(pits, "start buildings", editorFrame.getPits().getStartBuildings());
-		addContent(pits, "stop buildings", editorFrame.getPits().getStopBuildings());
-		addContent(pits, "max pits", null, editorFrame.getPits().getMaxPits());
+		if (options)
+		{
+			addContent(pits, "start buildings", editorFrame.getPits().getStartBuildings());
+			addContent(pits, "stop buildings", editorFrame.getPits().getStopBuildings());
+			addContent(pits, "max pits", null, editorFrame.getPits().getMaxPits());
+		}
 		addContent(pits, "end", editorFrame.getPits().getEnd());
 		addContent(pits, "exit", editorFrame.getPits().getExit());
 		addContent(pits, "length", "m", editorFrame.getPits().getLength());
 		addContent(pits, "width", "m", editorFrame.getPits().getWidth());
-		addContent(pits, "pit indicator", null, editorFrame.getPits().getIndicator());
+		if (options)
+			addContent(pits, "pit indicator", null, editorFrame.getPits().getIndicator());
 		addContent(pits, "speed limit", editorFrame.getPits().getSpeedLimit());
 
 		return pits;
@@ -406,7 +416,7 @@ public class XmlWriter
 			com = new Comment("Left part of segment");
 			segment.addContent(com);
 			if (shape.getLeft().getHasSide())
-				segment.addContent(getSide(shape.getLeft(), "Left"));
+				segment.addContent(getSide(shape.getLeft(), "Left", false));
 			if (shape.getLeft().getHasBorder())
 				segment.addContent(getBorder(shape.getLeft(), "Left"));
 			if (shape.getLeft().getHasBarrier())
@@ -416,7 +426,7 @@ public class XmlWriter
 			com = new Comment("Right part of segment");
 			segment.addContent(com);
 			if (shape.getRight().getHasSide())
-				segment.addContent(getSide(shape.getRight(), "Right"));
+				segment.addContent(getSide(shape.getRight(), "Right", false));
 			if (shape.getRight().getHasBorder())
 			    segment.addContent(getBorder(shape.getRight(), "Right"));
 			if (shape.getRight().getHasBarrier())
@@ -499,12 +509,18 @@ public class XmlWriter
 	 * @param left
 	 * @return
 	 */
-	private synchronized Element getSide(SegmentSide part, String sPart)
+	private synchronized Element getSide(SegmentSide part, String sPart, boolean mainTrack)
 	{
 		Element side = new Element("section");
 		side.setAttribute(new Attribute("name", sPart + " Side"));
 
-		if (!Double.isNaN(part.getSideStartWidth()) &&
+		if (!mainTrack && !editorFrame.getGameType().widthSetsBothSideWidths())
+		{
+			// TORCS reads "width" as the end width only, so equal widths can't become "width"
+			addContent(side, "start width", "m", part.getSideStartWidth());
+			addContent(side, part.getEndWidthAsWidth() ? "width" : "end width", "m", part.getSideEndWidth());
+		}
+		else if (!Double.isNaN(part.getSideStartWidth()) &&
 			!Double.isNaN(part.getSideEndWidth()) &&
 			part.getSideStartWidth() == part.getSideEndWidth())
 		{
