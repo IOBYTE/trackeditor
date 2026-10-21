@@ -225,6 +225,9 @@ public class EditorFrame extends JFrame
 	 * The splash screen shown at startup
 	 */
 	private SplashScreen		_splash;
+	// the splash stays up at least this long, without holding up the editor
+	private static final int	SPLASH_MIN_MS		= 1500;
+	private long				splashShownAt;
 
 	private JMenu				editMenu							= null;
 	private JMenuItem			undoMenuItem						= null;
@@ -375,8 +378,10 @@ public class EditorFrame extends JFrame
 			_splash.setStatus("Initializing gui ...");
 			_splash.incProgress(20);
 			_splash.setVisible(true);
+			splashShownAt = System.currentTimeMillis();
 		}
 
+		boolean started = false;
 		try
 		{
 			enableEvents(AWTEvent.WINDOW_EVENT_MASK);
@@ -399,15 +404,12 @@ public class EditorFrame extends JFrame
 			{
 				e.printStackTrace();
 			}
+			started = true;
 		}
 		finally
 		{
 			// also when something goes wrong, so the splash doesn't stay up
-			if (_splash != null)
-			{
-				_splash.dispose();
-				_splash = null;
-			}
+			closeSplash(started);
 		}
 
 		dataDirectory = preferences.get(SD_DATA_DIRECTORY, null);
@@ -1007,6 +1009,37 @@ public class EditorFrame extends JFrame
 			prj = new Project();
 		}
 		return prj;
+	}
+
+	/**
+	 * Closes the splash: at once after an error, otherwise once it has been up
+	 * SPLASH_MIN_MS, staying in front of the editor until then.
+	 */
+	private void closeSplash(boolean started)
+	{
+		if (_splash == null)
+			return;
+
+		final SplashScreen splash = _splash;
+		_splash = null;
+
+		long left = SPLASH_MIN_MS - (System.currentTimeMillis() - splashShownAt);
+		if (!started || left <= 0)
+		{
+			splash.dispose();
+			return;
+		}
+
+		splash.toFront();
+		javax.swing.Timer timer = new javax.swing.Timer((int) left, new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				splash.dispose();
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
 	}
 
 	private void splashProgress(int progress)
