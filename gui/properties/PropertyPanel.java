@@ -239,6 +239,203 @@ public class PropertyPanel extends JPanel
 		return false;
 	}
 
+	// list items (cameras, lights, surfaces...) are sections named after them, so their
+	// names must be set, unique in the list and can't hold '/' (the parameter path separator)
+	private static final String	ITEM_NAME	= "trackeditor.itemName";
+
+	/** Marks field as the name of the list item shown in its tab */
+	protected static void markItemName(JTextField field)
+	{
+		field.putClientProperty(ITEM_NAME, Boolean.TRUE);
+	}
+
+	/** Implemented by panels whose item names aren't in text fields (a table) */
+	public interface NameChecked
+	{
+		/** A message about a missing or duplicate name, after showing it, or null */
+		String checkNames();
+	}
+
+	private static JTextField findItemName(Container container)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTextField && ((JTextField) component).getClientProperty(ITEM_NAME) != null)
+				return (JTextField) component;
+			if (component instanceof Container && !(component instanceof JTabbedPane))
+			{
+				JTextField field = findItemName((Container) component);
+				if (field != null)
+					return field;
+			}
+		}
+		return null;
+	}
+
+	private static java.util.List<JTextField> itemNames(JTabbedPane tabs)
+	{
+		java.util.List<JTextField> names = new java.util.ArrayList<JTextField>();
+		for (int i = 0; i < tabs.getTabCount(); i++)
+		{
+			Component tab = tabs.getComponentAt(i);
+			if (tab instanceof Container)
+			{
+				JTextField field = findItemName((Container) tab);
+				if (field != null)
+					names.add(field);
+			}
+		}
+		return names;
+	}
+
+	/** A name for a new item: prefix followed by the first number no tab uses */
+	protected static String uniqueName(JTabbedPane tabs, String prefix)
+	{
+		java.util.Set<String> used = new java.util.HashSet<String>();
+		for (int i = 0; i < tabs.getTabCount(); i++)
+			used.add(tabs.getTitleAt(i));
+		for (JTextField field : itemNames(tabs))
+			used.add(field.getText().trim());
+		int number = tabs.getTabCount() + 1;
+		while (used.contains(prefix + number))
+			number++;
+		return prefix + number;
+	}
+
+	private static String nameProblem(JTextField field, java.util.List<JTextField> names)
+	{
+		String name = field.getText();
+		if (name == null || name.trim().isEmpty())
+			return "needs a name";
+		if (name.contains("/"))
+			return "the name \"" + name + "\" can't contain /";
+		// report the later one of two, usually the one just added or renamed
+		for (JTextField other : names)
+		{
+			if (other == field)
+				break;
+			if (name.equals(other.getText()))
+				return "the name \"" + name + "\" is already used, and the game would only keep one of them";
+		}
+		return null;
+	}
+
+	private static JTextField findBadName(Container container, String[] problem)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTabbedPane)
+			{
+				java.util.List<JTextField> names = itemNames((JTabbedPane) component);
+				for (JTextField field : names)
+				{
+					problem[0] = nameProblem(field, names);
+					if (problem[0] != null)
+						return field;
+				}
+			}
+			if (component instanceof Container)
+			{
+				JTextField field = findBadName((Container) component, problem);
+				if (field != null)
+					return field;
+			}
+		}
+		return null;
+	}
+
+	private static NameChecked findNameChecked(Container container)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof NameChecked)
+				return (NameChecked) component;
+			if (component instanceof Container)
+			{
+				NameChecked checked = findNameChecked((Container) component);
+				if (checked != null)
+					return checked;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Checks the names of list items: a missing name makes the track impossible to
+	 * save, and of two items with one name the game keeps only one.
+	 * Otherwise shows the bad name, tells the user and returns false.
+	 */
+	public static boolean checkNames(Component parent, Container container)
+	{
+		String[] problem = new String[1];
+		JTextField field = findBadName(container, problem);
+		if (field != null)
+		{
+			String where = showComponent(container, field);
+			if (where.endsWith(" > "))
+				where = where.substring(0, where.length() - 3);
+			JOptionPane.showMessageDialog(parent, where + ": " + problem[0] + ".", "Properties", JOptionPane.ERROR_MESSAGE);
+			field.requestFocusInWindow();
+			field.selectAll();
+			return false;
+		}
+
+		NameChecked checked = findNameChecked(container);
+		if (checked != null)
+		{
+			String where = showComponent(container, (Component) checked);
+			String message = checked.checkNames();
+			if (message != null)
+			{
+				JOptionPane.showMessageDialog(parent, where + message + ".", "Properties", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Replaces the items of list with items (the items the tabs show, in tab order).
+	 *
+	 * @return true if that changed the list
+	 */
+	protected static <T> boolean replaceItems(java.util.List<T> list, java.util.List<T> items)
+	{
+		boolean same = list.size() == items.size();
+		for (int i = 0; same && i < items.size(); i++)
+			same = list.get(i) == items.get(i);
+		if (same)
+			return false;
+		list.clear();
+		list.addAll(items);
+		return true;
+	}
+
+	/**
+	 * Selects value in a combo box of fixed choices, adding it when the list doesn't have
+	 * it, so a value from the track file isn't replaced by the first choice (and then
+	 * removed from the track when Ok is pressed).
+	 */
+	public static void selectItem(javax.swing.JComboBox<String> comboBox, String value)
+	{
+		javax.swing.ComboBoxModel<String> model = comboBox.getModel();
+		if (value == null || value.isEmpty())
+		{
+			// unset: "none" where the list has it, otherwise nothing selected
+			comboBox.setSelectedItem(null);
+			for (int i = 0; i < model.getSize(); i++)
+				if ("none".equals(model.getElementAt(i)))
+					comboBox.setSelectedItem("none");
+			return;
+		}
+		boolean found = false;
+		for (int i = 0; i < model.getSize() && !found; i++)
+			found = value.equals(model.getElementAt(i));
+		if (!found && model instanceof javax.swing.MutableComboBoxModel)
+			((javax.swing.MutableComboBoxModel<String>) model).addElement(value);
+		comboBox.setSelectedItem(value);
+	}
+
 	/**
 	 * Table cell editor for numbers. Unlike the default one it refuses NaN and
 	 * infinity, can refuse an empty cell, and can limit a pixel to the image size.

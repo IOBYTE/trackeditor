@@ -165,7 +165,7 @@ public class GraphicProperties extends PropertyPanel
 			backgroundTypeComboBox.setBounds(160, 37, 125, 23);
 			int value = getEditorFrame().getTrackData().getGraphic().getBackgroundType();
 			if (value != Integer.MAX_VALUE)
-				backgroundTypeComboBox.setSelectedItem(String.valueOf(value));
+				selectItem(backgroundTypeComboBox, String.valueOf(value));
 		}
 		return backgroundTypeComboBox;
 	}

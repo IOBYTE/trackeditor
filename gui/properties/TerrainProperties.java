@@ -172,8 +172,8 @@ public class TerrainProperties extends PropertyPanel
 			addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
 			this.add(getTiledFileButton(), null);
 		}
-		getReliefBorderComboBox().setSelectedItem(toNoneString(getEditorFrame().getTerrainGeneration().getReliefBorder()));
-		getUseObjectMaterialsComboBox().setSelectedItem(toNoneString(getEditorFrame().getTerrainGeneration().getUseObjectMaterials()));
+		selectItem(getReliefBorderComboBox(), toNoneString(getEditorFrame().getTerrainGeneration().getReliefBorder()));
+		selectItem(getUseObjectMaterialsComboBox(), toNoneString(getEditorFrame().getTerrainGeneration().getUseObjectMaterials()));
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class TerrainProperties extends PropertyPanel
 			String orientation = getEditorFrame().getTerrainGeneration().getOrientation();
 			if (orientation == null || orientation.isEmpty())
 				orientation = "none";
-			orientationComboBox.setSelectedItem(orientation);
+			selectItem(orientationComboBox, orientation);
 		}
 		return orientationComboBox;
 	}
@@ -657,9 +657,13 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
+		// the Reliefs tab shows the reliefs of the file that was open: after switching to
+		// another file it must not copy them over the new file's reliefs
+		boolean reliefFileChanged = false;
 		if (isDifferent(reliefFileTextField.getText(),
 			getEditorFrame().getTerrainGeneration().getReliefFile(), stringResult))
 		{
+			reliefFileChanged = true;
 			try
 			{
 				getEditorFrame().getTerrainGeneration().setReliefFile(stringResult.getValue());
@@ -725,7 +729,7 @@ public class TerrainProperties extends PropertyPanel
 				((GraphicObjectProperties)component).exit();
 			else if (component instanceof ObjectMapProperties)
 				((ObjectMapProperties)component).exit();
-			else if (component instanceof ReliefProperties)
+			else if (component instanceof ReliefProperties && !reliefFileChanged)
 				((ReliefProperties)component).exit();
 		}
 

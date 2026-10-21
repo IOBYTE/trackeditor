@@ -261,7 +261,7 @@ public class TrackProperties extends PropertyPanel
 			String profil = getEditorFrame().getTrackData().getMainTrack().getProfil();
 			if (profil == null || profil.isEmpty())
 				profil = "none";
-			profilComboBox.setSelectedItem(profil);
+			selectItem(profilComboBox, profil);
 		}
 		return profilComboBox;
 	}
@@ -426,8 +426,7 @@ public class TrackProperties extends PropertyPanel
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						if (sideSurfaceComboBox.getSelectedItem() != null)
-							side.setSideSurface(sideSurfaceComboBox.getSelectedItem()+"");
+						// the track changes on Ok (exit), so Cancel leaves it alone
 					}
 				});
 			}
@@ -450,15 +449,12 @@ public class TrackProperties extends PropertyPanel
 				String type = side.getSideBankingType();
 				if (type == null || type.isEmpty())
 					type = "none";
-				sideBankingTypeComboBox.setSelectedItem(type);
+				selectItem(sideBankingTypeComboBox, type);
 				sideBankingTypeComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						String type = sideBankingTypeComboBox.getSelectedItem().toString();
-						if ("none".equals(type))
-							type = "";
-						side.setSideBankingType(type);
+						// the track changes on Ok (exit), so Cancel leaves it alone
 					}
 				});
 			}
@@ -482,8 +478,7 @@ public class TrackProperties extends PropertyPanel
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						if (borderSurfaceComboBox.getSelectedItem() != null)
-							side.setBorderSurface(borderSurfaceComboBox.getSelectedItem()+"");
+						// the track changes on Ok (exit), so Cancel leaves it alone
 					}
 				});
 			}
@@ -503,17 +498,12 @@ public class TrackProperties extends PropertyPanel
 				borderStyleComboBox.setBounds(150, 199, 125, 23);
 				borderStyleComboBox.setModel(new DefaultComboBoxModel<String>(borderStyleItems));
 				String style = side.getBorderStyle();
-				if (style == null || style.isEmpty())
-					style = "none";
-				borderStyleComboBox.setSelectedItem(style);
+				selectItem(borderStyleComboBox, style);
 				borderStyleComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						String style = borderStyleComboBox.getSelectedItem().toString();
-						if ("none".equals(style))
-							style = "";
-						side.setBorderStyle(style);
+						// the track changes on Ok (exit), so Cancel leaves it alone
 						
 						if (!initialized)
 							return;
@@ -590,8 +580,7 @@ public class TrackProperties extends PropertyPanel
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						if (barrierSurfaceComboBox.getSelectedItem() != null)
-							side.setBarrierSurface(barrierSurfaceComboBox.getSelectedItem()+"");
+						// the track changes on Ok (exit), so Cancel leaves it alone
 					}
 				});
 			}
@@ -613,15 +602,12 @@ public class TrackProperties extends PropertyPanel
 				if (style == null || style.isEmpty())
 					style = "none";
 				barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(getBarrierStyleItems(style)));
-				barrierStyleComboBox.setSelectedItem(style);
+				selectItem(barrierStyleComboBox, style);
 				barrierStyleComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						String style = barrierStyleComboBox.getSelectedItem().toString();
-						if ("none".equals(style))
-							style = "";
-						side.setBarrierStyle(style);
+						// the track changes on Ok (exit), so Cancel leaves it alone
 						
 						if (!initialized)
 							return;

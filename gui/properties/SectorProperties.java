@@ -65,7 +65,7 @@ public class SectorProperties extends PropertyPanel
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
 					Sector sector = new Sector();
-					sector.setName("" + (tabbedPane.getTabCount() + 1));
+					sector.setName(uniqueName(tabbedPane, ""));
 
 					tabbedPane.addTab(sector.getName(), null, new SectorPanel(sector), null);
 					tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
@@ -127,6 +127,7 @@ public class SectorProperties extends PropertyPanel
 
 	private class SectorPanel extends JPanel
 	{
+		private final Sector	item;	// what this tab shows and Ok changes
 		private JLabel		nameLabel					= new JLabel();
 		private JTextField 	nameTextField				= new JTextField();
 		private JLabel		commentLabel				= new JLabel();
@@ -140,6 +141,7 @@ public class SectorProperties extends PropertyPanel
 		public SectorPanel(Sector sector)
 		{
 			super();
+			this.item = sector;
 			initialize(sector);
 		}
 
@@ -155,6 +157,7 @@ public class SectorProperties extends PropertyPanel
 			addLabel(this, 2, distanceFromStartLabel, "Distance From Start", 150);
 
 			addTextField(this, 0, nameTextField, sector.getName(), 160, 125);
+			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, sector.getComment(), 160, 335);
 			addTextField(this, 2, distanceFromStartTextField, sector.getDistanceFromStart(), 160, 125);
 		}
@@ -168,15 +171,13 @@ public class SectorProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 		Vector<Sector> sectors = getEditorFrame().getTrackData().getSectors();
-		int minCount = Math.min(sectors.size(), tabbedPane.getTabCount());
-		if (sectors.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<Sector> tabItems = new Vector<Sector>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            Sector sector = sectors.elementAt(i);
             SectorPanel panel = (SectorPanel) tabbedPane.getComponentAt(i);
+            Sector sector = panel.item;
             if (isDifferent(panel.nameTextField.getText(), sector.getName(), stringResult))
             {
                 sector.setName(stringResult.getValue());
@@ -192,27 +193,11 @@ public class SectorProperties extends PropertyPanel
                 sector.setDistanceFromStart(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+            tabItems.add(sector);
 		}
-		if (sectors.size() > tabbedPane.getTabCount())
+		if (replaceItems(sectors, tabItems))
 		{
-			// need to trim Sectors
-			while (sectors.size() > tabbedPane.getTabCount())
-			{
-				sectors.remove(sectors.size() - 1);
-			}
-		}
-		else if (sectors.size() < tabbedPane.getTabCount())
-		{
-			// need to add to sectors
-			while (sectors.size() < tabbedPane.getTabCount())
-			{
-	            SectorPanel panel = (SectorPanel) tabbedPane.getComponentAt(sectors.size());
-				Sector sector = new Sector();
-				sector.setName(panel.nameTextField.getText());
-				sector.setComment(panel.commentTextField.getText());
-				sector.setDistanceFromStart(getDouble(panel.distanceFromStartTextField.getText()));
-				sectors.add(sector);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

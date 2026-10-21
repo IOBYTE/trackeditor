@@ -114,7 +114,7 @@ public class ObjectProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = "object" + (tabbedPane.getTabCount() + 1);
+					String name = uniqueName(tabbedPane, "object");
 					TrackObject object = new TrackObject();
 
 					object.setName(name);
@@ -197,7 +197,7 @@ public class ObjectProperties extends PropertyPanel
 					{
 						if (getTabbedPane().getSelectedIndex() == -1)
 						{
-							String name = "object1";
+							String name = uniqueName(tabbedPane, "object");
 							TrackObject object = new TrackObject();
 
 							object.setName(name);
@@ -206,7 +206,11 @@ public class ObjectProperties extends PropertyPanel
 							tabbedPane.setSelectedIndex(0);
 						}
 							
+						// the tab keeps its own name: the copy's name would be used twice
+						ObjectPanel panel = (ObjectPanel) getTabbedPane().getSelectedComponent();
+						String name = panel.nameTextField.getText();
 						setPanelFromObject(objectCopy, (ObjectPanel) getTabbedPane().getSelectedComponent());
+						panel.nameTextField.setText(name);
 					}
 				}
 			});
@@ -263,6 +267,7 @@ public class ObjectProperties extends PropertyPanel
 
 	private class ObjectPanel extends JPanel
 	{
+		private final TrackObject	item;	// what this tab shows and Ok changes
 		private JLabel				nameLabel				= new JLabel();
 		private JTextField 			nameTextField			= new JTextField();
 		private JLabel				objectLabel				= new JLabel();
@@ -306,6 +311,7 @@ public class ObjectProperties extends PropertyPanel
 		public ObjectPanel(TrackObject object)
 		{
 			super();
+			this.item = object;
 			initialize(object);
 		}
 
@@ -341,13 +347,14 @@ public class ObjectProperties extends PropertyPanel
 			addLabel(this, 12, scaleMaxLabel, "Scale Max", 160);
 
 			addTextField(this, 0, nameTextField, object.getName(), 120, 125);
+			markItemName(nameTextField);
 			addTextField(this, 1, objectTextField, object.getObject(), 120, 290);
 			addTextField(this, 2, commentTextField, object.getComment(), 120, 380);
 			addTextField(this, 3, colorTextField, toHexString(object.getColor()), 120, 125);
 			setHexTextField(colorTextField, object.getColor());
 
 			add(getOrientationTypeComboBox(), null);
-			getOrientationTypeComboBox().setSelectedItem(toNoneString(object.getOrientationType()));
+			selectItem(getOrientationTypeComboBox(), toNoneString(object.getOrientationType()));
 
 			addTextField(this, 5, borderDistanceTextField, object.getBorderDistance(), 120, 125);
 			addTextField(this, 6, orientationTextField, object.getOrientation(), 120, 125);
@@ -355,7 +362,7 @@ public class ObjectProperties extends PropertyPanel
 			addTextField(this, 8, deltaVertTextField, object.getDeltaVert(), 120, 125);
 
 			add(getScaleTypeComboBox(), null);
-			getScaleTypeComboBox().setSelectedItem(toNoneString(object.getScaleType()));
+			selectItem(getScaleTypeComboBox(), toNoneString(object.getScaleType()));
 
 			addTextField(this, 10, scaleTextField, object.getScale(), 120, 125);
 			addTextField(this, 11, scaleMinTextField, object.getScaleMin(), 120, 125);
@@ -366,7 +373,7 @@ public class ObjectProperties extends PropertyPanel
 			{
 				addLabel(this, 4, useMaterialLabel, "Use Material", 265, 90);
 				add(getUseMaterialComboBox(), null);
-				getUseMaterialComboBox().setSelectedItem(toNoneString(object.getUseMaterial()));
+				selectItem(getUseMaterialComboBox(), toNoneString(object.getUseMaterial()));
 			}
 
 			if (defaultObjects)
@@ -728,15 +735,13 @@ public class ObjectProperties extends PropertyPanel
 		MutableInteger integerResult = new MutableInteger();
 
 		Vector<TrackObject> objects = getEditorFrame().getTrackData().getObjects();
-		int minCount = Math.min(objects.size(), tabbedPane.getTabCount());
-		if (objects.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<TrackObject> tabItems = new Vector<TrackObject>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            TrackObject object = objects.elementAt(i);
             ObjectPanel panel = (ObjectPanel) tabbedPane.getComponentAt(i);
+            TrackObject object = panel.item;
 
             if (isDifferent(panel.nameTextField.getText(), object.getName(), stringResult))
             {
@@ -822,25 +827,11 @@ public class ObjectProperties extends PropertyPanel
                 object.setUseMaterial(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
-        }
-		if (objects.size() > tabbedPane.getTabCount())
-		{
-			// need to trim envMaps
-			while (objects.size() > tabbedPane.getTabCount())
-			{
-				objects.remove(objects.size() - 1);
-			}
+            tabItems.add(object);
 		}
-		else if (objects.size() < tabbedPane.getTabCount())
+		if (replaceItems(objects, tabItems))
 		{
-			// need to add to environmentMaps
-			while (objects.size() < tabbedPane.getTabCount())
-			{
-	            ObjectPanel panel = (ObjectPanel) tabbedPane.getComponentAt(objects.size());
-				TrackObject object = new TrackObject();
-				setObjectFromPanel(object, panel);
-				objects.add(object);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 
 		getEditorFrame().getProject().setPropertiesEditorObjectTab(this.tabbedPane.getSelectedIndex());
@@ -869,14 +860,14 @@ public class ObjectProperties extends PropertyPanel
 		setTextField(panel.nameTextField, object.getName());
 		setTextField(panel.objectTextField, object.getObject());
 		setHexTextField(panel.colorTextField, object.getColor());
-		panel.orientationTypeComboBox.setSelectedItem(toNoneString(object.getOrientationType()));		
+		selectItem(panel.orientationTypeComboBox, toNoneString(object.getOrientationType()));
 		setTextField(panel.orientationTextField, object.getOrientation());
 		setTextField(panel.deltaHeightTextField, object.getDeltaHeight());
 		setTextField(panel.deltaVertTextField, object.getDeltaVert());
-		panel.scaleTypeComboBox.setSelectedItem(toNoneString(object.getScaleType()));		
+		selectItem(panel.scaleTypeComboBox, toNoneString(object.getScaleType()));
 		setTextField(panel.scaleTextField, object.getScale());
 		setTextField(panel.scaleMinTextField, object.getScaleMin());
 		setTextField(panel.scaleMaxTextField, object.getScaleMax());
-		panel.getUseMaterialComboBox().setSelectedItem(toNoneString(object.getUseMaterial()));
+		selectItem(panel.getUseMaterialComboBox(), toNoneString(object.getUseMaterial()));
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

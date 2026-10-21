@@ -34,7 +34,7 @@ import gui.TrackObjectDialog;
 import utils.MutableString;
 import utils.circuit.GraphicObject;
 
-public class GraphicObjectProperties extends PropertyPanel
+public class GraphicObjectProperties extends PropertyPanel implements PropertyPanel.NameChecked
 {
 	private final int 					ROW_INDEX				= 0;
 	private final int 					NAME_INDEX				= 1;
@@ -474,6 +474,41 @@ public class GraphicObjectProperties extends PropertyPanel
 		popupMenu.add(deleteAllColorItem);
 
 		return popupMenu;
+	}
+
+	/**
+	 * Each object is a section named after it: a missing name stops the track from
+	 * being saved, and of two objects with one name the game keeps only one.
+	 */
+	public String checkNames()
+	{
+		if (graphicObjectTablePanel == null)
+			return null;
+		JTable table = graphicObjectTablePanel.table;
+		if (table.isEditing())
+			table.getCellEditor().stopCellEditing();
+		java.util.Map<String, Integer> first = new java.util.HashMap<String, Integer>();
+		for (int i = 0; i < data.size(); i++)
+		{
+			String name = data.get(i).name;
+			String problem = null;
+			if (name == null || name.trim().isEmpty())
+				problem = "needs a name";
+			else if (name.contains("/"))
+				problem = "the name \"" + name + "\" can't contain /";
+			else if (first.containsKey(name))
+				problem = "the name \"" + name + "\" is also used by row " + (first.get(name) + 1) + ", and the game would only keep one of them";
+			else
+				first.put(name, i);
+			if (problem != null)
+			{
+				int row = table.convertRowIndexToView(i);
+				table.setRowSelectionInterval(row, row);
+				table.scrollRectToVisible(table.getCellRect(row, NAME_INDEX, true));
+				return "row " + (i + 1) + ": " + problem;
+			}
+		}
+		return null;
 	}
 
 	public void exit()

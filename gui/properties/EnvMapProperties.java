@@ -88,9 +88,11 @@ public class EnvMapProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = "map " + (tabbedPane.getTabCount() + 1);
+					String name = uniqueName(tabbedPane, "map ");
+					EnvironmentMapping envMap = new EnvironmentMapping();
+					envMap.setName(name);
 
-					tabbedPane.addTab(name, null, new EnvMapPanel(name, ""), null);
+					tabbedPane.addTab(name, null, new EnvMapPanel(envMap), null);
 					tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 				}
 			});
@@ -142,7 +144,7 @@ public class EnvMapProperties extends PropertyPanel
 			for (int i = 0; i < envMaps.size(); i++)
 	        {
                 EnvironmentMapping envMap = envMaps.elementAt(i);
-				tabbedPane.addTab(envMap.getName(), null, new EnvMapPanel(envMap.getName(), envMap.getEnvMapImage()), null);
+				tabbedPane.addTab(envMap.getName(), null, new EnvMapPanel(envMap), null);
 			}
 		}
 		return tabbedPane;
@@ -150,6 +152,7 @@ public class EnvMapProperties extends PropertyPanel
 
 	private class EnvMapPanel extends JPanel
 	{
+		private final EnvironmentMapping	item;	// what this tab shows and Ok changes
 		private JLabel		nameLabel		= new JLabel();
 		private JTextField 	nameTextField	= new JTextField();
 		private JLabel		envMapLabel		= new JLabel();
@@ -161,10 +164,11 @@ public class EnvMapProperties extends PropertyPanel
 		/**
 		 *
 		 */
-		public EnvMapPanel(String name, String envMap)
+		public EnvMapPanel(EnvironmentMapping envMap)
 		{
 			super();
-			initialize(name, envMap);
+			this.item = envMap;
+			initialize(envMap.getName(), envMap.getEnvMapImage());
 		}
 
 		/**
@@ -178,6 +182,7 @@ public class EnvMapProperties extends PropertyPanel
 			addLabel(this, 1, envMapLabel, "Environment Map", 120);
 
 			addTextField(this, 0, nameTextField, name, 130, 100);
+			markItemName(nameTextField);
 			addTextField(this, 1, envMapTextField, environmentMap, 130, 280);
 
 			add(getEnvMapButton(), null);
@@ -243,15 +248,13 @@ public class EnvMapProperties extends PropertyPanel
 	{
 		MutableString stringResult = new MutableString();
 		Vector<EnvironmentMapping> envMaps = getEditorFrame().getTrackData().getGraphic().getEnvironmentMapping();
-		int minCount = Math.min(envMaps.size(), tabbedPane.getTabCount());
-		if (envMaps.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<EnvironmentMapping> tabItems = new Vector<EnvironmentMapping>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            EnvironmentMapping envMap = envMaps.elementAt(i);
             EnvMapPanel panel = (EnvMapPanel) tabbedPane.getComponentAt(i);
+            EnvironmentMapping envMap = panel.item;
             if (isDifferent(panel.nameTextField.getText(), envMap.getName(), stringResult))
             {
                 envMap.setName(stringResult.getValue());
@@ -262,26 +265,11 @@ public class EnvMapProperties extends PropertyPanel
                 envMap.setEnvMapImage(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+            tabItems.add(envMap);
 		}
-		if (envMaps.size() > tabbedPane.getTabCount())
+		if (replaceItems(envMaps, tabItems))
 		{
-			// need to trim envMaps
-			while (envMaps.size() > tabbedPane.getTabCount())
-			{
-				envMaps.remove(envMaps.size() - 1);
-			}
-		}
-		else if (envMaps.size() < tabbedPane.getTabCount())
-		{
-			// need to add to environmentMaps
-			while (envMaps.size() < tabbedPane.getTabCount())
-			{
-	            EnvMapPanel panel = (EnvMapPanel) tabbedPane.getComponentAt(envMaps.size());
-				EnvironmentMapping envMap = new EnvironmentMapping();
-				envMap.setName(panel.nameTextField.getText());
-				envMap.setEnvMapImage(panel.envMapTextField.getText());
-				envMaps.add(envMap);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 	}
  } //  @jve:decl-index=0:visual-constraint="10,10"

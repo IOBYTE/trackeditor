@@ -101,7 +101,7 @@ public class StartingGridProperties extends PropertyPanel
 			String side = getEditorFrame().getTrackData().getStartingGrid().getPolePositionSide();
 			if (side == null || side.isEmpty())
 				side = "none";
-			polePositionSideComboBox.setSelectedItem(side);
+			selectItem(polePositionSideComboBox, side);
 		}
 		return polePositionSideComboBox;
 	}

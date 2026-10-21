@@ -91,7 +91,7 @@ public class TrackLightProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = "light" + (tabbedPane.getTabCount() + 1);
+					String name = uniqueName(tabbedPane, "light");
 					TrackLight light = new TrackLight();
 
 					light.setName(name);
@@ -171,6 +171,7 @@ public class TrackLightProperties extends PropertyPanel
 
 	private class TrackLightPanel extends JPanel
 	{
+		private final TrackLight	item;	// what this tab shows and Ok changes
 		private JLabel				nameLabel				= new JLabel();
 		private JTextField 			nameTextField			= new JTextField();
 		private JLabel				roleLabel				= new JLabel();
@@ -210,6 +211,7 @@ public class TrackLightProperties extends PropertyPanel
 		public TrackLightPanel(TrackLight light)
 		{
 			super();
+			this.item = light;
 			initialize(light);
 		}
 
@@ -236,6 +238,7 @@ public class TrackLightProperties extends PropertyPanel
 			addLabel(this, 13, blueLabel, "Blue", 160);
 
 			addTextField(this, 0, nameTextField, light.getName(), 120, 125);
+			markItemName(nameTextField);
 			addTextField(this, 1, roleTextField, light.getRole(), 120, 125);
 			addTextField(this, 2, topLeftXTextField, light.getTopLeftX(), 120, 125);
 			addTextField(this, 3, topLeftYTextField, light.getTopLeftY(), 120, 125);
@@ -359,15 +362,13 @@ public class TrackLightProperties extends PropertyPanel
 		MutableInteger integerResult = new MutableInteger();
 
 		Vector<TrackLight> lights = getEditorFrame().getTrackData().getTrackLights();
-		int minCount = Math.min(lights.size(), tabbedPane.getTabCount());
-		if (lights.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<TrackLight> tabItems = new Vector<TrackLight>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            TrackLight light = lights.elementAt(i);
             TrackLightPanel panel = (TrackLightPanel) tabbedPane.getComponentAt(i);
+            TrackLight light = panel.item;
 
             if (isDifferent(panel.nameTextField.getText(), light.getName(), stringResult))
             {
@@ -452,40 +453,11 @@ public class TrackLightProperties extends PropertyPanel
                 light.setBlue(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+            tabItems.add(light);
 		}
-		if (lights.size() > tabbedPane.getTabCount())
+		if (replaceItems(lights, tabItems))
 		{
-			// need to trim envMaps
-			while (lights.size() > tabbedPane.getTabCount())
-			{
-				lights.remove(lights.size() - 1);
-			}
-		}
-		else if (lights.size() < tabbedPane.getTabCount())
-		{
-			// need to add to environmentMaps
-			while (lights.size() < tabbedPane.getTabCount())
-			{
-	            TrackLightPanel panel = (TrackLightPanel) tabbedPane.getComponentAt(lights.size());
-				TrackLight light = new TrackLight();
-
-				light.setName(panel.nameTextField.getText());
-				light.setRole(panel.roleTextField.getText());
-				light.setTopLeftX(getDouble(panel.topLeftXTextField.getText()));
-				light.setTopLeftY(getDouble(panel.topLeftYTextField.getText()));
-				light.setTopLeftZ(getDouble(panel.topLeftZTextField.getText()));
-				light.setBottomRightX(getDouble(panel.bottomRightXTextField.getText()));
-				light.setBottomRightY(getDouble(panel.bottomRightYTextField.getText()));
-				light.setBottomRightZ(getDouble(panel.bottomRightZTextField.getText()));
-				light.setTextureOn(panel.textureOnTextField.getText());
-				light.setTextureOff(panel.textureOffTextField.getText());
-				light.setIndex(getInteger(panel.indexTextField.getText()));
-				light.setRed(getDouble(panel.redTextField.getText()));
-				light.setGreen(getDouble(panel.greenTextField.getText()));
-				light.setBlue(getDouble(panel.blueTextField.getText()));
-
-				lights.add(light);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 
 		getEditorFrame().getProject().setPropertiesEditorLightTab(this.tabbedPane.getSelectedIndex());	

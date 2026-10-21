@@ -102,7 +102,7 @@ public class SurfaceProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = "surface" + (tabbedPane.getTabCount() + 1);
+					String name = uniqueName(tabbedPane, "surface");
 					Surface surface = new Surface();
 
 					surface.setName(name);
@@ -185,7 +185,7 @@ public class SurfaceProperties extends PropertyPanel
 					{
 						if (getTabbedPane().getSelectedIndex() == -1)
 						{
-							String name = "surface1";
+							String name = uniqueName(tabbedPane, "surface");
 							Surface surface = new Surface();
 
 							surface.setName(name);
@@ -194,7 +194,11 @@ public class SurfaceProperties extends PropertyPanel
 							tabbedPane.setSelectedIndex(0);						
 						}
 						
+						// the tab keeps its own name: the copy's name would be used twice
+						SurfacePanel panel = (SurfacePanel) getTabbedPane().getSelectedComponent();
+						String name = panel.nameTextField.getText();
 						setPanelFromSurface(surfaceCopy, (SurfacePanel) getTabbedPane().getSelectedComponent());
+						panel.nameTextField.setText(name);
 					}
 				}
 			});
@@ -251,6 +255,7 @@ public class SurfaceProperties extends PropertyPanel
 
 	private class SurfacePanel extends JPanel
 	{
+		private final Surface	item;	// what this tab shows and Ok changes
 		private JLabel				nameLabel						= new JLabel();
 		private JTextField 			nameTextField					= new JTextField();
 		private JLabel				commentLabel					= new JLabel();
@@ -315,6 +320,7 @@ public class SurfaceProperties extends PropertyPanel
 		public SurfacePanel(Surface surface)
 		{
 			super();
+			this.item = surface;
 			initialize(surface);
 		}
 
@@ -353,6 +359,7 @@ public class SurfaceProperties extends PropertyPanel
 			addLabel(this, 25, reboundLabel, "Rebound", 180);
 
 			addTextField(this, 0, nameTextField, surface.getName(), 190, 125);
+			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, surface.getComment(), 190, 310);
 			addTextField(this, 2, colorR1TextField, surface.getColorR1(), 190, 125);
 			addTextField(this, 3, colorG1TextField, surface.getColorG1(), 190, 125);
@@ -363,15 +370,15 @@ public class SurfaceProperties extends PropertyPanel
 			addTextField(this, 8, textureNameTextField, surface.getTextureName(), 190, 220);
 
 			add(getTextureTypeComboBox(), null);
-			getTextureTypeComboBox().setSelectedItem(toNoneString(surface.getTextureType()));
+			selectItem(getTextureTypeComboBox(), toNoneString(surface.getTextureType()));
 
 			addTextField(this, 10, textureSizeTextField, surface.getTextureSize(), 190, 125);
 			addTextField(this, 11, textureRandomnessTextField, surface.getTextureRandomness(), 190, 125);
 
 			add(getTextureLinkWithPreviousComboBox(), null);
-			getTextureLinkWithPreviousComboBox().setSelectedItem(toNoneString(surface.getTextureLinkWithPrevious()));
+			selectItem(getTextureLinkWithPreviousComboBox(), toNoneString(surface.getTextureLinkWithPrevious()));
 			add(getTextureStartOnBoundaryComboBox(), null);
-			getTextureStartOnBoundaryComboBox().setSelectedItem(toNoneString(surface.getTextureStartOnBoundary()));
+			selectItem(getTextureStartOnBoundaryComboBox(), toNoneString(surface.getTextureStartOnBoundary()));
 
 			addTextField(this, 14, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
 			addTextField(this, 15, frictionTextField, surface.getFriction(), 190, 125);
@@ -622,15 +629,13 @@ public class SurfaceProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 
 		Vector<Surface> surfaces = getEditorFrame().getTrackData().getSurfaces();
-		int minCount = Math.min(surfaces.size(), tabbedPane.getTabCount());
-		if (surfaces.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<Surface> tabItems = new Vector<Surface>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            Surface surface = surfaces.elementAt(i);
             SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(i);
+            Surface surface = panel.item;
 
             if (isDifferent(panel.nameTextField.getText(), surface.getName(), stringResult))
             {
@@ -787,25 +792,11 @@ public class SurfaceProperties extends PropertyPanel
                 surface.setRebound(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+            tabItems.add(surface);
 		}
-		if (surfaces.size() > tabbedPane.getTabCount())
+		if (replaceItems(surfaces, tabItems))
 		{
-			// need to trim envMaps
-			while (surfaces.size() > tabbedPane.getTabCount())
-			{
-				surfaces.remove(surfaces.size() - 1);
-			}
-		}
-		else if (surfaces.size() < tabbedPane.getTabCount())
-		{
-			// need to add to environmentMaps
-			while (surfaces.size() < tabbedPane.getTabCount())
-			{
-	            SurfacePanel panel = (SurfacePanel) tabbedPane.getComponentAt(surfaces.size());
-				Surface surface = new Surface();
-				setSurfaceFromPanel(surface, panel);
-				surfaces.add(surface);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 
 		getEditorFrame().getProject().setPropertiesEditorSurfaceTab(this.tabbedPane.getSelectedIndex());
@@ -849,10 +840,10 @@ public class SurfaceProperties extends PropertyPanel
 		setTextField(panel.colorG2TextField, surface.getColorG2());
 		setTextField(panel.colorB2TextField, surface.getColorB2());
 		panel.textureNameTextField.setText(new String(surface.getTextureName()));		
-		panel.textureTypeComboBox.setSelectedItem(toNoneString(surface.getTextureType()));		
+		selectItem(panel.textureTypeComboBox, toNoneString(surface.getTextureType()));
 		setTextField(panel.textureSizeTextField, surface.getTextureSize());
-		panel.textureLinkWithPreviousComboBox.setSelectedItem(toNoneString(surface.getTextureLinkWithPrevious()));
-		panel.getTextureStartOnBoundaryComboBox().setSelectedItem(toNoneString(surface.getTextureStartOnBoundary()));
+		selectItem(panel.textureLinkWithPreviousComboBox, toNoneString(surface.getTextureLinkWithPrevious()));
+		selectItem(panel.getTextureStartOnBoundaryComboBox(), toNoneString(surface.getTextureStartOnBoundary()));
 		setTextField(panel.textureMipMapTextField, surface.getTextureMipMap());
 		setTextField(panel.frictionTextField, surface.getFriction());
 		setTextField(panel.rollingResistanceTextField, surface.getRollingResistance());

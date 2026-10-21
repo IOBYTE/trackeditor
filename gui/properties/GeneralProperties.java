@@ -147,7 +147,7 @@ public class GeneralProperties extends PropertyPanel
 				items = new String[] {"circuit", "development", "dirt", "gprix", "karting", "road", "speedway"};
 			categoryComboBox = new JComboBox<String>(items);
 			categoryComboBox.setBounds(130, 64, 125, 23);
-			categoryComboBox.setSelectedItem(getEditorFrame().getTrackData().getHeader().getCategory());
+			selectItem(categoryComboBox, getEditorFrame().getTrackData().getHeader().getCategory());
 			categoryComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -190,7 +190,7 @@ public class GeneralProperties extends PropertyPanel
 			String subcategory = getEditorFrame().getTrackData().getHeader().getSubcategory();
 			if (subcategory == null)
 				subcategory = "none";
-			subcategoryComboBox.setSelectedItem(subcategory);
+			selectItem(subcategoryComboBox, subcategory);
 			lastSubcategory = new String(subcategory);
 			subcategoryComboBox.setEnabled("speedway".equals(getEditorFrame().getTrackData().getHeader().getCategory()));
 			subcategoryComboBox.addActionListener(new java.awt.event.ActionListener()
@@ -242,7 +242,7 @@ public class GeneralProperties extends PropertyPanel
 				stringVersion = "none";
 			else
 				stringVersion = version + "";
-			skyVersionComboBox.setSelectedItem(stringVersion);
+			selectItem(skyVersionComboBox, stringVersion);
 		}
 		return skyVersionComboBox;
 	}
@@ -253,8 +253,6 @@ public class GeneralProperties extends PropertyPanel
 
 		// the path is something/category/track
 		String tmpPath = Editor.getProperties().getPath();
-		String tmpName = nameTextField.getText();
-		String tmpCategory = (String) getCategoryComboBox().getSelectedItem();
 
 		if (isDifferent(nameTextField.getText(), getEditorFrame().getTrackData().getHeader().getName(), stringResult))
 		{
@@ -274,20 +272,8 @@ public class GeneralProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		// get the track name from the path
-		int index = tmpPath.lastIndexOf(sep);
-
-		// remove the track name from the path
-		String pathToCategory = tmpPath.substring(0, index);
-
-		// get the category from the path
-		index = pathToCategory.lastIndexOf(sep);
-		String categoryFromPath = pathToCategory.substring(index + 1);
-		if (!categoryFromPath.equals(tmpCategory))
-		{
-			// TODO  Which one should we use?
-			System.out.println("category from path : " + categoryFromPath + " category : " + tmpCategory);
-		}
+		// (the category used to be compared with the track's folder here, only to print a
+		// note; it threw for a path without a folder separator, so Ok applied nothing)
 
 		File path = new File(tmpPath);
 		if (!path.exists())

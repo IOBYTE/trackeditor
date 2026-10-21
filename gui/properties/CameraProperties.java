@@ -86,7 +86,7 @@ public class CameraProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = "camera" + (tabbedPane.getTabCount() + 1);
+					String name = uniqueName(tabbedPane, "camera");
 					Camera camera = new Camera();
 
 					camera.setName(name);
@@ -166,6 +166,7 @@ public class CameraProperties extends PropertyPanel
 
 	private class CameraPanel extends JPanel
 	{
+		private final Camera	item;	// what this tab shows and Ok changes
 		private JLabel				nameLabel			= new JLabel();
 		private JTextField 			nameTextField		= new JTextField();
 		private JLabel				commentLabel		= new JLabel();
@@ -189,6 +190,7 @@ public class CameraProperties extends PropertyPanel
 		public CameraPanel(Camera camera)
 		{
 			super();
+			this.item = camera;
 			initialize(camera);
 		}
 
@@ -209,6 +211,7 @@ public class CameraProperties extends PropertyPanel
 			addLabel(this, 7, fovEndLabel, "Fov End", 130);
 
 			addTextField(this, 0, nameTextField, camera.getName(), 150, 125);
+			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, camera.getComment(), 150, 335);
 			addTextField(this, 2, segmentTextField, camera.getSegment(), 150, 125);
 			addTextField(this, 3, toRightTextField, camera.getToRight(), 150, 125);
@@ -228,15 +231,13 @@ public class CameraProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 
 		Vector<Camera> cameras = getEditorFrame().getTrackData().getCameras();
-		int minCount = Math.min(cameras.size(), tabbedPane.getTabCount());
-		if (cameras.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the item it shows, so deleting a tab can't move values the
+		// tab doesn't show (like the unit of a camera's "to start") to another item
+		Vector<Camera> tabItems = new Vector<Camera>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            Camera camera = cameras.elementAt(i);
             CameraPanel panel = (CameraPanel) tabbedPane.getComponentAt(i);
+            Camera camera = panel.item;
 
             if (isDifferent(panel.nameTextField.getText(), camera.getName(), stringResult))
             {
@@ -285,34 +286,11 @@ public class CameraProperties extends PropertyPanel
                 camera.setFovEnd(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
+            tabItems.add(camera);
 		}
-		if (cameras.size() > tabbedPane.getTabCount())
+		if (replaceItems(cameras, tabItems))
 		{
-			// need to trim envMaps
-			while (cameras.size() > tabbedPane.getTabCount())
-			{
-				cameras.remove(cameras.size() - 1);
-			}
-		}
-		else if (cameras.size() < tabbedPane.getTabCount())
-		{
-			// need to add to environmentMaps
-			while (cameras.size() < tabbedPane.getTabCount())
-			{
-	            CameraPanel panel = (CameraPanel) tabbedPane.getComponentAt(cameras.size());
-				Camera camera = new Camera();
-
-				camera.setName(panel.nameTextField.getText());
-				camera.setComment(panel.commentTextField.getText());
-				camera.setSegment(panel.segmentTextField.getText());
-				camera.setToRight(getDouble(panel.toRightTextField.getText()));
-				camera.setToStart(getDouble(panel.toStartTextField.getText()));
-				camera.setHeight(getDouble(panel.heightTextField.getText()));
-				camera.setFovStart(panel.fovStartTextField.getText());
-				camera.setFovEnd(panel.fovEndTextField.getText());
-
-				cameras.add(camera);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 
 		getEditorFrame().getProject().setPropertiesEditorCameraTab(this.tabbedPane.getSelectedIndex());

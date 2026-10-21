@@ -241,7 +241,7 @@ public class PitProperties extends PropertyPanel
 			String side = getEditorFrame().getPits().getSide();
 			if (side == null || side.isEmpty())
 				side = "none";
-			sideComboBox.setSelectedItem(side);
+			selectItem(sideComboBox, side);
 		}
 		return sideComboBox;
 	}
@@ -408,7 +408,8 @@ public class PitProperties extends PropertyPanel
 					entryPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_HEIGHT;
 					entryPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_WIDTH;
 				}
-				entryPitInfo.surface = side.getSideSurface();
+				// the surface the game uses there: often it is inherited, not set on the segment
+				entryPitInfo.surface = pits.getSide().equals("left") ? pitEntry.getValidLeftSideSurface(getEditorFrame()) : pitEntry.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -449,7 +450,8 @@ public class PitProperties extends PropertyPanel
 					pitsPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT;
 					pitsPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH;
 				}
-				pitsPitInfo.surface = side.getSideSurface();
+				// the surface the game uses there: often it is inherited, not set on the segment
+				pitsPitInfo.surface = pits.getSide().equals("left") ? pitStart.getValidLeftSideSurface(getEditorFrame()) : pitStart.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -499,7 +501,8 @@ public class PitProperties extends PropertyPanel
 					exitPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_EXIT_BORDER_HEIGHT;
 					exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
 				}
-				exitPitInfo.surface = side.getSideSurface();
+				// the surface the game uses there: often it is inherited, not set on the segment
+				exitPitInfo.surface = pits.getSide().equals("left") ? pitExit.getValidLeftSideSurface(getEditorFrame()) : pitExit.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -574,8 +577,8 @@ public class PitProperties extends PropertyPanel
 			add(getSurfaceComboBox(), null);
 			add(getBorderTypeComboBox(), null);
 			add(getBorderSurfaceComboBox(), null);
-			addTextField(this, 3, borderHeightTextField, 0, 130, 125);
-			addTextField(this, 4, borderWidthTextField, 0, 130, 125);
+			addTextField(this, 3, borderHeightTextField, Double.NaN, 130, 125);
+			addTextField(this, 4, borderWidthTextField, Double.NaN, 130, 125);
 			
 			setPitInfo(pitInfo);
 		}
@@ -589,7 +592,8 @@ public class PitProperties extends PropertyPanel
 			String borderType = this.pitInfo.borderType;
 			if (borderType == null || borderType.isEmpty())
 				borderType = "none";
-			borderTypeComboBox.setSelectedItem(borderType);		
+			selectItem(borderTypeComboBox, borderType);
+			borderTypeChanged(true);
 		}
 
 		/**
@@ -623,16 +627,23 @@ public class PitProperties extends PropertyPanel
 				{
 					public void actionPerformed(ActionEvent e)
 					{
-						borderTypeChanged();
+						if (pitInfo != null)
+							borderTypeChanged(false);
 					}
 				});
 			}
 			return borderTypeComboBox;
 		}
 		
-		private void borderTypeChanged()
+		/**
+		 * Enables the border fields for the border type chosen in the combo box.
+		 * fromPitInfo fills them from the track; otherwise (the user picked a type) empty
+		 * fields get the track's border, or the default pit border if it had none.
+		 */
+		private void borderTypeChanged(boolean fromPitInfo)
 		{
-			if (pitInfo.borderType == null || pitInfo.borderType.isEmpty() || pitInfo.borderType.equals("none"))
+			String type = (String) borderTypeComboBox.getSelectedItem();
+			if (type == null || type.isEmpty() || type.equals("none"))
 			{
 				borderSurfaceComboBox.setEnabled(false);
 				borderSurfaceComboBox.setSelectedIndex(-1);
@@ -641,7 +652,7 @@ public class PitProperties extends PropertyPanel
 				borderWidthTextField.setEnabled(false);
 				setTextField(borderWidthTextField, Double.NaN);
 			}
-			else
+			else if (fromPitInfo)
 			{
 				borderSurfaceComboBox.setEnabled(true);
 				borderSurfaceComboBox.setSelectedItem(pitInfo.borderSurface);
@@ -649,6 +660,19 @@ public class PitProperties extends PropertyPanel
 				setTextField(borderHeightTextField, pitInfo.borderHeight);
 				borderWidthTextField.setEnabled(true);
 				setTextField(borderWidthTextField, pitInfo.borderWidth);
+			}
+			else
+			{
+				boolean hadBorder = pitInfo.borderType != null && !pitInfo.borderType.isEmpty() && !pitInfo.borderType.equals("none");
+				borderSurfaceComboBox.setEnabled(true);
+				if (borderSurfaceComboBox.getSelectedItem() == null)
+					borderSurfaceComboBox.setSelectedItem(hadBorder && pitInfo.borderSurface != null ? pitInfo.borderSurface : SegmentSide.DEFAULT_PIT_PITS_BORDER_SURFACE);
+				borderHeightTextField.setEnabled(true);
+				if (borderHeightTextField.getText().trim().isEmpty())
+					setTextField(borderHeightTextField, hadBorder && !Double.isNaN(pitInfo.borderHeight) ? pitInfo.borderHeight : SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT);
+				borderWidthTextField.setEnabled(true);
+				if (borderWidthTextField.getText().trim().isEmpty())
+					setTextField(borderWidthTextField, hadBorder && !Double.isNaN(pitInfo.borderWidth) ? pitInfo.borderWidth : SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH);
 			}
 		}
 		
@@ -688,6 +712,42 @@ public class PitProperties extends PropertyPanel
 		}
 	}
 	
+	/**
+	 * Before anything is applied: when pits are to be generated, each part (entry,
+	 * pit, exit) with a border needs its border surface, height and width.
+	 *
+	 * @return what is missing, with its tab selected, or null
+	 */
+	public String generateProblem()
+	{
+		if (!getGeneratePitsCheckBox().isSelected())
+			return null;
+
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
+		{
+			PitPanel panel = (PitPanel) tabbedPane.getComponentAt(i);
+			String problem = null;
+			String type = (String) panel.getBorderTypeComboBox().getSelectedItem();
+			if (panel.getSurfaceComboBox().getSelectedItem() == null)
+				problem = "choose a surface";
+			else if (type != null && !type.equals("none"))
+			{
+				if (panel.getBorderSurfaceComboBox().getSelectedItem() == null)
+					problem = "choose a border surface";
+				else if (Double.isNaN(getDouble(panel.getBorderHeightTextField().getText())))
+					problem = "the border needs a height";
+				else if (Double.isNaN(getDouble(panel.getBorderWidthTextField().getText())))
+					problem = "the border needs a width";
+			}
+			if (problem != null)
+			{
+				tabbedPane.setSelectedIndex(i);
+				return "Pit > " + tabbedPane.getTitleAt(i) + ": to generate pits, " + problem + ".";
+			}
+		}
+		return null;
+	}
+
 	/**
 	 *
 	 */
@@ -981,7 +1041,8 @@ public class PitProperties extends PropertyPanel
 
 		for (int i = 0; i < count; i++)
 		{
-			int index = (start - i) % data.size();
+			// the exit can be after the start line and the end before it
+			int index = Math.floorMod(start - i, data.size());
 			if (pits.getSide().equals("left"))
 			{
 				side = data.get(index).getLeft();

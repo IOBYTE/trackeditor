@@ -104,7 +104,7 @@ public class ObjectMapProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String		name = "map " + (tabbedPane.getTabCount() + 1);
+					String		name = uniqueName(tabbedPane, "map ");
 					ObjectMap	objectMap = new ObjectMap();
 					objectMap.setName(name);
 
@@ -190,6 +190,7 @@ public class ObjectMapProperties extends PropertyPanel
 			addLabel(this, 1, objectMapLabel, "Object Map", 120);
 
 			addTextField(this, 0, nameTextField, objectMap.getName(), 115, 100);
+			markItemName(nameTextField);
 			addTextField(this, 1, objectMapTextField, objectMap.getObjectMap(), 115, 275);
 
 			add(getObjectMapCreateButton(), null);
@@ -909,15 +910,14 @@ public class ObjectMapProperties extends PropertyPanel
 	{
 		MutableString stringResult = new MutableString();
         Vector<ObjectMap> objectMaps = getEditorFrame().getObjectMaps();
-		int minCount = Math.min(objectMaps.size(), tabbedPane.getTabCount());
-		if (objectMaps.size() != tabbedPane.getTabCount())
-		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int i = 0; i < minCount; i++)
+		// each tab keeps the map it shows, so deleting a tab can't move one map's
+		// objects onto another
+		Vector<ObjectMap> tabItems = new Vector<ObjectMap>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
         {
-            ObjectMap objectMap = objectMaps.elementAt(i);
             ObjectMapPanel panel = (ObjectMapPanel) tabbedPane.getComponentAt(i);
+            ObjectMap objectMap = panel.objectMap;
+            tabItems.add(objectMap);
             if (isDifferent(panel.nameTextField.getText(), objectMap.getName(), stringResult))
             {
                 objectMap.setName(stringResult.getValue());
@@ -1002,32 +1002,9 @@ public class ObjectMapProperties extends PropertyPanel
     			}
     		}
 		}
-		if (objectMaps.size() > tabbedPane.getTabCount())
+		if (replaceItems(objectMaps, tabItems))
 		{
-			// need to trim objectMaps
-			while (objectMaps.size() > tabbedPane.getTabCount())
-			{
-				objectMaps.remove(objectMaps.size() - 1);
-			}
-		}
-		else if (objectMaps.size() < tabbedPane.getTabCount())
-		{
-			// need to add to objectMaps
-			while (objectMaps.size() < tabbedPane.getTabCount())
-			{
-	            ObjectMapPanel panel = (ObjectMapPanel) tabbedPane.getComponentAt(objectMaps.size());
-				ObjectMap objectMap = new ObjectMap();
-				objectMap.setName(panel.nameTextField.getText());
-				try
-				{
-					objectMap.setObjectMap(panel.objectMapTextField.getText());
-            	}
-            	catch (IOException e)
-            	{
-            		readFailed(objectMap, e);
-            	}
-				objectMaps.add(objectMap);
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 	}
 

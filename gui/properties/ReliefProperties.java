@@ -135,10 +135,12 @@ public class ReliefProperties extends PropertyPanel
 		private final String[] 		lineTypes 				= {"closed", "open"};
 		private int					lineTypeIndex			= 0;
 		private Vector<double[]>	vertices				= new Vector<double[]>();
+		private final ObjShapeRelief	item;	// what this tab shows and Ok changes
 
 		public ReliefPanel(ObjShapeRelief reliefShape)
 		{
 			super();
+			this.item = reliefShape;
 			reliefTypeIndex = reliefShape.isInterior() ? 0 : 1;
 			lineTypeIndex = reliefShape.isClosed() ? 0 : 1;
 			for (int i = 0; i < reliefShape.getVertices().size(); i++)
@@ -346,16 +348,14 @@ public class ReliefProperties extends PropertyPanel
 	{
 		MutableString stringResult = new MutableString();
 		Reliefs reliefs = getEditorFrame().getReliefs();
-		int minReliefCount = Math.min(reliefs.getReliefs().size(), tabbedPane.getTabCount());
-		if (reliefs.getReliefs().size() != tabbedPane.getTabCount())
+		// each tab keeps the relief it shows, so deleting a tab can't move one relief's
+		// name to another
+		Vector<ObjShapeRelief> tabItems = new Vector<ObjShapeRelief>();
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
 		{
-			getEditorFrame().documentIsModified = true;
-			reliefs.setChanged(true);
-		}
-		for (int i = 0; i < minReliefCount; i++)
-		{
-			ObjShapeRelief relief = reliefs.getReliefs().elementAt(i);
 			ReliefPanel panel = (ReliefPanel) tabbedPane.getComponentAt(i);
+			ObjShapeRelief relief = panel.item;
+			tabItems.add(relief);
 			String reliefType = panel.reliefTypes[panel.reliefTypeIndex];
 			if (isDifferent(panel.reliefTypeComboBox.getSelectedItem().toString(), reliefType, stringResult))
 			{
@@ -407,26 +407,10 @@ public class ReliefProperties extends PropertyPanel
 				}
 			}
 		}
-		if (reliefs.getReliefs().size() > tabbedPane.getTabCount())
+		if (replaceItems(reliefs.getReliefs(), tabItems))
 		{
-			// need to trim reliefs
-			while (reliefs.getReliefs().size() > tabbedPane.getTabCount())
-			{
-				reliefs.getReliefs().remove(reliefs.getReliefs().size() - 1);
-			}
-		}
-		else if (reliefs.getReliefs().size() < tabbedPane.getTabCount())
-		{
-			// need to add to reliefs
-			while (reliefs.getReliefs().size() < tabbedPane.getTabCount())
-			{
-				ReliefPanel panel = (ReliefPanel) tabbedPane.getComponentAt(reliefs.getReliefs().size());
-				ObjShapeRelief shape = new ObjShapeRelief();
-				shape.setReliefType(panel.reliefTypeComboBox.getSelectedItem().toString().equals("interior") ? ObjShapeRelief.ReliefType.Interior : ObjShapeRelief.ReliefType.Exterior);
-				shape.setLineType(panel.lineTypeComboBox.getSelectedItem().toString().equals("closed") ? ObjShapeRelief.LineType.Closed : ObjShapeRelief.LineType.Open);
-				shape.setVertices(panel.vertices);
-				reliefs.getReliefs().add(shape);
-			}
+			getEditorFrame().documentIsModified = true;
+			reliefs.setChanged(true);
 		}
 	}
 }

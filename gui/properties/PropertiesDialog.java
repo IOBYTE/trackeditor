@@ -412,6 +412,16 @@ public class PropertiesDialog extends JDialog
 		// a value that isn't a number would be lost, so don't apply anything until it's fixed
 		if (!PropertyPanel.checkNumbers(this, getTabbedPane()))
 			return;
+		// names of cameras, lights, surfaces...
+		if (!PropertyPanel.checkNames(this, getTabbedPane()))
+			return;
+		String pitProblem = this.pitProperties.generateProblem();
+		if (pitProblem != null)
+		{
+			getTabbedPane().setSelectedComponent(this.pitProperties);
+			javax.swing.JOptionPane.showMessageDialog(this, pitProblem, "Properties", javax.swing.JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 
 		this.generalProperties.exit();
 		this.trackProperties.exit();
