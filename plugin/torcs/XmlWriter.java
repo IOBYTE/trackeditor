@@ -54,6 +54,7 @@ import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
@@ -580,6 +581,8 @@ public class XmlWriter
 			addContent(el, "texture name", surface.getTextureName());
 			addContent(el, "texture type", surface.getTextureType());
 			addContent(el, "texture size", "m", surface.getTextureSize());
+			if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+				addContent(el, "texture size v", "m", surface.getTextureSizeV());
 			addContent(el, "texture randomness", "m", surface.getTextureRandomness());
 			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
@@ -781,14 +784,20 @@ public class XmlWriter
 			addContent(el, "comment", object.getComment());
 			addHexContent(el, "color", null, object.getColor());
 			addContent(el, "orientation type", object.getOrientationType());
-			addContent(el, "border distance", "m", object.getBorderDistance());
+			// TORCS trackgen reads neither the border distance nor the scale settings
+			boolean speedDreams = editorFrame.getGameType().hasSpeedDreamsTrackgenKeys();
+			if (speedDreams)
+				addContent(el, "border distance", "m", object.getBorderDistance());
 			addContent(el, "orientation", "deg", object.getOrientation());
 			addContent(el, "delta height",null,  object.getDeltaHeight());
 			addContent(el, "delta vert", null, object.getDeltaVert());
-			addContent(el, "scale type", object.getScaleType());
-			addContent(el, "scale", null, object.getScale());
-			addContent(el, "scale min",null,  object.getScaleMin());
-			addContent(el, "scale max", null, object.getScaleMax());
+			if (speedDreams)
+			{
+				addContent(el, "scale type", object.getScaleType());
+				addContent(el, "scale", null, object.getScale());
+				addContent(el, "scale min", null, object.getScaleMin());
+				addContent(el, "scale max", null, object.getScaleMax());
+			}
 			if (editorFrame.getGameType().hasUseMaterial())
 				addContent(el, "use material", object.getUseMaterial());
 
@@ -1040,6 +1049,9 @@ public class XmlWriter
 		addContent(element, "track step", "m", editorFrame.getTerrainGeneration().getTrackStep());
 		addContent(element, "border margin", "m", editorFrame.getTerrainGeneration().getBorderMargin());
 		addContent(element, "border step", "m", editorFrame.getTerrainGeneration().getBorderStep());
+		boolean torcs = editorFrame.getGameType().hasTorcsTrackgenKeys();
+		if (torcs)
+			addContent(element, "terrain transition", "m", editorFrame.getTerrainGeneration().getTerrainTransition());
 		addContent(element, "border height", "m", editorFrame.getTerrainGeneration().getBorderHeight());
 		addContent(element, "orientation", editorFrame.getTerrainGeneration().getOrientation());
 		addContent(element, "maximum altitude", "m", editorFrame.getTerrainGeneration().getMaximumAltitude());
@@ -1071,7 +1083,15 @@ public class XmlWriter
 		addContent(element, "relief border", editorFrame.getTerrainGeneration().getReliefBorder());
 		addContent(element, "surface", editorFrame.getTerrainGeneration().getSurface());
 		addContent(element, "random seed", null, editorFrame.getTerrainGeneration().getRandomSeed());
-		addContent(element, "use object materials", editorFrame.getTerrainGeneration().getUseObjectMaterials());
+		if (editorFrame.getGameType().hasSpeedDreamsTrackgenKeys())
+			addContent(element, "use object materials", editorFrame.getTerrainGeneration().getUseObjectMaterials());
+		if (torcs)
+		{
+			addContent(element, "crossing bridge socket gap", "m", editorFrame.getTerrainGeneration().getCrossingBridgeSocketGap());
+			addContent(element, "crossing bridge thickness", "m", editorFrame.getTerrainGeneration().getCrossingBridgeThickness());
+			for (int i = 0; i < TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
+				addContent(element, TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS[i], editorFrame.getTerrainGeneration().getCrossingBridgeSurface(i));
+		}
 		if (editorFrame.getGameType().hasTiledFile())
 			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
 

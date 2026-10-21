@@ -12,6 +12,8 @@ public final class Surface {
     private String textureName				= null;
     private String textureType				= null;
     private double textureSize				= Double.NaN;
+	// TORCS: the texture's height on crossing bridges
+	private double textureSizeV				= Double.NaN;
     private double textureRandomness		= Double.NaN;
     private String textureLinkWithPrevious	= null;
     private String textureStartOnBoundary	= null;
@@ -114,6 +116,14 @@ public final class Surface {
 
 	public void setTextureSize(double textureSize) {
 		this.textureSize = textureSize;
+	}
+
+	public double getTextureSizeV() {
+		return textureSizeV;
+	}
+
+	public void setTextureSizeV(double textureSizeV) {
+		this.textureSizeV = textureSizeV;
 	}
 
 	public double getTextureRandomness() {
@@ -249,6 +259,7 @@ public final class Surface {
         System.out.println(indent + "  colorB2                 : " + colorB2);
         System.out.println(indent + "  textureName             : " + textureName);
         System.out.println(indent + "  textureSize             : " + textureSize);
+		System.out.println(indent + "  textureSizeV            : " + textureSizeV);
         System.out.println(indent + "  textureRandomness       : " + textureRandomness);
         System.out.println(indent + "  textureType             : " + textureType);
         System.out.println(indent + "  textureLinkWithPrevious : " + textureLinkWithPrevious);

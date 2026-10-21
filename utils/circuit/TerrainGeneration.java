@@ -20,6 +20,16 @@ public class TerrainGeneration
 	public static final int			DEFAULT_RANDOM_SEED				= 1;
 	public static final String		DEFAULT_USE_OBJECT_MATERIALS	= "no";
 	public static final String		DEFAULT_TILED_FILE				= null;	
+	// TORCS trackgen: the defaults it uses for a missing value
+	public static final double		DEFAULT_CROSSING_BRIDGE_SOCKET_GAP	= 0.5;
+	public static final double		DEFAULT_CROSSING_BRIDGE_THICKNESS	= 1.0;
+	// the crossing bridge surfaces: underside, side, socket and floor
+	public static final String[]	CROSSING_BRIDGE_SURFACE_KEYS	=
+		{"crossing bridge underside surface", "crossing bridge side surface",
+		 "crossing bridge socket surface", "crossing bridge floor surface"};
+	public static final String[]	CROSSING_BRIDGE_SURFACE_NAMES	= {"Underside", "Side", "Socket", "Floor"};
+	public static final String[]	DEFAULT_CROSSING_BRIDGE_SURFACES	=
+		{"bridge-underside", "bridge-side", "bridge-socket", "bridge-floor"};
 
 	private double					trackStep						= Double.NaN;
 	private double					borderMargin					= Double.NaN;
@@ -36,6 +46,10 @@ public class TerrainGeneration
 	private int						randomSeed						= Integer.MAX_VALUE;
 	private String					useObjectMaterials				= null;
 	private String					tiledFile						= null;
+	private double					terrainTransition				= Double.NaN;
+	private double					crossingBridgeSocketGap			= Double.NaN;
+	private double					crossingBridgeThickness			= Double.NaN;
+	private String[]				crossingBridgeSurfaces			= new String[CROSSING_BRIDGE_SURFACE_KEYS.length];
 	private Vector<ObjectMap>		objectMaps						= new Vector<ObjectMap>();
 	private Vector<GraphicObject>	graphicObjects					= new Vector<GraphicObject>();
 
@@ -257,6 +271,45 @@ public class TerrainGeneration
 		this.tiledFile = tiledFile;
 	}
 
+	public double getTerrainTransition()
+	{
+		return terrainTransition;
+	}
+	public void setTerrainTransition(double terrainTransition)
+	{
+		this.terrainTransition = terrainTransition;
+	}
+
+	public double getCrossingBridgeSocketGap()
+	{
+		return crossingBridgeSocketGap;
+	}
+	public void setCrossingBridgeSocketGap(double crossingBridgeSocketGap)
+	{
+		this.crossingBridgeSocketGap = crossingBridgeSocketGap;
+	}
+
+	public double getCrossingBridgeThickness()
+	{
+		return crossingBridgeThickness;
+	}
+	public void setCrossingBridgeThickness(double crossingBridgeThickness)
+	{
+		this.crossingBridgeThickness = crossingBridgeThickness;
+	}
+
+	/**
+	 * @param index the surface's index in CROSSING_BRIDGE_SURFACE_KEYS
+	 */
+	public String getCrossingBridgeSurface(int index)
+	{
+		return crossingBridgeSurfaces[index];
+	}
+	public void setCrossingBridgeSurface(int index, String surface)
+	{
+		crossingBridgeSurfaces[index] = surface;
+	}
+
 	public Vector<GraphicObject> getGraphicObjects()
 	{
 		return graphicObjects;
@@ -284,6 +337,11 @@ public class TerrainGeneration
 		System.out.println(indent + "  random seed          : " + randomSeed);
 		System.out.println(indent + "  use object materials : " + useObjectMaterials);
 		System.out.println(indent + "  tiled file           : " + tiledFile);		
+		System.out.println(indent + "  terrain transition   : " + terrainTransition);
+		System.out.println(indent + "  bridge socket gap    : " + crossingBridgeSocketGap);
+		System.out.println(indent + "  bridge thickness     : " + crossingBridgeThickness);
+		for (int i = 0; i < crossingBridgeSurfaces.length; i++)
+			System.out.println(indent + "  " + CROSSING_BRIDGE_SURFACE_KEYS[i] + " : " + crossingBridgeSurfaces[i]);
 		System.out.println(indent + "  objectMaps           : " + objectMaps.size());
 		for (int i = 0; i < objectMaps.size(); i++)
 		{

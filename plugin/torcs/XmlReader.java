@@ -604,6 +604,7 @@ public class XmlReader
             surf.setTextureName(getAttrStrValue(surface, "texture name"));
             surf.setTextureType(getAttrStrValue(surface, "texture type"));
             surf.setTextureSize(getAttrNumValue(surface, "texture size", "m"));
+			surf.setTextureSizeV(getAttrNumValue(surface, "texture size v", "m"));
             surf.setTextureRandomness(getAttrNumValue(surface, "texture randomness", "m"));
             surf.setTextureLinkWithPrevious(getAttrStrValue(surface, "texture link with previous"));
             surf.setTextureStartOnBoundary(getAttrStrValue(surface, "texture start on boundary"));
@@ -782,6 +783,12 @@ public class XmlReader
 	        data.getTerrainGeneration().setRandomSeed(getAttrIntValue(terrain, "random seed"));
 	        data.getTerrainGeneration().setUseObjectMaterials(getAttrStrValue(terrain, "use object materials"));
 	        data.getTerrainGeneration().setTiledFile(getAttrStrValue(terrain, "tiled file"));
+			// TORCS
+			data.getTerrainGeneration().setTerrainTransition(getAttrNumValue(terrain, "terrain transition", "m"));
+			data.getTerrainGeneration().setCrossingBridgeSocketGap(getAttrNumValue(terrain, "crossing bridge socket gap", "m"));
+			data.getTerrainGeneration().setCrossingBridgeThickness(getAttrNumValue(terrain, "crossing bridge thickness", "m"));
+			for (int i = 0; i < utils.circuit.TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
+				data.getTerrainGeneration().setCrossingBridgeSurface(i, getAttrStrValue(terrain, utils.circuit.TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS[i]));
 
 	        Element objects = getChildWithName(terrain, "Objects");
 

@@ -337,14 +337,6 @@ public class ObjectProperties extends PropertyPanel
 			addLabel(this, 2, commentLabel, "Comment", 160);
 			addLabel(this, 3, colorLabel, "Color", 160);
 			addLabel(this, 4, orientationTypeLabel, "Orientation Type", 160);
-			addLabel(this, 5, borderDistanceLabel, "Border Distance", 160);
-			addLabel(this, 6, orientationLabel, "Orientation", 160);
-			addLabel(this, 7, deltaHeightLabel, "Delta Height", 160);
-			addLabel(this, 8, deltaVertLabel, "Delta Vert", 160);
-			addLabel(this, 9, scaleTypeLabel, "Scale Type", 160);
-			addLabel(this, 10, scaleLabel, "Scale", 160);
-			addLabel(this, 11, scaleMinLabel, "Scale Min", 160);
-			addLabel(this, 12, scaleMaxLabel, "Scale Max", 160);
 
 			addTextField(this, 0, nameTextField, object.getName(), 120, 125);
 			markItemName(nameTextField);
@@ -356,17 +348,38 @@ public class ObjectProperties extends PropertyPanel
 			add(getOrientationTypeComboBox(), null);
 			selectItem(getOrientationTypeComboBox(), toNoneString(object.getOrientationType()));
 
-			addTextField(this, 5, borderDistanceTextField, object.getBorderDistance(), 120, 125);
-			addTextField(this, 6, orientationTextField, object.getOrientation(), 120, 125);
-			addTextField(this, 7, deltaHeightTextField, object.getDeltaHeight(), 120, 125);
-			addTextField(this, 8, deltaVertTextField, object.getDeltaVert(), 120, 125);
+			// TORCS trackgen reads neither the border distance nor the scale settings
+			boolean speedDreams = getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys();
+			int row = 5;
+			if (speedDreams)
+			{
+				addLabel(this, row, borderDistanceLabel, "Border Distance", 160);
+				addTextField(this, row++, borderDistanceTextField, object.getBorderDistance(), 120, 125);
+			}
+			addLabel(this, row, orientationLabel, "Orientation", 160);
+			addTextField(this, row++, orientationTextField, object.getOrientation(), 120, 125);
+			addLabel(this, row, deltaHeightLabel, "Delta Height", 160);
+			addTextField(this, row++, deltaHeightTextField, object.getDeltaHeight(), 120, 125);
+			addLabel(this, row, deltaVertLabel, "Delta Vert", 160);
+			addTextField(this, row++, deltaVertTextField, object.getDeltaVert(), 120, 125);
 
-			add(getScaleTypeComboBox(), null);
+			// the scale fields are filled in even when they aren't shown, as the scale
+			// type's listener uses them
 			selectItem(getScaleTypeComboBox(), toNoneString(object.getScaleType()));
-
-			addTextField(this, 10, scaleTextField, object.getScale(), 120, 125);
-			addTextField(this, 11, scaleMinTextField, object.getScaleMin(), 120, 125);
-			addTextField(this, 12, scaleMaxTextField, object.getScaleMax(), 120, 125);
+			setTextField(scaleTextField, object.getScale());
+			setTextField(scaleMinTextField, object.getScaleMin());
+			setTextField(scaleMaxTextField, object.getScaleMax());
+			if (speedDreams)
+			{
+				addLabel(this, row, scaleTypeLabel, "Scale Type", 160);
+				add(getScaleTypeComboBox(), null);
+				addLabel(this, row + 1, scaleLabel, "Scale", 160);
+				addTextField(this, row + 1, scaleTextField, object.getScale(), 120, 125);
+				addLabel(this, row + 2, scaleMinLabel, "Scale Min", 160);
+				addTextField(this, row + 2, scaleMinTextField, object.getScaleMin(), 120, 125);
+				addLabel(this, row + 3, scaleMaxLabel, "Scale Max", 160);
+				addTextField(this, row + 3, scaleMaxTextField, object.getScaleMax(), 120, 125);
+			}
 
 			// only Speed Dreams trackgen reads "use material"
 			if (getEditorFrame().getGameType().hasUseMaterial())
@@ -773,7 +786,9 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.borderDistanceTextField.getText(), object.getBorderDistance(), doubleResult))
+			// the fields TORCS trackgen doesn't read aren't shown, so they are left as they are
+			boolean speedDreams = getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys();
+			if (speedDreams && isDifferent(panel.borderDistanceTextField.getText(), object.getBorderDistance(), doubleResult))
             {
                 object.setBorderDistance(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -797,25 +812,25 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.getScaleTypeComboBox().getSelectedItem().toString(), object.getScaleType(), stringResult))
+			if (speedDreams && isDifferent(panel.getScaleTypeComboBox().getSelectedItem().toString(), object.getScaleType(), stringResult))
             {
                 object.setScaleType(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.scaleTextField.getText(), object.getScale(), doubleResult))
+			if (speedDreams && isDifferent(panel.scaleTextField.getText(), object.getScale(), doubleResult))
             {
                 object.setScale(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.scaleMinTextField.getText(), object.getScaleMin(), doubleResult))
+			if (speedDreams && isDifferent(panel.scaleMinTextField.getText(), object.getScaleMin(), doubleResult))
             {
                 object.setScaleMin(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.scaleMaxTextField.getText(), object.getScaleMax(), doubleResult))
+			if (speedDreams && isDifferent(panel.scaleMaxTextField.getText(), object.getScaleMax(), doubleResult))
             {
                 object.setScaleMax(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;

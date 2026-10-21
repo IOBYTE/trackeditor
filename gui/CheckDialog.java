@@ -534,6 +534,17 @@ public class CheckDialog extends JDialog
 
 	private void checkTerrainGeneration()
 	{
+		// TORCS trackgen stops with an error for these
+		if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+		{
+			double gap = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSocketGap();
+			double thickness = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeThickness();
+			if (!Double.isNaN(gap) && (Double.isInfinite(gap) || gap < 0))
+				textArea.append("Terrain Generation crossing bridge socket gap " + gap + " must not be negative: trackgen stops\n");
+			if (!Double.isNaN(thickness) && (Double.isInfinite(thickness) || thickness <= 0))
+				textArea.append("Terrain Generation crossing bridge thickness " + thickness + " must be more than 0: trackgen stops\n");
+		}
+
 		String reliefFile = trackData.getGraphic().getTerrainGeneration().getReliefFile();
 
 		if (reliefFile != null && !reliefFile.isEmpty())

@@ -92,6 +92,12 @@ public class TerrainProperties extends PropertyPanel
 	private JButton				elevationMapButton			= null;
 	private JButton				reliefFileButton			= null;
 	private JButton				tiledFileButton			= null;
+	// TORCS
+	private JLabel				terrainTransitionLabel		= new JLabel();
+	private JTextField			terrainTransitionTextField	= new JTextField();
+	private JTextField			socketGapTextField			= new JTextField();
+	private JTextField			thicknessTextField			= new JTextField();
+	private SurfaceComboBox[]	bridgeSurfaceComboBoxes		= new SurfaceComboBox[TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length];
 
 	private final String sep = System.getProperty("file.separator");
 
@@ -141,7 +147,17 @@ public class TerrainProperties extends PropertyPanel
 		addLabel(this, 10, reliefBorderLabel, "Relief Border", 120);
 		addLabel(this, 11, surfaceLabel, "Surface", 120);
 		addLabel(this, 12, randomSeedLabel, "Random Seed", 120);
-		addLabel(this, 13, useObjectMaterialsLabel, "Use Object Materials", 120);
+		// TORCS trackgen doesn't read "use object materials", but has a terrain
+		// transition (in that row)
+		boolean speedDreams = getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys();
+		if (speedDreams)
+			addLabel(this, 13, useObjectMaterialsLabel, "Use Object Materials", 120);
+		if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
+		{
+			addLabel(this, 13, terrainTransitionLabel, "Terrain Transition", 120);
+			addTextField(this, 13, terrainTransitionTextField, getEditorFrame().getTerrainGeneration().getTerrainTransition(), 140, 125);
+			terrainTransitionTextField.setToolTipText("Distance from the track over which the terrain spacing grows to the border step (empty = border margin, 0 or less = off)");
+		}
 
 		addTextField(this, 0, trackStepTextField, getEditorFrame().getTerrainGeneration().getTrackStep(), 140, 125);
 		addTextField(this, 1, borderMarginTextField, getEditorFrame().getTerrainGeneration().getBorderMargin(), 140, 125);
@@ -164,7 +180,8 @@ public class TerrainProperties extends PropertyPanel
 		this.add(getElevationMapButton(), null);
 		this.add(getReliefFileButton(), null);
 		this.add(getReliefBorderComboBox(), null);
-		this.add(getUseObjectMaterialsComboBox(), null);
+		if (speedDreams)
+			this.add(getUseObjectMaterialsComboBox(), null);
 		// only Speed Dreams trackgen reads the tiled file
 		if (getEditorFrame().getGameType().hasTiledFile())
 		{
@@ -566,6 +583,9 @@ public class TerrainProperties extends PropertyPanel
 				tabbedPane.addTab("Objects", null, new GraphicObjectProperties(getEditorFrame()));
 			tabbedPane.addTab("Object Maps", null, new ObjectMapProperties(getEditorFrame()));
 			tabbedPane.addTab("Reliefs", null, new ReliefProperties(getEditorFrame()));
+			// last, so the other tabs keep their places
+			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
+				tabbedPane.addTab("Bridges", null, getBridgesPanel());
 			SwingUtilities.invokeLater( new Runnable()
 			{
 				public void run()
@@ -588,6 +608,41 @@ public class TerrainProperties extends PropertyPanel
 	/**
 	 *
 	 */
+	/**
+	 * @return the TORCS settings for the bridges trackgen makes where the track crosses itself
+	 */
+	private javax.swing.JPanel getBridgesPanel()
+	{
+		javax.swing.JPanel panel = new javax.swing.JPanel();
+		panel.setLayout(null);
+		TerrainGeneration terrain = getEditorFrame().getTerrainGeneration();
+
+		addLabel(panel, 0, new JLabel(), "Socket Gap", 120);
+		addTextField(panel, 0, socketGapTextField, terrain.getCrossingBridgeSocketGap(), 140, 125);
+		socketGapTextField.setToolTipText("Clearance beside the lower track, to the bridge's support walls (empty = "
+			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SOCKET_GAP + " m)");
+		addLabel(panel, 1, new JLabel(), "Thickness", 120);
+		addTextField(panel, 1, thicknessTextField, terrain.getCrossingBridgeThickness(), 140, 125);
+		thicknessTextField.setToolTipText("Least thickness below the upper track (empty = "
+			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_THICKNESS + " m)");
+
+		for (int i = 0; i < bridgeSurfaceComboBoxes.length; i++)
+		{
+			String surface = terrain.getCrossingBridgeSurface(i);
+			Vector<String> surfaces = new Vector<String>(roadSurfaceVector);
+			addSurface(surfaces, surface);
+			surfaces.add(0, "none");
+			addLabel(panel, 2 + i, new JLabel(), TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i] + " Surface", 120);
+			bridgeSurfaceComboBoxes[i] = new SurfaceComboBox(getEditorFrame(), surfaces);
+			bridgeSurfaceComboBoxes[i].setBounds(140, 10 + (2 + i) * 27, 200, 23);
+			bridgeSurfaceComboBoxes[i].setSelectedItem(toNoneString(surface));
+			bridgeSurfaceComboBoxes[i].setToolTipText("none = " + TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[i]);
+			panel.add(bridgeSurfaceComboBoxes[i]);
+		}
+
+		return panel;
+	}
+
 	public void exit()
 	{
 		MutableString stringResult = new MutableString();
@@ -707,7 +762,9 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(useObjectMaterialsComboBox.getSelectedItem().toString(),
+		// the settings a game doesn't have aren't shown, so they are left as they are
+		if (getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys() &&
+			isDifferent(useObjectMaterialsComboBox.getSelectedItem().toString(),
 			getEditorFrame().getTerrainGeneration().getUseObjectMaterials(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setUseObjectMaterials(stringResult.getValue());
@@ -719,6 +776,34 @@ public class TerrainProperties extends PropertyPanel
 		{
 			getEditorFrame().getTerrainGeneration().setTiledFile(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
+		}
+
+		if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
+		{
+			TerrainGeneration terrain = getEditorFrame().getTerrainGeneration();
+			if (isDifferent(terrainTransitionTextField.getText(), terrain.getTerrainTransition(), doubleResult))
+			{
+				terrain.setTerrainTransition(doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+			if (isDifferent(socketGapTextField.getText(), terrain.getCrossingBridgeSocketGap(), doubleResult))
+			{
+				terrain.setCrossingBridgeSocketGap(doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+			if (isDifferent(thicknessTextField.getText(), terrain.getCrossingBridgeThickness(), doubleResult))
+			{
+				terrain.setCrossingBridgeThickness(doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+			for (int i = 0; i < bridgeSurfaceComboBoxes.length; i++)
+			{
+				if (isDifferent((String) bridgeSurfaceComboBoxes[i].getSelectedItem(), terrain.getCrossingBridgeSurface(i), stringResult))
+				{
+					terrain.setCrossingBridgeSurface(i, stringResult.getValue());
+					getEditorFrame().documentIsModified = true;
+				}
+			}
 		}
 
 		// the Objects tab only exists for Speed Dreams

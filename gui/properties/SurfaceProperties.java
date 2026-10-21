@@ -278,6 +278,8 @@ public class SurfaceProperties extends PropertyPanel
 		private JComboBox<String>	textureTypeComboBox				= null;
 		private JLabel				textureSizeLabel				= new JLabel();
 		private JTextField			textureSizeTextField			= new JTextField();
+		private JLabel				textureSizeVLabel				= new JLabel();
+		private JTextField			textureSizeVTextField			= new JTextField();
 		private JLabel				textureRandomnessLabel			= new JLabel();
 		private JTextField			textureRandomnessTextField		= new JTextField();
 		private JLabel				textureLinkWithPreviousLabel	= new JLabel();
@@ -342,11 +344,6 @@ public class SurfaceProperties extends PropertyPanel
 			addLabel(this, 8, textureNameLabel, "Texture Name", 180);
 			addLabel(this, 9, textureTypeLabel, "Texture Type", 180);
 			addLabel(this, 10, textureSizeLabel, "Texture Size", 180);
-			addLabel(this, 11, textureRandomnessLabel, "Texture Randomness", 180);
-			addLabel(this, 12, textureLinkWithPreviousLabel, "Texture Link With Previous", 180);
-			addLabel(this, 13, textureStartOnBoundaryLabel, "Texture Start On Boundary", 180);
-			addLabel(this, 14, textureMipMapLabel, "Texture MipMap", 180);
-			addLabel(this, 15, frictionLabel, "Friction", 180);
 
 			addTextField(this, 0, nameTextField, surface.getName(), 190, 125);
 			markItemName(nameTextField);
@@ -363,19 +360,35 @@ public class SurfaceProperties extends PropertyPanel
 			selectItem(getTextureTypeComboBox(), toNoneString(surface.getTextureType()));
 
 			addTextField(this, 10, textureSizeTextField, surface.getTextureSize(), 190, 125);
-			addTextField(this, 11, textureRandomnessTextField, surface.getTextureRandomness(), 190, 125);
 
+			int row = 11;
+			// TORCS: the texture's height on crossing bridges
+			setTextField(textureSizeVTextField, surface.getTextureSizeV());
+			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
+			{
+				addLabel(this, row, textureSizeVLabel, "Texture Size V", 180);
+				addTextField(this, row++, textureSizeVTextField, surface.getTextureSizeV(), 190, 125);
+				textureSizeVTextField.setToolTipText("Height of the texture on crossing bridges (empty = texture size)");
+			}
+			addLabel(this, row, textureRandomnessLabel, "Texture Randomness", 180);
+			addTextField(this, row++, textureRandomnessTextField, surface.getTextureRandomness(), 190, 125);
+
+			addLabel(this, row, textureLinkWithPreviousLabel, "Texture Link With Previous", 180);
 			add(getTextureLinkWithPreviousComboBox(), null);
+			getTextureLinkWithPreviousComboBox().setLocation(190, 10 + row++ * 27);
 			selectItem(getTextureLinkWithPreviousComboBox(), toNoneString(surface.getTextureLinkWithPrevious()));
+			addLabel(this, row, textureStartOnBoundaryLabel, "Texture Start On Boundary", 180);
 			add(getTextureStartOnBoundaryComboBox(), null);
+			getTextureStartOnBoundaryComboBox().setLocation(190, 10 + row++ * 27);
 			selectItem(getTextureStartOnBoundaryComboBox(), toNoneString(surface.getTextureStartOnBoundary()));
 
-			addTextField(this, 14, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
-			addTextField(this, 15, frictionTextField, surface.getFriction(), 190, 125);
+			addLabel(this, row, textureMipMapLabel, "Texture MipMap", 180);
+			addTextField(this, row++, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
+			addLabel(this, row, frictionLabel, "Friction", 180);
+			addTextField(this, row++, frictionTextField, surface.getFriction(), 190, 125);
 
 			// TORCS has no rain values
 			boolean rain = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
-			int row = 16;
 			if (rain)
 			{
 				addLabel(this, row, frictionRainLabel, "Friction Rain", 180);
@@ -416,6 +429,7 @@ public class SurfaceProperties extends PropertyPanel
 				textureNameTextField.setEnabled(false);
 				textureTypeComboBox.setEnabled(false);
 				textureSizeTextField.setEnabled(false);
+				textureSizeVTextField.setEnabled(false);
 				textureRandomnessTextField.setEnabled(false);
 				textureLinkWithPreviousComboBox.setEnabled(false);
 				textureStartOnBoundaryComboBox.setEnabled(false);
@@ -716,6 +730,14 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
+			// (only shown for TORCS)
+			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys() &&
+				isDifferent(panel.textureSizeVTextField.getText(), surface.getTextureSizeV(), doubleResult))
+			{
+				surface.setTextureSizeV(doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+
             if (isDifferent(panel.textureRandomnessTextField.getText(), surface.getTextureRandomness(), doubleResult))
             {
                 surface.setTextureRandomness(doubleResult.getValue());
@@ -831,6 +853,7 @@ public class SurfaceProperties extends PropertyPanel
 		surface.setTextureName(panel.textureNameTextField.getText());
 		surface.setTextureType(getString(panel.getTextureTypeComboBox().getSelectedItem().toString()));
 		surface.setTextureSize(getDouble(panel.textureSizeTextField.getText()));
+		surface.setTextureSizeV(getDouble(panel.textureSizeVTextField.getText()));
 		surface.setTextureLinkWithPrevious(getString(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString()));
 		surface.setTextureStartOnBoundary(getString(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString()));
 		surface.setTextureMipMap(getDouble(panel.textureMipMapTextField.getText()));
@@ -858,6 +881,7 @@ public class SurfaceProperties extends PropertyPanel
 		panel.textureNameTextField.setText(new String(surface.getTextureName()));		
 		selectItem(panel.textureTypeComboBox, toNoneString(surface.getTextureType()));
 		setTextField(panel.textureSizeTextField, surface.getTextureSize());
+		setTextField(panel.textureSizeVTextField, surface.getTextureSizeV());
 		selectItem(panel.textureLinkWithPreviousComboBox, toNoneString(surface.getTextureLinkWithPrevious()));
 		selectItem(panel.getTextureStartOnBoundaryComboBox(), toNoneString(surface.getTextureStartOnBoundary()));
 		setTextField(panel.textureMipMapTextField, surface.getTextureMipMap());

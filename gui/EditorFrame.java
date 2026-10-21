@@ -404,6 +404,24 @@ public class EditorFrame extends JFrame
 		}
 
 		/**
+		 * @return whether trackgen reads the terrain's "use object materials" and an
+		 * object's border distance and scale settings (not TORCS')
+		 */
+		public boolean hasSpeedDreamsTrackgenKeys()
+		{
+			return this != TORCS;
+		}
+
+		/**
+		 * @return whether trackgen reads the terrain transition, the crossing bridge
+		 * settings and a surface's "texture size v" (only TORCS')
+		 */
+		public boolean hasTorcsTrackgenKeys()
+		{
+			return this == TORCS;
+		}
+
+		/**
 		 * @return whether a segment barrier style other than fence is a wall (TORCS: there
 		 * are only fences and walls); the others ignore a style they don't know
 		 */
