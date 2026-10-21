@@ -20,9 +20,6 @@
  */
 package utils.circuit;
 
-import java.awt.event.ActionEvent;
-import java.util.Vector;
-
 /**
  * @author Charalampos Alexopoulos
  * 
@@ -75,54 +72,26 @@ public class SegmentSide implements Cloneable
 	public static final double	DEFAULT_PIT_EXIT_BORDER_HEIGHT		= 0.0;
 	public static final double	DEFAULT_PIT_EXIT_BORDER_WIDTH		= 0.0;
 
-	private Vector<SegmentSideListener>	sideListeners		= new Vector<SegmentSideListener>();
-	private SegmentSide			prev						= null;
-	private SegmentSide			props						= null;
-
 	//	Side
 	private boolean				hasSide						= false;
 	protected double			sideStartWidth				= Double.NaN;
-	private boolean				prevSideStartWidthChanged	= false;
-	private boolean				thisSideStartWidthChanged	= false;
 	protected double			sideEndWidth				= Double.NaN;
-	private boolean				prevSideEndWidthChanged		= false;
-	private boolean				thisSideEndWidthChanged		= false;
 	protected String			sideSurface					= null;
-	private boolean				prevSideSurfaceChanged		= false;
-	private boolean				thisSideSurfaceChanged		= false;
 	protected String			sideBankingType				= null;
-	private boolean				prevSideBankingTypeChanged	= false;
-	private boolean				thisSideBankingTypeChanged	= false;
 
 	//	Barrier
 	private boolean				hasBarrier					= false;
 	protected double			barrierHeight				= Double.NaN;
-	private boolean				prevBarrierHeightChanged	= false;
-	private boolean				thisBarrierHeightChanged	= false;
 	protected double			barrierWidth				= Double.NaN;
-	private boolean				prevBarrierWidthChanged		= false;
-	private boolean				thisBarrierWidthChanged		= false;
 	protected String			barrierSurface				= null;
-	private boolean				prevBarrierSurfaceChanged	= false;
-	private boolean				thisBarrierSurfaceChanged	= false;
 	protected String			barrierStyle				= null;
-	private boolean				prevBarrierStyleChanged		= false;
-	private boolean				thisBarrierStyleChanged		= false;
 
 	// Border
 	private boolean				hasBorder					= false;
 	protected double			borderWidth					= Double.NaN;
-	private boolean				prevBorderWidthChanged		= false;
-	private boolean				thisBorderWidthChanged		= false;
 	protected double			borderHeight				= Double.NaN;
-	private boolean				prevBorderHeightChanged		= false;
-	private boolean				thisBorderHeightChanged		= false;
 	protected String			borderSurface				= null;
-	private boolean				prevBorderSurfaceChanged	= false;
-	private boolean				thisBorderSurfaceChanged	= false;
 	protected String			borderStyle					= null;
-	private boolean				prevBorderStyleChanged		= false;
-	private boolean				thisBorderStyleChanged		= false;
 
 	private boolean				isRight;
 	/**
@@ -147,7 +116,6 @@ public class SegmentSide implements Cloneable
 		sideEndWidth = side.sideEndWidth;
 		sideStartWidth = side.sideStartWidth;
 		sideSurface = side.sideSurface;
-//		s.sideListeners = (Vector<SegmentSideListener>) this.sideListeners.clone();
 		hasSide = side.hasSide;
 		hasBorder = side.hasBorder;
 		hasBarrier = side.hasBarrier;
@@ -224,23 +192,7 @@ public class SegmentSide implements Cloneable
 	public void setBarrierHeight(double barrierHeight)
 	{
 		this.barrierHeight = barrierHeight;
-		barrierHeightChanged();
 		checkHasBarrier();
-	}
-	/**
-	 *  
-	 */
-	private void barrierHeightChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).barrierHeightChanged();
-			}
-		}
 	}
 
 	/**
@@ -257,23 +209,7 @@ public class SegmentSide implements Cloneable
 	public void setBarrierStyle(String barrierStyle)
 	{
 		this.barrierStyle = barrierStyle;
-		barrierStyleChanged();
 		checkHasBarrier();
-	}
-	/**
-	 *  
-	 */
-	private void barrierStyleChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).barrierStyleChanged();
-			}
-		}
 	}
 
 	/**
@@ -290,23 +226,7 @@ public class SegmentSide implements Cloneable
 	public void setBarrierSurface(String barrierSurface)
 	{
 		this.barrierSurface = barrierSurface;
-		barrierSurfaceChanged();
 		checkHasBarrier();
-	}
-	/**
-	 *  
-	 */
-	private void barrierSurfaceChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).barrierSurfaceChanged();
-			}
-		}
 	}
 
 	/**
@@ -323,23 +243,7 @@ public class SegmentSide implements Cloneable
 	public void setBarrierWidth(double barrierWidth)
 	{
 		this.barrierWidth = barrierWidth;
-		barrierWidthChanged();
 		checkHasBarrier();
-	}
-	/**
-	 *  
-	 */
-	private void barrierWidthChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).barrierWidthChanged();
-			}
-		}
 	}
 
 	/**
@@ -372,23 +276,7 @@ public class SegmentSide implements Cloneable
 	public void setBorderHeight(double borderHeight)
 	{
 		this.borderHeight = borderHeight;
-		borderHeightChanged();
 		checkHasBorder();
-	}
-	/**
-	 *  
-	 */
-	private void borderHeightChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).borderHeightChanged();
-			}
-		}
 	}
 
 	/**
@@ -405,23 +293,7 @@ public class SegmentSide implements Cloneable
 	public void setBorderStyle(String borderStyle)
 	{
 		this.borderStyle = borderStyle;
-		borderStyleChanged();
 		checkHasBorder();
-	}
-	/**
-	 *  
-	 */
-	private void borderStyleChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).borderStyleChanged();
-			}
-		}
 	}
 
 	/**
@@ -438,23 +310,7 @@ public class SegmentSide implements Cloneable
 	public void setBorderSurface(String borderSurface)
 	{
 		this.borderSurface = borderSurface;
-		borderSurfaceChanged();
 		checkHasBorder();
-	}
-	/**
-	 *  
-	 */
-	private void borderSurfaceChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).borderSurfaceChanged();
-			}
-		}
 	}
 
 	/**
@@ -471,23 +327,7 @@ public class SegmentSide implements Cloneable
 	public void setBorderWidth(double borderWidth)
 	{
 		this.borderWidth = borderWidth;
-		borderWidthChanged();
 		checkHasBorder();
-	}
-	/**
-	 *  
-	 */
-	private void borderWidthChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).borderWidthChanged();
-			}
-		}
 	}
 
 	/**
@@ -520,23 +360,7 @@ public class SegmentSide implements Cloneable
 	public void setSideEndWidth(double sideEndWidth)
 	{
 		this.sideEndWidth = sideEndWidth;
-		sideEndWidthChanged();
 		checkHasSide();
-	}
-	/**
-	 *  
-	 */
-	private void sideEndWidthChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).sideEndWidthChanged();
-			}
-		}
 	}
 
 	/**
@@ -553,23 +377,7 @@ public class SegmentSide implements Cloneable
 	public void setSideStartWidth(double sideStartWidth)
 	{
 		this.sideStartWidth = sideStartWidth;
-		sideStartWidthChanged();
 		checkHasSide();
-	}
-	/**
-	 *  
-	 */
-	private void sideStartWidthChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).sideStartWidthChanged();
-			}
-		}
 	}
 
 	/**
@@ -586,24 +394,7 @@ public class SegmentSide implements Cloneable
 	public void setSideSurface(String sideSurface)
 	{
 		this.sideSurface = sideSurface;
-		sideSurfaceChanged();
 		checkHasSide();
-	}
-
-	/**
-	 *  
-	 */
-	private void sideSurfaceChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).sideSurfaceChanged();
-			}
-		}
 	}
 
 	/**
@@ -620,293 +411,7 @@ public class SegmentSide implements Cloneable
 	public void setSideBankingType(String sideBankingType)
 	{
 		this.sideBankingType = sideBankingType;
-		sideBankingTypeChanged();
 		checkHasSide();
-	}
-
-	/**
-	 *
-	 */
-	private void sideBankingTypeChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).sideBankingTypeChanged();
-			}
-		}
-	}
-
-	public synchronized void removeSideListener(SegmentSideListener l)
-	{
-
-	}
-
-	public synchronized void addSideListener(SegmentSideListener l)
-	{
-		Vector<SegmentSideListener> v = sideListeners == null ? new Vector<SegmentSideListener>(2) : (Vector<SegmentSideListener>) sideListeners.clone();
-		if (!v.contains(l))
-		{
-			v.addElement(l);
-			sideListeners = v;
-		}
-	}
-
-	public void valueChanged()
-	{
-		if (sideListeners != null)
-		{
-			Vector<SegmentSideListener> listeners = sideListeners;
-			int count = listeners.size();
-			for (int i = 0; i < count; i++)
-			{
-				listeners.elementAt(i).actionPerformed(null);
-			}
-		}
-	}
-	/**
-	 * @return Returns the prev.
-	 */
-	public SegmentSide getPrev()
-	{
-		return prev;
-	}
-	/**
-	 * @param prev
-	 *            The prev to set.
-	 */
-	public void setPrevius(SegmentSide previus)
-	{
-		this.prev = previus;
-
-		/**
-		 * TODO : I have to wrie some kind of interaction when previus change,
-		 * but for the moment i can figure out what. eg. If the side end of
-		 * previus segment change then the side start of this segment must
-		 * change, except in the case that user have already change the side
-		 * start.
-		 */
-		//		prev.addSideListener(new SegmentSideListener()
-		//				{
-		//			public void barrierHeightChanged()
-		//			{
-		//				if(prev != null && !thisBarrierHeightChanged)
-		//				{
-		//					barrierHeight = prev.barrierHeight;
-		//					thisBarrierHeightChanged = true;
-		//				}
-		//			}
-		//
-		//			public void barrierStyleChanged()
-		//			{
-		//				if(prev != null && !thisBarrierStyleChanged)
-		//				{
-		//					barrierStyle = prev.barrierStyle;
-		//					thisBarrierStyleChanged = true;
-		//				}
-		//			}
-		//
-		//			public void barrierSurfaceChanged()
-		//			{
-		//				if(prev != null && !thisBarrierSurfaceChanged)
-		//				{
-		//					barrierSurface = prev.barrierSurface;
-		//					thisBarrierSurfaceChanged = true;
-		//				}
-		//			}
-		//
-		//			public void barrierWidthChanged()
-		//			{
-		//				if(prev != null && !thisBarrierWidthChanged)
-		//				{
-		//					barrierWidth = prev.barrierWidth;
-		//					thisBarrierWidthChanged = true;
-		//				}
-		//			}
-		//
-		//			public void borderHeightChanged()
-		//			{
-		//				if(prev != null && !thisBorderHeightChanged)
-		//				{
-		//					borderHeight = prev.borderHeight;
-		//				}
-		//			}
-		//
-		//			public void borderStyleChanged()
-		//			{
-		//				if(prev != null && !thisBorderStyleChanged)
-		//				{
-		//					borderStyle = prev.borderStyle;
-		//				}
-		//			}
-		//
-		//			public void borderSurfaceChanged()
-		//			{
-		//				if(prev != null && !thisBorderSurfaceChanged)
-		//				{
-		//					borderSurface = prev.borderSurface;
-		//				}
-		//			}
-		//
-		//			public void borderWidthChanged()
-		//			{
-		//				if(prev != null && !thisBorderWidthChanged)
-		//				{
-		//					borderWidth = prev.borderWidth;
-		//				}
-		//			}
-		//
-		//			public void sideEndWidthChanged()
-		//			{
-		//				if(prev != null && !thisSideStartWidthChanged)
-		//				{
-		//					sideStartWidth = prev.sideEndWidth;
-		//					prevSideEndWidthChanged = true;
-		//				}
-		//			}
-		//
-		//			public void sideStartWidthChanged()
-		//			{
-		//				// Do nothing when previus side start width
-		//				// change.
-		//			}
-		//
-		//			public void sideSurfaceChanged()
-		//			{
-		//				if(prev != null && !thisSideSurfaceChanged)
-		//				{
-		//					sideSurface = prev.sideSurface;
-		//				}
-		//			}
-		//
-		//			public void actionPerformed(ActionEvent arg0)
-		//			{
-		//				
-		//			}
-		//				});
-	}
-	/**
-	 * @return Returns the props.
-	 */
-	public SegmentSide getProps()
-	{
-		return props;
-	}
-	/**
-	 * @param props
-	 *            The props to set.
-	 */
-	public void setProperties(SegmentSide properties)
-	{
-		this.props = properties;
-		props.addSideListener(new SegmentSideListener()
-		{
-
-			public void barrierHeightChanged()
-			{
-				if (!prevBarrierHeightChanged && !thisBarrierHeightChanged)
-				{
-					barrierHeight = props.barrierHeight;
-				}
-			}
-
-			public void barrierStyleChanged()
-			{
-				if (!prevBarrierStyleChanged && !thisBarrierStyleChanged)
-				{
-					barrierStyle = props.barrierStyle;
-				}
-			}
-
-			public void barrierSurfaceChanged()
-			{
-				if (!prevBarrierSurfaceChanged && !thisBarrierSurfaceChanged)
-				{
-					barrierSurface = props.barrierSurface;
-				}
-			}
-
-			public void barrierWidthChanged()
-			{
-				if (!prevBarrierWidthChanged && !thisBarrierWidthChanged)
-				{
-					barrierWidth = props.barrierWidth;
-				}
-			}
-
-			public void borderHeightChanged()
-			{
-				if (!prevBorderHeightChanged && !thisBorderHeightChanged)
-				{
-					borderHeight = props.borderHeight;
-				}
-			}
-
-			public void borderStyleChanged()
-			{
-				if (!prevBorderStyleChanged && !thisBorderStyleChanged)
-				{
-					borderStyle = props.borderStyle;
-				}
-			}
-
-			public void borderSurfaceChanged()
-			{
-				if (!prevBorderSurfaceChanged && !thisBorderSurfaceChanged)
-				{
-					borderSurface = props.borderSurface;
-				}
-			}
-
-			public void borderWidthChanged()
-			{
-				if (!prevBorderWidthChanged && !thisBorderWidthChanged)
-				{
-					borderWidth = props.borderWidth;
-				}
-			}
-
-			public void sideEndWidthChanged()
-			{
-				if (!prevSideEndWidthChanged && !thisSideEndWidthChanged)
-				{
-					sideEndWidth = props.sideEndWidth;
-				}
-			}
-
-			public void sideStartWidthChanged()
-			{
-				if (!prevSideStartWidthChanged && !thisSideStartWidthChanged)
-				{
-					sideStartWidth = props.sideStartWidth;
-				}
-			}
-
-			public void sideSurfaceChanged()
-			{
-				if (!prevSideSurfaceChanged && !thisSideSurfaceChanged)
-				{
-					sideSurface = props.sideSurface;
-				}
-			}
-
-			public void sideBankingTypeChanged()
-			{
-				if (!prevSideBankingTypeChanged && !thisSideBankingTypeChanged)
-				{
-					sideBankingType = props.sideBankingType;
-				}
-			}
-
-			public void actionPerformed(ActionEvent arg0)
-			{
-
-			}
-
-		});
 	}
 	
 	protected Object clone()
@@ -927,7 +432,6 @@ public class SegmentSide implements Cloneable
 			s.sideEndWidth = this.sideEndWidth;
 			s.sideStartWidth = this.sideStartWidth;
 			s.sideSurface = this.sideSurface;
-			s.sideListeners = (Vector<SegmentSideListener>) this.sideListeners.clone();
 			s.hasSide = this.hasSide;
 			s.hasBorder = this.hasBorder;
 			s.hasBarrier = this.hasBarrier;

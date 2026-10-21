@@ -478,6 +478,23 @@ public class Ac3dObject
 		this.linenum = linenum;
 	}
 	
+	/**
+	 * Copies the settings that aren't geometry or position (texture, texture
+	 * repeat and offset, crease, subdivision, url, hidden, locked, folded).
+	 */
+	public void copySettings(Ac3dObject from)
+	{
+		texture = from.texture;
+		texrep = from.texrep == null ? null : from.texrep.clone();
+		texoff = from.texoff == null ? null : from.texoff.clone();
+		crease = from.crease;
+		subdiv = from.subdiv;
+		url = from.url;
+		hidden = from.hidden;
+		locked = from.locked;
+		folded = from.folded;
+	}
+
 	public void flatten()
 	{
 		transform(new Matrix(1.0, 0.0, 0.0, 0.0,

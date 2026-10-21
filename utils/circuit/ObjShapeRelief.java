@@ -271,6 +271,19 @@ public class ObjShapeRelief extends Segment
 			{
 				points = null;
 				trPoints = null;
+
+				// an open line has no segment past its ends: extend it by half the end segment
+				if (lineType == LineType.Open && (before ? i == 0 : i == vertices.size() - 1))
+				{
+					double[] end = vertices.get(i);
+					double[] inner = vertices.get(before ? i + 1 : i - 1);
+					double[] added = new double[] { end[0] + (end[0] - inner[0]) / 2,
+													end[1] + (end[1] - inner[1]) / 2,
+													end[2] + (end[2] - inner[2]) / 2 };
+					vertices.add(before ? 0 : vertices.size(), added);
+					return;
+				}
+
 				int next = (before ? i + vertices.size() - 1 : i + 1) % vertices.size();
 				int addAt = before ? i : (i + 1);				
 				vertices.add(addAt, new double[] { vertices.get(i)[0] + ((vertices.get(next)[0] - vertices.get(i)[0]) / 2),

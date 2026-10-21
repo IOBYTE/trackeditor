@@ -47,6 +47,9 @@ public class ObjShapeTerrain extends Segment
 		}
 
 		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
+		// trackgen uses this when the track doesn't set one
+		if (Double.isNaN(border))
+			border = TerrainGeneration.DEFAULT_BORDER_MARGIN;
 		
 		points[0].x = boundingRectangle.getX() - border;
 		points[0].y = boundingRectangle.getY() - border;

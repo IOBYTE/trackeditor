@@ -43,6 +43,7 @@ import utils.circuit.Pits;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Surface;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.TrackLight;
 import utils.circuit.TrackObject;
 
@@ -769,7 +770,8 @@ public class CheckDialog extends JDialog
 		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
 		if (Double.isNaN(border))
 		{
-			border = 0;
+			// trackgen uses this when the track doesn't set one
+			border = TerrainGeneration.DEFAULT_BORDER_MARGIN;
 		}
 		Rectangle2D.Double terrainRectangle = new Rectangle2D.Double(boundingRectangle.getMinX() - border,
 				 													 boundingRectangle.getMinY() - border,

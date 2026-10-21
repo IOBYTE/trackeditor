@@ -177,7 +177,7 @@ public class Reliefs
 						kept = new Ac3dObject(object.getType(), 0);
 						kept.setName(object.getName());
 						kept.setData(data);
-						kept.setTexture(object.getTexture());
+						kept.copySettings(object);
 						kept.setVertices(object.getVertices());
 					}
 					kept.addSurface(surface);
@@ -190,6 +190,7 @@ public class Reliefs
 				kept = new Ac3dObject(object.getType(), 0);
 				kept.setName(object.getName());
 				kept.setData(data);
+				kept.copySettings(object);
 				kept.setVertices(object.getVertices());
 			}
 

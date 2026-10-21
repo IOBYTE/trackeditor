@@ -648,7 +648,7 @@ public class XmlWriter
 
 			addContent(el, "role", light.getRole());
 
-			if (light.getTopLeft() != null)
+			if (isSet(light.getTopLeft()))
 			{
 				Element corner = new Element("section");
 				corner.setAttribute(new Attribute("name", "topleft"));
@@ -660,7 +660,7 @@ public class XmlWriter
 				el.addContent(corner);
 			}
 
-			if (light.getBottomRight() != null)
+			if (isSet(light.getBottomRight()))
 			{
 				Element corner = new Element("section");
 				corner.setAttribute(new Attribute("name", "bottomright"));
@@ -684,6 +684,12 @@ public class XmlWriter
 
 		return lights;
 	}
+	/** A light corner the track sets: the light always has both, but they can be empty */
+	private static boolean isSet(TrackLight.Corner corner)
+	{
+		return corner != null && !(Double.isNaN(corner.x) && Double.isNaN(corner.y) && Double.isNaN(corner.z));
+	}
+
 	private synchronized Element getSectors()
 	{
 		Element sectors = new Element("section");
