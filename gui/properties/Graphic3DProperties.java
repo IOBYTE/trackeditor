@@ -706,6 +706,11 @@ public class Graphic3DProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
+		// the per-type 3d object files are CSR only: their fields aren't shown (or set)
+		// for Speed Dreams, so comparing them would remove a CSR track's files
+		if (!getEditorFrame().getCarsSportsRacing())
+			return;
+
 		if (isDifferent(separateObjectsTextField.getText(),
 			getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), stringResult))
 		{

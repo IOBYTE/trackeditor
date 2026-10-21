@@ -247,21 +247,14 @@ public class GraphicProperties extends PropertyPanel
 				getEditorFrame().documentIsModified = true;
 			}
 		}
-		else
+		else if (index != -1)
 		{
-			if (type == Integer.MAX_VALUE)
+			// also when the track had no background type yet
+			int value = Integer.parseInt((String) getBackgroundTypeComboBox().getSelectedItem());
+			if (value != type)
 			{
-				getEditorFrame().getTrackData().getGraphic().setBackgroundType(Integer.MAX_VALUE);
+				getEditorFrame().getTrackData().getGraphic().setBackgroundType(value);
 				getEditorFrame().documentIsModified = true;
-			}
-			else
-			{
-				int value = Integer.parseInt((String) getBackgroundTypeComboBox().getSelectedItem());
-				if (value != type)
-				{
-					getEditorFrame().getTrackData().getGraphic().setBackgroundType(value);
-					getEditorFrame().documentIsModified = true;
-				}
 			}
 		}
 
