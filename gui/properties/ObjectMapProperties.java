@@ -916,6 +916,7 @@ public class ObjectMapProperties extends PropertyPanel
             	}
             	catch (IOException e)
             	{
+            		readFailed(objectMap, e);
             	}
                 getEditorFrame().documentIsModified = true;
             }
@@ -1008,9 +1009,21 @@ public class ObjectMapProperties extends PropertyPanel
             	}
             	catch (IOException e)
             	{
+            		readFailed(objectMap, e);
             	}
 				objectMaps.add(objectMap);
 			}
 		}
+	}
+
+	private void readFailed(ObjectMap objectMap, IOException e)
+	{
+		String reason = e.getLocalizedMessage();
+		if (reason == null || reason.isEmpty())
+			reason = e.toString();
+		JOptionPane.showMessageDialog(this,
+			"Couldn't read object map " + objectMap.getObjectMap() + " : " + reason + "\n\n" +
+			"Map " + objectMap.getName() + " has no objects until the image can be read, and saving won't overwrite the file.",
+			"Object Map File", JOptionPane.ERROR_MESSAGE);
 	}
 }

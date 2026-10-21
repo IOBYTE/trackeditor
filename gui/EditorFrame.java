@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -257,6 +258,7 @@ public class EditorFrame extends JFrame
 	private final static String	RECENT_FILES_STRING					= "recent.files.";
 	private int					recentFilesMax						= 10;
 	private final static String	RECENT_FILES_MAX					= "RecentFilesMax";
+	public final static int		RECENT_FILES_LIMIT					= 100;
 	private boolean				interactiveFixes					= false;
 	private final static String	INTERACTIVE_FIXES					= "InteractiveFixes";
 	private boolean				cursorCoordinates					= false;
@@ -405,7 +407,7 @@ public class EditorFrame extends JFrame
 		dataDirectory = preferences.get(SD_DATA_DIRECTORY, null);
 		binDirectory = preferences.get(SD_BIN_DIRECTORY, null);
 		libDirectory = preferences.get(SD_LIB_DIRECTORY, null);
-		recentFilesMax = Integer.parseInt(preferences.get(RECENT_FILES_MAX, "10"));
+		recentFilesMax = readRecentFilesMax();
 		interactiveFixes = preferences.getBoolean(INTERACTIVE_FIXES, false);
 		cursorCoordinates = preferences.getBoolean(CURSOR_COORDINATES, false);
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
@@ -420,7 +422,7 @@ public class EditorFrame extends JFrame
 		if (dataDirectory == null)
 		{
 			JOptionPane.showMessageDialog(this,
-					"You need to specify the Speed Dreams data directory in order to\n" +
+					"You need to specify the " + (getCarsSportsRacing() ? "Cars Sports Racing" : "Speed Dreams") + " data directory in order to\n" +
 					"load the default surfaces, textures and objects.\n" +
 					"Make sure you have write permission if you intend to edit or add\n" +
 					"tracks in this directory.\n\n" +
@@ -523,11 +525,29 @@ public class EditorFrame extends JFrame
 		return recentFilesMax;
 	}
 	
+	/**
+	 * The saved maximum, or 10 if it isn't a number from 0 to RECENT_FILES_LIMIT
+	 * (a bad value must not stop the editor from starting).
+	 */
+	private int readRecentFilesMax()
+	{
+		try
+		{
+			int max = Integer.parseInt(preferences.get(RECENT_FILES_MAX, "10").trim());
+			if (max >= 0 && max <= RECENT_FILES_LIMIT)
+				return max;
+		}
+		catch (NumberFormatException e)
+		{
+		}
+		return 10;
+	}
+
 	public void setRecentFilesMax(int recentFilesMax)
 	{
-		this.recentFilesMax = recentFilesMax;
+		this.recentFilesMax = Math.max(0, Math.min(RECENT_FILES_LIMIT, recentFilesMax));
 		
-		while (recentFiles.size() > recentFilesMax)
+		while (recentFiles.size() > this.recentFilesMax)
 		{
 			int index = recentFiles.size() - 1;
 			System.out.println("removing " + index);
@@ -925,6 +945,7 @@ public class EditorFrame extends JFrame
         trackData = null;
         trackData = new TrackData();
         Undo.clear();
+        closeTrackWindows();
         
         trackData.getHeader().setName(newProjectInfo.name);
         trackData.getHeader().setCategory(newProjectInfo.category);
@@ -1145,7 +1166,7 @@ public class EditorFrame extends JFrame
 			});
 			recentFilesMenu.add(clearHistory);
 
-			int recentFilesMax = Integer.parseInt(preferences.get(RECENT_FILES_MAX, "10"));
+			int recentFilesMax = readRecentFilesMax();
 
 			for (int i = 0; i < recentFilesMax; i++)
 			{
@@ -3467,6 +3488,26 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return true if the track was read
 	 */
+	/**
+	 * Closes the windows that show or edit the track that was open, when another
+	 * track replaces it. Left open they would show the old track, and editing in
+	 * them would change a track that is no longer open.
+	 */
+	private void closeTrackWindows()
+	{
+		if (view != null)
+			view.trackReplaced();
+
+		for (Window window : Window.getWindows())
+		{
+			if (window.isDisplayable() &&
+				(window instanceof TrackObjectDialog || window instanceof DeltaPanel || window instanceof CheckDialog))
+			{
+				window.dispose();
+			}
+		}
+	}
+
 	public boolean readFile(File file)
 	{
 		//System.out.println("readFile : " + file.getAbsolutePath());
@@ -3498,6 +3539,7 @@ public class EditorFrame extends JFrame
 			Undo.clear();
 			// the previous track's object map selection doesn't apply
 			currentObjectMap = -1;
+			closeTrackWindows();
 		}
 		catch (Exception e)
 		{

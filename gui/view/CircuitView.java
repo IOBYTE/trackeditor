@@ -2126,6 +2126,26 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	 * After an undo or redo the open segment dialog shows the segment as it is now,
 	 * and later edits start from that state. It closes if its segment was removed.
 	 */
+	/**
+	 * Called when another track replaces the one shown: the segment dialog and the
+	 * selection belong to the old track.
+	 */
+	public void trackReplaced()
+	{
+		boolean mustFire = (selectedShape != null);
+		selectedShape = null;
+		handledShape = null;
+
+		if (segmentParamDialog != null)
+		{
+			segmentParamDialog.dispose();
+			segmentParamDialog = null;
+		}
+
+		if (mustFire)
+			fireSelectionChanged(selectionChangedEvent);
+	}
+
 	public void undoneOrRedone()
 	{
 		if (segmentParamDialog == null)

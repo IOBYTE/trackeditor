@@ -104,8 +104,24 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(getCarsSportsRacingCheckBox(), null);
 			jPanel.add(getOkButton(), null);
 			jPanel.add(getCancelButton(), null);
+			updateGameLabels();
 		}
 		return jPanel;
+	}
+
+	/** The game the directories are for, as chosen in this dialog */
+	private String gameName()
+	{
+		return getCarsSportsRacingCheckBox().isSelected() ? "Cars Sports Racing" : "Speed Dreams";
+	}
+
+	private void updateGameLabels()
+	{
+		// the labels are 190 pixels wide, so CSR is abbreviated
+		String game = getCarsSportsRacingCheckBox().isSelected() ? "CSR" : "Speed Dreams";
+		dataDirectoryLabel.setText(game + " Data Directory");
+		binDirectoryLabel.setText(game + " Bin Directory");
+		libDirectoryLabel.setText(game + " Lib Directory");
 	}
 
 	private JTextField getDataDirectoryTextField()
@@ -144,7 +160,7 @@ public class PreferencesDialog extends JDialog
 		fc.setSelectedFile(null);
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
-		fc.setDialogTitle("Speed Dreams Data Directory selection");
+		fc.setDialogTitle(gameName() + " Data Directory selection");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -195,7 +211,7 @@ public class PreferencesDialog extends JDialog
 		fc.setSelectedFile(null);
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
-		fc.setDialogTitle("Speed Dreams Bin Directory selection");
+		fc.setDialogTitle(gameName() + " Bin Directory selection");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -246,7 +262,7 @@ public class PreferencesDialog extends JDialog
 		fc.setSelectedFile(null);
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
-		fc.setDialogTitle("Speed Dreams Lib Directory selection");
+		fc.setDialogTitle(gameName() + " Lib Directory selection");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -328,6 +344,14 @@ public class PreferencesDialog extends JDialog
 			carsSportsRacingCheckBox.setBounds(200, 227, 290, 23);
 			carsSportsRacingCheckBox.setText("Cars Sports Racing Support");
 			carsSportsRacingCheckBox.setSelected(editorFrame.getCarsSportsRacing());
+			carsSportsRacingCheckBox.addItemListener(new java.awt.event.ItemListener()
+			{
+				public void itemStateChanged(java.awt.event.ItemEvent e)
+				{
+					if (dataDirectoryLabel != null)
+						updateGameLabels();
+				}
+			});
 		}
 		return carsSportsRacingCheckBox;
 	}
@@ -370,17 +394,24 @@ public class PreferencesDialog extends JDialog
 
 	protected void exit()
 	{
+		int max = -1;
 		try
 		{
-			Integer.parseInt(getRecentFilesMaxTextField().getText());
-		
-			APPROVE = true;
-			cancel();
+			max = getRecentFilesMax();
 		}
 		catch (NumberFormatException e)
 		{
-			JOptionPane.showMessageDialog(this, "Invalid Recent Files Maximum : " + getRecentFilesMaxTextField().getText(), "Recent Files Maximum", JOptionPane.ERROR_MESSAGE);
 		}
+
+		if (max < 0 || max > EditorFrame.RECENT_FILES_LIMIT)
+		{
+			JOptionPane.showMessageDialog(this, "Invalid Recent Files Maximum : " + getRecentFilesMaxTextField().getText() +
+				"\n\nUse a whole number from 0 to " + EditorFrame.RECENT_FILES_LIMIT + ".", "Recent Files Maximum", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		APPROVE = true;
+		cancel();
 	}
 
 	protected void cancel()
@@ -407,7 +438,7 @@ public class PreferencesDialog extends JDialog
 
 	public int getRecentFilesMax()
 	{
-		return Integer.parseInt(getRecentFilesMaxTextField().getText());
+		return Integer.parseInt(getRecentFilesMaxTextField().getText().trim());
 	}
 
 	public boolean getInteractiveFixes()
