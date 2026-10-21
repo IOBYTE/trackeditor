@@ -25,11 +25,13 @@ import gui.EditorFrame;
  * <li>A side's start width that isn't set is the previous end width, and an end width
  *     that isn't set is the start width. The Main Track only has "width". (A side "width"
  *     sets both widths; in TORCS it is the end width: XmlReader reads it as that.)</li>
- * <li>A "plan" border has height 0, and that 0 carries on to later segments.</li>
+ * <li>A "plan" border has height 0, and that 0 carries on to later segments (not in
+ *     TORCS: it keeps the height, which a later border without one uses).</li>
  * <li>A border style other than "plan" or "curb" is a wall.</li>
  * <li>A fence has width 0 and "no barrier" has width and height 0; both carry on.
- *     A barrier style the game doesn't know is ignored. On the Main Track, any
- *     barrier style other than a fence is a wall.</li>
+ *     A barrier style the game doesn't know is ignored (in TORCS, any style other
+ *     than a fence is a wall). On the Main Track, any barrier style other than a
+ *     fence is a wall.</li>
  * </ul>
  */
 public final class GameSides
@@ -60,9 +62,9 @@ public final class GameSides
 	 */
 	public static State of(Segment segment, boolean right, EditorFrame editorFrame)
 	{
-		boolean fence1Fence2 = editorFrame.getGameType().hasFence1Fence2();
+		EditorFrame.GameType game = editorFrame.getGameType();
 		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
-		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), fence1Fence2);
+		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game);
 
 		// the segments from the first one to this one
 		ArrayList<Segment> chain = new ArrayList<Segment>();
@@ -73,13 +75,13 @@ public final class GameSides
 		for (int i = chain.size() - 1; i >= 0; i--)
 		{
 			Segment s = chain.get(i);
-			apply(state, right ? s.getRight() : s.getLeft(), fence1Fence2);
+			apply(state, right ? s.getRight() : s.getLeft(), game);
 		}
 
 		return state;
 	}
 
-	private static State start(SegmentSide main, boolean fence1Fence2)
+	private static State start(SegmentSide main, EditorFrame.GameType game)
 	{
 		State s = new State();
 
@@ -93,12 +95,12 @@ public final class GameSides
 		s.borderWidth = number(main.getBorderWidth(), 0.0);
 		s.borderHeight = number(main.getBorderHeight(), 0.0);
 		s.borderSurface = text(main.getBorderSurface(), "grass");
-		setBorderStyle(s, text(main.getBorderStyle(), "plan"));
+		setBorderStyle(s, text(main.getBorderStyle(), "plan"), game);
 
 		s.barrierSurface = text(main.getBarrierSurface(), "barrier");
 		s.barrierHeight = number(main.getBarrierHeight(), 0.6);
 		String style = text(main.getBarrierStyle(), "fence");
-		if (isFence(style, fence1Fence2))
+		if (isFence(style, game))
 		{
 			s.barrierStyle = style;
 			s.barrierWidth = 0.0;
@@ -112,7 +114,7 @@ public final class GameSides
 		return s;
 	}
 
-	private static void apply(State s, SegmentSide side, boolean fence1Fence2)
+	private static void apply(State s, SegmentSide side, EditorFrame.GameType game)
 	{
 		// side
 		double start = side.getSideStartWidth();
@@ -125,18 +127,18 @@ public final class GameSides
 		s.borderWidth = number(side.getBorderWidth(), s.borderWidth);
 		s.borderHeight = number(side.getBorderHeight(), s.borderHeight);
 		s.borderSurface = text(side.getBorderSurface(), s.borderSurface);
-		setBorderStyle(s, text(side.getBorderStyle(), s.borderStyle));
+		setBorderStyle(s, text(side.getBorderStyle(), s.borderStyle), game);
 
 		// barrier
 		s.barrierSurface = text(side.getBarrierSurface(), s.barrierSurface);
 		s.barrierHeight = number(side.getBarrierHeight(), s.barrierHeight);
 		String style = text(side.getBarrierStyle(), s.barrierStyle);
-		if (isFence(style, fence1Fence2))
+		if (isFence(style, game))
 		{
 			s.barrierStyle = style;
 			s.barrierWidth = 0.0;
 		}
-		else if (style.equals("wall"))
+		else if (style.equals("wall") || game.otherBarrierStylesAreWalls())
 		{
 			s.barrierStyle = "wall";
 			s.barrierWidth = number(side.getBarrierWidth(), s.barrierWidth);
@@ -150,12 +152,13 @@ public final class GameSides
 		// any other style is ignored: everything stays as it was
 	}
 
-	private static void setBorderStyle(State s, String style)
+	private static void setBorderStyle(State s, String style, EditorFrame.GameType game)
 	{
 		if (style.equals("plan"))
 		{
 			s.borderStyle = "plan";
-			s.borderHeight = 0.0;
+			if (game.planBorderResetsHeight())
+				s.borderHeight = 0.0;
 		}
 		else if (style.equals("curb"))
 		{
@@ -167,9 +170,9 @@ public final class GameSides
 		}
 	}
 
-	private static boolean isFence(String style, boolean fence1Fence2)
+	private static boolean isFence(String style, EditorFrame.GameType game)
 	{
-		return style.equals("fence") || (fence1Fence2 && (style.equals("fence1") || style.equals("fence2")));
+		return style.equals("fence") || (game.hasFence1Fence2() && (style.equals("fence1") || style.equals("fence2")));
 	}
 
 	private static double number(double value, double inherited)

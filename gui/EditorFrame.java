@@ -393,6 +393,24 @@ public class EditorFrame extends JFrame
 		}
 
 		/**
+		 * @return whether a segment barrier style other than fence is a wall (TORCS: there
+		 * are only fences and walls); the others ignore a style they don't know
+		 */
+		public boolean otherBarrierStylesAreWalls()
+		{
+			return this == TORCS;
+		}
+
+		/**
+		 * @return whether a plan border sets the border height to 0 (not TORCS: it doesn't
+		 * use the height for a plan border, but keeps it for the borders after it)
+		 */
+		public boolean planBorderResetsHeight()
+		{
+			return this != TORCS;
+		}
+
+		/**
 		 * @return whether the pits have a style, buildings, max pits and an indicator (not
 		 * TORCS: it only has track side pits)
 		 */

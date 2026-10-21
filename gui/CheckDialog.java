@@ -186,7 +186,9 @@ public class CheckDialog extends JDialog
 		{
 			textArea.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
 		}
-		if (state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
+		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
+		if (editorFrame.getGameType().planBorderResetsHeight() &&
+			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
 		{
 			textArea.append(prefix + " border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
 		}
@@ -194,10 +196,15 @@ public class CheckDialog extends JDialog
 		// barrier
 		String barrierStyle = side.getBarrierStyle();
 		boolean fence = state.barrierStyle.startsWith("fence");
-		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") && !barrierStyle.equals("no barrier") &&
+		boolean walls = editorFrame.getGameType().otherBarrierStylesAreWalls();
+		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") &&
+			!(barrierStyle.equals("no barrier") && !walls) &&
 			!barrierStyle.equals("fence") && !(editorFrame.getGameType().hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
 		{
-			textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
+			if (walls)
+				textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall\n");
+			else
+				textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
 		}
 		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
 		{
