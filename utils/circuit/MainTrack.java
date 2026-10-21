@@ -6,6 +6,9 @@ public class MainTrack
 	public static final	String	DEFAULT_SURFACE				= "asphalt2-lines";
 	public static final	double	DEFAULT_PROFIL_STEPS_LENGTH	= 4;
 	public static final	String  DEFAULT_PROFIL				= "spline";
+	// what the game's track loader uses when the track doesn't set them
+	public static final	double	GAME_DEFAULT_WIDTH			= 15;
+	public static final	String	GAME_DEFAULT_SURFACE		= "asphalt";
 
 	private double				width						= Double.NaN;
 	private String				surface						= null;
@@ -24,6 +27,12 @@ public class MainTrack
 	public double getWidth()
 	{
 		return width;
+	}
+
+	/** The width the game uses: 15 m when the track doesn't set one */
+	public double getValidWidth()
+	{
+		return Double.isNaN(width) ? GAME_DEFAULT_WIDTH : width;
 	}
 	/**
 	 * @param width

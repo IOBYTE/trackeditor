@@ -142,7 +142,7 @@ public class Straight extends Segment
 		double currentY = Editor.getProperties().getCurrentY();
 		double currentA = Editor.getProperties().getCurrentA();
 		double showArrows = Editor.getProperties().getShowArrows();
-		double trackWidth = editorFrame.getTrackData().getMainTrack().getWidth();
+		double trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
 		double leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double rightBorderWidth = getValidRightBorderWidth(editorFrame);
 		double leftSideStartWidth = getValidLeftSideStartWidth(editorFrame);

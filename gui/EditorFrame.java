@@ -233,8 +233,8 @@ public class EditorFrame extends JFrame
 	private JMenu				exportMenu							= null;
 	private JMenuItem			exportMenuItem						= null;
 	private JMenuItem			exportAllMenuItem					= null;
-	private JMenuItem			exportAllACCMenuItem				= null;	
-	private JMenuItem			exportAllACCWithRacelineMenuItem	= null;	
+	private JMenuItem			exportAllACCMenuItem				= null;
+	private JMenuItem			exportAllACCWithRacelineMenuItem	= null;
 	private JMenuItem			exportAC3MenuItem					= null;
 	private JMenuItem			exportACCMenuItem					= null;
 	private JMenuItem			exportACCWithRacelineMenuItem		= null;
@@ -3210,7 +3210,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			if (exportTrack())
 				exportAc3d(null, true);
 		}
@@ -3229,7 +3229,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			if (exportTrack())
 				exportAc3d(" -r", true);
 		}
@@ -3266,7 +3266,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(null, true);
 		}
 	}
@@ -3284,11 +3284,11 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -r", true);
 		}
 	}
-	
+
 	public class ExportAC3E0Action extends AbstractAction
 	{
 		public ExportAC3E0Action(String text, ImageIcon icon, String desc, Integer mnemonic)
@@ -3687,7 +3687,7 @@ public class EditorFrame extends JFrame
 			int stride = segment.points.length / steps;
 
 			// texture coordinates: along the track and across it, in texture sizes
-			double across = getTrackData().getMainTrack().getWidth() / textureSize;
+			double across = getTrackData().getMainTrack().getValidWidth() / textureSize;
 			java.util.Vector<double[]> uv = new java.util.Vector<double[]>();
 
 			for (int i = 0; i < steps; i++)

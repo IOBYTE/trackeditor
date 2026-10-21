@@ -130,7 +130,7 @@ public class CheckDialog extends JDialog
 			if (!segment.getType().equals("str"))
 			{
 				Curve curve = (Curve) segment;
-				double startWidth = trackData.getMainTrack().getWidth() / 2.0;
+				double startWidth = trackData.getMainTrack().getValidWidth() / 2.0;
 				double endWidth = startWidth;
 
 				if (segment.getType().equals("rgt"))
@@ -278,7 +278,7 @@ public class CheckDialog extends JDialog
 	{
 		SegmentVector segments = trackData.getSegments();
 
-		double width = trackData.getMainTrack().getWidth();
+		double width = trackData.getMainTrack().getValidWidth();
 
 		double firstHeightStart = Double.NaN;
 		double previousHeightEnd = Double.NaN;

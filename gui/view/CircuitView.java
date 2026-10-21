@@ -3267,40 +3267,47 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 	}
 
-	private void realToImage(Point2D.Double real, int imageWidth, int imageHeight, int imageXY[])
+	/**
+	 * The area an object map covers, like trackgen: the track's bounds plus the
+	 * terrain border margin (100 m when the track doesn't set one, as in trackgen).
+	 */
+	private Rectangle2D.Double objectMapArea()
 	{
 		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
 		if (Double.isNaN(border))
-		{
-			JOptionPane.showMessageDialog(editorFrame, "Setting margin to 100 meters.", "No Border Margin", JOptionPane.INFORMATION_MESSAGE);
 			border = 100;
-			editorFrame.getTrackData().getGraphic().getTerrainGeneration().setBorderMargin(border);
-		}
-		Rectangle2D.Double rect = new Rectangle2D.Double(boundingRectangle.getMinX() - border,
-				 										 boundingRectangle.getMinY() - border,
-				 										 boundingRectangle.getWidth() + (border * 2),
-				 										 boundingRectangle.getHeight() + (border * 2));
-		imageXY[0] = (int)Math.round(imageWidth * ((real.x + -rect.x) / rect.width));
-		imageXY[1] = (int)Math.round(imageHeight * (1 - (((real.y + -rect.y) / rect.height))));
+		return new Rectangle2D.Double(boundingRectangle.getMinX() - border,
+									  boundingRectangle.getMinY() - border,
+									  boundingRectangle.getWidth() + (border * 2),
+									  boundingRectangle.getHeight() + (border * 2));
 	}
 
+	/**
+	 * The object map pixel for a track position: the inverse of imageToReal, kept
+	 * inside the image so an object near the edge isn't lost when the image is written.
+	 */
+	private void realToImage(Point2D.Double real, int imageWidth, int imageHeight, int imageXY[])
+	{
+		Rectangle2D.Double rect = objectMapArea();
+		int column = (int) Math.round((real.x - rect.x) * imageWidth / rect.width);
+		int row = (int) Math.round((real.y - rect.y) * imageHeight / rect.height);
+		imageXY[0] = Math.max(0, Math.min(imageWidth - 1, column));
+		imageXY[1] = Math.max(0, Math.min(imageHeight - 1, imageHeight - 1 - row));
+	}
+
+	/**
+	 * The track position of an object map pixel, as trackgen places it: the game reads
+	 * the image bottom row first, so pixel row imageY is row (height - 1 - imageY) up
+	 * from the bottom of the area, and each pixel is placed at its low corner.
+	 */
 	public void imageToReal(int imageX, int imageY, int imageWidth, int imageHeight, Point2D.Double real)
 	{
-		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
-		if (Double.isNaN(border))
-		{
-			System.out.println("border not set");
-			border = 0;
-		}
-		Rectangle2D.Double rect = new Rectangle2D.Double(boundingRectangle.getMinX() - border,
-														 boundingRectangle.getMinY() - border,
-														 boundingRectangle.getWidth() + (border * 2),
-														 boundingRectangle.getHeight() + (border * 2));
+		Rectangle2D.Double rect = objectMapArea();
 		double widthScale = rect.getWidth() / imageWidth;
 		double heightScale = rect.getHeight() / imageHeight;
 
 		real.x = rect.getMinX() + (imageX * widthScale);
-		real.y = rect.getMinY() + ((imageHeight - imageY) * heightScale);
+		real.y = rect.getMinY() + ((imageHeight - 1 - imageY) * heightScale);
 	}
 
 	private void noObjectSelected(MouseEvent me)

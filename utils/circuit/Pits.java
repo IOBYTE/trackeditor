@@ -152,6 +152,12 @@ public class Pits {
 	{
 		return width;
 	}
+
+	/** The width the game uses: 5 m when the track doesn't set one */
+	public double getValidWidth()
+	{
+		return Double.isNaN(width) ? 5.0 : width;
+	}
 	/**
 	 * @param width
 	 *            The width to set.
@@ -286,6 +292,6 @@ public class Pits {
 		System.out.println(indent + "  length         : " + length);
 		System.out.println(indent + "  style          : " + style);
 		System.out.println(indent + "  indicator      : " + indicator);
-		System.out.println(indent + "  speedLimit     : " + speedLimit == null ? "null" : speedLimit.value + " " + (speedLimit.units != null ? speedLimit.units : ""));
+		System.out.println(indent + "  speedLimit     : " + (speedLimit == null ? "null" : speedLimit.value + " " + (speedLimit.units != null ? speedLimit.units : "")));
     }
 }

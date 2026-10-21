@@ -27,7 +27,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Vector;
 
 import gui.EditorFrame;
@@ -228,10 +227,13 @@ public class Segment implements Cloneable
 		calculatedEndTangentLeft = segment.calculatedEndTangentLeft;
 		calculatedStartTangentRight = segment.calculatedStartTangentRight;
 		calculatedEndTangentRight = segment.calculatedEndTangentRight;
-		points = Arrays.copyOf(segment.points, segment.points.length);
-		trPoints = Arrays.copyOf(segment.trPoints, segment.trPoints.length);
-		xToDraw = Arrays.copyOf(segment.xToDraw, segment.xToDraw.length);
-		yToDraw = Arrays.copyOf(segment.yToDraw, segment.yToDraw.length);
+		points = copyPoints(segment.points);
+		trPoints = copyPoints(segment.trPoints);
+		// the bounds too, or the restored shape is still clicked where it was
+		boundingRectangle = (Rectangle2D.Double) segment.boundingRectangle.clone();
+		selectionRectangle = (Rectangle2D.Double) segment.selectionRectangle.clone();
+		xToDraw = segment.xToDraw == null ? null : segment.xToDraw.clone();
+		yToDraw = segment.yToDraw == null ? null : segment.yToDraw.clone();
 		dx = segment.dx;
 		dy = segment.dy;
 	}
@@ -975,6 +977,26 @@ public class Segment implements Cloneable
 		}
 	}
 
+	private static Point3D[] copyPoints(Point3D[] points)
+	{
+		if (points == null)
+			return null;
+		Point3D[] copy = new Point3D[points.length];
+		for (int i = 0; i < points.length; i++)
+			copy[i] = points[i] == null ? null : new Point3D(points[i].x, points[i].y, points[i].z);
+		return copy;
+	}
+
+	private static Point2D.Double[] copyPoints(Point2D.Double[] points)
+	{
+		if (points == null)
+			return null;
+		Point2D.Double[] copy = new Point2D.Double[points.length];
+		for (int i = 0; i < points.length; i++)
+			copy[i] = points[i] == null ? null : new Point2D.Double(points[i].x, points[i].y);
+		return copy;
+	}
+
 	public Object clone()
 	{
 		Segment s = null;
@@ -1029,10 +1051,13 @@ public class Segment implements Cloneable
 			s.calculatedEndTangentLeft = this.calculatedEndTangentLeft;
 			s.calculatedStartTangentRight = this.calculatedStartTangentRight;
 			s.calculatedEndTangentRight = this.calculatedEndTangentRight;
-			s.points = Arrays.copyOf(points, points.length);
-			s.trPoints = Arrays.copyOf(trPoints, trPoints.length);
-			s.xToDraw = xToDraw.clone();
-			s.yToDraw = yToDraw.clone();
+			// own points, so recalculating one doesn't move the other's drawing
+			s.points = copyPoints(points);
+			s.trPoints = copyPoints(trPoints);
+			s.xToDraw = xToDraw == null ? null : xToDraw.clone();
+			s.yToDraw = yToDraw == null ? null : yToDraw.clone();
+			s.startTrackCenter = (Point2D.Double) startTrackCenter.clone();
+			s.endTrackCenter = (Point2D.Double) endTrackCenter.clone();
 			s.dx = dx;
 			s.dy = dy;
 		} catch (CloneNotSupportedException e)
@@ -1224,7 +1249,7 @@ public class Segment implements Cloneable
 		surf = editorFrame.getTrackData().getMainTrack().getSurface();
 		if (surf == null)
 		{
-			surf = MainTrack.DEFAULT_SURFACE;
+			surf = MainTrack.GAME_DEFAULT_SURFACE;
 		}
 		return surf;
 	}
@@ -1286,223 +1311,135 @@ public class Segment implements Cloneable
 	}
 
     public double getValidLeftBarrierWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).barrierWidth;
-
     }
 
     public double getValidRightBarrierWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).barrierWidth;
-
     }
 
     public double getValidLeftBarrierHeight(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).barrierHeight;
-
     }
 
     public double getValidRightBarrierHeight(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).barrierHeight;
-
     }
 
     public String getValidLeftBarrierSurface(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).barrierSurface;
-
     }
 
     public String getValidRightBarrierSurface(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).barrierSurface;
-
     }
 
     public String getValidLeftBarrierStyle(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).barrierStyle;
-
     }
 
     public String getValidRightBarrierStyle(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).barrierStyle;
-
     }
 
     public double getValidLeftBorderWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).borderWidth;
-
     }
 
     public double getValidRightBorderWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).borderWidth;
-
     }
 
     public double getValidLeftBorderHeight(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).borderHeight;
-
     }
 
     public double getValidRightBorderHeight(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).borderHeight;
-
     }
 
     public String getValidLeftBorderSurface(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).borderSurface;
-
     }
 
     public String getValidRightBorderSurface(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).borderSurface;
-
     }
 
     public String getValidLeftBorderStyle(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).borderStyle;
-
     }
 
     public String getValidRightBorderStyle(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).borderStyle;
-
     }
 
     public double getValidLeftSideStartWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).sideStartWidth;
-
     }
 
     public double getValidLeftSideEndWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, false, editorFrame).sideEndWidth;
-
     }
 
     public double getValidRightSideStartWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).sideStartWidth;
-
     }
 
     public double getValidRightSideEndWidth(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).sideEndWidth;
-
     }
     
     public String getValidLeftSideSurface(EditorFrame editorFrame)
-    
     {
-    
     	// what the game uses, see GameSides
-    
     	return GameSides.of(this, false, editorFrame).sideSurface;
-    
     }
 
     public String getValidRightSideSurface(EditorFrame editorFrame)
-
     {
-
     	// what the game uses, see GameSides
-
     	return GameSides.of(this, true, editorFrame).sideSurface;
-
     }
 
     public String getValidLeftSideBankingType(EditorFrame editorFrame)
@@ -1689,7 +1626,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-        			return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, editorFrame.getTrackData().getMainTrack().getWidth()));
+        			return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
             previous = previous.previousShape;
@@ -1713,7 +1650,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-        			return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, editorFrame.getTrackData().getMainTrack().getWidth()));
+        			return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
     	}

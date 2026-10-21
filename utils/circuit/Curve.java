@@ -160,7 +160,7 @@ public class Curve extends Segment
 		double	currentA	= Editor.getProperties().getCurrentA();
 		double 	showArrows = Editor.getProperties().getShowArrows();
 		double	trackStartDist = Editor.getProperties().getTrackStartDist();
-		double	trackWidth = editorFrame.getTrackData().getMainTrack().getWidth();
+		double	trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double	rightBorderWidth = getValidRightBorderWidth(editorFrame);
 		double	leftSideStartWidth = getValidLeftSideStartWidth(editorFrame);
@@ -582,6 +582,7 @@ public class Curve extends Segment
 		s.radiusEnd = this.radiusEnd;
 		s.marks = this.marks;
 		s.stepCenters = this.stepCenters.clone();
+		s.center = (Point2D.Double) this.center.clone();
 
 		return s; // return the clone
 	}
