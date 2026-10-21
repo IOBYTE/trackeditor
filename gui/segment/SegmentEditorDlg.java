@@ -716,13 +716,11 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			{
 				public void removeUpdate(DocumentEvent e)
 				{
-					shape.setName(nameTextField.getText());
-					updateTitle();
+					nameChanged();
 				}
 				public void insertUpdate(DocumentEvent e)
 				{
-					shape.setName(nameTextField.getText());
-					updateTitle();
+					nameChanged();
 				}
 				public void changedUpdate(DocumentEvent e)
 				{
@@ -731,6 +729,60 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		}
 		return nameTextField;
 	}
+	/**
+	 * Renames the segment to what the Name field holds, if it is a name the game can
+	 * use: set, without '/' and not used by another segment (the game would keep only
+	 * one of two segments with the same name). Otherwise the field turns red and the
+	 * segment keeps its name. The pits and cameras that refer to the segment follow.
+	 */
+	private void nameChanged()
+	{
+		if (filling)
+		{
+			nameTextField.setBackground(javax.swing.UIManager.getColor("TextField.background"));
+			nameTextField.setToolTipText(null);
+			return;
+		}
+
+		String name = nameTextField.getText();
+		String problem = null;
+		if (name == null || name.trim().isEmpty())
+			problem = "A segment needs a name";
+		else if (name.contains("/"))
+			problem = "A segment name can't contain /";
+		else
+		{
+			for (Segment other : editorFrame.getTrackData().getSegments())
+			{
+				if (other != shape && name.equals(other.getName()))
+				{
+					problem = "Another segment is already called " + name;
+					break;
+				}
+			}
+		}
+
+		if (problem != null)
+		{
+			nameTextField.setBackground(new java.awt.Color(255, 200, 200));
+			nameTextField.setToolTipText(problem);
+			return;
+		}
+
+		nameTextField.setBackground(javax.swing.UIManager.getColor("TextField.background"));
+		nameTextField.setToolTipText(null);
+
+		String oldName = shape.getName();
+		if (name.equals(oldName))
+			return;
+
+		// the undo step (added by changed) has to see the old name, so add it first
+		changed();
+		editorFrame.getTrackData().renameSegmentReferences(oldName, name);
+		shape.setName(name);
+		updateTitle();
+	}
+
 	/**
 	 * This method initializes marksTextField
 	 *
@@ -748,7 +800,13 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				{
 					if (!shape.getType().equals("str"))
 					{
-						((Curve)shape).setMarks(marksTextField.getText());
+						String marks = marksTextField.getText();
+						String old = ((Curve)shape).getMarks();
+						if (!marks.equals(old == null ? "" : old))
+						{
+							changed();
+							((Curve)shape).setMarks(marks);
+						}
 					}
 				}
 			});
@@ -770,7 +828,13 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			{
 				public void keyReleased(KeyEvent e)
 				{
-					shape.setComment(commentTextField.getText());
+					String comment = commentTextField.getText();
+					String old = shape.getComment();
+					if (!comment.equals(old == null ? "" : old))
+					{
+						changed();
+						shape.setComment(comment);
+					}
 				}
 			});
 		}

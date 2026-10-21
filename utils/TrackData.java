@@ -188,6 +188,36 @@ public final class TrackData
     {
 		return mainTrack;
 	}
+
+	/**
+	 * Makes the pits and cameras that refer to segment oldName refer to newName,
+	 * so renaming a segment doesn't leave them pointing at a name no segment has.
+	 */
+	public void renameSegmentReferences(String oldName, String newName)
+	{
+		if (oldName == null || oldName.equals(newName))
+			return;
+
+		utils.circuit.Pits pits = mainTrack.getPits();
+		if (oldName.equals(pits.getEntry()))
+			pits.setEntry(newName);
+		if (oldName.equals(pits.getStart()))
+			pits.setStart(newName);
+		if (oldName.equals(pits.getStartBuildings()))
+			pits.setStartBuildings(newName);
+		if (oldName.equals(pits.getStopBuildings()))
+			pits.setStopBuildings(newName);
+		if (oldName.equals(pits.getEnd()))
+			pits.setEnd(newName);
+		if (oldName.equals(pits.getExit()))
+			pits.setExit(newName);
+
+		for (Camera camera : getCameras())
+		{
+			if (oldName.equals(camera.getSegment()))
+				camera.setSegment(newName);
+		}
+	}
     /**
      * @param mainTrack The mainTrack to set.
      */

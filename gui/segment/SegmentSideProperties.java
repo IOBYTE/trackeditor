@@ -79,6 +79,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	// CSR has no fence1/fence2 (they are written as fence)
 	private String[]			csrBarrierStyleItems	= {"none", "no barrier", "wall", "fence"};
 	private boolean				updatingBarrierStyle	= false;
+	// true while setSide fills in the controls: that isn't an edit
+	private boolean				filling					= false;
 	private String[]			barrierSurfaceItems		=
 														{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 			"wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -295,8 +297,14 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					if (borderSurfaceComboBox.getSelectedItem() != null)
-						side.setBorderSurface(borderSurfaceComboBox.getSelectedItem()+"");
+					// a choice is an edit (undo, save, redraw); filling in the shown value isn't
+					if (filling || borderSurfaceComboBox.getSelectedItem() == null)
+						return;
+					String surface = borderSurfaceComboBox.getSelectedItem() + "";
+					if (surface.equals(side.getBorderSurface()))
+						return;
+					side.setBorderSurface(surface);
+					parent.sideChanged();
 				}
 			});
 		}
@@ -318,6 +326,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
+					if (filling)
+						return;
 					String oldStyle = side.getBorderStyle();
 					if (oldStyle == null || oldStyle.isEmpty())
 						oldStyle = "none";
@@ -414,8 +424,14 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					if (sideSurfaceComboBox.getSelectedItem() != null)
-						side.setSideSurface(sideSurfaceComboBox.getSelectedItem()+"");
+					// a choice is an edit (undo, save, redraw); filling in the shown value isn't
+					if (filling || sideSurfaceComboBox.getSelectedItem() == null)
+						return;
+					String surface = sideSurfaceComboBox.getSelectedItem() + "";
+					if (surface.equals(side.getSideSurface()))
+						return;
+					side.setSideSurface(surface);
+					parent.sideChanged();
 				}
 			});
 		}
@@ -438,10 +454,18 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
+					if (filling || sideBankingTypeComboBox.getSelectedItem() == null)
+						return;
 					String type = sideBankingTypeComboBox.getSelectedItem().toString();
 					if ("none".equals(type))
 						type = null;
+					String old = side.getSideBankingType();
+					if (old != null && old.isEmpty())
+						old = null;
+					if (type == null ? old == null : type.equals(old))
+						return;
 					side.setSideBankingType(type);
+					parent.sideChanged();
 				}
 			});
 		}
@@ -462,8 +486,14 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					if (barrierSurfaceComboBox.getSelectedItem() != null)
-						side.setBarrierSurface(barrierSurfaceComboBox.getSelectedItem()+"");
+					// a choice is an edit (undo, save, redraw); filling in the shown value isn't
+					if (filling || barrierSurfaceComboBox.getSelectedItem() == null)
+						return;
+					String surface = barrierSurfaceComboBox.getSelectedItem() + "";
+					if (surface.equals(side.getBarrierSurface()))
+						return;
+					side.setBarrierSurface(surface);
+					parent.sideChanged();
 				}
 			});
 		}
@@ -505,7 +535,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					if (updatingBarrierStyle)
+					if (updatingBarrierStyle || filling)
 						return;
 					String oldStyle = side.getBarrierStyle();
 					if (oldStyle == null || oldStyle.isEmpty())
@@ -740,6 +770,32 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	public void setSide(Segment segment, SegmentSide side)
 	{
+		filling = true;
+		try
+		{
+			fillSide(segment, side);
+		}
+		finally
+		{
+			filling = false;
+		}
+	}
+
+	/**
+	 * Selects style, adding it to the list when the list doesn't have it (a style
+	 * the game reads differently, like a "curb" barrier), so the segment's own style
+	 * is shown instead of the previous segment's.
+	 */
+	private static void selectStyle(JComboBox<String> comboBox, String style)
+	{
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
+		if (model.getIndexOf(style) == -1)
+			model.addElement(style);
+		comboBox.setSelectedItem(style);
+	}
+
+	private void fillSide(Segment segment, SegmentSide side)
+	{
 		this.side = side;
 
 		// update side
@@ -771,7 +827,9 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		String style = side.getBorderStyle();
 		if (style == null || style.isEmpty())
 			style = "none";
-		getBorderStyleComboBox().setSelectedItem(style);
+		// a fresh list each time, so an unlisted style shown for one segment isn't offered for the next
+		getBorderStyleComboBox().setModel(new DefaultComboBoxModel<String>(borderStyleItems));
+		selectStyle(getBorderStyleComboBox(), style);
 		switch (style)
 		{
 		case "none":
@@ -815,6 +873,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			getBorderWidthSlider().setValue(side.getBorderWidth());
 			break;
 		case "curb":
+		default:
+			// the game makes any other border style a wall
 			getBorderHeightSlider().setEnabled(true);
 			getBorderHeightSlider().setValue(side.getBorderHeight());
 			getBorderWidthSlider().setEnabled(true);
@@ -840,7 +900,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		// the list depends on the game type and on the current style
 		updatingBarrierStyle = true;
 		getBarrierStyleComboBox().setModel(new DefaultComboBoxModel<String>(barrierStyleItems(style)));
-		getBarrierStyleComboBox().setSelectedItem(style);
+		selectStyle(getBarrierStyleComboBox(), style);
 		updatingBarrierStyle = false;
 		switch (style)
 		{
@@ -899,6 +959,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			getBarrierWidthSlider().setValue(side.getBarrierWidth());
 			break;
 		case "fence":
+		case "fence1":
+		case "fence2":
 			if (parent.editorFrame.getInteractiveFixes())
 			{
 				checkBarrierFence(segment, side);
@@ -910,10 +972,17 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			break;
 		case "plan":
 		case "curb":
-			if (parent.editorFrame.getInteractiveFixes())
+		default:
+			// a style the game doesn't know: it keeps the barrier from before, but the
+			// values set here are still edited
+			if (parent.editorFrame.getInteractiveFixes() && (style.equals("plan") || style.equals("curb")))
 			{
 				checkBarrierInvalid(segment, side);
 			}
+			getBarrierHeightSlider().setEnabled(true);
+			getBarrierHeightSlider().setValue(side.getBarrierHeight());
+			getBarrierWidthSlider().setEnabled(true);
+			getBarrierWidthSlider().setValue(side.getBarrierWidth());
 			break;
 		}
 

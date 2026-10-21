@@ -33,6 +33,7 @@ import utils.circuit.Segment;
 public class UndoSegmentChange implements UndoInterface
 {
 	private SegmentVector	data;
+	private utils.TrackData	trackData;
 	private Segment 		original;
 	private Segment 		clone;
 	private int 			pos;
@@ -42,6 +43,7 @@ public class UndoSegmentChange implements UndoInterface
 	 */
 	public UndoSegmentChange(EditorFrame editorFrame, Segment segment)
 	{
+		trackData = editorFrame.getTrackData();
 		data = editorFrame.getTrackData().getSegments();
 		clone = (Segment) segment.clone();
 		original = segment;
@@ -60,6 +62,8 @@ public class UndoSegmentChange implements UndoInterface
 	public void undo()
 	{
 		original = (Segment) data.get(pos).clone();
+		// a rename in the dialog also renamed the pit and camera references
+		trackData.renameSegmentReferences(original.getName(), clone.getName());
 		data.set(pos,clone);
 
 		if (!data.validateLinks())
@@ -74,6 +78,7 @@ public class UndoSegmentChange implements UndoInterface
 	 */
 	public void redo()
 	{
+		trackData.renameSegmentReferences(data.get(pos).getName(), original.getName());
 		data.set(pos,original);
 
 		if (!data.validateLinks())
