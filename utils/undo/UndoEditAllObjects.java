@@ -3,38 +3,53 @@ package utils.undo;
 import java.util.Vector;
 import utils.circuit.ObjShapeObject;
 
+/**
+ * Undoes an edit of several object map objects by copying the old values back
+ * into the objects themselves, so other undo steps that refer to them (add,
+ * delete, move) still find them.
+ */
 public class UndoEditAllObjects implements UndoInterface
 {
-	private Vector<ObjectMapObject> original;
-	private Vector<ObjectMapObject> clone;
+	private Vector<ObjectMapObject>	objects;
+	private Vector<ObjShapeObject>	before;	// the values before the edit
+	private Vector<ObjShapeObject>	after;	// the values when it was undone
 
 	public UndoEditAllObjects(Vector<ObjectMapObject> editedObjects)
 	{
-		original = editedObjects;
-		clone = new Vector<ObjectMapObject>();
-		for (int i = 0; i < original.size(); i++)
+		objects = editedObjects;
+		before = copies();
+	}
+
+	private Vector<ObjShapeObject> copies()
+	{
+		Vector<ObjShapeObject> copies = new Vector<ObjShapeObject>();
+		for (int i = 0; i < objects.size(); i++)
 		{
-			clone.add(new ObjectMapObject(original.get(i).objectMap, (ObjShapeObject) original.get(i).object.clone()));
+			copies.add((ObjShapeObject) objects.get(i).object.clone());
+		}
+		return copies;
+	}
+
+	private void restore(Vector<ObjShapeObject> values)
+	{
+		for (int i = 0; i < objects.size(); i++)
+		{
+			ObjectMapObject objectMapObject = objects.get(i);
+			objectMapObject.object.set(values.get(i));
+			objectMapObject.objectMap.addColor(objectMapObject.object.getRGB());
+			// the object map image has to be written again
+			objectMapObject.objectMap.setChanged(true);
 		}
 	}
 
 	public void undo()
 	{
-		for (int i = 0; i < original.size(); i++)
-		{
-			int index = original.get(i).objectMap.getObjectIndex(original.get(i).object);
-			clone.get(i).objectMap.setObjectAt(index, clone.get(i).object);
-		}
+		after = copies();
+		restore(before);
 	}
 
 	public void redo()
 	{
-		for (int i = 0; i < clone.size(); i++)
-		{			
-			ObjectMapObject objectMapObject = clone.get(i);
-
-			int index = objectMapObject.objectMap.getObjectIndex(objectMapObject.object);
-			objectMapObject.objectMap.setObjectAt(index, original.get(i).object);
-		}
+		restore(after);
 	}
 }

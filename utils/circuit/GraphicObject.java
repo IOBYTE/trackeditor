@@ -30,6 +30,18 @@ public class GraphicObject
 		return object;
 	}
 
+	/**
+	 * Copies another graphic object's values into this one, so an undo restores
+	 * the object itself and other undo steps that refer to it still find it.
+	 */
+	public void set(GraphicObject object)
+	{
+		shape.set(object.shape);
+		comment = object.comment;
+		orientation = object.orientation;
+		height = object.height;
+	}
+
 	public ObjShapeObject getShape()
 	{
 		return shape;
