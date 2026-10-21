@@ -1167,12 +1167,33 @@ public class EditorFrame extends JFrame
 			return;
 		}
 
-		splash.toFront();
-		javax.swing.Timer timer = new javax.swing.Timer((int) left, new ActionListener()
+		// the splash stays on top, so close it as soon as a dialog opens (first time
+		// setup, an error reading the default surfaces...) so it doesn't cover it
+		final java.awt.event.AWTEventListener[] dialogOpened = new java.awt.event.AWTEventListener[1];
+		final javax.swing.Timer timer = new javax.swing.Timer((int) left, null);
+		final Runnable close = new Runnable()
+		{
+			public void run()
+			{
+				timer.stop();
+				java.awt.Toolkit.getDefaultToolkit().removeAWTEventListener(dialogOpened[0]);
+				splash.dispose();
+			}
+		};
+		dialogOpened[0] = new java.awt.event.AWTEventListener()
+		{
+			public void eventDispatched(AWTEvent event)
+			{
+				if (event.getID() == WindowEvent.WINDOW_OPENED && event.getSource() instanceof java.awt.Dialog)
+					close.run();
+			}
+		};
+		java.awt.Toolkit.getDefaultToolkit().addAWTEventListener(dialogOpened[0], AWTEvent.WINDOW_EVENT_MASK);
+		timer.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				splash.dispose();
+				close.run();
 			}
 		});
 		timer.setRepeats(false);
