@@ -652,6 +652,11 @@ public class SurfaceProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
+		// the default surfaces (View menu) are only shown, and applying them would
+		// replace the track's own surfaces with them
+		if (defaultSurfaces)
+			return;
+
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 

@@ -42,6 +42,18 @@ public class DefaultSurfacesDialog extends JDialog
 		return surfaceProperties;
 	}
 
+	/**
+	 * Shows the default surfaces again, after they were read again because the game
+	 * or its data directory changed.
+	 */
+	public void refresh()
+	{
+		surfaceProperties = null;
+		this.setContentPane(getSurfaceProperties());
+		this.validate();
+		this.repaint();
+	}
+
 	protected void processWindowEvent(WindowEvent e)
 	{
 		super.processWindowEvent(e);

@@ -743,6 +743,11 @@ public class ObjectProperties extends PropertyPanel
 	 */
 	public void exit()
 	{
+		// the default objects (View menu) are only shown, and applying them would
+		// replace the track's own objects with them
+		if (defaultObjects)
+			return;
+
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();

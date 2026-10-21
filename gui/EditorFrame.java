@@ -1934,6 +1934,7 @@ public class EditorFrame extends JFrame
 		preferencesDialog.setVisible(true);
 		if (PreferencesDialog.APPROVE)
 		{
+			String oldDataDirectory = getDataDirectory();
 			// the game first, so the directories the old preferences keep are its own
 			setGameType(preferencesDialog.getGameType());
 			for (GameType game : GameType.values())
@@ -1949,6 +1950,15 @@ public class EditorFrame extends JFrame
 			setCheckDefaultObjects(preferencesDialog.getCheckDefaultObjects());
 			readDefaultSurfaces();
 			readDefaultObjects();
+			// an open Default Surfaces or Default Objects window shows the new ones
+			String dataDirectory = getDataDirectory();
+			if (oldDataDirectory == null ? dataDirectory != null : !oldDataDirectory.equals(dataDirectory))
+			{
+				if (defaultSurfacesDialog != null)
+					defaultSurfacesDialog.refresh();
+				if (defaultObjectsDialog != null)
+					defaultObjectsDialog.refresh();
+			}
 			view.redrawCircuit();
 			if (view.segmentParamDialog != null)
 				view.segmentParamDialog.refresh();

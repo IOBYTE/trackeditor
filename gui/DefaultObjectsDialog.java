@@ -42,6 +42,18 @@ public class DefaultObjectsDialog extends JDialog
 		return objectProperties;
 	}
 
+	/**
+	 * Shows the default objects again, after they were read again because the game
+	 * or its data directory changed.
+	 */
+	public void refresh()
+	{
+		objectProperties = null;
+		this.setContentPane(getObjectProperties());
+		this.validate();
+		this.repaint();
+	}
+
 	protected void processWindowEvent(WindowEvent e)
 	{
 		super.processWindowEvent(e);
