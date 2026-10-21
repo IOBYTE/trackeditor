@@ -208,24 +208,7 @@ public class XmlReader
 
     public void readDefaultSurfaces(String filename, Vector<Surface> surfaceData) throws JDOMException, IOException
     {
-    	String xml =
-    		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-    		"<!DOCTYPE params SYSTEM \"../../../src/libs/tgf/params.dtd\" [" +
-    		"<!ENTITY default-surfaces SYSTEM \"" + filename + "\">" +
-    		"]>" +
-    		"<params name=\"test\" type=\"param\" mode=\"mw\">" +
-    		"<section name=\"Surfaces\">" +
-    		"&default-surfaces;" +
-    		"</section>" +
-    		"</params>";
-    	SAXBuilder sxb = new SAXBuilder(false);
-    	sxb.setValidation(false);
-    	sxb.setFeature("http://xml.org/sax/features/validation", false);
-    	sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-    	sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);    	
-    	Document doc = sxb.build(new InputSource(new StringReader(xml)));
-    	Element root = doc.getRootElement();
-    	Element surfaces = getChildWithName(root, "Surfaces");
+		Element surfaces = readDefaultFile(filename, "Surfaces");
 
     	if (surfaces != null)
     	{
@@ -235,30 +218,76 @@ public class XmlReader
 
     public void readDefaultObjects(String filename, Vector<TrackObject> objectData) throws JDOMException, IOException
     {
-    	String xml =
-    		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-    		"<!DOCTYPE params SYSTEM \"../../../src/libs/tgf/params.dtd\" [" +
-    		"<!ENTITY default-objects SYSTEM \"" + filename + "\">" +
-    		"]>" +
-    		"<params name=\"test\" type=\"param\" mode=\"mw\">" +
-    		"<section name=\"Objects\">" +
-    		"&default-objects;" +
-    		"</section>" +
-    		"</params>";
-    	SAXBuilder sxb = new SAXBuilder(false);
-    	sxb.setValidation(false);
-    	sxb.setFeature("http://xml.org/sax/features/validation", false);
-    	sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-    	sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);    	
-    	Document doc = sxb.build(new InputSource(new StringReader(xml)));
-    	Element root = doc.getRootElement();
-    	Element surfaces = getChildWithName(root, "Objects");
+		Element objects = readDefaultFile(filename, "Objects");
 
-    	if (surfaces != null)
+		if (objects != null)
     	{
-    		getObjects(surfaces, objectData);
+			getObjects(objects, objectData);
     	}
     }
+
+	/**
+	 * Reads a default surfaces or objects file (sections a track includes with
+	 * &amp;default-surfaces; or &amp;default-objects;) into a section with the given name.
+	 */
+	private Element readDefaultFile(String filename, String section) throws JDOMException, IOException
+	{
+		String xml =
+			"<params name=\"test\" type=\"param\" mode=\"mw\">" +
+			"<section name=\"" + section + "\">" +
+			readFragment(filename) +
+			"</section>" +
+			"</params>";
+		SAXBuilder sxb = new SAXBuilder(false);
+		sxb.setValidation(false);
+		sxb.setFeature("http://xml.org/sax/features/validation", false);
+		sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+		sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		Document doc;
+		try
+		{
+			doc = sxb.build(new InputSource(new StringReader(xml)));
+		}
+		catch (JDOMException e)
+		{
+			throw new JDOMException(filename + " : " + e.getLocalizedMessage(), e);
+		}
+		return getChildWithName(doc.getRootElement(), section);
+	}
+
+	/**
+	 * @return the text of a file that is included in a track, without its XML
+	 * declaration. TORCS's objects.xml says it is UTF-8 but has a Latin-1 character
+	 * in a comment, which the games' parser lets through, so a file that isn't
+	 * valid UTF-8 is read as Latin-1.
+	 */
+	private static String readFragment(String filename) throws IOException
+	{
+		byte[] bytes;
+		try
+		{
+			bytes = java.nio.file.Files.readAllBytes(Paths.get(filename));
+		}
+		catch (java.nio.file.NoSuchFileException e)
+		{
+			throw new IOException(filename + " (No such file or directory)", e);
+		}
+
+		String text;
+		try
+		{
+			text = java.nio.charset.StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString();
+		}
+		catch (java.nio.charset.CharacterCodingException e)
+		{
+			text = new String(bytes, java.nio.charset.StandardCharsets.ISO_8859_1);
+		}
+
+		if (text.startsWith("\uFEFF"))
+			text = text.substring(1);
+
+		return text.replaceFirst("^\\s*<\\?xml[^>]*\\?>", "");
+	}
 
     private synchronized void setTrackData(Element root)
     {
