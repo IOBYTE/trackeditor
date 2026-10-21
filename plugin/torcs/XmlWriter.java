@@ -853,10 +853,10 @@ public class XmlWriter
 		Element header = new Element("section");
 		header.setAttribute(name);
 
-		// TORCS reads none of short name, subcategory, sky version, copyright and email
+		// TORCS reads none of subcategory, sky version, copyright and email; only CSR has a short name
 		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
 		addContent(header, "name", editorFrame.getTrackData().getHeader().getName());
-		if (extensions)
+		if (editorFrame.getGameType().hasShortName())
 			addContent(header, "short name", editorFrame.getTrackData().getHeader().getShortName());
 
 		if (editorFrame.getTrackData().getHeader().getCategory() != null)

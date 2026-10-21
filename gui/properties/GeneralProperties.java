@@ -88,13 +88,14 @@ public class GeneralProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		// TORCS has no short name, subcategory, sky version, email or copyright
+		// TORCS has no subcategory, sky version, email or copyright
 		boolean extensions = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
 		int row = 0;
 
 		addLabel(this, row, nameLabel, "Name", 110);
 		addTextField(this, row++, nameTextField, getEditorFrame().getTrackData().getHeader().getName(), 130, 200);
-		if (extensions)
+		// only CSR has a short name
+		if (getEditorFrame().getGameType().hasShortName())
 		{
 			addLabel(this, row, shortNameLabel, "Short Name", 110);
 			addTextField(this, row++, shortNameTextField, getEditorFrame().getTrackData().getHeader().getShortName(), 130, 200);
@@ -281,7 +282,8 @@ public class GeneralProperties extends PropertyPanel
 		// the fields TORCS doesn't have aren't shown, so they are left as they are
 		boolean extensions = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
 
-		if (extensions && isDifferent(shortNameTextField.getText(), getEditorFrame().getTrackData().getHeader().getShortName(), stringResult))
+		if (getEditorFrame().getGameType().hasShortName() &&
+			isDifferent(shortNameTextField.getText(), getEditorFrame().getTrackData().getHeader().getShortName(), stringResult))
 		{
 			getEditorFrame().getTrackData().getHeader().setShortName(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;

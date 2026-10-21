@@ -331,6 +331,12 @@ public class EditorFrame extends JFrame
 			return this == CARS_SPORTS_RACING;
 		}
 
+		/** @return whether the header has a "short name" (only CSR) */
+		public boolean hasShortName()
+		{
+			return this == CARS_SPORTS_RACING;
+		}
+
 		/** @return whether the header has a "car category" (only CSR) */
 		public boolean hasCarCategory()
 		{
@@ -394,9 +400,9 @@ public class EditorFrame extends JFrame
 
 		/**
 		 * @return whether the game has what Speed Dreams added to the track file: Local
-		 * Info, Sectors, Track Lights, the header's short name, subcategory, email,
-		 * copyright and sky version, a segment's DoV factor, the night 3d descriptions and
-		 * a surface's rain values (not TORCS: it reads none of them)
+		 * Info, Sectors, Track Lights, the header's subcategory, email, copyright and sky
+		 * version, a segment's DoV factor, the night 3d descriptions and a surface's rain
+		 * values (not TORCS: it reads none of them)
 		 */
 		public boolean hasSpeedDreamsExtensions()
 		{
