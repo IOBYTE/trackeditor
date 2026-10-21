@@ -41,6 +41,7 @@ import org.jdom.output.Format;
 import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.Editor;
+import utils.TrackEditor;
 import utils.SegmentVector;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
@@ -774,7 +775,7 @@ public class XmlWriter
 		String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 		String tmp = "\n";
 		tmp += "file                : " + trackname + ".xml\n";
-		tmp += "auto generated      : by " + Editor.getProperties().title + "\n";
+		tmp += "auto generated      : by " + TrackEditor.getAppName() + "\n";
 		tmp += "version             : " + Editor.getProperties().version + "\n";
 		tmp += "copyright           : (C) 2005 by Charalampos Alexopoulos\n";
 

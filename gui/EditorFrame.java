@@ -375,35 +375,40 @@ public class EditorFrame extends JFrame
 			_splash.setStatus("Initializing gui ...");
 			_splash.incProgress(20);
 			_splash.setVisible(true);
-			try
-			{
-				Thread.sleep(100);
-			} catch (InterruptedException ex)
-			{
-			}
 		}
 
-		enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-		createActions();
 		try
 		{
-			view = new CircuitView(this);
-			_splash.incProgress(20);
-			Editor.getProperties().addPropertiesListener(new ActionListener()
+			enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+			createActions();
+			try
 			{
-				public void actionPerformed(ActionEvent e)
+				view = new CircuitView(this);
+				splashProgress(20);
+				Editor.getProperties().addPropertiesListener(new ActionListener()
 				{
-					//view.setBackgroundImage(properties.getImage());
-					//documentIsModified = true;
+					public void actionPerformed(ActionEvent e)
+					{
+						//view.setBackgroundImage(properties.getImage());
+						//documentIsModified = true;
 
-				}
-			});
-			initialize();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
+					}
+				});
+				initialize();
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+			}
 		}
-		_splash.dispose();
+		finally
+		{
+			// also when something goes wrong, so the splash doesn't stay up
+			if (_splash != null)
+			{
+				_splash.dispose();
+				_splash = null;
+			}
+		}
 
 		dataDirectory = preferences.get(SD_DATA_DIRECTORY, null);
 		binDirectory = preferences.get(SD_BIN_DIRECTORY, null);
@@ -1004,9 +1009,15 @@ public class EditorFrame extends JFrame
 		return prj;
 	}
 
+	private void splashProgress(int progress)
+	{
+		if (_splash != null)
+			_splash.incProgress(progress);
+	}
+
 	private void initialize() throws Exception
 	{
-		String title = Editor.getProperties().title + " " + Editor.getProperties().version;
+		String title = TrackEditor.getAppName() + " " + Editor.getProperties().version;
 		this.setTitle(title);
 		Image image = new ImageIcon(getClass().getResource("/icon.png")).getImage();
 		this.setIconImage(image);
@@ -1039,13 +1050,7 @@ public class EditorFrame extends JFrame
 		view.setPreferredSize(new Dimension(10, 10));
 		view.setSize(new Dimension(32767, 32767));
 		viewMenu.setText("View");
-		_splash.incProgress(20);
-		try
-		{
-			Thread.sleep(100);
-		} catch (InterruptedException ex)
-		{
-		}
+		splashProgress(20);
 		menuItemAddBackground.setText("Add background image");
 		menuItemAddBackground.addActionListener(new ActionListener()
 		{
@@ -1094,13 +1099,7 @@ public class EditorFrame extends JFrame
 		viewMenu.addSeparator();
 		viewMenu.add(getDefaultSurfacesMenuItem());
 		viewMenu.add(getDefaultObjectsMenuItem());
-		_splash.incProgress(20);
-		try
-		{
-			Thread.sleep(1000);
-		} catch (InterruptedException ex)
-		{
-		}
+		splashProgress(20);
 		this.setVisible(true);
 		
 		getProject().setSegmentEditorX(preferences.getInt("SegmentEditorX", 0));
@@ -3100,7 +3099,7 @@ public class EditorFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
 		{
 		    int type = JOptionPane.PLAIN_MESSAGE;
-		    String msg = Editor.getProperties().title + " " + Editor.getProperties().version + "\n\n"
+		    String msg = TrackEditor.getAppName() + " " + Editor.getProperties().version + "\n\n"
                 + "Copyright Charalampos Alexopoulos\n"
                 + "Copyright (2022-2026) Robert Reif\n";
 		    JOptionPane.showMessageDialog(null,msg,"About",type);

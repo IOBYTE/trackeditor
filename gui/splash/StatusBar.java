@@ -38,7 +38,7 @@ import javax.swing.border.EtchedBorder;
  */
 public class StatusBar extends JPanel
 {
-	private JLabel msg = new JLabel("Label");
+	private JLabel msg = new JLabel(" ");
 	private JProgressBar progress = new JProgressBar();
 	protected String statusText;
 

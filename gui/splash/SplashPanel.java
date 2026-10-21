@@ -25,13 +25,13 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 
 import utils.Editor;
+import utils.TrackEditor;
 
 /**
  * @author babis
@@ -43,9 +43,9 @@ public class SplashPanel extends JPanel
 {
 	//private Properties				properties	= Properties.getInstance();
 	ImageIcon image = null;
-	JButton splash = new JButton();
+	JLabel splash = new JLabel();
 	JLabel headerLabel = new JLabel();
-	private String header = Editor.getProperties().title;
+	private String header = TrackEditor.getAppName();
 	private String version = Editor.getProperties().version;
 	private StatusBar status = new StatusBar();
 
@@ -56,8 +56,14 @@ public class SplashPanel extends JPanel
 	{
 		this.setBorder(new EtchedBorder(BevelBorder.LOWERED));
 		this.setLayout(new BorderLayout());
-		image = new ImageIcon(SplashPanel.class.getResource(iconName));
-		splash.setIcon(image);
+		// without the picture (not packed with the classes) show the rest
+		java.net.URL url = SplashPanel.class.getResource(iconName);
+		if (url != null)
+		{
+			image = new ImageIcon(url);
+			splash.setIcon(image);
+		}
+		splash.setHorizontalAlignment(JLabel.CENTER);
 		headerLabel.setOpaque(true);
 		headerLabel.setBackground(Color.blue);
 		headerLabel.setForeground(Color.white);

@@ -23,6 +23,7 @@ package utils;
 import java.awt.Toolkit;
 import java.io.File;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
@@ -45,6 +46,18 @@ public class TrackEditor
 	
 	public static String executableName = null;
 
+	/**
+	 * @return the editor's name: csr-trackeditor when run as that, otherwise
+	 * sd2-trackeditor (also when run some other way, like from Eclipse)
+	 */
+	public static String getAppName()
+	{
+		if ("csr-trackeditor".equals(executableName))
+			return "csr-trackeditor";
+
+		return Editor.getProperties().title;
+	}
+
 	public static void main(String[] args)
 	{
 		executableName = new File(TrackEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName();
@@ -66,6 +79,13 @@ public class TrackEditor
 		System.out.println("OS              : "+System.getProperty("os.name"));
 		System.out.println("OS architecture : "+System.getProperty("os.arch"));
 		System.out.println("OS version      : "+System.getProperty("os.version"));
-		gui = new EditorFrame();
+		// Swing windows must be made and used on the event dispatch thread
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				gui = new EditorFrame();
+			}
+		});
 	}
 }

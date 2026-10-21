@@ -22,8 +22,6 @@ package gui.splash;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 
 import javax.swing.JWindow;
 
@@ -59,19 +57,22 @@ public class SplashScreen extends JWindow
 		getContentPane().setLayout(new BorderLayout(0, 0));
 
 		panel = new SplashPanel(iconName);
-		if (panel.getImage() != null)
-		{
-			int imgWidth = panel.getImage().getIconWidth();
-			int imgHeight = panel.getImage().getIconHeight();
-			Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();
-			setLocation(scrSize.width / 2 - imgWidth / 2, scrSize.height / 2 - imgHeight / 2);
-		}
+		panel.setStatus(title);
 
 		getContentPane().add(panel);
-		Dimension contentPaneSize = getContentPane().getPreferredSize();
-		setSize(contentPaneSize.width, contentPaneSize.height);
-
 		pack();
+		// centre the whole window, once it has its size
+		setLocationRelativeTo(null);
+	}
+
+	/**
+	 * The editor is built on the event dispatch thread, which can't paint while
+	 * it is busy building, so paint the splash now.
+	 */
+	private void paintNow()
+	{
+		if (isShowing())
+			getRootPane().paintImmediately(0, 0, getRootPane().getWidth(), getRootPane().getHeight());
 	}
 
 	////////////////////////////////////////////////////////////////
@@ -79,6 +80,7 @@ public class SplashScreen extends JWindow
 	public void setStatus(String s)
 	{
 		panel.setStatus(s);
+		paintNow();
 	}
 
 	/**
@@ -87,12 +89,25 @@ public class SplashScreen extends JWindow
 	public void incProgress(int i)
 	{
 		panel.incProgress(i);
-
+		paintNow();
 	}
 
 	public void setVisible(boolean b)
 	{
 		super.setVisible(b);
+		if (b)
+			paintNow();
+	}
+
+	/** A closed splash can't be shown again, so the next one is made new */
+	public void dispose()
+	{
+		super.dispose();
+		synchronized (SplashScreen.class)
+		{
+			if (instance == this)
+				instance = null;
+		}
 	}
 
 	public static void setDoSplash(boolean dosplash)
