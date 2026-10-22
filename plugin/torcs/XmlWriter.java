@@ -150,7 +150,9 @@ public class XmlWriter
 		root.addContent(getGraphic());
 		root.addContent(getGrid());
 		root.addContent(getTrack());
-		root.addContent(getCameras());
+		// TORCS trackgen doesn't like empty cameras
+		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS || !editorFrame.getTrackData().getCameras().isEmpty())
+			root.addContent(getCameras());
 		if (extensions)
 			root.addContent(getSectors());
 	}
