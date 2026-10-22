@@ -801,6 +801,7 @@ public class XmlReader
 	        data.getTerrainGeneration().setUseObjectMaterials(getAttrStrValue(terrain, "use object materials"));
 	        data.getTerrainGeneration().setTiledFile(getAttrStrValue(terrain, "tiled file"));
 			// TORCS
+	        data.getTerrainGeneration().setCrossingMode(getAttrStrValue(terrain, "crossing mode"));
 			data.getTerrainGeneration().setTerrainTransition(getAttrNumValue(terrain, "terrain transition", "m"));
 			data.getTerrainGeneration().setCrossingBridgeSocketGap(getAttrNumValue(terrain, "crossing bridge socket gap", "m"));
 			data.getTerrainGeneration().setCrossingBridgeThickness(getAttrNumValue(terrain, "crossing bridge thickness", "m"));

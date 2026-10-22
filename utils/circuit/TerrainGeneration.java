@@ -47,6 +47,7 @@ public class TerrainGeneration
 	private String					useObjectMaterials				= null;
 	private String					tiledFile						= null;
 	private double					terrainTransition				= Double.NaN;
+	private String					crossingMode					= null;
 	private double					crossingBridgeSocketGap			= Double.NaN;
 	private double					crossingBridgeThickness			= Double.NaN;
 	private String[]				crossingBridgeSurfaces			= new String[CROSSING_BRIDGE_SURFACE_KEYS.length];
@@ -278,6 +279,15 @@ public class TerrainGeneration
 	public void setTerrainTransition(double terrainTransition)
 	{
 		this.terrainTransition = terrainTransition;
+	}
+
+	public String getCrossingMode()
+	{
+		return crossingMode;
+	}
+	public void setCrossingMode(String mode)
+	{
+		crossingMode = mode;
 	}
 
 	public double getCrossingBridgeSocketGap()

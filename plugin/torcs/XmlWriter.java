@@ -126,7 +126,8 @@ public class XmlWriter
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
 		entity += "<!ENTITY default-surfaces SYSTEM \"../../../data/tracks/surfaces.xml\">\n";
-		entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n";
+		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+			entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n";
 		type.setInternalSubset(entity);
 		com = new Comment(getCredit());
 		doc.addContent(com);
@@ -139,7 +140,8 @@ public class XmlWriter
 		if (extensions)
 			root.addContent(getLights());
 		root.addContent(getSurfaces());
-		root.addContent(getObjects());
+		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+			root.addContent(getObjects());
 		root.addContent(getHeader());
 		// only TORCS reads it; its track manual puts it after the header
 		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
@@ -1108,6 +1110,7 @@ public class XmlWriter
 			addContent(element, "use object materials", editorFrame.getTerrainGeneration().getUseObjectMaterials());
 		if (torcs)
 		{
+			addContent(element, "crossing mode", editorFrame.getTerrainGeneration().getCrossingMode());
 			addContent(element, "crossing bridge socket gap", "m", editorFrame.getTerrainGeneration().getCrossingBridgeSocketGap());
 			addContent(element, "crossing bridge thickness", "m", editorFrame.getTerrainGeneration().getCrossingBridgeThickness());
 			for (int i = 0; i < TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
@@ -1116,7 +1119,8 @@ public class XmlWriter
 		if (editorFrame.getGameType().hasTiledFile())
 			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
 
-		element.addContent(getObjectMaps());
+		if (!torcs)
+			element.addContent(getObjectMaps());
 		// only Speed Dreams trackgen places individual graphic objects
 		if (editorFrame.getGameType().hasGraphicObjects())
 			element.addContent(getGraphicObjects());
