@@ -1442,64 +1442,6 @@ public class Segment implements Cloneable
 		return GameSides.of(this, true, editorFrame).sideSurface;
     }
 
-    public String getValidLeftSideBankingType(EditorFrame editorFrame)
-    {
-        Segment previous = this;
-        String	value;
-
-        // try to get missing attribute from previous segments first
-        while (previous != null)
-        {
-            value = previous.left.sideBankingType;
-            if (value != null && !value.isEmpty())
-            {
-                return value;
-            }
-            else
-            {
-                previous = previous.previousShape;
-    		}
-    	}
-
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getLeft().getSideBankingType();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_SIDE_BANKING_TYPE;
-    	}
-
-        return value;
-    }
-
-    public String getValidRightSideBankingType(EditorFrame editorFrame)
-    {
-    	Segment previous = this;
-        String	value;
-
-    	// try to get missing attribute from previous segments first
-        while (previous != null)
-    	{
-            value = previous.right.sideBankingType;
-            if (value != null && !value.isEmpty())
-    		{
-                return value;
-    		}
-    		else
-    		{
-                previous = previous.previousShape;
-    		}
-    	}
-
-    	// get it from main track when all else fails
-        value = editorFrame.getTrackData().getMainTrack().getRight().getSideBankingType();
-        if (value == null || value.isEmpty())
-    	{
-            value = SegmentSide.DEFAULT_SIDE_BANKING_TYPE;
-    	}
-
-        return value;
-    }
-
     public double getValidHeightStart()
     {
     	Segment previous = this;
@@ -1692,7 +1634,6 @@ public class Segment implements Cloneable
 		getLeft().setSideStartWidth(previousShape.getLeft().getSideEndWidth());
 		getLeft().setSideEndWidth(previousShape.getLeft().getSideEndWidth());
 		getLeft().setSideSurface(previousShape.getLeft().getSideSurface());
-		getLeft().setSideBankingType(previousShape.getLeft().getSideBankingType());
 
 		getLeft().setBarrierWidth(previousShape.getLeft().getBarrierWidth());
 		getLeft().setBarrierHeight(previousShape.getLeft().getBarrierHeight());
@@ -1707,7 +1648,6 @@ public class Segment implements Cloneable
 		getRight().setSideStartWidth(previousShape.getRight().getSideEndWidth());
 		getRight().setSideEndWidth(previousShape.getRight().getSideEndWidth());
 		getRight().setSideSurface(previousShape.getRight().getSideSurface());
-		getRight().setSideBankingType(previousShape.getRight().getSideBankingType());
 
 		getRight().setBarrierWidth(previousShape.getRight().getBarrierWidth());
 		getRight().setBarrierHeight(previousShape.getRight().getBarrierHeight());
@@ -1741,7 +1681,6 @@ public class Segment implements Cloneable
 		left.setSideStartWidth(getValidLeftSideStartWidth(editorFrame));
 		left.setSideEndWidth(getValidLeftSideEndWidth(editorFrame));
 		left.setSideSurface(getValidLeftSideSurface(editorFrame));
-		left.setSideBankingType(getValidLeftSideBankingType(editorFrame));
 
 		right.setBarrierWidth(getValidRightBarrierWidth(editorFrame));
 		right.setBarrierHeight(getValidRightBarrierHeight(editorFrame));
@@ -1756,7 +1695,6 @@ public class Segment implements Cloneable
 		right.setSideStartWidth(getValidRightSideStartWidth(editorFrame));
 		right.setSideEndWidth(getValidRightSideEndWidth(editorFrame));
 		right.setSideSurface(getValidRightSideSurface(editorFrame));
-		right.setSideBankingType(getValidRightSideBankingType(editorFrame));
 	}
 
 	// from https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm

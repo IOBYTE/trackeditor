@@ -53,6 +53,7 @@ import utils.circuit.Georeference;
 import utils.circuit.Graphic;
 import utils.circuit.GraphicObject;
 import utils.circuit.LocalInfo;
+import utils.circuit.MainTrack;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.StartingGrid;
@@ -340,10 +341,26 @@ public class XmlReader
         editorFrame.getTrackData().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
         editorFrame.getTrackData().getMainTrack().setRacelineExt(getAttrNumValue(mainTrack, "raceline ext"));
 
+		// only the version 5 loader reads these
+		if (editorFrame.getTrackData().getHeader().getVersion() == 5)
+		{
+			MainTrack main = editorFrame.getTrackData().getMainTrack();
+			main.setStartBearing(getAttrNumValue(mainTrack, "original bearing", "deg"));
+			main.setStartX(getAttrNumValue(mainTrack, "start X", "m"));
+			main.setStartY(getAttrNumValue(mainTrack, "start Y", "m"));
+			main.setStartZ(getAttrNumValue(mainTrack, "start Z", "m"));
+			main.setMinimumX(getAttrNumValue(mainTrack, "minimum X", "m"));
+			main.setMinimumY(getAttrNumValue(mainTrack, "minimum Y", "m"));
+			main.setMinimumZ(getAttrNumValue(mainTrack, "minimum Z", "m"));
+			main.setExtentX(getAttrNumValue(mainTrack, "extent X", "m"));
+			main.setExtentY(getAttrNumValue(mainTrack, "extent Y", "m"));
+			main.setExtentZ(getAttrNumValue(mainTrack, "extent Z", "m"));
+		}
+
         if (editorFrame.getTrackData().getHeader().getVersion() == 3)
         {
-            setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "l");
-            setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "r");
+			setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "l", true);
+			setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "r", true);
             setPitsV3(mainTrack);
         }
         else
@@ -956,30 +973,67 @@ public class XmlReader
        editorFrame.getPits().setSpeedLimit(getAttrNumUnitsValue(mainTrack, "speed limit"));
    }
 
-    private void setSideV3(Element seg, SegmentSide part, String sPart)
-    {
-        double width = getAttrNumValue(seg, sPart + "side width", "m");
-        if (Double.isNaN(width))
-        {
-            part.setSideStartWidth(getAttrNumValue(seg, sPart + "side start width", "m"));
-            part.setSideEndWidth(getAttrNumValue(seg, sPart + "side end width", "m"));
-        }
-        else
-        {
-            part.setSideStartWidth(width);
-            part.setSideEndWidth(width);
-        }
-        part.setSideSurface(getAttrStrValue(seg, sPart + "side surface"));
-        part.setSideBankingType(getAttrStrValue(seg, sPart + "side type"));
-        part.setBorderStyle(getAttrStrValue(seg, sPart + "border style"));
-        part.setBorderWidth(getAttrNumValue(seg, sPart + "border width", "m"));
-        part.setBorderHeight(getAttrNumValue(seg, sPart + "border height", "m"));
-        part.setBorderSurface(getAttrStrValue(seg, sPart + "border surface"));
-        part.setBarrierStyle(getAttrStrValue(seg, sPart + "barrier style"));
-        part.setBarrierWidth(getAttrNumValue(seg, sPart + "barrier width", "m"));
-        part.setBarrierHeight(getAttrNumValue(seg, sPart + "barrier height", "m"));
-        part.setBarrierSurface(getAttrStrValue(seg, sPart + "barrier surface"));
-    }
+	/**
+	 * Reads a v3 side the way the games' v3 loader (track3.cpp) reads it, so
+	 * the track keeps its meaning when it is saved as v4:
+	 * <ul>
+	 * <li>the Main Track has only "side width"; segments have only "side start
+	 * width" and "side end width".</li>
+	 * <li>"side type" (banking type) is read only for the Main Track.</li>
+	 * <li>barriers are read only for the Main Track, and its barrier height
+	 * defaults to 1 m (v4 defaults to 0.6 m).</li>
+	 * <li>in TORCS, a segment without a border height has a height of 0 (v4
+	 * inherits it from the previous segment).</li>
+	 * </ul>
+	 */
+	private void setSideV3(Element seg, SegmentSide part, String sPart, boolean mainTrack)
+	{
+		int side = sPart.equals("l") ? 0 : 1;
+
+		if (mainTrack)
+		{
+			double width = getAttrNumValue(seg, sPart + "side width", "m");
+			part.setSideStartWidth(width);
+			part.setSideEndWidth(width);
+		}
+		else
+		{
+			part.setSideStartWidth(getAttrNumValue(seg, sPart + "side start width", "m"));
+			part.setSideEndWidth(getAttrNumValue(seg, sPart + "side end width", "m"));
+		}
+		part.setSideSurface(getAttrStrValue(seg, sPart + "side surface"));
+		if (mainTrack)
+			part.setSideBankingType(getAttrStrValue(seg, sPart + "side type"));
+		part.setBorderStyle(getAttrStrValue(seg, sPart + "border style"));
+		part.setBorderWidth(getAttrNumValue(seg, sPart + "border width", "m"));
+		double borderHeight = getAttrNumValue(seg, sPart + "border height", "m");
+		if (mainTrack)
+		{
+			v3BorderHeight[side] = Double.isNaN(borderHeight) ? 0.0 : borderHeight;
+		}
+		else if (!Double.isNaN(borderHeight))
+		{
+			v3BorderHeight[side] = borderHeight;
+		}
+		else if (editorFrame.getGameType() == EditorFrame.GameType.TORCS && v3BorderHeight[side] != 0.0)
+		{
+			borderHeight = 0.0;
+			v3BorderHeight[side] = 0.0;
+		}
+		part.setBorderHeight(borderHeight);
+		part.setBorderSurface(getAttrStrValue(seg, sPart + "border surface"));
+		if (mainTrack)
+		{
+			part.setBarrierStyle(getAttrStrValue(seg, sPart + "barrier style"));
+			part.setBarrierWidth(getAttrNumValue(seg, sPart + "barrier width", "m"));
+			double barrierHeight = getAttrNumValue(seg, sPart + "barrier height", "m");
+			part.setBarrierHeight(Double.isNaN(barrierHeight) ? 1.0 : barrierHeight);
+			part.setBarrierSurface(getAttrStrValue(seg, sPart + "barrier surface"));
+		}
+	}
+
+	// the border height a v3 segment inherits, per side (left, right)
+	private double[] v3BorderHeight = new double[2];
 
     private synchronized void setSegments(Element mainTrack)
     {
@@ -1144,8 +1198,8 @@ public class XmlReader
 
         if (editorFrame.getTrackData().getHeader().getVersion() == 3)
         {
-            setSideV3(seg, left, "l");
-            setSideV3(seg, right, "r");
+			setSideV3(seg, left, "l", false);
+			setSideV3(seg, right, "r", false);
         }
         else
         {
@@ -1192,7 +1246,9 @@ public class XmlReader
                 part.setSideEndWidth(width);
             }
             part.setSideSurface(getAttrStrValue(el, "surface"));
-            part.setSideBankingType(getAttrStrValue(el, "banking type"));
+			// the games only read the Main Track's banking type, not a segment's
+			if (mainTrack)
+				part.setSideBankingType(getAttrStrValue(el, "banking type"));
 			// (some TORCS tracks have a side "type", but no game reads it: reading it as the
 			// banking type would make the game use it once the track is saved)
         }

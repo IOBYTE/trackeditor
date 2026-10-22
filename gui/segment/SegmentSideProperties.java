@@ -101,7 +101,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private JLabel				borderStyleLabel		= null;
 	private JLabel				sideLabel				= null;
 	private JLabel				sideSurfaceLabel		= null;
-	private JLabel				sideBankingTypeLabel	= null;
 	private JLabel				barrierLabel			= null;
 	private JLabel				barrierStyleLabel		= null;
 	private JLabel				barrierSurfaceLabel		= null;
@@ -110,7 +109,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private SurfaceComboBox		borderSurfaceComboBox	= null;
 	private JComboBox<String>	borderStyleComboBox		= null;
 	private SurfaceComboBox		sideSurfaceComboBox		= null;
-	private JComboBox<String>	sideBankingTypeComboBox	= null;
 	private SurfaceComboBox		barrierSurfaceComboBox	= null;
 	private JComboBox<String>	barrierStyleComboBox	= null;
 	private SegmentSlider		sideStartWidthSlider	= null;
@@ -232,7 +230,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel = new JPanel();
 			sideSurfaceLabel = new JLabel();
 			sideLabel = new JLabel();
-			sideBankingTypeLabel = new JLabel();
 			barrierSurfaceLabel = new JLabel();
 			barrierStyleLabel = new JLabel();
 			barrierLabel = new JLabel();
@@ -244,8 +241,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			borderSurfaceLabel.setText("Surface");
 			borderStyleLabel.setBounds(703, 375, 55, 23);
 			borderStyleLabel.setText("Style");
-			sideBankingTypeLabel.setBounds(376, 375, 90, 23);
-			sideBankingTypeLabel.setText("Banking Type");
 			panel.add(borderSurfaceLabel, null);
 			panel.add(borderStyleLabel, null);
 			panel.add(borderLabel, null);
@@ -254,7 +249,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel.add(barrierLabel, null);
 			panel.add(barrierStyleLabel, null);
 			panel.add(barrierSurfaceLabel, null);
-			panel.add(sideBankingTypeLabel, null);
 			panel.setLocation(3, 35);
 			panel.setSize(823, 431);
 			sideLabel.setText("Side");
@@ -272,7 +266,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel.add(getBorderSurfaceComboBox(), null);
 			panel.add(getBorderStyleComboBox(), null);
 			panel.add(getSideSurfaceComboBox(), null);
-			panel.add(getSideBankingTypeComboBox(), null);
 			panel.add(getBarrierSurfaceComboBox(), null);
 			panel.add(getBarrierStyleComboBox(), null);
 			panel.add(getSideStartWidthSlider(), null);
@@ -438,40 +431,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			});
 		}
 		return sideSurfaceComboBox;
-	}
-	/**
-	 * This method initializes sideBankingTypeComboBox
-	 *
-	 * @return javax.swing.JComboBox
-	 */
-	private JComboBox<String> getSideBankingTypeComboBox()
-	{
-		if (sideBankingTypeComboBox == null)
-		{
-			String[] items = {"none", "level", "tangent"};
-			sideBankingTypeComboBox = new JComboBox<String>();
-			sideBankingTypeComboBox.setBounds(351, 400, 120, 23);
-			sideBankingTypeComboBox.setModel(new DefaultComboBoxModel<String>(items));
-			sideBankingTypeComboBox.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-					if (filling || sideBankingTypeComboBox.getSelectedItem() == null)
-						return;
-					String type = sideBankingTypeComboBox.getSelectedItem().toString();
-					if ("none".equals(type))
-						type = null;
-					String old = side.getSideBankingType();
-					if (old != null && old.isEmpty())
-						old = null;
-					if (type == null ? old == null : type.equals(old))
-						return;
-					side.setSideBankingType(type);
-					parent.sideChanged();
-				}
-			});
-		}
-		return sideBankingTypeComboBox;
 	}
 	/**
 	 * This method initializes barrierSurfaceComboBox
@@ -808,11 +767,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			this.getSideSurfaceComboBox().setSelectedItem(surface);
 		else
 			this.getSideSurfaceComboBox().setSelectedIndex(-1);
-
-		String bankingType = this.side.getSideBankingType();
-		if (bankingType == null || bankingType.isEmpty())
-			bankingType = "none";
-		this.getSideBankingTypeComboBox().setSelectedItem(bankingType);
 
 		this.getSideStartWidthSlider().setValue(side.getSideStartWidth());
 		this.getSideEndWidthSlider().setValue(side.getSideEndWidth());

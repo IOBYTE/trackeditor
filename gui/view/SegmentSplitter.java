@@ -434,7 +434,6 @@ class SegmentSplitter
 			side2.setSideEndWidth(endWidth);
 		}
 
-		side2.setSideBankingType(side.getSideBankingType());
 		side2.setSideSurface(side.getSideSurface());
 
 		side2.setBorderWidth(side.getBorderWidth());

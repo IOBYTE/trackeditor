@@ -17,6 +17,18 @@ public class MainTrack
 	private double				racelineExt					= Double.NaN;
 	private String				profil						= null;
 	private double				profilStepsLength			= Double.NaN;
+	// version 5 only: where the track starts (bearing in degrees) and the
+	// bounding box the game uses instead of the one it computes
+	private double				startBearing				= Double.NaN;
+	private double				startX						= Double.NaN;
+	private double				startY						= Double.NaN;
+	private double				startZ						= Double.NaN;
+	private double				minimumX					= Double.NaN;
+	private double				minimumY					= Double.NaN;
+	private double				minimumZ					= Double.NaN;
+	private double				extentX						= Double.NaN;
+	private double				extentY						= Double.NaN;
+	private double				extentZ						= Double.NaN;
 	private Pits				pits						= new Pits();
 	private SegmentSide			left						= new SegmentSide(false);
 	private SegmentSide			right						= new SegmentSide(true);
@@ -147,6 +159,106 @@ public class MainTrack
 		this.profil = profil;
 	}
 
+	public double getStartBearing()
+	{
+		return startBearing;
+	}
+
+	public void setStartBearing(double startBearing)
+	{
+		this.startBearing = startBearing;
+	}
+
+	public double getStartX()
+	{
+		return startX;
+	}
+
+	public void setStartX(double startX)
+	{
+		this.startX = startX;
+	}
+
+	public double getStartY()
+	{
+		return startY;
+	}
+
+	public void setStartY(double startY)
+	{
+		this.startY = startY;
+	}
+
+	public double getStartZ()
+	{
+		return startZ;
+	}
+
+	public void setStartZ(double startZ)
+	{
+		this.startZ = startZ;
+	}
+
+	public double getMinimumX()
+	{
+		return minimumX;
+	}
+
+	public void setMinimumX(double minimumX)
+	{
+		this.minimumX = minimumX;
+	}
+
+	public double getMinimumY()
+	{
+		return minimumY;
+	}
+
+	public void setMinimumY(double minimumY)
+	{
+		this.minimumY = minimumY;
+	}
+
+	public double getMinimumZ()
+	{
+		return minimumZ;
+	}
+
+	public void setMinimumZ(double minimumZ)
+	{
+		this.minimumZ = minimumZ;
+	}
+
+	public double getExtentX()
+	{
+		return extentX;
+	}
+
+	public void setExtentX(double extentX)
+	{
+		this.extentX = extentX;
+	}
+
+	public double getExtentY()
+	{
+		return extentY;
+	}
+
+	public void setExtentY(double extentY)
+	{
+		this.extentY = extentY;
+	}
+
+	public double getExtentZ()
+	{
+		return extentZ;
+	}
+
+	public void setExtentZ(double extentZ)
+	{
+		this.extentZ = extentZ;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "MainTrack");
@@ -157,6 +269,16 @@ public class MainTrack
 		System.out.println(indent + "  racelineExt        : " + racelineExt);
 		System.out.println(indent + "  profil             : " + profil);
 		System.out.println(indent + "  profilStepsLength  : " + profilStepsLength);
+		System.out.println(indent + "  startBearing       : " + startBearing);
+		System.out.println(indent + "  startX             : " + startX);
+		System.out.println(indent + "  startY             : " + startY);
+		System.out.println(indent + "  startZ             : " + startZ);
+		System.out.println(indent + "  minimumX           : " + minimumX);
+		System.out.println(indent + "  minimumY           : " + minimumY);
+		System.out.println(indent + "  minimumZ           : " + minimumZ);
+		System.out.println(indent + "  extentX            : " + extentX);
+		System.out.println(indent + "  extentY            : " + extentY);
+		System.out.println(indent + "  extentZ            : " + extentZ);
 		pits.dump(indent + "    ");
     }
 }

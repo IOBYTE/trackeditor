@@ -1037,7 +1037,6 @@ public class PitProperties extends PropertyPanel
 
 			nextSegment.getLeft().setSideStartWidth(nextSegment.getValidLeftSideStartWidth(getEditorFrame()));
 			nextSegment.getLeft().setSideSurface(nextSegment.getValidLeftSideSurface(getEditorFrame()));
-			nextSegment.getLeft().setSideBankingType(nextSegment.getValidLeftSideBankingType(getEditorFrame()));
 
 			nextSegment.getLeft().setBarrierWidth(nextSegment.getValidLeftBarrierWidth(getEditorFrame()));
 			nextSegment.getLeft().setBarrierHeight(nextSegment.getValidLeftBarrierHeight(getEditorFrame()));
@@ -1057,7 +1056,6 @@ public class PitProperties extends PropertyPanel
 
 			nextSegment.getRight().setSideStartWidth(nextSegment.getValidRightSideStartWidth(getEditorFrame()));
 			nextSegment.getRight().setSideSurface(nextSegment.getValidRightSideSurface(getEditorFrame()));
-			nextSegment.getRight().setSideBankingType(nextSegment.getValidRightSideBankingType(getEditorFrame()));
 
 			nextSegment.getRight().setBarrierWidth(nextSegment.getValidRightBarrierWidth(getEditorFrame()));
 			nextSegment.getRight().setBarrierHeight(nextSegment.getValidRightBarrierHeight(getEditorFrame()));
@@ -1136,7 +1134,6 @@ public class PitProperties extends PropertyPanel
 
 			previousSegment.getLeft().setSideStartWidth(previousSegment.getValidLeftSideStartWidth(getEditorFrame()));
 			previousSegment.getLeft().setSideSurface(previousSegment.getValidLeftSideSurface(getEditorFrame()));
-			previousSegment.getLeft().setSideBankingType(previousSegment.getValidLeftSideBankingType(getEditorFrame()));
 
 			previousSegment.getLeft().setBarrierWidth(previousSegment.getValidLeftBarrierWidth(getEditorFrame()));
 			previousSegment.getLeft().setBarrierHeight(previousSegment.getValidLeftBarrierHeight(getEditorFrame()));
@@ -1156,7 +1153,6 @@ public class PitProperties extends PropertyPanel
 
 			previousSegment.getRight().setSideStartWidth(previousSegment.getValidRightSideStartWidth(getEditorFrame()));
 			previousSegment.getRight().setSideSurface(previousSegment.getValidRightSideSurface(getEditorFrame()));
-			previousSegment.getRight().setSideBankingType(previousSegment.getValidRightSideBankingType(getEditorFrame()));
 
 			previousSegment.getRight().setBarrierWidth(previousSegment.getValidRightBarrierWidth(getEditorFrame()));
 			previousSegment.getRight().setBarrierHeight(previousSegment.getValidRightBarrierHeight(getEditorFrame()));

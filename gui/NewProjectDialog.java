@@ -101,8 +101,8 @@ public class NewProjectDialog extends JDialog
 		this.setLocation(p);
 		this.setTitle("New Project");
 
-		// TORCS has no subcategory, email or copyright (and the editor only makes
-		// version 4 tracks for it), so leave them out and close up the rows
+		// TORCS has no subcategory, email or copyright, so leave them out and
+		// close up the rows
 		if (!editorFrame.getGameType().hasSpeedDreamsExtensions())
 		{
 			javax.swing.JComponent[] hidden = {trackSubcategoryLabel, getTrackSubcategoryComboBox(),
@@ -291,10 +291,8 @@ public class NewProjectDialog extends JDialog
 	{
 		if (trackVersionComboBox == null)
 		{
-			String[] items =
-			{"3", "4", "5"};
-			if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
-				items = new String[] {"4"};
+			// only version 4 tracks can be written
+			String[] items = {"4"};
 			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem("4");
 			trackVersionComboBox.setBounds(145, 91, 170, 23);

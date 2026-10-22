@@ -1162,6 +1162,10 @@ public class EditorFrame extends JFrame
 			return false;
 		}
 
+		// ask before anything is written, so aborting leaves both files alone
+		if (!confirmWriteVersion())
+			return false;
+
 		String filename = Editor.getProperties().getPath();
 		String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 		filename = filename + sep + trackname + ".prj.xml";
@@ -3599,6 +3603,37 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return true if it was written; on failure the user has been shown the error
 	 */
+	/**
+	 * For a version 3 or 5 track, asks whether to write it in its own version,
+	 * convert it to version 4 and write it, or not write it.
+	 *
+	 * @return true to go on writing (in the version the track now has), false to abort
+	 */
+	private boolean confirmWriteVersion()
+	{
+		int version = trackData.getHeader().getVersion();
+		if (version != 3 && version != 5)
+			return true;
+
+		String message = "This is a version " + version + " track.\n" +
+			"Keep version " + version + ", or convert the track to version 4?";
+		if (version == 5 && getGameType() == GameType.TORCS)
+			message += "\n\nTORCS can't load version 5 tracks.";
+
+		String[] options = {"Keep version " + version, "Convert to version 4", "Abort"};
+		int choice = JOptionPane.showOptionDialog(this, message,
+			"Track Version", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+			null, options, options[2]);
+		if (choice == 0)
+			return true;
+		if (choice != 1)
+			return false;
+
+		trackData.getHeader().setVersion(4);
+		documentIsModified = true;
+		return true;
+	}
+
 	public boolean exportTrack()
 	{
 		if (trackData == null)
@@ -3606,6 +3641,9 @@ public class EditorFrame extends JFrame
 			message("No track", "Nothing to export");
 			return false;
 		}
+		if (!confirmWriteVersion())
+			return false;
+
 		String fileName = Editor.getProperties().getPath();
 		String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
 		fileName = fileName + sep + trackName + ".xml";
@@ -3998,12 +4036,38 @@ public class EditorFrame extends JFrame
 				}
 		 	}			
 
+			// TORCS has no version 5 loader, so a version 5 track has to become version 4
+			boolean convertToVersion4 = false;
+			if (getGameType() == GameType.TORCS && trackData.getHeader().getVersion() == 5)
+			{
+				String[] options = {"Convert to version 4", "Abort"};
+				int choice = JOptionPane.showOptionDialog(this,
+					file.getName() + " is a version 5 track.\n" +
+					"TORCS can't load version 5 tracks. Convert it to version 4?",
+					"Track Version", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+					null, options, options[1]);
+				if (choice != 0)
+				{
+					trackData = previous;
+					refresh();
+					return false;
+				}
+				convertToVersion4 = true;
+			}
+
 			// a freshly loaded track has nothing to save, and nothing to undo
 			documentIsModified = false;
 			Undo.clear();
 			// the previous track's object map selection doesn't apply
 			currentObjectMap = -1;
 			closeTrackWindows();
+
+			if (convertToVersion4)
+			{
+				// converted, but not yet saved
+				trackData.getHeader().setVersion(4);
+				documentIsModified = true;
+			}
 		}
 		catch (Exception e)
 		{

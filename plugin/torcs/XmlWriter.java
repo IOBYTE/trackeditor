@@ -48,6 +48,7 @@ import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
 import utils.circuit.Georeference;
 import utils.circuit.GraphicObject;
+import utils.circuit.MainTrack;
 import utils.circuit.ObjectMap;
 import utils.circuit.Sector;
 import utils.circuit.Segment;
@@ -66,8 +67,8 @@ import utils.circuit.TrackObject;
  */
 public class XmlWriter
 {
-	private EditorFrame			editorFrame;
-	private List<String>			fileErrors		= new ArrayList<String>();
+	private EditorFrame		editorFrame;
+	private List<String>	fileErrors		= new ArrayList<String>();
 
 	/**
 	 * The track xml was written, but relief or object map files it refers to were not.
@@ -217,6 +218,22 @@ public class XmlWriter
 		addContent(track, "raceline widthscale", null, editorFrame.getTrackData().getMainTrack().getRacelineWidthscale());
 		addContent(track, "raceline int", null, editorFrame.getTrackData().getMainTrack().getRacelineInt());
 		addContent(track, "raceline ext", null, editorFrame.getTrackData().getMainTrack().getRacelineExt());
+
+		// only the version 5 loader reads these
+		if (editorFrame.getTrackData().getHeader().getVersion() == 5)
+		{
+			MainTrack main = editorFrame.getTrackData().getMainTrack();
+			addContent(track, "original bearing", "deg", main.getStartBearing());
+			addContent(track, "start X", "m", main.getStartX());
+			addContent(track, "start Y", "m", main.getStartY());
+			addContent(track, "start Z", "m", main.getStartZ());
+			addContent(track, "minimum X", "m", main.getMinimumX());
+			addContent(track, "minimum Y", "m", main.getMinimumY());
+			addContent(track, "minimum Z", "m", main.getMinimumZ());
+			addContent(track, "extent X", "m", main.getExtentX());
+			addContent(track, "extent Y", "m", main.getExtentY());
+			addContent(track, "extent Z", "m", main.getExtentZ());
+		}
 
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
@@ -539,7 +556,9 @@ public class XmlWriter
 			addContent(side, "end width", "m", part.getSideEndWidth());
 		}
 		addContent(side, "surface", part.getSideSurface());
-		addContent(side, "banking type", part.getSideBankingType());
+		// the games only read the Main Track's banking type
+		if (mainTrack)
+			addContent(side, "banking type", part.getSideBankingType());
 
 		return side;
 	}
