@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -48,14 +49,16 @@ import utils.circuit.Surface;
  */
 public class SurfaceProperties extends PropertyPanel
 {
-	static private Surface	surfaceCopy			= null;
-	
-	private	Boolean			defaultSurfaces		= false;
-	private	JButton			addSurfaceButton	= null;
-	private	JButton			deleteSurfaceButton	= null;
-	private	JButton			copySurfaceButton	= null;
-	private	JButton			pasteSurfaceButton	= null;
-	private	JTabbedPane		tabbedPane			= null;
+	static private Surface	surfaceCopy				= null;
+	private	Boolean			defaultSurfaces			= false;
+	private int				offset					= 0;
+
+	private JCheckBox		defaultSurfacesCheckBox	= null;
+	private	JButton			addSurfaceButton		= null;
+	private	JButton			deleteSurfaceButton		= null;
+	private	JButton			copySurfaceButton		= null;
+	private	JButton			pasteSurfaceButton		= null;
+	private	JTabbedPane		tabbedPane				= null;
 
 	/**
 	 *
@@ -76,6 +79,11 @@ public class SurfaceProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+		if (!defaultSurfaces)
+		{
+			offset = 33;
+			this.add(getDefaultSurfacesCheckBox());
+		}
 		this.add(getTabbedPane(), null);
 		if (!defaultSurfaces)
 		{
@@ -84,6 +92,17 @@ public class SurfaceProperties extends PropertyPanel
 			this.add(getPasteSurfaceButton(), null);
 		}
 		this.add(getCopySurfaceButton(), null);
+	}
+
+	private JCheckBox getDefaultSurfacesCheckBox()
+	{
+		if (defaultSurfacesCheckBox == null)
+		{
+			defaultSurfacesCheckBox	= new JCheckBox("Default Surfaces");
+			defaultSurfacesCheckBox.setBounds(10, 10, 220, 23);
+			defaultSurfacesCheckBox.setSelected(getEditorFrame().getTrackData().getHasSurfacesReference());
+		}
+		return defaultSurfacesCheckBox;
 	}
 
 	/**
@@ -96,7 +115,7 @@ public class SurfaceProperties extends PropertyPanel
 		if (addSurfaceButton == null)
 		{
 			addSurfaceButton = new JButton();
-			addSurfaceButton.setBounds(10, 758, 120, 25);
+			addSurfaceButton.setBounds(10, 758 + offset, 120, 25);
 			addSurfaceButton.setText("Add Surface");
 			addSurfaceButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -125,7 +144,7 @@ public class SurfaceProperties extends PropertyPanel
 		if (deleteSurfaceButton == null)
 		{
 			deleteSurfaceButton = new JButton();
-			deleteSurfaceButton.setBounds(140, 758, 120, 25);
+			deleteSurfaceButton.setBounds(140, 758 + offset, 120, 25);
 			deleteSurfaceButton.setText("Delete Surface");
 			deleteSurfaceButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -151,7 +170,7 @@ public class SurfaceProperties extends PropertyPanel
 		if (copySurfaceButton == null)
 		{
 			copySurfaceButton = new JButton();
-			copySurfaceButton.setBounds(270, 758, 120, 25);
+			copySurfaceButton.setBounds(270, 758 + offset, 120, 25);
 			copySurfaceButton.setText("Copy Surface");
 			copySurfaceButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -175,7 +194,7 @@ public class SurfaceProperties extends PropertyPanel
 		if (pasteSurfaceButton == null)
 		{
 			pasteSurfaceButton = new JButton();
-			pasteSurfaceButton.setBounds(400, 758, 120, 25);
+			pasteSurfaceButton.setBounds(400, 758 + offset, 120, 25);
 			pasteSurfaceButton.setText("Paste Surface");
 			pasteSurfaceButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -191,9 +210,9 @@ public class SurfaceProperties extends PropertyPanel
 							surface.setName(name);
 
 							tabbedPane.addTab(name, null, new SurfacePanel(surface), null);
-							tabbedPane.setSelectedIndex(0);						
+							tabbedPane.setSelectedIndex(0);
 						}
-						
+
 						// the tab keeps its own name: the copy's name would be used twice
 						SurfacePanel panel = (SurfacePanel) getTabbedPane().getSelectedComponent();
 						String name = panel.nameTextField.getText();
@@ -217,7 +236,7 @@ public class SurfaceProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 10, 510, 740);
+			tabbedPane.setBounds(10, 10 + offset, 510, 740);
 
 			Vector<Surface> surfaces;
 			if (defaultSurfaces)
@@ -238,7 +257,7 @@ public class SurfaceProperties extends PropertyPanel
 			{
 				public void run()
 				{
-					int lastTab = getEditorFrame().getProject().getPropertiesEditorSurfaceTab();					
+					int lastTab = getEditorFrame().getProject().getPropertiesEditorSurfaceTab();
 					if (lastTab == -1 && tabbedPane.getTabCount() > 0)
 					{
 						lastTab = 0;
@@ -515,8 +534,8 @@ public class SurfaceProperties extends PropertyPanel
 
 		protected void textureNameFile()
 		{
-			Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-			UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+			Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+			UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 			JFileChooser fc = new JFileChooser();
 			fc.setSelectedFiles(null);
 			fc.setSelectedFile(null);
@@ -541,7 +560,7 @@ public class SurfaceProperties extends PropertyPanel
 				textureNameTextField.setText(fileName);
 			}
 		}
-		
+
 		/**
 		 * This method initializes bumpNameButton
 		 *
@@ -567,8 +586,8 @@ public class SurfaceProperties extends PropertyPanel
 
 		protected void bumpNameFile()
 		{
-			Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-			UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+			Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+			UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 			JFileChooser fc = new JFileChooser();
 			fc.setSelectedFiles(null);
 			fc.setSelectedFile(null);
@@ -593,7 +612,7 @@ public class SurfaceProperties extends PropertyPanel
 				bumpNameTextField.setText(fileName);
 			}
 		}
-		
+
 		/**
 		 * This method initializes racelineNameButton
 		 *
@@ -619,8 +638,8 @@ public class SurfaceProperties extends PropertyPanel
 
 		protected void racelineNameFile()
 		{
-			Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-			UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+			Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+			UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 			JFileChooser fc = new JFileChooser();
 			fc.setSelectedFiles(null);
 			fc.setSelectedFile(null);
@@ -656,6 +675,12 @@ public class SurfaceProperties extends PropertyPanel
 		// replace the track's own surfaces with them
 		if (defaultSurfaces)
 			return;
+
+		if (defaultSurfacesCheckBox.isSelected() != getEditorFrame().getTrackData().getHasSurfacesReference())
+		{
+			getEditorFrame().getTrackData().setHasSurfacesReference(defaultSurfacesCheckBox.isSelected());
+            getEditorFrame().documentIsModified = true;
+		}
 
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
@@ -883,7 +908,7 @@ public class SurfaceProperties extends PropertyPanel
 		setTextField(panel.colorR2TextField, surface.getColorR2());
 		setTextField(panel.colorG2TextField, surface.getColorG2());
 		setTextField(panel.colorB2TextField, surface.getColorB2());
-		panel.textureNameTextField.setText(new String(surface.getTextureName()));		
+		panel.textureNameTextField.setText(new String(surface.getTextureName()));
 		selectItem(panel.textureTypeComboBox, toNoneString(surface.getTextureType()));
 		setTextField(panel.textureSizeTextField, surface.getTextureSize());
 		setTextField(panel.textureSizeVTextField, surface.getTextureSizeV());

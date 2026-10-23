@@ -24,8 +24,10 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -120,21 +122,21 @@ public class XmlReader
 			return e;
 		}
 	}
-	
+
 	private EditorFrame		editorFrame = null;
 	private String			filename	= null;
 	private List<String>	warnings	= new java.util.ArrayList<String>();
-	
+
 	public XmlReader(EditorFrame editorFrame)
 	{
 		this.editorFrame = editorFrame;
 	}
-	
+
     public void readXml(String filename) throws JDOMException, IOException
     {
     	this.filename = filename;
 		warnings.clear();
-    	
+
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
         checkStructure(element);
@@ -197,8 +199,43 @@ public class XmlReader
         return isRoot ? "" : " in section \"" + parent.getAttributeValue("name") + "\"";
     }
 
+	private void checkDefaultEntity(String text)
+	{
+	    boolean hasSurfacesEntity = text.contains("<!ENTITY default-surfaces ");
+	    boolean hasSurfacesReference = false;
+	    java.util.regex.Matcher surfacesMatcher =
+	        java.util.regex.Pattern
+	            .compile("(?s)<section\\s+name=\"Surfaces\"[^>]*>(.*?)</section>")
+	            .matcher(text);
+
+	    if (surfacesMatcher.find())
+	        hasSurfacesReference = surfacesMatcher.group(1).contains("&default-surfaces;");
+
+	    boolean hasObjectsEntity = text.contains("<!ENTITY default-objects ");
+	    boolean hasObjectsReference = false;
+	    java.util.regex.Matcher objectsMatcher =
+	        java.util.regex.Pattern
+	            .compile("(?s)<section\\s+name=\"Objects\"[^>]*>(.*?)</section>")
+	            .matcher(text);
+
+	    if (objectsMatcher.find())
+	        hasObjectsReference = objectsMatcher.group(1).contains("&default-objects;");
+
+		editorFrame.getTrackData().setHasSurfacesEntity(hasSurfacesEntity);
+		editorFrame.getTrackData().setHasSurfacesReference(hasSurfacesReference);
+		editorFrame.getTrackData().setHasObjectsEntity(hasObjectsEntity);
+		editorFrame.getTrackData().setHasObjectsReference(hasObjectsReference);
+	}
+
     private Document readFromFile(String fname) throws JDOMException, IOException
     {
+        String text = Files.readString(
+                Paths.get(fname),
+                StandardCharsets.UTF_8
+            );
+
+        checkDefaultEntity(text);
+
         Document d = null;
         MySAXBuilder sxb = new MySAXBuilder(false);
 
@@ -287,7 +324,7 @@ public class XmlReader
 		if (text.startsWith("\uFEFF"))
 			text = text.substring(1);
 
-		return text.replaceFirst("^\\s*<\\?xml[^>]*\\?>", "");
+	    return text.replaceFirst("^\\s*<\\?xml[^>]*\\?>", "");
 	}
 
     private synchronized void setTrackData(Element root)
@@ -409,7 +446,7 @@ public class XmlReader
 
         if (editorFrame.getTrackData().getHeader().getVersion() == 3)
         	cameras = getChildWithName(cameras, "list");
-        
+
         if (cameras == null)
             return;
 
@@ -656,7 +693,7 @@ public class XmlReader
         getObjects(objects, objectData);
         editorFrame.getTrackData().setObjects(objectData);
     }
-   
+
     /**
      * @param root
      */
@@ -703,7 +740,7 @@ public class XmlReader
         data.setDescription(getAttrStrValue(graphic, "3d description"));
         data.setDescriptionNight(getAttrStrValue(graphic, "3d description night"));
         data.setDescriptionRainNight(getAttrStrValue(graphic, "3d description rain+night"));
-        
+
         data.setSeparateObjects(getAttrStrValue(graphic, "3d separate objects"));
         data.setTerrainObjects(getAttrStrValue(graphic, "3d terrain"));
         data.setRoadObjects(getAttrStrValue(graphic, "3d road"));
@@ -725,7 +762,7 @@ public class XmlReader
         data.setBarrierObjects(getAttrStrValue(graphic, "3d barrier"));
         data.setWallObjects(getAttrStrValue(graphic, "3d wall"));
         data.setEnvironmentObjects(getAttrStrValue(graphic, "3d environment"));
-        
+
         data.setBackgroundImage(getAttrStrValue(graphic, "background image"));
         data.setBackgroundType(getAttrIntValue(graphic, "background type"));
         data.setBackgroundColorR(getAttrNumValue(graphic, "background color R"));
@@ -906,7 +943,7 @@ public class XmlReader
         if (editorFrame.getPits().getStyle() == Integer.MAX_VALUE)
         {
         	String pitStyle = getAttrStrValue(pits, "type");
-        	
+
             if (pitStyle != null)
             {
          	   if (pitStyle.equals("no pit"))

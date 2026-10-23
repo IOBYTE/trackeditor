@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -59,14 +60,16 @@ import utils.circuit.TrackObject;
  */
 public class ObjectProperties extends PropertyPanel
 {
-	static private TrackObject	objectCopy			= null;
-	
-	private	Boolean				defaultObjects		= false;
-	private JButton				addObjectButton		= null;
-	private JButton				deleteObjectButton	= null;
-	private	JButton				copyObjectButton	= null;
-	private	JButton				pasteObjectButton	= null;
-	private JTabbedPane			tabbedPane			= null;
+	static private TrackObject	objectCopy				= null;
+	private	Boolean				defaultObjects			= false;
+	private int					offset					= 0;
+
+	private JCheckBox			defaultObjectsCheckBox	= null;
+	private JButton				addObjectButton			= null;
+	private JButton				deleteObjectButton		= null;
+	private	JButton				copyObjectButton		= null;
+	private	JButton				pasteObjectButton		= null;
+	private JTabbedPane			tabbedPane				= null;
 
 	/**
 	 *
@@ -87,8 +90,13 @@ public class ObjectProperties extends PropertyPanel
 	{
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
+		if (!defaultObjects)
+		{
+			offset = 33;
+			this.add(getDefaultObjectsCheckBox());
+		}
 		this.add(getTabbedPane(), null);
-		
+
 		if (!defaultObjects)
 		{
 			this.add(getAddObjectButton(), null);
@@ -96,6 +104,17 @@ public class ObjectProperties extends PropertyPanel
 			this.add(getPasteObjectButton(), null);
 		}
 		this.add(getCopyObjectButton(), null);
+	}
+
+	private JCheckBox getDefaultObjectsCheckBox()
+	{
+		if (defaultObjectsCheckBox == null)
+		{
+			defaultObjectsCheckBox	= new JCheckBox("Default Objects");
+			defaultObjectsCheckBox.setBounds(10, 10, 220, 23);
+			defaultObjectsCheckBox.setSelected(getEditorFrame().getTrackData().getHasObjectsReference());
+		}
+		return defaultObjectsCheckBox;
 	}
 
 	/**
@@ -108,7 +127,7 @@ public class ObjectProperties extends PropertyPanel
 		if (addObjectButton == null)
 		{
 			addObjectButton = new JButton();
-			addObjectButton.setBounds(10, 414, 120, 25);
+			addObjectButton.setBounds(10, 414 + offset, 120, 25);
 			addObjectButton.setText("Add Object");
 			addObjectButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -137,7 +156,7 @@ public class ObjectProperties extends PropertyPanel
 		if (deleteObjectButton == null)
 		{
 			deleteObjectButton = new JButton();
-			deleteObjectButton.setBounds(140, 414, 120, 25);
+			deleteObjectButton.setBounds(140, 414 + offset, 120, 25);
 			deleteObjectButton.setText("Delete Object");
 			deleteObjectButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -163,7 +182,7 @@ public class ObjectProperties extends PropertyPanel
 		if (copyObjectButton == null)
 		{
 			copyObjectButton = new JButton();
-			copyObjectButton.setBounds(270, 414, 120, 25);
+			copyObjectButton.setBounds(270, 414 + offset, 120, 25);
 			copyObjectButton.setText("Copy Object");
 			copyObjectButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -187,7 +206,7 @@ public class ObjectProperties extends PropertyPanel
 		if (pasteObjectButton == null)
 		{
 			pasteObjectButton = new JButton();
-			pasteObjectButton.setBounds(400, 414, 120, 25);
+			pasteObjectButton.setBounds(400, 414 + offset, 120, 25);
 			pasteObjectButton.setText("Paste Object");
 			pasteObjectButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -205,7 +224,7 @@ public class ObjectProperties extends PropertyPanel
 							tabbedPane.addTab(name, null, new ObjectPanel(object), null);
 							tabbedPane.setSelectedIndex(0);
 						}
-							
+
 						// the tab keeps its own name: the copy's name would be used twice
 						ObjectPanel panel = (ObjectPanel) getTabbedPane().getSelectedComponent();
 						String name = panel.nameTextField.getText();
@@ -229,7 +248,7 @@ public class ObjectProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 10, 510, 394);
+			tabbedPane.setBounds(10, 10 + offset, 510, 394);
 
 			Vector<TrackObject> objects = null;
 			if (defaultObjects)
@@ -238,7 +257,7 @@ public class ObjectProperties extends PropertyPanel
 			}
 			else
 			{
-				objects = getEditorFrame().getTrackData().getObjects();	
+				objects = getEditorFrame().getTrackData().getObjects();
 			}
 
 			for (int i = 0; i < objects.size(); i++)
@@ -293,12 +312,12 @@ public class ObjectProperties extends PropertyPanel
 		private JLabel				scaleMinLabel			= new JLabel();
 		private JTextField			scaleMinTextField		= new JTextField();
 		private JLabel				scaleMaxLabel			= new JLabel();
-		private JTextField			scaleMaxTextField		= new JTextField();		
+		private JTextField			scaleMaxTextField		= new JTextField();
 		private JLabel				useMaterialLabel		= new JLabel();
 		private JComboBox<String>	useMaterialComboBox		= null;
 		private JButton				objectButton			= null;
 		private JButton				colorButton				= null;
-		
+
 		private double				lastScale				= 1.0;
 		private double				lastScaleMin			= 0.5;
 		private double				lastScaleMax			= 2.0;
@@ -333,7 +352,7 @@ public class ObjectProperties extends PropertyPanel
 			setLayout(null);
 
 			addLabel(this, 0, nameLabel, "Name", 160);
-			addLabel(this, 1, objectLabel, "Object", 160);			
+			addLabel(this, 1, objectLabel, "Object", 160);
 			addLabel(this, 2, commentLabel, "Comment", 160);
 			addLabel(this, 3, colorLabel, "Color", 160);
 			addLabel(this, 4, orientationTypeLabel, "Orientation Type", 160);
@@ -402,7 +421,7 @@ public class ObjectProperties extends PropertyPanel
 				scaleTypeComboBox.setEnabled(false);
 				scaleTextField.setEnabled(false);
 				scaleMinTextField.setEnabled(false);
-				scaleMaxTextField.setEnabled(false);		
+				scaleMaxTextField.setEnabled(false);
 				getUseMaterialComboBox().setEnabled(false);
 			}
 			else
@@ -549,10 +568,10 @@ public class ObjectProperties extends PropertyPanel
 				text = scaleMaxTextField.getText();
 				if (text != null && !text.isEmpty())
 				{
-					lastScaleMax = getDouble(text);			
+					lastScaleMax = getDouble(text);
 				}
 			}
-			
+
 			String type = scaleTypeComboBox.getSelectedItem().toString();
 			if (type.equals("none"))
 			{
@@ -569,7 +588,7 @@ public class ObjectProperties extends PropertyPanel
 				scaleTextField.setText(null);
 				scaleMinTextField.setEnabled(true);
 				setTextField(scaleMinTextField, lastScaleMin);
-				scaleMaxTextField.setEnabled(true);					
+				scaleMaxTextField.setEnabled(true);
 				setTextField(scaleMaxTextField, lastScaleMax);
 			}
 			else if (type.equals("fixed"))
@@ -582,7 +601,7 @@ public class ObjectProperties extends PropertyPanel
 				scaleMaxTextField.setText(null);
 			}
 		}
-		
+
 		/**
 		 * This method initializes objectButton
 		 *
@@ -608,8 +627,8 @@ public class ObjectProperties extends PropertyPanel
 
 		protected void objectFile()
 		{
-			Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-			UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+			Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+			UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 			JFileChooser fc = new JFileChooser();
 			fc.setSelectedFiles(null);
 			fc.setSelectedFile(null);
@@ -748,6 +767,12 @@ public class ObjectProperties extends PropertyPanel
 		if (defaultObjects)
 			return;
 
+		if (defaultObjectsCheckBox.isSelected() != getEditorFrame().getTrackData().getHasObjectsReference())
+		{
+			getEditorFrame().getTrackData().setHasObjectsReference(defaultObjectsCheckBox.isSelected());
+            getEditorFrame().documentIsModified = true;
+		}
+
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();
@@ -856,7 +881,7 @@ public class ObjectProperties extends PropertyPanel
 
 		getEditorFrame().getProject().setPropertiesEditorObjectTab(this.tabbedPane.getSelectedIndex());
 	}
-	
+
 	private void setObjectFromPanel(TrackObject object, ObjectPanel panel)
 	{
 		object.setName(panel.nameTextField.getText());

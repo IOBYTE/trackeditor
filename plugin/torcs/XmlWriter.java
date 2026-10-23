@@ -579,7 +579,8 @@ public class XmlWriter
 			root.addContent(surfaces);
 		}
 
-		surfaces.setText("&default-surfaces;");
+		if (editorFrame.getTrackData().getHasSurfacesReference())
+			surfaces.setText("&default-surfaces;");
 
 		Vector<Surface> surfaceData = editorFrame.getTrackData().getSurfaces();
 
@@ -788,7 +789,8 @@ public class XmlWriter
 	{
 		Element objects = new Element("section");
 		objects.setAttribute(new Attribute("name", "Objects"));
-		objects.setText("&default-objects;");
+		if (editorFrame.getTrackData().getHasObjectsReference())
+			objects.setText("&default-objects;");
 
 		Vector<TrackObject> objectData = editorFrame.getTrackData().getObjects();
 

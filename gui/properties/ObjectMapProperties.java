@@ -80,7 +80,7 @@ public class ObjectMapProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 10, 487, 280);
+			tabbedPane.setBounds(10, 10, 487, 346);
 
 			Vector<ObjectMap> objectMaps = getEditorFrame().getObjectMaps();
 
@@ -424,7 +424,7 @@ public class ObjectMapProperties extends PropertyPanel
 			if (objectTablePanel == null)
 			{
 				objectTablePanel = new ObjectTablePanel(objectMap);
-				objectTablePanel.setBounds(10, 64, 465, 207);
+				objectTablePanel.setBounds(10, 64, 465, 240);
 			}
 			return objectTablePanel;
 		}
