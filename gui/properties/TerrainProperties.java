@@ -91,10 +91,11 @@ public class TerrainProperties extends PropertyPanel
 	private JTabbedPane			tabbedPane					= null;
 	private JButton				elevationMapButton			= null;
 	private JButton				reliefFileButton			= null;
-	private JButton				tiledFileButton			= null;
+	private JButton				tiledFileButton				= null;
 	// TORCS
 	private JLabel				terrainTransitionLabel		= new JLabel();
 	private JTextField			terrainTransitionTextField	= new JTextField();
+	private JComboBox<String>	crossingModeComboBox		= null;
 	private JTextField			socketGapTextField			= new JTextField();
 	private JTextField			thicknessTextField			= new JTextField();
 	private SurfaceComboBox[]	bridgeSurfaceComboBoxes		= new SurfaceComboBox[TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length];
@@ -617,12 +618,21 @@ public class TerrainProperties extends PropertyPanel
 		panel.setLayout(null);
 		TerrainGeneration terrain = getEditorFrame().getTerrainGeneration();
 
-		addLabel(panel, 0, new JLabel(), "Socket Gap", 120);
-		addTextField(panel, 0, socketGapTextField, terrain.getCrossingBridgeSocketGap(), 140, 125);
+		addLabel(panel, 0, new JLabel(), "Crossing Mode", 120);
+		String[] items = {"none", "auto"};
+		crossingModeComboBox = new JComboBox<String>(items);
+		crossingModeComboBox.setBounds(140, 10, 125, 23);
+		String crossingMode = getEditorFrame().getTerrainGeneration().getCrossingMode();
+		if (crossingMode == null || crossingMode.isEmpty())
+			crossingMode = "none";
+		selectItem(crossingModeComboBox, crossingMode);
+		panel.add(crossingModeComboBox);
+		addLabel(panel, 1, new JLabel(), "Socket Gap", 120);
+		addTextField(panel, 1, socketGapTextField, terrain.getCrossingBridgeSocketGap(), 140, 125);
 		socketGapTextField.setToolTipText("Clearance beside the lower track, to the bridge's support walls (empty = "
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SOCKET_GAP + " m)");
-		addLabel(panel, 1, new JLabel(), "Thickness", 120);
-		addTextField(panel, 1, thicknessTextField, terrain.getCrossingBridgeThickness(), 140, 125);
+		addLabel(panel, 2, new JLabel(), "Thickness", 120);
+		addTextField(panel, 2, thicknessTextField, terrain.getCrossingBridgeThickness(), 140, 125);
 		thicknessTextField.setToolTipText("Least thickness below the upper track (empty = "
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_THICKNESS + " m)");
 
@@ -632,9 +642,9 @@ public class TerrainProperties extends PropertyPanel
 			Vector<String> surfaces = new Vector<String>(roadSurfaceVector);
 			addSurface(surfaces, surface);
 			surfaces.add(0, "none");
-			addLabel(panel, 2 + i, new JLabel(), TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i] + " Surface", 120);
+			addLabel(panel, 3 + i, new JLabel(), TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i] + " Surface", 120);
 			bridgeSurfaceComboBoxes[i] = new SurfaceComboBox(getEditorFrame(), surfaces);
-			bridgeSurfaceComboBoxes[i].setBounds(140, 10 + (2 + i) * 27, 200, 23);
+			bridgeSurfaceComboBoxes[i].setBounds(140, 10 + (3 + i) * 27, 200, 23);
 			bridgeSurfaceComboBoxes[i].setSelectedItem(toNoneString(surface));
 			bridgeSurfaceComboBoxes[i].setToolTipText("none = " + TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[i]);
 			panel.add(bridgeSurfaceComboBoxes[i]);
@@ -784,6 +794,11 @@ public class TerrainProperties extends PropertyPanel
 			if (isDifferent(terrainTransitionTextField.getText(), terrain.getTerrainTransition(), doubleResult))
 			{
 				terrain.setTerrainTransition(doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+			if (isDifferent((String) crossingModeComboBox.getSelectedItem(), terrain.getCrossingMode(), stringResult))
+			{
+				terrain.setCrossingMode(stringResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
 			if (isDifferent(socketGapTextField.getText(), terrain.getCrossingBridgeSocketGap(), doubleResult))
