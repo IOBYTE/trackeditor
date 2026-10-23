@@ -88,12 +88,12 @@ public class XmlWriter
 			return errors;
 		}
 	}
-	
+
 	public XmlWriter(EditorFrame editorFrame)
 	{
 		this.editorFrame = editorFrame;
 	}
-	
+
 	public void writeXml(String fileName, String trackName) throws FileNotFoundException, IOException, SecurityException
 	{
 		Document doc = new Document();
@@ -127,8 +127,7 @@ public class XmlWriter
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
 		entity += "<!ENTITY default-surfaces SYSTEM \"../../../data/tracks/surfaces.xml\">\n";
-		if (!torcs)
-			entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n";
+		entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n";
 		type.setInternalSubset(entity);
 		com = new Comment(getCredit());
 		doc.addContent(com);
@@ -141,8 +140,7 @@ public class XmlWriter
 		if (extensions)
 			root.addContent(getLights());
 		root.addContent(getSurfaces());
-		if (!torcs)
-			root.addContent(getObjects());
+		root.addContent(getObjects());
 		root.addContent(getHeader());
 		// only TORCS reads it; its track manual puts it after the header
 		if (torcs && !editorFrame.getTrackData().getGeoreference().isEmpty())
@@ -407,7 +405,7 @@ public class XmlWriter
 			}
 			addContent(segment, "marks", ((Curve) shape).getMarks());
 		}
-		
+
 		addContent(segment, "z start", "m", shape.getHeightStart());
 		addContent(segment, "z start left", "m", shape.getHeightStartLeft());
 		addContent(segment, "z start right", "m", shape.getHeightStartRight());
@@ -434,14 +432,14 @@ public class XmlWriter
 		addContent(segment, "env map index", null, shape.getEnvMapIndex());
 		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
 			addContent(segment, "DoV factor", null, shape.getDovFactor());
-		
+
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
 			getSideV3(segment, shape.getLeft(), "l");
 			getSideV3(segment, shape.getRight(), "r");
 		}
 		else
-		{		
+		{
 			com = new Comment("Left part of segment");
 			segment.addContent(com);
 			if (shape.getLeft().getHasSide())
@@ -1045,7 +1043,11 @@ public class XmlWriter
 		addContent(element, "shininess", null, editorFrame.getTrackData().getGraphic().getShininess());
 		addContent(element, "fov factor", null, editorFrame.getTrackData().getGraphic().getFovFactor());
 
-		element.addContent(getTurnMarks());
+		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		if (!torcs ||
+			(!editorFrame.getTrackData().getGraphic().getTurnMarks().isEmpty() ||
+			 !editorFrame.getTrackData().getGraphic().getTurnMarks().isDefault()))
+			element.addContent(getTurnMarks());
 		element.addContent(getTerrainGeneration());
 		element.addContent(getEnvironmentMapping());
 

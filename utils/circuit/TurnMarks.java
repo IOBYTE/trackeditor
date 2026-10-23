@@ -72,6 +72,22 @@ public class TurnMarks {
 		this.horizontalSpace = horizontalSpace;
 	}
 
+	public boolean isEmpty()
+	{
+		return width == Double.NaN &&
+			   height == Double.NaN &&
+			   verticalSpace == Double.NaN &&
+			   horizontalSpace == Double.NaN;
+	}
+
+	public boolean isDefault()
+	{
+		return width == DEFAULT_WIDTH &&
+			   height == DEFAULT_HEIGHT &&
+			   verticalSpace == DEFAULT_VERTICAL_SPACE &&
+			   horizontalSpace == DEFAULT_HORIZONTAL_SPACE;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "Turn Marks");

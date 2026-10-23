@@ -62,7 +62,12 @@ public final class TrackData
     private Vector<Sector>		sectors					= new Vector<Sector>();
 	// TORCS only
 	private Georeference		georeference			= new Georeference();
-   
+
+    private boolean				hasSurfacesEntity		= false;
+    private boolean				hasSurfacesReference	= false;
+    private boolean				hasObjectsEntity		= false;
+    private boolean				hasObjectsReference		= false;
+
 	/**
 	 * @return Returns the header.
 	 */
@@ -205,6 +210,46 @@ public final class TrackData
 		return mainTrack;
 	}
 
+	public boolean getHasSurfacesEntity()
+	{
+		return hasSurfacesEntity;
+	}
+
+	public void setHasSurfacesEntity(boolean hasSurfacesEntity)
+	{
+		this.hasSurfacesEntity = hasSurfacesEntity;
+	}
+
+	public boolean getHasSurfacesReference()
+	{
+		return hasSurfacesReference;
+	}
+
+	public void setHasSurfacesReference(boolean hasSurfacesReference)
+	{
+		this.hasSurfacesReference = hasSurfacesReference;
+	}
+
+	public boolean getHasObjectsEntity()
+	{
+		return hasObjectsEntity;
+	}
+
+	public void setHasObjectsEntity(boolean hasObjectsEntity)
+	{
+		this.hasObjectsEntity = hasObjectsEntity;
+	}
+
+	public boolean getHasObjectsReference()
+	{
+		return hasObjectsReference;
+	}
+
+	public void setHasObjectsReference(boolean hasObjectsReference)
+	{
+		this.hasObjectsReference = hasObjectsReference;
+	}
+
 	/**
 	 * Makes the pits and cameras that refer to segment oldName refer to newName,
 	 * so renaming a segment doesn't leave them pointing at a name no segment has.
@@ -256,7 +301,7 @@ public final class TrackData
     {
         this.segments = segments;
     }
-    
+
 	public Vector<TrackObject> getTrackObjects()
 	{
 		return trackObjects;
@@ -265,7 +310,7 @@ public final class TrackData
 	{
 		this.trackObjects = trackObjects;
 	}
-	
+
 	public Vector<Sector> getSectors()
 	{
 		return sectors;
@@ -274,12 +319,12 @@ public final class TrackData
 	{
 		this.sectors = sectors;
 	}
-	
+
 	public TerrainGeneration getTerrainGeneration()
 	{
 		return getGraphic().getTerrainGeneration();
-	}	
-	
+	}
+
 	public Vector<ObjectMap> getObjectMaps()
 	{
 		return getGraphic().getTerrainGeneration().getObjectMaps();
@@ -474,7 +519,7 @@ public final class TrackData
 
 				segment.setCalculatedStartTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length * 100);
 				segment.setCalculatedEndTangentRight((segment.getCalculatedHeightEndRight() - segment.getCalculatedHeightStartRight()) / length * 100);
-				
+
 				segment.setCalculatedStartTangent((segment.getCalculatedStartTangentLeft() + segment.getCalculatedStartTangentRight()) / 2);
 				segment.setCalculatedEndTangent((segment.getCalculatedEndTangentLeft() + segment.getCalculatedEndTangentRight()) / 2);
 			}
