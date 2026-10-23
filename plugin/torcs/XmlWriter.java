@@ -122,11 +122,12 @@ public class XmlWriter
 	{
 		Comment com;
 		Element root = getRoot(trackName);
+		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
 
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
 		entity += "<!ENTITY default-surfaces SYSTEM \"../../../data/tracks/surfaces.xml\">\n";
-		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+		if (!torcs)
 			entity += "<!ENTITY default-objects SYSTEM \"../../../data/tracks/objects.xml\">\n";
 		type.setInternalSubset(entity);
 		com = new Comment(getCredit());
@@ -140,20 +141,20 @@ public class XmlWriter
 		if (extensions)
 			root.addContent(getLights());
 		root.addContent(getSurfaces());
-		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+		if (!torcs)
 			root.addContent(getObjects());
 		root.addContent(getHeader());
 		// only TORCS reads it; its track manual puts it after the header
-		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS &&
-			!editorFrame.getTrackData().getGeoreference().isEmpty())
+		if (torcs && !editorFrame.getTrackData().getGeoreference().isEmpty())
 			root.addContent(getGeoreference());
 		if (extensions)
 			root.addContent(getLocal());
 		root.addContent(getGraphic());
-		root.addContent(getGrid());
+		if (!torcs)
+			root.addContent(getGrid());
 		root.addContent(getTrack());
 		// TORCS trackgen doesn't like empty cameras
-		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS || !editorFrame.getTrackData().getCameras().isEmpty())
+		if (!torcs || !editorFrame.getTrackData().getCameras().isEmpty())
 			root.addContent(getCameras());
 		if (extensions)
 			root.addContent(getSectors());
@@ -1119,7 +1120,7 @@ public class XmlWriter
 		if (editorFrame.getGameType().hasTiledFile())
 			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
 
-		if (!torcs)
+		if (!torcs || !editorFrame.getTerrainGeneration().getObjectMaps().isEmpty())
 			element.addContent(getObjectMaps());
 		// only Speed Dreams trackgen places individual graphic objects
 		if (editorFrame.getGameType().hasGraphicObjects())
