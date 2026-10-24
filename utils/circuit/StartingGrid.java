@@ -45,6 +45,16 @@ public class StartingGrid {
 		this.initialHeight = initialHeight;
 	}
 
+	public boolean isEmpty()
+	{
+		return rows == Integer.MAX_VALUE &&
+			   polePositionSide == null &&
+			   distanceToStart == Double.NaN &&
+			   distanceBetweenColumns == Double.NaN &&
+			   offsetWithinAColumn == Double.NaN &&
+			   initialHeight == Double.NaN;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "StartingGrid");

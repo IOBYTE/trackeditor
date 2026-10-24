@@ -965,8 +965,9 @@ public class XmlWriter
 	private synchronized Element getGrid()
 	{
 		Element element = new Element("section");
-		element.setAttribute(new Attribute("name", "Starting Grid"));
-
+		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		if (!torcs || !editorFrame.getTrackData().getStartingGrid().isEmpty())
+			element.setAttribute(new Attribute("name", "Starting Grid"));
 		addContent(element, "rows", null, editorFrame.getTrackData().getStartingGrid().getRows());
 		addContent(element, "pole position side", editorFrame.getTrackData().getStartingGrid().getPolePositionSide());
 		addContent(element, "distance to start", "m", editorFrame.getTrackData().getStartingGrid().getDistanceToStart());
