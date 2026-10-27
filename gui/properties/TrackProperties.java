@@ -333,8 +333,8 @@ public class TrackProperties extends PropertyPanel
 			
 			addLabel(this, 0, sideStartWidthLabel, "Side Start Width", 140);
 			addLabel(this, 1, sideEndWidthLabel, "Side End Width", 140);
-			addLabel(this, 2, sideSurfaceLabel, "Side Banking Surface", 140);
-			addLabel(this, 3, sideBankingTypeLabel, "Side Type", 140);
+			addLabel(this, 2, sideSurfaceLabel, "Side Surface", 140);
+			addLabel(this, 3, sideBankingTypeLabel, "Side Banking Type", 140);
 			addLabel(this, 4, borderWidthLabel, "Border Width", 140);
 			addLabel(this, 5, borderHeightLabel, "Border Height", 140);
 			addLabel(this, 6, borderSurfaceLabel, "Border Surface", 140);
