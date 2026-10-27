@@ -166,6 +166,7 @@ public class EditorFrame extends JFrame
 	JMenuBar					mainMenuBar							= new JMenuBar();
 	JMenu						menuFile							= new JMenu();
 	JMenuItem					itemSaveCircuit						= null;
+	private JMenuItem			closeTrackMenuItem					= null;
 	JMenuItem					itemCloseCircuit					= new JMenuItem();
 	JScrollPane					mainScrollPane						= new JScrollPane();
 	GridBagLayout				gridBagLayout1						= new GridBagLayout();
@@ -1490,6 +1491,7 @@ public class EditorFrame extends JFrame
 		menuFile.add(getOpenMenuItem());
 		menuFile.add(getRecentMenu());
 		menuFile.add(getItemSaveCircuit());
+		menuFile.add(getCloseTrackMenuItem());
 		menuFile.addSeparator();
 		menuFile.add(getImportMenu());
 		menuFile.add(getExportMenu());
@@ -1626,6 +1628,24 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return javax.swing.JMenuItem
 	 */
+	private JMenuItem getCloseTrackMenuItem()
+	{
+		if (closeTrackMenuItem == null)
+		{
+			closeTrackMenuItem = new JMenuItem("Close");
+			closeTrackMenuItem.setToolTipText("Close the track without opening another (to change the game without reading the track again).");
+			closeTrackMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
+			closeTrackMenuItem.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					closeTrack();
+				}
+			});
+		}
+		return closeTrackMenuItem;
+	}
+
 	private JMenuItem getItemSaveCircuit()
 	{
 		if (itemSaveCircuit == null)
@@ -4022,6 +4042,26 @@ public class EditorFrame extends JFrame
 		{
 			importTrack();
 		}
+	}
+
+	/**
+	 * Closes the open or imported track without opening another, asking to save it
+	 * first if it was changed. With no track open, changing the game in the
+	 * preferences doesn't read (and maybe convert) a track again.
+	 */
+	public void closeTrack()
+	{
+		if (trackData == null || !canClose())
+			return;
+
+		closeTrackWindows();
+		trackData = null;
+		Undo.clear();
+		documentIsModified = false;
+		// the background image belongs to the closed track
+		clearBackgroundImage();
+		setTitle(originalTitle);
+		refresh();
 	}
 
 	public void importTrack()
