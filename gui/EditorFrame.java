@@ -3613,13 +3613,19 @@ public class EditorFrame extends JFrame
 
 		String message = "This is a version " + version + " track.\n" +
 			"Keep version " + version + ", or convert the track to version 4?";
-		if (version == 5 && getGameType() == GameType.TORCS)
-			message += "\n\nTORCS can't load version 5 tracks.";
-
 		String[] options = {"Keep version " + version, "Convert to version 4", "Abort"};
+		// keeping the version doesn't change the track, so it is the default,
+		// except where the game can't load the track in that version
+		String defaultOption = options[0];
+		if (version == 5 && getGameType() == GameType.TORCS)
+		{
+			message += "\n\nTORCS can't load version 5 tracks.";
+			defaultOption = options[1];
+		}
+
 		int choice = JOptionPane.showOptionDialog(this, message,
 			"Track Version", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-			null, options, options[2]);
+			null, options, defaultOption);
 		if (choice == 0)
 			return true;
 		if (choice != 1)
