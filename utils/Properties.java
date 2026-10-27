@@ -41,6 +41,10 @@ public  class Properties
 	private String				image					= "";
 	private EditorPoint			imgOffset				= new EditorPoint();
 	private double				initx;
+	// the track view: its zoom (0 when not saved) and the point at its centre
+	private double				viewZoom				= 0;
+	private double				viewCenterX				= 0;
+	private double				viewCenterY				= 0;
 	private double				inity;
 
 	private double				currentX				= 0;
@@ -152,6 +156,39 @@ public  class Properties
 	public void setInity(double inity)
 	{
 		this.inity = inity;
+	}
+
+	/**
+	 * @return the track view's zoom when the project was saved, 0 when it wasn't
+	 */
+	public double getViewZoom()
+	{
+		return viewZoom;
+	}
+	public void setViewZoom(double viewZoom)
+	{
+		this.viewZoom = viewZoom;
+	}
+
+	/**
+	 * @return the point at the centre of the track view when the project was saved
+	 *         (in the view's own coordinates)
+	 */
+	public double getViewCenterX()
+	{
+		return viewCenterX;
+	}
+	public void setViewCenterX(double viewCenterX)
+	{
+		this.viewCenterX = viewCenterX;
+	}
+	public double getViewCenterY()
+	{
+		return viewCenterY;
+	}
+	public void setViewCenterY(double viewCenterY)
+	{
+		this.viewCenterY = viewCenterY;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)

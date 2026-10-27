@@ -1495,6 +1495,33 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	 * 
 	 * @param newZoomFactor
 	 */
+	public double getZoomFactor()
+	{
+		return zoomFactor;
+	}
+
+	/**
+	 * @return the point at the centre of the visible part of the view, in the same
+	 *         coordinates as screenCenter (which is only updated when painting)
+	 */
+	public Point2D.Double getVisibleCenter()
+	{
+		if (boundingRectangle == null)
+			return null;
+		Rectangle r = getVisibleRect();
+		return new Point2D.Double(r.getX() / zoomFactor + boundingRectangle.getX(),
+			r.getY() / zoomFactor + boundingRectangle.getY());
+	}
+
+	/**
+	 * Zooms to the zoom factor with the point (from getVisibleCenter) at the centre.
+	 */
+	public void showAt(double newZoomFactor, Point2D.Double center)
+	{
+		screenCenter = new Point2D.Double(center.getX(), center.getY());
+		setZoomFactor(newZoomFactor);
+	}
+
 	public void setZoomFactor(double newZoomFactor)
 	{
 		try

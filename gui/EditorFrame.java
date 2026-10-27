@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.ExceptionListener;
 import java.beans.XMLDecoder;
@@ -72,6 +73,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -1120,8 +1122,42 @@ public class EditorFrame extends JFrame
 		}
 		updateRecentFiles(projectFileName);
 		showBackgroundImage();
+		restoreView();
 		
 		setTitle(originalTitle + " - Project: " + projectFileName);
+	}
+
+	/**
+	 * Keeps the track view's zoom and centre in the project, to show the track the
+	 * same way when the project is opened again.
+	 */
+	private void storeView()
+	{
+		Point2D.Double center = view.getVisibleCenter();
+		if (center == null)
+			return;
+		Editor.getProperties().setViewZoom(view.getZoomFactor());
+		Editor.getProperties().setViewCenterX(center.getX());
+		Editor.getProperties().setViewCenterY(center.getY());
+	}
+
+	/**
+	 * Shows the track with the zoom and centre saved in its project, if it has them.
+	 * Once more after the view has its new size, as scrolling is limited to its size.
+	 */
+	private void restoreView()
+	{
+		final double zoom = Editor.getProperties().getViewZoom();
+		if (!(zoom > 0) || Double.isInfinite(zoom))
+			return;
+		final Point2D.Double center = new Point2D.Double(Editor.getProperties().getViewCenterX(),
+			Editor.getProperties().getViewCenterY());
+		view.showAt(zoom, center);
+		SwingUtilities.invokeLater(() ->
+		{
+			mainScrollPane.validate();
+			view.showAt(zoom, center);
+		});
 	}
 
 	/**
@@ -1190,6 +1226,7 @@ public class EditorFrame extends JFrame
 						encoderError[0] = e;
 				}
 			});
+			storeView();
 			encoder.writeObject(Editor.getProperties());
 			encoder.close();
 
