@@ -3601,7 +3601,8 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * For a version 3 or 5 track, asks whether to write it in its own version,
-	 * convert it to version 4 and write it, or not write it.
+	 * convert it to version 4 and write it, or not write it. In TORCS a version 5
+	 * track can only be converted or not written, since TORCS can't load it.
 	 *
 	 * @return true to go on writing (in the version the track now has), false to abort
 	 */
@@ -3611,24 +3612,30 @@ public class EditorFrame extends JFrame
 		if (version != 3 && version != 5)
 			return true;
 
-		String message = "This is a version " + version + " track.\n" +
-			"Keep version " + version + ", or convert the track to version 4?";
-		String[] options = {"Keep version " + version, "Convert to version 4", "Abort"};
-		// keeping the version doesn't change the track, so it is the default,
-		// except where the game can't load the track in that version
-		String defaultOption = options[0];
-		if (version == 5 && getGameType() == GameType.TORCS)
+		boolean canKeep = !(version == 5 && getGameType() == GameType.TORCS);
+		String message;
+		String[] options;
+		if (canKeep)
 		{
-			message += "\n\nTORCS can't load version 5 tracks.";
-			defaultOption = options[1];
+			message = "This is a version " + version + " track.\n" +
+				"Keep version " + version + ", or convert the track to version 4?";
+			options = new String[] {"Keep version " + version, "Convert to version 4", "Abort"};
+		}
+		else
+		{
+			message = "This is a version 5 track.\n" +
+				"TORCS can't load version 5 tracks. Convert it to version 4?";
+			options = new String[] {"Convert to version 4", "Abort"};
 		}
 
+		// keeping the version doesn't change the track, so it is the default
+		// where it is offered
 		int choice = JOptionPane.showOptionDialog(this, message,
 			"Track Version", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-			null, options, defaultOption);
-		if (choice == 0)
+			null, options, options[0]);
+		if (canKeep && choice == 0)
 			return true;
-		if (choice != 1)
+		if (choice != (canKeep ? 1 : 0))
 			return false;
 
 		trackData.getHeader().setVersion(4);
