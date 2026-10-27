@@ -2008,8 +2008,21 @@ public class EditorFrame extends JFrame
 		if (PreferencesDialog.APPROVE)
 		{
 			String oldDataDirectory = getDataDirectory();
+			// the open track is read again the way the new game reads it (sides, units,
+			// graphic objects, the version), after saving or discarding its changes
+			GameType newGame = preferencesDialog.getGameType();
+			File trackFile = null;
+			if (newGame != gameType && trackData != null)
+			{
+				trackFile = currentTrackFile();
+				if (!confirmGameChange(newGame, trackFile))
+				{
+					newGame = gameType;
+					trackFile = null;
+				}
+			}
 			// the game first, so the directories the old preferences keep are its own
-			setGameType(preferencesDialog.getGameType());
+			setGameType(newGame);
 			for (GameType game : GameType.values())
 			{
 				String[] values = preferencesDialog.getDirectories(game);
@@ -2032,10 +2045,43 @@ public class EditorFrame extends JFrame
 				if (defaultObjectsDialog != null)
 					defaultObjectsDialog.refresh();
 			}
+			if (trackFile != null)
+				readFile(trackFile);
 			view.redrawCircuit();
 			if (view.segmentParamDialog != null)
 				view.segmentParamDialog.refresh();
 		}
+	}
+
+	/** @return the open track's xml file */
+	private File currentTrackFile()
+	{
+		String path = Editor.getProperties().getPath();
+		String trackName = path.substring(path.lastIndexOf(sep) + 1);
+		return new File(path + sep + trackName + ".xml");
+	}
+
+	/**
+	 * Asks what to do with the open track's unsaved changes before it is read again
+	 * for another game. The changes are saved for the game they were made for.
+	 *
+	 * @return true to change the game and read the track again, false to keep the game
+	 */
+	private boolean confirmGameChange(GameType newGame, File trackFile)
+	{
+		if (!documentIsModified && trackFile.exists())
+			return true;
+
+		String message = "Changing the game to " + newGame.getName() + " reads the track again, the way " +
+			newGame.getName() + " reads it.\nThe track has unsaved changes.";
+		String[] options = trackFile.exists()
+			? new String[] {"Save and Change", "Discard Changes and Change", "Cancel"}
+			: new String[] {"Save and Change", "Cancel"};
+		int choice = JOptionPane.showOptionDialog(this, message, "Change Game",
+			JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		if (choice == 0)
+			return saveProject();
+		return choice == 1 && options.length == 3;
 	}
 	
 	/**
