@@ -1240,8 +1240,9 @@ public class EditorFrame extends JFrame
 			}
 		}
 
-		// write the track even if the project file failed, so as much as possible is saved
-		boolean trackSaved = exportTrack();
+		// write the track even if the project file failed, so as much as possible is
+		// saved (the version was already settled above, so don't ask again)
+		boolean trackSaved = exportTrack(false);
 
 		if (!projectSaved || !trackSaved)
 			return false;
@@ -3599,11 +3600,6 @@ public class EditorFrame extends JFrame
 		}
 	}
 	/**
-	 * Writes the track xml.
-	 *
-	 * @return true if it was written; on failure the user has been shown the error
-	 */
-	/**
 	 * For a version 3 or 5 track, asks whether to write it in its own version,
 	 * convert it to version 4 and write it, or not write it.
 	 *
@@ -3634,14 +3630,32 @@ public class EditorFrame extends JFrame
 		return true;
 	}
 
+	/**
+	 * Writes the track xml.
+	 *
+	 * @return true if it was written; on failure the user has been shown the error
+	 */
 	public boolean exportTrack()
+	{
+		return exportTrack(true);
+	}
+
+	/**
+	 * Writes the track xml.
+	 *
+	 * @param askVersion whether to ask about writing a version 3 or 5 track (false
+	 *        when the caller has already asked)
+	 * @return true if it was written; false if it wasn't (the user has been shown
+	 *         the error, or aborted)
+	 */
+	private boolean exportTrack(boolean askVersion)
 	{
 		if (trackData == null)
 		{
 			message("No track", "Nothing to export");
 			return false;
 		}
-		if (!confirmWriteVersion())
+		if (askVersion && !confirmWriteVersion())
 			return false;
 
 		String fileName = Editor.getProperties().getPath();

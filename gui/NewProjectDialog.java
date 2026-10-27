@@ -291,7 +291,7 @@ public class NewProjectDialog extends JDialog
 	{
 		if (trackVersionComboBox == null)
 		{
-			// only version 4 tracks can be written
+			// new tracks are always version 4
 			String[] items = {"4"};
 			trackVersionComboBox = new JComboBox<String>(items);
 			trackVersionComboBox.setSelectedItem("4");
