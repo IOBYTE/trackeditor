@@ -760,8 +760,10 @@ public class XmlWriter
 
 		Georeference data = editorFrame.getTrackData().getGeoreference();
 
-		addContent(element, "latitude", "deg", data.getLatitude());
-		addContent(element, "longitude", "deg", data.getLongitude());
+		// TORCS keeps them as floats (good to about a metre), but the file keeps every
+		// digit given, for other tools and for a game that reads them more precisely
+		addPreciseContent(element, "latitude", "deg", data.getLatitude());
+		addPreciseContent(element, "longitude", "deg", data.getLongitude());
 		addContent(element, "altitude", "m", data.getAltitude());
 		addContent(element, "heading", "deg", data.getHeading());
 
@@ -1254,6 +1256,17 @@ public class XmlWriter
 		if (!Double.isNaN(value))
 		{
 			section.addContent(attnumElement(attribute, units, number(value)));
+		}
+	}
+
+	/**
+	 * Like addContent, but with all of the value's digits instead of only those a float keeps.
+	 */
+	private synchronized void addPreciseContent(Element section, String attribute, String units, double value)
+	{
+		if (!Double.isNaN(value))
+		{
+			section.addContent(attnumElement(attribute, units, Double.toString(value)));
 		}
 	}
 

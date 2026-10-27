@@ -1,7 +1,5 @@
 package utils.undo;
 
-import java.util.Vector;
-
 import utils.circuit.GraphicObject;
 
 /**
@@ -14,7 +12,7 @@ public class UndoEditGraphicObject implements UndoInterface
 	private GraphicObject	before;	// the values before the edit
 	private GraphicObject	after;	// the values when it was undone
 
-	public UndoEditGraphicObject(Vector<GraphicObject> graphicObjects, GraphicObject object)
+	public UndoEditGraphicObject(GraphicObject object)
 	{
 		this.object = object;
 		before = (GraphicObject) object.clone();

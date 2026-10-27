@@ -546,7 +546,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				{
 					if (graphicObject.getShape() == objectShape)
 					{
-						pendingDragUndo = new UndoEditGraphicObject(editorFrame.getGraphicObjects(), graphicObject);
+						pendingDragUndo = new UndoEditGraphicObject(graphicObject);
 	
 						Point2D.Double real = new Point2D.Double(0, 0);
 						screenToReal(e, real);
@@ -2528,7 +2528,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					{
 						if (graphicObject.getShape() == shape)
 						{
-							Undo.add(new UndoEditGraphicObject(editorFrame.getGraphicObjects(), graphicObject));
+							Undo.add(new UndoEditGraphicObject(graphicObject));
 
 							TrackObjectDialog editObjectDialog = new TrackObjectDialog(editorFrame, false, graphicObject, me.getXOnScreen(), me.getYOnScreen());
 
