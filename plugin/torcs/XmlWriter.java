@@ -885,7 +885,7 @@ public class XmlWriter
 		Element header = new Element("section");
 		header.setAttribute(name);
 
-		// TORCS reads none of subcategory, sky version, copyright and email; only CSR has a short name
+		// TORCS reads none of subcategory, copyright and email; only CSR has a short name
 		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
 		addContent(header, "name", editorFrame.getTrackData().getHeader().getName());
 		if (editorFrame.getGameType().hasShortName())
@@ -906,8 +906,6 @@ public class XmlWriter
 		if (editorFrame.getGameType().hasDisabledPenalties())
 			addContent(header, "disabled penalties", editorFrame.getTrackData().getHeader().getDisabledPenalties());
 		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
-		if (extensions)
-			addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
 
 		if (editorFrame.getTrackData().getHeader().getAuthor() != null)
 		{
@@ -999,11 +997,6 @@ public class XmlWriter
 			addContent(element, "3d description", trackname + ".ac");
 		else
 			addContent(element, "3d description", editorFrame.getTrackData().getGraphic().getDescription());
-		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
-		{
-			addContent(element, "3d description night", editorFrame.getTrackData().getGraphic().getDescriptionNight());
-			addContent(element, "3d description rain+night", editorFrame.getTrackData().getGraphic().getDescriptionRainNight());
-		}
 
 		// the per-type 3d object files are only used by CSR
 		if (editorFrame.getGameType().hasTypeObjectFiles())

@@ -444,7 +444,6 @@ public class XmlReader
         editorFrame.getTrackData().getHeader().setCategory(getAttrStrValue(header, "category"));
         editorFrame.getTrackData().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
         editorFrame.getTrackData().getHeader().setCarCategory(getAttrStrValue(header, "car category"));
-        editorFrame.getTrackData().getHeader().setSkyVersion(getAttrIntValue(header, "sky version"));
         editorFrame.getTrackData().getHeader().setAuthor(getAttrStrValue(header, "author"));
         editorFrame.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
         editorFrame.getTrackData().getHeader().setCopyright(getAttrStrValue(header, "copyright"));
@@ -751,8 +750,6 @@ public class XmlReader
         Graphic	data = new Graphic();
 
         data.setDescription(getAttrStrValue(graphic, "3d description"));
-        data.setDescriptionNight(getAttrStrValue(graphic, "3d description night"));
-        data.setDescriptionRainNight(getAttrStrValue(graphic, "3d description rain+night"));
 
         data.setSeparateObjects(getAttrStrValue(graphic, "3d separate objects"));
         data.setTerrainObjects(getAttrStrValue(graphic, "3d terrain"));

@@ -4,8 +4,6 @@ import java.util.Vector;
 
 public class Graphic {
     private String 						description				= null;
-    private String 						descriptionNight		= null;
-    private String 						descriptionRainNight	= null;
 
     private String 						separateObjects			= null;
     private String 						terrainObjects			= null;
@@ -57,18 +55,6 @@ public class Graphic {
 	}
 	public void setDescription(String description) {
 		this.description = description;
-	}
-	public String getDescriptionNight() {
-		return descriptionNight;
-	}
-	public void setDescriptionNight(String descriptionNight) {
-		this.descriptionNight = descriptionNight;
-	}
-	public String getDescriptionRainNight() {
-		return descriptionRainNight;
-	}
-	public void setDescriptionRainNight(String descriptionRaiNight) {
-		this.descriptionRainNight = descriptionRaiNight;
 	}
 	public String getSeparateObjects() {
 		return separateObjects;
@@ -333,8 +319,6 @@ public class Graphic {
     {
 		System.out.println(indent + "Graphic");
 		System.out.println(indent + "  description          : " + description);
-		System.out.println(indent + "  descriptionNight     : " + descriptionNight);
-		System.out.println(indent + "  descriptionRainNight : " + descriptionRainNight);
 		System.out.println(indent + "  separateObjects      : " + separateObjects);
 		System.out.println(indent + "  terrainObjects       : " + terrainObjects);
 		System.out.println(indent + "  roadObjects          : " + roadObjects);

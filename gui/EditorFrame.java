@@ -400,9 +400,8 @@ public class EditorFrame extends JFrame
 
 		/**
 		 * @return whether the game has what Speed Dreams added to the track file: Local
-		 * Info, Sectors, Track Lights, the header's subcategory, email, copyright and sky
-		 * version, a segment's DoV factor, the night 3d descriptions and a surface's rain
-		 * values (not TORCS: it reads none of them)
+		 * Info, Sectors, Track Lights, the header's subcategory, email and copyright and a
+		 * segment's DoV factor (not TORCS: it reads none of them)
 		 */
 		public boolean hasSpeedDreamsExtensions()
 		{

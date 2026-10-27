@@ -49,8 +49,6 @@ public class GeneralProperties extends PropertyPanel
 	private JComboBox<String>	subcategoryComboBox		= null;
 	private JLabel				versionLabel			= new JLabel();
 	private JComboBox<String>	versionComboBox			= null;
-	private JLabel				skyVersionLabel			= new JLabel();
-	private JComboBox<String>	skyVersionComboBox		= null;
 	private JLabel				authorLabel				= new JLabel();
 	private JTextField			authorTextField			= new JTextField();
 	private JLabel				emailLabel				= new JLabel();
@@ -88,7 +86,7 @@ public class GeneralProperties extends PropertyPanel
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
-		// TORCS has no subcategory, sky version, email or copyright
+		// TORCS has no subcategory, email or copyright
 		boolean extensions = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
 		int row = 0;
 
@@ -112,12 +110,6 @@ public class GeneralProperties extends PropertyPanel
 		addLabel(this, row, versionLabel, "Version", 110);
 		add(getVersionComboBox(), null);
 		getVersionComboBox().setBounds(130, rowY(row++), 125, 23);
-		if (extensions)
-		{
-			addLabel(this, row, skyVersionLabel, "Sky Version", 110);
-			add(getSkyVersionComboBox(), null);
-			getSkyVersionComboBox().setBounds(130, rowY(row++), 125, 23);
-		}
 		addLabel(this, row, authorLabel, "Author", 80);
 		addTextField(this, row++, authorTextField, getEditorFrame().getTrackData().getHeader().getAuthor(), 85, 435);
 		if (extensions)
@@ -253,29 +245,6 @@ public class GeneralProperties extends PropertyPanel
 		return versionComboBox;
 	}
 
-	/**
-	 * This method initializes skyVersionComboBox
-	 *
-	 * @return javax.swing.JComboBox
-	 */
-	public JComboBox<String> getSkyVersionComboBox()
-	{
-		if (skyVersionComboBox == null)
-		{
-			String[] items = {"none", "1"};
-			skyVersionComboBox = new JComboBox<String>(items);
-			skyVersionComboBox.setBounds(130, 145, 125, 23);
-			int version = getEditorFrame().getTrackData().getHeader().getSkyVersion();
-			String stringVersion;
-			if (version == Integer.MAX_VALUE)
-				stringVersion = "none";
-			else
-				stringVersion = version + "";
-			selectItem(skyVersionComboBox, stringVersion);
-		}
-		return skyVersionComboBox;
-	}
-
 	public void exit()
 	{
 		MutableString stringResult = new MutableString();
@@ -337,18 +306,6 @@ public class GeneralProperties extends PropertyPanel
 			// Cancel keeps the track's version
 			if (choice == 0)
 				getEditorFrame().convertToVersion4();
-		}
-
-		String skyVersionString = (String) getSkyVersionComboBox().getSelectedItem();
-		int skyVersion;
-		if ("none".equals(skyVersionString))
-			skyVersion = Integer.MAX_VALUE;
-		else
-			skyVersion = Integer.parseInt(skyVersionString);
-		if (extensions && skyVersion != getEditorFrame().getTrackData().getHeader().getSkyVersion())
-		{
-			getEditorFrame().getTrackData().getHeader().setSkyVersion(skyVersion);
-			getEditorFrame().documentIsModified = true;
 		}
 
 		if (isDifferent(authorTextField.getText(),

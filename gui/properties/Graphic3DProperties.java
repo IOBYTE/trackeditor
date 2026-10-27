@@ -17,10 +17,6 @@ public class Graphic3DProperties extends PropertyPanel
 {
 	private JLabel				descriptionLabel				= new JLabel();
 	private JTextField			descriptionTextField			= new JTextField();
-	private JLabel				descriptionNightLabel			= new JLabel();
-	private JTextField			descriptionNightTextField		= new JTextField();
-	private JLabel				descriptionRainNightLabel		= new JLabel();
-	private JTextField			descriptionRainNightTextField	= new JTextField();
 
 	private JLabel				separateObjectsLabel			= new JLabel();
 	private JTextField			separateObjectsTextField		= new JTextField();
@@ -107,69 +103,57 @@ public class Graphic3DProperties extends PropertyPanel
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
 
 		addLabel(this, 0, descriptionLabel, "Description", 150);
-		// TORCS has no night descriptions
-		boolean night = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
-		if (night)
-		{
-			addLabel(this, 1, descriptionNightLabel, "Description Night", 150);
-			addLabel(this, 2, descriptionRainNightLabel, "Description Rain Night", 150);
-		}
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
-			addLabel(this, 3, separateObjectsLabel, "Seperate Objects", 150);
-			addLabel(this, 4, terrainObjectsLabel, "Terrain", 150);
-			addLabel(this, 5, roadObjectsLabel, "Road", 150);
-			addLabel(this, 6, road2ObjectsLabel, "Road2", 150);
-			addLabel(this, 7, treesObjectsLabel, "Trees", 150);
-			addLabel(this, 8, buildingObjectsLabel, "Building", 150);
-			addLabel(this, 9, houseObjectsLabel, "House", 150);
-			addLabel(this, 10, carsObjectsLabel, "Cars", 150);
-			addLabel(this, 11, truckObjectsLabel, "Truck", 150);
-			addLabel(this, 12, tribunesObjectsLabel, "Tribunes", 150);
-			addLabel(this, 13, pubObjectsLabel, "Pub", 150);
-			addLabel(this, 14, decorsObjectsLabel, "Decors", 150);
-			addLabel(this, 15, waterObjectsLabel, "Water", 150);
-			addLabel(this, 16, grassObjectsLabel, "Grass", 150);
-			addLabel(this, 17, sandObjectsLabel, "Sand", 150);
-			addLabel(this, 18, rockObjectsLabel, "Rock", 150);
-			addLabel(this, 19, curbObjectsLabel, "Curb", 150);
-			addLabel(this, 20, fenceObjectsLabel, "Fence", 150);
-			addLabel(this, 21, barrierObjectsLabel, "Barrier", 150);
-			addLabel(this, 22, wallObjectsLabel, "Wall", 150);
-			addLabel(this, 23, environmentObjectsLabel, "Environment", 150);
+			addLabel(this, 1, separateObjectsLabel, "Seperate Objects", 150);
+			addLabel(this, 2, terrainObjectsLabel, "Terrain", 150);
+			addLabel(this, 3, roadObjectsLabel, "Road", 150);
+			addLabel(this, 4, road2ObjectsLabel, "Road2", 150);
+			addLabel(this, 5, treesObjectsLabel, "Trees", 150);
+			addLabel(this, 6, buildingObjectsLabel, "Building", 150);
+			addLabel(this, 7, houseObjectsLabel, "House", 150);
+			addLabel(this, 8, carsObjectsLabel, "Cars", 150);
+			addLabel(this, 9, truckObjectsLabel, "Truck", 150);
+			addLabel(this, 10, tribunesObjectsLabel, "Tribunes", 150);
+			addLabel(this, 11, pubObjectsLabel, "Pub", 150);
+			addLabel(this, 12, decorsObjectsLabel, "Decors", 150);
+			addLabel(this, 13, waterObjectsLabel, "Water", 150);
+			addLabel(this, 14, grassObjectsLabel, "Grass", 150);
+			addLabel(this, 15, sandObjectsLabel, "Sand", 150);
+			addLabel(this, 16, rockObjectsLabel, "Rock", 150);
+			addLabel(this, 17, curbObjectsLabel, "Curb", 150);
+			addLabel(this, 18, fenceObjectsLabel, "Fence", 150);
+			addLabel(this, 19, barrierObjectsLabel, "Barrier", 150);
+			addLabel(this, 20, wallObjectsLabel, "Wall", 150);
+			addLabel(this, 21, environmentObjectsLabel, "Environment", 150);
 		}
 
 		addTextField(this, 0, descriptionTextField, getEditorFrame().getTrackData().getGraphic().getDescription(), 160, 200);
-		if (night)
-		{
-			addTextField(this, 1, descriptionNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), 160, 200);
-			addTextField(this, 2, descriptionRainNightTextField, getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), 160, 200);
-		}
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
-			addTextField(this, 3, separateObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), 160, 200);
-			addTextField(this, 4, terrainObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTerrainObjects(), 160, 275);
-			addTextField(this, 5, roadObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoadObjects(), 160, 275);
-			addTextField(this, 6, road2ObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoad2Objects(), 160, 275);
-			addTextField(this, 7, treesObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTreesObjects(), 160, 275);
-			addTextField(this, 8, buildingObjectsTextField, getEditorFrame().getTrackData().getGraphic().getBuildingObjects(), 160, 275);
-			addTextField(this, 9, houseObjectsTextField, getEditorFrame().getTrackData().getGraphic().getHouseObjects(), 160, 275);
-			addTextField(this, 10, carsObjectsTextField, getEditorFrame().getTrackData().getGraphic().getCarsObjects(), 160, 275);
-			addTextField(this, 11, truckObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTruckObjects(), 160, 275);
-			addTextField(this, 12, tribunesObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTribunesObjects(), 160, 275);
-			addTextField(this, 13, pubObjectsTextField, getEditorFrame().getTrackData().getGraphic().getPubObjects(), 160, 275);
-			addTextField(this, 14, decorsObjectsTextField, getEditorFrame().getTrackData().getGraphic().getDecorsObjects(), 160, 275);
-			addTextField(this, 15, waterObjectsTextField, getEditorFrame().getTrackData().getGraphic().getWaterObjects(), 160, 275);
-			addTextField(this, 16, grassObjectsTextField, getEditorFrame().getTrackData().getGraphic().getGrassObjects(), 160, 275);
-			addTextField(this, 17, sandObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSandObjects(), 160, 275);
-			addTextField(this, 18, rockObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRockObjects(), 160, 275);
-			addTextField(this, 19, curbObjectsTextField, getEditorFrame().getTrackData().getGraphic().getCurbObjects(), 160, 275);
-			addTextField(this, 20, fenceObjectsTextField, getEditorFrame().getTrackData().getGraphic().getFenceObjects(), 160, 275);
-			addTextField(this, 21, barrierObjectsTextField, getEditorFrame().getTrackData().getGraphic().getBarrierObjects(), 160, 275);
-			addTextField(this, 22, wallObjectsTextField, getEditorFrame().getTrackData().getGraphic().getWallObjects(), 160, 275);
-			addTextField(this, 23, environmentObjectsTextField, getEditorFrame().getTrackData().getGraphic().getEnvironmentObjects(), 160, 275);
+			addTextField(this, 1, separateObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), 160, 200);
+			addTextField(this, 2, terrainObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTerrainObjects(), 160, 275);
+			addTextField(this, 3, roadObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoadObjects(), 160, 275);
+			addTextField(this, 4, road2ObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoad2Objects(), 160, 275);
+			addTextField(this, 5, treesObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTreesObjects(), 160, 275);
+			addTextField(this, 6, buildingObjectsTextField, getEditorFrame().getTrackData().getGraphic().getBuildingObjects(), 160, 275);
+			addTextField(this, 7, houseObjectsTextField, getEditorFrame().getTrackData().getGraphic().getHouseObjects(), 160, 275);
+			addTextField(this, 8, carsObjectsTextField, getEditorFrame().getTrackData().getGraphic().getCarsObjects(), 160, 275);
+			addTextField(this, 9, truckObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTruckObjects(), 160, 275);
+			addTextField(this, 10, tribunesObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTribunesObjects(), 160, 275);
+			addTextField(this, 11, pubObjectsTextField, getEditorFrame().getTrackData().getGraphic().getPubObjects(), 160, 275);
+			addTextField(this, 12, decorsObjectsTextField, getEditorFrame().getTrackData().getGraphic().getDecorsObjects(), 160, 275);
+			addTextField(this, 13, waterObjectsTextField, getEditorFrame().getTrackData().getGraphic().getWaterObjects(), 160, 275);
+			addTextField(this, 14, grassObjectsTextField, getEditorFrame().getTrackData().getGraphic().getGrassObjects(), 160, 275);
+			addTextField(this, 15, sandObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSandObjects(), 160, 275);
+			addTextField(this, 16, rockObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRockObjects(), 160, 275);
+			addTextField(this, 17, curbObjectsTextField, getEditorFrame().getTrackData().getGraphic().getCurbObjects(), 160, 275);
+			addTextField(this, 18, fenceObjectsTextField, getEditorFrame().getTrackData().getGraphic().getFenceObjects(), 160, 275);
+			addTextField(this, 19, barrierObjectsTextField, getEditorFrame().getTrackData().getGraphic().getBarrierObjects(), 160, 275);
+			addTextField(this, 20, wallObjectsTextField, getEditorFrame().getTrackData().getGraphic().getWallObjects(), 160, 275);
+			addTextField(this, 21, environmentObjectsTextField, getEditorFrame().getTrackData().getGraphic().getEnvironmentObjects(), 160, 275);
 		}
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
@@ -207,7 +191,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (terrainObjectsButton == null)
 		{
 			terrainObjectsButton = new JButton();
-			terrainObjectsButton.setBounds(440, 117, 80, 25);
+			terrainObjectsButton.setBounds(440, 63, 80, 25);
 			terrainObjectsButton.setText("Browse");
 			terrainObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -230,7 +214,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (roadObjectsButton == null)
 		{
 			roadObjectsButton = new JButton();
-			roadObjectsButton.setBounds(440, 144, 80, 25);
+			roadObjectsButton.setBounds(440, 90, 80, 25);
 			roadObjectsButton.setText("Browse");
 			roadObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -253,7 +237,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (road2ObjectsButton == null)
 		{
 			road2ObjectsButton = new JButton();
-			road2ObjectsButton.setBounds(440, 171, 80, 25);
+			road2ObjectsButton.setBounds(440, 117, 80, 25);
 			road2ObjectsButton.setText("Browse");
 			road2ObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -276,7 +260,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (treesObjectsButton == null)
 		{
 			treesObjectsButton = new JButton();
-			treesObjectsButton.setBounds(440, 198, 80, 25);
+			treesObjectsButton.setBounds(440, 144, 80, 25);
 			treesObjectsButton.setText("Browse");
 			treesObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -299,7 +283,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (buildingObjectsButton == null)
 		{
 			buildingObjectsButton = new JButton();
-			buildingObjectsButton.setBounds(440, 225, 80, 25);
+			buildingObjectsButton.setBounds(440, 171, 80, 25);
 			buildingObjectsButton.setText("Browse");
 			buildingObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -322,7 +306,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (houseObjectsButton == null)
 		{
 			houseObjectsButton = new JButton();
-			houseObjectsButton.setBounds(440, 252, 80, 25);
+			houseObjectsButton.setBounds(440, 198, 80, 25);
 			houseObjectsButton.setText("Browse");
 			houseObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -345,7 +329,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (carsObjectsButton == null)
 		{
 			carsObjectsButton = new JButton();
-			carsObjectsButton.setBounds(440, 279, 80, 25);
+			carsObjectsButton.setBounds(440, 225, 80, 25);
 			carsObjectsButton.setText("Browse");
 			carsObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -368,7 +352,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (truckObjectsButton == null)
 		{
 			truckObjectsButton = new JButton();
-			truckObjectsButton.setBounds(440, 306, 80, 25);
+			truckObjectsButton.setBounds(440, 252, 80, 25);
 			truckObjectsButton.setText("Browse");
 			truckObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -391,7 +375,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (tribunesObjectsButton == null)
 		{
 			tribunesObjectsButton = new JButton();
-			tribunesObjectsButton.setBounds(440, 333, 80, 25);
+			tribunesObjectsButton.setBounds(440, 279, 80, 25);
 			tribunesObjectsButton.setText("Browse");
 			tribunesObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -414,7 +398,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (pubObjectsButton == null)
 		{
 			pubObjectsButton = new JButton();
-			pubObjectsButton.setBounds(440, 360, 80, 25);
+			pubObjectsButton.setBounds(440, 306, 80, 25);
 			pubObjectsButton.setText("Browse");
 			pubObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -437,7 +421,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (decorsObjectsButton == null)
 		{
 			decorsObjectsButton = new JButton();
-			decorsObjectsButton.setBounds(440, 387, 80, 25);
+			decorsObjectsButton.setBounds(440, 333, 80, 25);
 			decorsObjectsButton.setText("Browse");
 			decorsObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -460,7 +444,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (waterObjectsButton == null)
 		{
 			waterObjectsButton = new JButton();
-			waterObjectsButton.setBounds(440, 414, 80, 25);
+			waterObjectsButton.setBounds(440, 360, 80, 25);
 			waterObjectsButton.setText("Browse");
 			waterObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -483,7 +467,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (grassObjectsButton == null)
 		{
 			grassObjectsButton = new JButton();
-			grassObjectsButton.setBounds(440, 441, 80, 25);
+			grassObjectsButton.setBounds(440, 387, 80, 25);
 			grassObjectsButton.setText("Browse");
 			grassObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -506,7 +490,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (sandObjectsButton == null)
 		{
 			sandObjectsButton = new JButton();
-			sandObjectsButton.setBounds(440, 468, 80, 25);
+			sandObjectsButton.setBounds(440, 414, 80, 25);
 			sandObjectsButton.setText("Browse");
 			sandObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -529,7 +513,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (rockObjectsButton == null)
 		{
 			rockObjectsButton = new JButton();
-			rockObjectsButton.setBounds(440, 495, 80, 25);
+			rockObjectsButton.setBounds(440, 441, 80, 25);
 			rockObjectsButton.setText("Browse");
 			rockObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -552,7 +536,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (curbObjectsButton == null)
 		{
 			curbObjectsButton = new JButton();
-			curbObjectsButton.setBounds(440, 522, 80, 25);
+			curbObjectsButton.setBounds(440, 468, 80, 25);
 			curbObjectsButton.setText("Browse");
 			curbObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -575,7 +559,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (fenceObjectsButton == null)
 		{
 			fenceObjectsButton = new JButton();
-			fenceObjectsButton.setBounds(440, 549, 80, 25);
+			fenceObjectsButton.setBounds(440, 495, 80, 25);
 			fenceObjectsButton.setText("Browse");
 			fenceObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -598,7 +582,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (barrierObjectsButton == null)
 		{
 			barrierObjectsButton = new JButton();
-			barrierObjectsButton.setBounds(440, 576, 80, 25);
+			barrierObjectsButton.setBounds(440, 522, 80, 25);
 			barrierObjectsButton.setText("Browse");
 			barrierObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -621,7 +605,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (wallObjectsButton == null)
 		{
 			wallObjectsButton = new JButton();
-			wallObjectsButton.setBounds(440, 603, 80, 25);
+			wallObjectsButton.setBounds(440, 549, 80, 25);
 			wallObjectsButton.setText("Browse");
 			wallObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -644,7 +628,7 @@ public class Graphic3DProperties extends PropertyPanel
 		if (environmentObjectsButton == null)
 		{
 			environmentObjectsButton = new JButton();
-			environmentObjectsButton.setBounds(440, 630, 80, 25);
+			environmentObjectsButton.setBounds(440, 576, 80, 25);
 			environmentObjectsButton.setText("Browse");
 			environmentObjectsButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -697,22 +681,6 @@ public class Graphic3DProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getGraphic().getDescription(), stringResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().setDescription(stringResult.getValue());
-			getEditorFrame().documentIsModified = true;
-		}
-
-		// (not shown for TORCS, so they are left as they are)
-		boolean night = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
-		if (night && isDifferent(descriptionNightTextField.getText(),
-			getEditorFrame().getTrackData().getGraphic().getDescriptionNight(), stringResult))
-		{
-			getEditorFrame().getTrackData().getGraphic().setDescriptionNight(stringResult.getValue());
-			getEditorFrame().documentIsModified = true;
-		}
-
-		if (night && isDifferent(descriptionRainNightTextField.getText(),
-			getEditorFrame().getTrackData().getGraphic().getDescriptionRainNight(), stringResult))
-		{
-			getEditorFrame().getTrackData().getGraphic().setDescriptionRainNight(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
