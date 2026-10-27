@@ -952,9 +952,6 @@ public class XmlWriter
 
 		addContent(element, "station", editorFrame.getTrackData().getLocalInfo().getStation());
 		addContent(element, "timezone", null, editorFrame.getTrackData().getLocalInfo().getTimezone());
-		addContent(element, "overall rain likelyhood", "%", editorFrame.getTrackData().getLocalInfo().getOverallRainLikelyhood());
-		addContent(element, "little rain likelyhood", "%", editorFrame.getTrackData().getLocalInfo().getLittleRainLikelyhood());
-		addContent(element, "medium rain likelyhood", "%", editorFrame.getTrackData().getLocalInfo().getMediumRainLikelyhood());
 		addContent(element, "time of day", "hour", editorFrame.getTrackData().getLocalInfo().getTimeOfDay());
 		addContent(element, "sun ascension", "deg", editorFrame.getTrackData().getLocalInfo().getSunAscension());
 		addContent(element, "altitude", "m", editorFrame.getTrackData().getLocalInfo().getAltitude());

@@ -40,12 +40,6 @@ public class LocalInfoProperties extends PropertyPanel
 	private JTextField	stationTextField				= new JTextField();
 	private JLabel		timezoneLabel					= new JLabel();
 	private JTextField	timezoneTextField				= new JTextField();
-	private JLabel		overallRainLikelyhoodLabel		= new JLabel();
-	private JTextField	overallRainLikelyhoodTextField	= new JTextField();
-	private JLabel		littleRainLikelyhoodLabel		= new JLabel();
-	private JTextField	littleRainLikelyhoodTextField	= new JTextField();
-	private JLabel		mediumRainLikelyhoodLabel		= new JLabel();
-	private JTextField	mediumRainLikelyhoodTextField	= new JTextField();
 	private JLabel		timeOfDayLabel					= new JLabel();
 	private JTextField	timeOfDayTextField				= new JTextField();
 	private JLabel		sunAscensionLabel				= new JLabel();
@@ -84,34 +78,28 @@ public class LocalInfoProperties extends PropertyPanel
 
 		addLabel(this, 0, stationLabel, "Station", 150);
 		addLabel(this, 1, timezoneLabel, "Timezone", 150);
-		addLabel(this, 2, overallRainLikelyhoodLabel, "Overall Rain Likelyhood", 150);
-		addLabel(this, 3, littleRainLikelyhoodLabel, "Little Rain Likelyhood", 150);
-		addLabel(this, 4, mediumRainLikelyhoodLabel, "Medium Rain Likelyhood", 150);
-		addLabel(this, 5, timeOfDayLabel, "Time Of Day", 150);
-		addLabel(this, 6, sunAscensionLabel, "Sun Ascension", 150);
-		addLabel(this, 7, altitudeLabel, "Altitude", 150);
-		addLabel(this, 8, latitudeLabel, "Latitude", 150);
-		addLabel(this, 9, longitudeLabel, "Longitude", 150);
-		addLabel(this, 10, climatLabel, "Climate", 150);
-		addLabel(this, 11, precipitationLabel, "Precipitation", 150);
+		addLabel(this, 2, timeOfDayLabel, "Time Of Day", 150);
+		addLabel(this, 3, sunAscensionLabel, "Sun Ascension", 150);
+		addLabel(this, 4, altitudeLabel, "Altitude", 150);
+		addLabel(this, 5, latitudeLabel, "Latitude", 150);
+		addLabel(this, 6, longitudeLabel, "Longitude", 150);
+		addLabel(this, 7, climatLabel, "Climate", 150);
+		addLabel(this, 8, precipitationLabel, "Precipitation", 150);
 
 		addTextField(this, 0, stationTextField, getEditorFrame().getTrackData().getLocalInfo().getStation(), 170, 125);
 		addTextField(this, 1, timezoneTextField, getEditorFrame().getTrackData().getLocalInfo().getTimezone(), 170, 125);
-		addTextField(this, 2, overallRainLikelyhoodTextField, getEditorFrame().getTrackData().getLocalInfo().getOverallRainLikelyhood(), 170, 125);
-		addTextField(this, 3, littleRainLikelyhoodTextField, getEditorFrame().getTrackData().getLocalInfo().getLittleRainLikelyhood(), 170, 125);
-		addTextField(this, 4, mediumRainLikelyhoodTextField, getEditorFrame().getTrackData().getLocalInfo().getMediumRainLikelyhood(), 170, 125);
-		addTextField(this, 5, timeOfDayTextField, getEditorFrame().getTrackData().getLocalInfo().getTimeOfDay(), 170, 125);
-		addTextField(this, 6, sunAscensionTextField, getEditorFrame().getTrackData().getLocalInfo().getSunAscension(), 170, 125);
-		addTextField(this, 7, altitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getAltitude(), 170, 125);
-		addTextField(this, 8, latitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLatitude(), 170, 125);
-		addTextField(this, 9, longitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLongitude(), 170, 125);
-		addTextField(this, 10, climatTextField, getEditorFrame().getTrackData().getLocalInfo().getClimat(), 170, 125);
-		addTextField(this, 11, precipitationTextField, getEditorFrame().getTrackData().getLocalInfo().getPrecipitation(), 170, 125);
+		addTextField(this, 2, timeOfDayTextField, getEditorFrame().getTrackData().getLocalInfo().getTimeOfDay(), 170, 125);
+		addTextField(this, 3, sunAscensionTextField, getEditorFrame().getTrackData().getLocalInfo().getSunAscension(), 170, 125);
+		addTextField(this, 4, altitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getAltitude(), 170, 125);
+		addTextField(this, 5, latitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLatitude(), 170, 125);
+		addTextField(this, 6, longitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLongitude(), 170, 125);
+		addTextField(this, 7, climatTextField, getEditorFrame().getTrackData().getLocalInfo().getClimat(), 170, 125);
+		addTextField(this, 8, precipitationTextField, getEditorFrame().getTrackData().getLocalInfo().getPrecipitation(), 170, 125);
 		
 		if (getEditorFrame().getGameType().hasBestLap())
 		{
-			addLabel(this, 12, bestLapLabel, "Best Lap", 150);
-			addTextField(this, 12, bestLapTextField, getEditorFrame().getTrackData().getLocalInfo().getBestLap(), 170, 125);
+			addLabel(this, 9, bestLapLabel, "Best Lap", 150);
+			addTextField(this, 9, bestLapTextField, getEditorFrame().getTrackData().getLocalInfo().getBestLap(), 170, 125);
 		}
 	}
 
@@ -135,27 +123,6 @@ public class LocalInfoProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getLocalInfo().getTimezone(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setTimezone(doubleResult.getValue());
-			getEditorFrame().documentIsModified = true;
-		}
-
-		if (isDifferent(overallRainLikelyhoodTextField.getText(),
-			getEditorFrame().getTrackData().getLocalInfo().getOverallRainLikelyhood(), doubleResult))
-		{
-			getEditorFrame().getTrackData().getLocalInfo().setOverallRainLikelyhood(doubleResult.getValue());
-			getEditorFrame().documentIsModified = true;
-		}
-
-		if (isDifferent(littleRainLikelyhoodTextField.getText(),
-			getEditorFrame().getTrackData().getLocalInfo().getLittleRainLikelyhood(), doubleResult))
-		{
-			getEditorFrame().getTrackData().getLocalInfo().setLittleRainLikelyhood(doubleResult.getValue());
-			getEditorFrame().documentIsModified = true;
-		}
-
-		if (isDifferent(mediumRainLikelyhoodTextField.getText(),
-			getEditorFrame().getTrackData().getLocalInfo().getMediumRainLikelyhood(), doubleResult))
-		{
-			getEditorFrame().getTrackData().getLocalInfo().setMediumRainLikelyhood(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 

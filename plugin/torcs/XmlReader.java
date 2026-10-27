@@ -610,9 +610,6 @@ public class XmlReader
 
         data.setStation(getAttrStrValue(element, "station"));
         data.setTimezone(getAttrNumValue(element, "timezone"));
-        data.setOverallRainLikelyhood(getAttrNumValue(element, "overall rain likelyhood", "%"));
-        data.setLittleRainLikelyhood(getAttrNumValue(element, "little rain likelyhood", "%"));
-        data.setMediumRainLikelyhood(getAttrNumValue(element, "medium rain likelyhood", "%"));
         data.setTimeOfDay(getAttrNumValue(element, "time of day", "hour"));
         data.setSunAscension(getAttrNumValue(element, "sun ascension", "deg"));
         data.setAltitude(getAttrNumValue(element, "altitude", "m"));
