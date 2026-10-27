@@ -577,7 +577,7 @@ public class TerrainProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 420, 510, 362);
+			tabbedPane.setBounds(10, 420, 510, 395);
 
 			// only Speed Dreams trackgen places individual graphic objects
 			if (getEditorFrame().getGameType().hasGraphicObjects())
