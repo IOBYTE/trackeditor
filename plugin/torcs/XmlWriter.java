@@ -623,11 +623,7 @@ public class XmlWriter
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
 			addContent(el, "texture mipmap", "m", surface.getTextureMipMap());
 			addContent(el, "friction", null, surface.getFriction());
-			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
-				addContent(el, "friction rain", null, surface.getFrictionRain());
 			addContent(el, "rolling resistance", null, surface.getRollingResistance());
-			if (editorFrame.getGameType().hasSpeedDreamsExtensions())
-				addContent(el, "rolling resistance rain", null, surface.getRollingResistanceRain());
 			addContent(el, "bump name", surface.getBumpName());
 			addContent(el, "bump size", "m", surface.getBumpSize());
 			addContent(el, "roughness", "m", surface.getRoughness());

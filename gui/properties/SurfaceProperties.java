@@ -309,12 +309,8 @@ public class SurfaceProperties extends PropertyPanel
 		private JTextField			textureMipMapTextField			= new JTextField();
 		private JLabel				frictionLabel					= new JLabel();
 		private JTextField 			frictionTextField				= new JTextField();
-		private JLabel				frictionRainLabel				= new JLabel();
-		private JTextField 			frictionRainTextField			= new JTextField();
 		private JLabel				rollingResistanceLabel			= new JLabel();
 		private JTextField 			rollingResistanceTextField		= new JTextField();
-		private JLabel				rollingResistanceRainLabel		= new JLabel();
-		private JTextField 			rollingResistanceRainTextField	= new JTextField();
 		private JLabel				bumpNameLabel					= new JLabel();
 		private JTextField 			bumpNameTextField				= new JTextField();
 		private JLabel				bumpSizeLabel					= new JLabel();
@@ -405,21 +401,8 @@ public class SurfaceProperties extends PropertyPanel
 			addTextField(this, row++, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
 			addLabel(this, row, frictionLabel, "Friction", 180);
 			addTextField(this, row++, frictionTextField, surface.getFriction(), 190, 125);
-
-			// TORCS has no rain values
-			boolean rain = getEditorFrame().getGameType().hasSpeedDreamsExtensions();
-			if (rain)
-			{
-				addLabel(this, row, frictionRainLabel, "Friction Rain", 180);
-				addTextField(this, row++, frictionRainTextField, surface.getFrictionRain(), 190, 125);
-			}
 			addLabel(this, row, rollingResistanceLabel, "Rolling Resistance", 180);
 			addTextField(this, row++, rollingResistanceTextField, surface.getRollingResistance(), 190, 125);
-			if (rain)
-			{
-				addLabel(this, row, rollingResistanceRainLabel, "Rolling Resistance Rain", 180);
-				addTextField(this, row++, rollingResistanceRainTextField, surface.getRollingResistanceRain(), 190, 125);
-			}
 			addLabel(this, row, bumpNameLabel, "Bump Name", 180);
 			addTextField(this, row++, bumpNameTextField, surface.getBumpName(), 190, 220);
 			addLabel(this, row, bumpSizeLabel, "Bump Size", 180);
@@ -454,9 +437,7 @@ public class SurfaceProperties extends PropertyPanel
 				textureStartOnBoundaryComboBox.setEnabled(false);
 				textureMipMapTextField.setEnabled(false);
 				frictionTextField.setEnabled(false);
-				frictionRainTextField.setEnabled(false);
 				rollingResistanceTextField.setEnabled(false);
-				rollingResistanceRainTextField.setEnabled(false);
 				bumpNameTextField.setEnabled(false);
 				bumpSizeTextField.setEnabled(false);
 				roughnessTextField.setEnabled(false);
@@ -470,7 +451,7 @@ public class SurfaceProperties extends PropertyPanel
 				add(getTextureNameButton(), null);
 				add(getRacelineNameButton(), null);
 				add(getBumpNameButton(), null);
-				// next to their fields, which move up when TORCS's rain rows aren't shown
+				// next to their fields, whose rows depend on the game
 				getRacelineNameButton().setLocation(420, racelineNameTextField.getY() - 1);
 				getBumpNameButton().setLocation(420, bumpNameTextField.getY() - 1);
 			}
@@ -798,24 +779,9 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-			// (not shown for TORCS, so they are left as they are)
-			if (getEditorFrame().getGameType().hasSpeedDreamsExtensions() &&
-				isDifferent(panel.frictionRainTextField.getText(), surface.getFrictionRain(), doubleResult))
-            {
-                surface.setFrictionRain(doubleResult.getValue());
-                getEditorFrame().documentIsModified = true;
-            }
-
             if (isDifferent(panel.rollingResistanceTextField.getText(), surface.getRollingResistance(), doubleResult))
             {
                 surface.setRollingResistance(doubleResult.getValue());
-                getEditorFrame().documentIsModified = true;
-            }
-
-			if (getEditorFrame().getGameType().hasSpeedDreamsExtensions() &&
-				isDifferent(panel.rollingResistanceRainTextField.getText(), surface.getRollingResistanceRain(), doubleResult))
-            {
-                surface.setRollingResistanceRain(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 

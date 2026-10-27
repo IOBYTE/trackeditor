@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>utils/circuit/Version3.java</name>
+			<type>1</type>
+			<location>C:/Users/Bob/csr/src/tools/trackeditor/utils/circuit/Version3.java</location>
+		</link>
+	</linkedResources>
 </projectDescription>
