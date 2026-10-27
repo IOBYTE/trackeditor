@@ -410,12 +410,31 @@ public class XmlReader
         setSegments(mainTrack);
     }
 
+	/**
+	 * Reads the track version like the games: a track without a version is
+	 * version 0, and the games read versions 0, 1 and 2 with their version 3
+	 * loader, so the editor reads (and saves) them as version 3.
+	 */
+	private void setVersion(Element header)
+	{
+		int version = header == null ? Integer.MAX_VALUE : getAttrIntValue(header, "version");
+		if (version == Integer.MAX_VALUE || (version >= 0 && version <= 2))
+		{
+			warnings.add("The track has " + (version == Integer.MAX_VALUE ? "no version" : "version " + version) +
+				", which the games read as version 3. The editor reads it, and will save it, as version 3.");
+			version = 3;
+		}
+		editorFrame.getTrackData().getHeader().setVersion(version);
+	}
+
     /**
      * @param header
      */
     private void setHeader(Element root)
     {
         Element header = getChildWithName(root, "Header");
+
+		setVersion(header);
 
         if (header == null)
             return;
@@ -425,7 +444,6 @@ public class XmlReader
         editorFrame.getTrackData().getHeader().setCategory(getAttrStrValue(header, "category"));
         editorFrame.getTrackData().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
         editorFrame.getTrackData().getHeader().setCarCategory(getAttrStrValue(header, "car category"));
-        editorFrame.getTrackData().getHeader().setVersion(getAttrIntValue(header, "version"));
         editorFrame.getTrackData().getHeader().setSkyVersion(getAttrIntValue(header, "sky version"));
         editorFrame.getTrackData().getHeader().setAuthor(getAttrStrValue(header, "author"));
         editorFrame.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
@@ -1012,22 +1030,15 @@ public class XmlReader
    }
 
 	/**
-	 * Reads a v3 side the way the games' v3 loader (track3.cpp) reads it, so
-	 * the track keeps its meaning when it is saved as v4:
-	 * <ul>
-	 * <li>the Main Track has only "side width"; segments have only "side start
-	 * width" and "side end width".</li>
-	 * <li>"side type" (banking type) is read only for the Main Track.</li>
-	 * <li>barriers are read only for the Main Track, and its barrier height
-	 * defaults to 1 m (v4 defaults to 0.6 m).</li>
-	 * <li>in TORCS, a segment without a border height has a height of 0 (v4
-	 * inherits it from the previous segment).</li>
-	 * </ul>
+	 * Reads a v3 side the way the games' v3 loader (track3.cpp) reads it: the
+	 * Main Track has only "side width"; segments have only "side start width"
+	 * and "side end width", and "side type" (banking type) and the barrier are
+	 * read only for the Main Track. What else v3 means differently (the barrier
+	 * height default, TORCS border heights) is in GameSides, and is written out
+	 * when the track becomes v4 (Version3.convertToVersion4).
 	 */
 	private void setSideV3(Element seg, SegmentSide part, String sPart, boolean mainTrack)
 	{
-		int side = sPart.equals("l") ? 0 : 1;
-
 		if (mainTrack)
 		{
 			double width = getAttrNumValue(seg, sPart + "side width", "m");
@@ -1044,34 +1055,16 @@ public class XmlReader
 			part.setSideBankingType(getAttrStrValue(seg, sPart + "side type"));
 		part.setBorderStyle(getAttrStrValue(seg, sPart + "border style"));
 		part.setBorderWidth(getAttrNumValue(seg, sPart + "border width", "m"));
-		double borderHeight = getAttrNumValue(seg, sPart + "border height", "m");
-		if (mainTrack)
-		{
-			v3BorderHeight[side] = Double.isNaN(borderHeight) ? 0.0 : borderHeight;
-		}
-		else if (!Double.isNaN(borderHeight))
-		{
-			v3BorderHeight[side] = borderHeight;
-		}
-		else if (editorFrame.getGameType() == EditorFrame.GameType.TORCS && v3BorderHeight[side] != 0.0)
-		{
-			borderHeight = 0.0;
-			v3BorderHeight[side] = 0.0;
-		}
-		part.setBorderHeight(borderHeight);
+		part.setBorderHeight(getAttrNumValue(seg, sPart + "border height", "m"));
 		part.setBorderSurface(getAttrStrValue(seg, sPart + "border surface"));
 		if (mainTrack)
 		{
 			part.setBarrierStyle(getAttrStrValue(seg, sPart + "barrier style"));
 			part.setBarrierWidth(getAttrNumValue(seg, sPart + "barrier width", "m"));
-			double barrierHeight = getAttrNumValue(seg, sPart + "barrier height", "m");
-			part.setBarrierHeight(Double.isNaN(barrierHeight) ? 1.0 : barrierHeight);
+			part.setBarrierHeight(getAttrNumValue(seg, sPart + "barrier height", "m"));
 			part.setBarrierSurface(getAttrStrValue(seg, sPart + "barrier surface"));
 		}
 	}
-
-	// the border height a v3 segment inherits, per side (left, right)
-	private double[] v3BorderHeight = new double[2];
 
     private synchronized void setSegments(Element mainTrack)
     {

@@ -246,6 +246,26 @@ public final class Surface {
 		this.rollingResistanceRain = rollingResistanceRain;
 	}
 
+	/** @return a surface with all the same values */
+	public Surface copy()
+	{
+		Surface surface = new Surface();
+		for (java.lang.reflect.Field field : Surface.class.getDeclaredFields())
+		{
+			if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+				continue;
+			try
+			{
+				field.set(surface, field.get(this));
+			}
+			catch (IllegalAccessException e)
+			{
+				throw new IllegalStateException(e);
+			}
+		}
+		return surface;
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "Surface");

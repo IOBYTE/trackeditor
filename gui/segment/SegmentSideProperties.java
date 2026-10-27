@@ -441,7 +441,15 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	{
 		if (barrierSurfaceComboBox == null)
 		{
-			barrierSurfaceComboBox = new SurfaceComboBox(parent.editorFrame, barrierSurfaceVector);
+			barrierSurfaceComboBox = new SurfaceComboBox(parent.editorFrame, barrierSurfaceVector)
+			{
+				public void setEnabled(boolean value)
+				{
+					super.setEnabled(value && !isVersion3());
+					setToolTipText(isVersion3() ? VERSION3_BARRIER_TIP : null);
+				}
+			};
+			barrierSurfaceComboBox.setEnabled(true);
 			barrierSurfaceComboBox.setBounds(5, 350, 200, 23);
 			barrierSurfaceComboBox.addActionListener(new ActionListener()
 			{
@@ -489,7 +497,15 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	{
 		if (barrierStyleComboBox == null)
 		{
-			barrierStyleComboBox = new JComboBox<String>();
+			barrierStyleComboBox = new JComboBox<String>()
+			{
+				public void setEnabled(boolean value)
+				{
+					super.setEnabled(value && !isVersion3());
+					setToolTipText(isVersion3() ? VERSION3_BARRIER_TIP : null);
+				}
+			};
+			barrierStyleComboBox.setEnabled(true);
 			barrierStyleComboBox.setBounds(45, 400, 120, 23);
 			barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(barrierStyleItems(null)));
 			barrierStyleComboBox.addActionListener(new ActionListener()
@@ -604,11 +620,132 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	{
 		if (barrierHeightSlider == null)
 		{
-			barrierHeightSlider = new SegmentSlider(0, 50, 0, 0.001, side.getBarrierHeight(), "Height", "", "BarrierHeight", true, false);
+			barrierHeightSlider = new Version3BarrierSlider(side.getBarrierHeight(), "Height", "BarrierHeight")
+			{
+				double getVersion3Value()
+				{
+					return getVersion3BarrierHeight();
+				}
+			};
 			barrierHeightSlider.setBounds(52, 25, 50, 290);
 			barrierHeightSlider.addSliderListener(this);
+			barrierHeightSlider.setEnabled(barrierHeightSlider.isEnabled());
 		}
 		return barrierHeightSlider;
+	}
+
+	private static final String VERSION3_BARRIER_TIP = "Version 3 tracks use the Main Track barrier for every segment.";
+
+	private boolean isVersion3()
+	{
+		return parent.editorFrame.getTrackData().getHeader().getVersion() == 3;
+	}
+
+	/** The Main Track side the barrier of every segment of a version 3 track comes from */
+	private SegmentSide getVersion3MainSide()
+	{
+		return side.isRight() ? parent.editorFrame.getTrackData().getMainTrack().getRight()
+			: parent.editorFrame.getTrackData().getMainTrack().getLeft();
+	}
+
+	/** The barrier style a version 3 track uses: the Main Track's (fence when it has none) */
+	private String getVersion3BarrierStyle()
+	{
+		String style = getVersion3MainSide().getBarrierStyle();
+		return style == null || style.isEmpty() ? "fence" : style;
+	}
+
+	/** The barrier height a version 3 track uses: the Main Track's (1 m when it has none) */
+	private double getVersion3BarrierHeight()
+	{
+		double height = getVersion3MainSide().getBarrierHeight();
+		return Double.isNaN(height) ? 1.0 : height;
+	}
+
+	/** The barrier width a version 3 track uses: 0 for a fence, else the Main Track's (0.5 m when it has none) */
+	private double getVersion3BarrierWidth()
+	{
+		if (getVersion3BarrierStyle().equals("fence"))
+			return 0.0;
+		double width = getVersion3MainSide().getBarrierWidth();
+		return Double.isNaN(width) ? 0.5 : width;
+	}
+
+	/** The barrier surface a version 3 track uses: the Main Track's (barrier when it has none) */
+	private String getVersion3BarrierSurface()
+	{
+		String surface = getVersion3MainSide().getBarrierSurface();
+		return surface == null || surface.isEmpty() ? "barrier" : surface;
+	}
+
+	/**
+	 * A barrier slider that, in a version 3 track, shows the Main Track's value and
+	 * can't be changed: the version 3 loaders read the barrier only from the Main Track.
+	 */
+	private abstract class Version3BarrierSlider extends SegmentSlider
+	{
+		Version3BarrierSlider(double value, String section, String method)
+		{
+			super(0, 50, 0, 0.001, value, section, "", method, true, false);
+		}
+
+		abstract double getVersion3Value();
+
+		public void setEnabled(boolean value)
+		{
+			if (isVersion3())
+			{
+				super.setEnabled(true);
+				super.setValueFrozen(getVersion3Value());
+			}
+			else
+			{
+				super.setEnabled(value);
+			}
+			setToolTip(this, isVersion3() ? VERSION3_BARRIER_TIP : null);
+		}
+
+		public void setValue(double value)
+		{
+			if (isVersion3())
+				super.setValueFrozen(getVersion3Value());
+			else
+				super.setValue(value);
+		}
+
+		public void setValueFrozen(double value)
+		{
+			super.setValueFrozen(isVersion3() ? getVersion3Value() : value);
+		}
+	}
+
+	/** Shows the Main Track barrier of a version 3 track; none of it can be changed here */
+	private void showVersion3Barrier()
+	{
+		String surface = getVersion3BarrierSurface();
+		addSurface(barrierSurfaceVector, surface);
+		getBarrierSurfaceComboBox().setSelectedItem(surface);
+		getBarrierSurfaceComboBox().setEnabled(false);
+
+		String style = getVersion3BarrierStyle();
+		updatingBarrierStyle = true;
+		getBarrierStyleComboBox().setModel(new DefaultComboBoxModel<String>(barrierStyleItems(style)));
+		selectStyle(getBarrierStyleComboBox(), style);
+		updatingBarrierStyle = false;
+		getBarrierStyleComboBox().setEnabled(false);
+
+		getBarrierHeightSlider().setEnabled(false);
+		getBarrierWidthSlider().setEnabled(false);
+	}
+
+	private static void setToolTip(javax.swing.JComponent component, String text)
+	{
+		component.setToolTipText(text);
+		for (java.awt.Component child : component.getComponents())
+		{
+			if (child instanceof javax.swing.JComponent)
+				setToolTip((javax.swing.JComponent) child, text);
+		}
 	}
 
 	/**
@@ -665,9 +802,16 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	{
 		if (barrierWidthSlider == null)
 		{
-			barrierWidthSlider = new SegmentSlider(0, 50, 0, 0.001, side.getBarrierWidth(), "Width", "", "BarrierWidth", true, false);
+			barrierWidthSlider = new Version3BarrierSlider(side.getBarrierWidth(), "Width", "BarrierWidth")
+			{
+				double getVersion3Value()
+				{
+					return getVersion3BarrierWidth();
+				}
+			};
 			barrierWidthSlider.setBounds(107, 25, 50, 290);
 			barrierWidthSlider.addSliderListener(this);
+			barrierWidthSlider.setEnabled(barrierWidthSlider.isEnabled());
 		}
 		return barrierWidthSlider;
 	}
@@ -839,6 +983,14 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		}
 		
 		// update barrier
+		if (isVersion3())
+		{
+			// no interactive fixes either: the games ignore a segment's barrier
+			showVersion3Barrier();
+			this.validate();
+			this.repaint();
+			return;
+		}
 		surface = this.side.getBarrierSurface();
 		addSurface(barrierSurfaceVector, surface);
 

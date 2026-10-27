@@ -1082,6 +1082,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			getPenaltyTextField().setText(intText(shape.getPenalty()));
 			getEnvMapIndexTextField().setText(intText(shape.getEnvMapIndex()));
 			getDovFactorTextField().setText(doubleText(shape.getDovFactor()));
+			// the version 3 loaders don't read it
+			boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
+			getDovFactorTextField().setEnabled(!version3);
+			getDovFactorTextField().setToolTipText(version3 ? "Version 3 tracks have no DoV factor." : null);
 
 			this.updateTitle();
 

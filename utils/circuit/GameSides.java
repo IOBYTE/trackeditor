@@ -63,8 +63,9 @@ public final class GameSides
 	public static State of(Segment segment, boolean right, EditorFrame editorFrame)
 	{
 		EditorFrame.GameType game = editorFrame.getGameType();
+		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
 		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
-		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game);
+		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game, version3);
 
 		// the segments from the first one to this one
 		ArrayList<Segment> chain = new ArrayList<Segment>();
@@ -75,13 +76,13 @@ public final class GameSides
 		for (int i = chain.size() - 1; i >= 0; i--)
 		{
 			Segment s = chain.get(i);
-			apply(state, right ? s.getRight() : s.getLeft(), game);
+			apply(state, right ? s.getRight() : s.getLeft(), game, version3);
 		}
 
 		return state;
 	}
 
-	private static State start(SegmentSide main, EditorFrame.GameType game)
+	private static State start(SegmentSide main, EditorFrame.GameType game, boolean version3)
 	{
 		State s = new State();
 
@@ -98,9 +99,11 @@ public final class GameSides
 		setBorderStyle(s, text(main.getBorderStyle(), "plan"), game);
 
 		s.barrierSurface = text(main.getBarrierSurface(), "barrier");
-		s.barrierHeight = number(main.getBarrierHeight(), 0.6);
+		// the version 3 loaders make it 1 m high
+		s.barrierHeight = number(main.getBarrierHeight(), version3 ? 1.0 : 0.6);
 		String style = text(main.getBarrierStyle(), "fence");
-		if (isFence(style, game))
+		// the version 3 loaders only know fence and wall
+		if (version3 ? style.equals("fence") : isFence(style, game))
 		{
 			s.barrierStyle = style;
 			s.barrierWidth = 0.0;
@@ -114,7 +117,7 @@ public final class GameSides
 		return s;
 	}
 
-	private static void apply(State s, SegmentSide side, EditorFrame.GameType game)
+	private static void apply(State s, SegmentSide side, EditorFrame.GameType game, boolean version3)
 	{
 		// side
 		double start = side.getSideStartWidth();
@@ -125,9 +128,14 @@ public final class GameSides
 
 		// border
 		s.borderWidth = number(side.getBorderWidth(), s.borderWidth);
-		s.borderHeight = number(side.getBorderHeight(), s.borderHeight);
+		// in TORCS version 3, a segment without a border height has a height of 0
+		s.borderHeight = number(side.getBorderHeight(), version3 && game == EditorFrame.GameType.TORCS ? 0.0 : s.borderHeight);
 		s.borderSurface = text(side.getBorderSurface(), s.borderSurface);
 		setBorderStyle(s, text(side.getBorderStyle(), s.borderStyle), game);
+
+		// the version 3 loaders read the barrier only from the Main Track
+		if (version3)
+			return;
 
 		// barrier
 		s.barrierSurface = text(side.getBarrierSurface(), s.barrierSurface);

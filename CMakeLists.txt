@@ -132,6 +132,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/circuit/TrackLight.java
          utils/circuit/TrackObject.java
          utils/circuit/TurnMarks.java
+         utils/circuit/Version3.java
          utils/circuit/XmlObjPits.java
          utils/undo/ObjectMapObject.java
          utils/undo/DeletedObject.java

@@ -143,7 +143,7 @@ public class PitProperties extends PropertyPanel
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		int row = 0;
 
-		if (options)
+		if (showType())
 		{
 			addLabel(this, row, styleLabel, "Type", 110);
 			add(getStyleComboBox(), null);
@@ -162,6 +162,9 @@ public class PitProperties extends PropertyPanel
 			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 125);
 			addLabel(this, row, stopBuildingsLabel, "Stop Buildings", 110);
 			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 125);
+		}
+		if (showMaxPitsAndIndicator())
+		{
 			addLabel(this, row, maxPitsLabel, "Max Pits", 110);
 			addTextField(this, row++, maxPitsTextField, pits.getMaxPits(), 120, 125);
 		}
@@ -175,7 +178,7 @@ public class PitProperties extends PropertyPanel
 		addLabel(this, row, lengthLabel, "Length", 110);
 		addTextField(this, row++, lengthTextField, pits.getLength(), 120, 125);
 		lengthTextField.setToolTipText("Length of each pit (empty = 15 m)");
-		if (options)
+		if (showMaxPitsAndIndicator())
 		{
 			addLabel(this, row, indicatorLabel, "Indicator", 110);
 			add(getIndicatorComboBox(), null);
@@ -196,6 +199,26 @@ public class PitProperties extends PropertyPanel
 		add(getTabbedPane(), null);
 		getTabbedPane().setLocation(10, rowY(row + 2));
 	}
+
+	private boolean isVersion3()
+	{
+		return getEditorFrame().getTrackData().getHeader().getVersion() == 3;
+	}
+
+	/** The pit type: TORCS version 4 has none, but its version 3 tracks do */
+	private boolean showType()
+	{
+		return getEditorFrame().getGameType().hasPitOptions() || isVersion3();
+	}
+
+	/** The version 3 loaders don't read max pits or an indicator */
+	private boolean showMaxPitsAndIndicator()
+	{
+		return getEditorFrame().getGameType().hasPitOptions() && !isVersion3();
+	}
+
+	// the pit type choices, in pit style order ("none" is no pit style)
+	private static final String[] STYLE_ITEMS = {"none", "no pits", "on track side", "on separate path", "no building"};
 
 	private static int rowY(int row)
 	{
@@ -237,15 +260,29 @@ public class PitProperties extends PropertyPanel
 	{
 		if (styleComboBox == null)
 		{
-			String[] items = {"none", "no pits", "on track side", "on separate path", "no building"};
-			styleComboBox = new JComboBox<String>(items);
-			styleComboBox.setBounds(120, 10, 125, 23);
 			int style = getEditorFrame().getPits().getStyle();
-			if (style == Integer.MAX_VALUE)
-				style = 0;
+			int index = style == Integer.MAX_VALUE ? 0 : style + 1;
+			String[] items = STYLE_ITEMS;
+			if (isVersion3())
+			{
+				// the version 3 loaders only build track side pits; another type the
+				// track already has stays listed, so looking doesn't change it
+				items = java.util.Arrays.copyOf(STYLE_ITEMS, 3);
+				if (index >= 3 && index < STYLE_ITEMS.length)
+				{
+					items = java.util.Arrays.copyOf(items, 4);
+					items[3] = STYLE_ITEMS[index];
+				}
+				styleComboBox = new JComboBox<String>(items);
+				styleComboBox.setToolTipText("Version 3 tracks only get track side pits.");
+			}
 			else
-				style++;
-			styleComboBox.setSelectedIndex(style);
+			{
+				styleComboBox = new JComboBox<String>(items);
+			}
+			styleComboBox.setBounds(120, 10, 125, 23);
+			if (index >= 0 && index < STYLE_ITEMS.length)
+				styleComboBox.setSelectedItem(STYLE_ITEMS[index]);
 		}
 		return styleComboBox;
 	}
@@ -785,9 +822,10 @@ public class PitProperties extends PropertyPanel
 	{
 		// the TORCS settings that aren't shown are left as they are
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
-		int index = getStyleComboBox().getSelectedIndex();
+		// the item, not its position: a version 3 track has fewer choices
+		int index = java.util.Arrays.asList(STYLE_ITEMS).indexOf(getStyleComboBox().getSelectedItem());
 		int style = getEditorFrame().getPits().getStyle();
-		if (options)
+		if (showType() && index >= 0)
 		{
 			if (index == 0)
 			{
@@ -843,7 +881,7 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (options && isDifferent(maxPitsTextField.getText(),
+		if (showMaxPitsAndIndicator() && isDifferent(maxPitsTextField.getText(),
 			getEditorFrame().getPits().getMaxPits(), integerResult))
 		{
 			getEditorFrame().getPits().setMaxPits(integerResult.getValue());
@@ -880,7 +918,7 @@ public class PitProperties extends PropertyPanel
 
 		index = getIndicatorComboBox().getSelectedIndex();
 		int indicator = getEditorFrame().getPits().getIndicator();
-		if (options)
+		if (showMaxPitsAndIndicator())
 		{
 			if (index == 0)
 			{

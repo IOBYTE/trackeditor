@@ -240,8 +240,8 @@ public class XmlWriter
 
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
-			getSideV3(track, editorFrame.getTrackData().getMainTrack().getLeft(), "l");
-			getSideV3(track, editorFrame.getTrackData().getMainTrack().getRight(), "r");
+			getSideV3(track, editorFrame.getTrackData().getMainTrack().getLeft(), "l", true);
+			getSideV3(track, editorFrame.getTrackData().getMainTrack().getRight(), "r", true);
 			getPitsV3(track);
 		}
 		else
@@ -430,13 +430,14 @@ public class XmlWriter
 		if (editorFrame.getGameType().hasSegmentPenalty())
 			addContent(segment, "penalty", null, shape.getPenalty());
 		addContent(segment, "env map index", null, shape.getEnvMapIndex());
-		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+		// the version 3 loaders don't read it
+		if (editorFrame.getGameType().hasSpeedDreamsExtensions() && editorFrame.getTrackData().getHeader().getVersion() != 3)
 			addContent(segment, "DoV factor", null, shape.getDovFactor());
 
 		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
 		{
-			getSideV3(segment, shape.getLeft(), "l");
-			getSideV3(segment, shape.getRight(), "r");
+			getSideV3(segment, shape.getLeft(), "l", false);
+			getSideV3(segment, shape.getRight(), "r", false);
 		}
 		else
 		{
@@ -505,13 +506,20 @@ public class XmlWriter
 	 * @param left
 	 * @return
 	 */
-	private synchronized void getSideV3(Element side, SegmentSide part, String sPart)
+	/**
+	 * Writes a side the way the version 3 loaders read it: the Main Track has only
+	 * "side width", and segments have only "side start width" and "side end width".
+	 * The banking type ("side type") and the barrier are read only for the Main Track.
+	 */
+	private synchronized void getSideV3(Element side, SegmentSide part, String sPart, boolean mainTrack)
 	{
-		if (!Double.isNaN(part.getSideStartWidth()) &&
-			!Double.isNaN(part.getSideEndWidth()) &&
-			part.getSideStartWidth() == part.getSideEndWidth())
+		if (mainTrack)
 		{
-			addContent(side, sPart + "side width", "m", part.getSideStartWidth());
+			// the segments start from it, like from a previous segment's end
+			double width = part.getSideEndWidth();
+			if (Double.isNaN(width))
+				width = part.getSideStartWidth();
+			addContent(side, sPart + "side width", "m", width);
 		}
 		else
 		{
@@ -519,17 +527,21 @@ public class XmlWriter
 			addContent(side, sPart + "side end width", "m", part.getSideEndWidth());
 		}
 		addContent(side, sPart + "side surface", part.getSideSurface());
-		addContent(side, sPart + "side type", part.getSideBankingType());
+		if (mainTrack)
+			addContent(side, sPart + "side type", part.getSideBankingType());
 
 		addContent(side, sPart + "border width", "m", part.getBorderWidth());
 		addContent(side, sPart + "border height", "m", part.getBorderHeight());
 		addContent(side, sPart + "border surface", part.getBorderSurface());
 		addContent(side, sPart + "border style", part.getBorderStyle());
 
-		addContent(side, sPart + "barrier width", "m", part.getBarrierWidth());
-		addContent(side, sPart + "barrier height", "m", part.getBarrierHeight());
-		addContent(side, sPart + "barrier surface", part.getBarrierSurface());
-		addContent(side, sPart + "barrier style", barrierStyle(part.getBarrierStyle()));
+		if (mainTrack)
+		{
+			addContent(side, sPart + "barrier width", "m", part.getBarrierWidth());
+			addContent(side, sPart + "barrier height", "m", part.getBarrierHeight());
+			addContent(side, sPart + "barrier surface", part.getBarrierSurface());
+			addContent(side, sPart + "barrier style", barrierStyle(part.getBarrierStyle()));
+		}
 	}
 
 	/**

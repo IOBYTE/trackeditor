@@ -322,10 +322,21 @@ public class GeneralProperties extends PropertyPanel
 		}
 
 		int version = Integer.parseInt((String) getVersionComboBox().getSelectedItem());
-		if (version != getEditorFrame().getTrackData().getHeader().getVersion())
+		int oldVersion = getEditorFrame().getTrackData().getHeader().getVersion();
+		// only version 4 is offered instead of a version 3 or 5 track's own version
+		if (version != oldVersion && version == 4)
 		{
-			getEditorFrame().getTrackData().getHeader().setVersion(version);
-			getEditorFrame().documentIsModified = true;
+			String message = "Convert this version " + oldVersion + " track to version 4?";
+			// what converting can't keep
+			for (String warning : utils.circuit.Version3.getReboundWarnings(getEditorFrame()))
+				message += "\n\nConverting: " + warning;
+			message += "\n\n" + EditorFrame.CONVERTING_CANT_BE_UNDONE;
+			String[] options = {"Convert", "Cancel"};
+			int choice = javax.swing.JOptionPane.showOptionDialog(getEditorFrame(), message, "Track Version",
+				javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+			// Cancel keeps the track's version
+			if (choice == 0)
+				getEditorFrame().convertToVersion4();
 		}
 
 		String skyVersionString = (String) getSkyVersionComboBox().getSelectedItem();

@@ -3620,6 +3620,9 @@ public class EditorFrame extends JFrame
 			message = "This is a version " + version + " track.\n" +
 				"Keep version " + version + ", or convert the track to version 4?";
 			options = new String[] {"Keep version " + version, "Convert to version 4", "Abort"};
+			// what converting can't keep
+			for (String warning : utils.circuit.Version3.getReboundWarnings(this))
+				message += "\n\nConverting: " + warning;
 		}
 		else
 		{
@@ -3627,6 +3630,7 @@ public class EditorFrame extends JFrame
 				"TORCS can't load version 5 tracks. Convert it to version 4?";
 			options = new String[] {"Convert to version 4", "Abort"};
 		}
+		message += "\n\n" + CONVERTING_CANT_BE_UNDONE;
 
 		// keeping the version doesn't change the track, so it is the default
 		// where it is offered
@@ -3638,9 +3642,24 @@ public class EditorFrame extends JFrame
 		if (choice != (canKeep ? 1 : 0))
 			return false;
 
+		convertToVersion4();
+		return true;
+	}
+
+	public static final String CONVERTING_CANT_BE_UNDONE = "Converting to version 4 can't be undone, and clears the undo history.";
+
+	/**
+	 * Converts a version 3 or 5 track to version 4. It can't be undone, and the undo
+	 * history is cleared: undoing an edit from before would bring back what the
+	 * conversion changed (a segment as it was in the version 3 track).
+	 */
+	public void convertToVersion4()
+	{
+		if (trackData.getHeader().getVersion() == 3)
+			utils.circuit.Version3.convertToVersion4(this);
 		trackData.getHeader().setVersion(4);
 		documentIsModified = true;
-		return true;
+		Undo.clear();
 	}
 
 	/**
