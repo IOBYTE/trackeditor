@@ -516,10 +516,7 @@ public class XmlWriter
 		if (mainTrack)
 		{
 			// the segments start from it, like from a previous segment's end
-			double width = part.getSideEndWidth();
-			if (Double.isNaN(width))
-				width = part.getSideStartWidth();
-			addContent(side, sPart + "side width", "m", width);
+			addContent(side, sPart + "side width", "m", part.getMainTrackSideWidth());
 		}
 		else
 		{
@@ -553,7 +550,12 @@ public class XmlWriter
 		Element side = new Element("section");
 		side.setAttribute(new Attribute("name", sPart + " Side"));
 
-		if (!mainTrack && !editorFrame.getGameType().widthSetsBothSideWidths())
+		if (mainTrack)
+		{
+			// the games read only "width" for the Main Track: the segments start from it
+			addContent(side, "width", "m", part.getMainTrackSideWidth());
+		}
+		else if (!editorFrame.getGameType().widthSetsBothSideWidths())
 		{
 			// TORCS reads "width" as the end width only, so equal widths can't become "width"
 			addContent(side, "start width", "m", part.getSideStartWidth());

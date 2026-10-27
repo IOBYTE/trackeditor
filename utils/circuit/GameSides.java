@@ -86,10 +86,8 @@ public final class GameSides
 	{
 		State s = new State();
 
-		// only "width" counts on the Main Track (the editor keeps it as equal start and end widths)
-		double start = main.getSideStartWidth();
-		double end = main.getSideEndWidth();
-		s.sideEndWidth = (!Double.isNaN(start) && start == end) ? start : 0.0;
+		// the Main Track has only "width": the editor keeps it as equal start and end widths
+		s.sideEndWidth = number(main.getMainTrackSideWidth(), 0.0);
 		s.sideStartWidth = s.sideEndWidth;
 		s.sideSurface = text(main.getSideSurface(), "grass");
 

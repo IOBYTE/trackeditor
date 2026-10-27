@@ -288,10 +288,8 @@ public class TrackProperties extends PropertyPanel
 	private class SidePanel extends JPanel
 	{
 		private SegmentSide 		side;
-		private JLabel				sideStartWidthLabel			= new JLabel();
-		private JTextField 			sideStartWidthTextField		= new JTextField();
-		private JLabel				sideEndWidthLabel			= new JLabel();
-		private JTextField 			sideEndWidthTextField		= new JTextField();
+		private JLabel				sideWidthLabel				= new JLabel();
+		private JTextField 			sideWidthTextField			= new JTextField();
 		private JLabel				sideSurfaceLabel			= new JLabel();
 		private SurfaceComboBox		sideSurfaceComboBox			= null;
 		private JLabel				sideBankingTypeLabel		= new JLabel();
@@ -331,33 +329,32 @@ public class TrackProperties extends PropertyPanel
 		{
 			setLayout(null);
 			
-			addLabel(this, 0, sideStartWidthLabel, "Side Start Width", 140);
-			addLabel(this, 1, sideEndWidthLabel, "Side End Width", 140);
-			addLabel(this, 2, sideSurfaceLabel, "Side Surface", 140);
-			addLabel(this, 3, sideBankingTypeLabel, "Side Banking Type", 140);
-			addLabel(this, 4, borderWidthLabel, "Border Width", 140);
-			addLabel(this, 5, borderHeightLabel, "Border Height", 140);
-			addLabel(this, 6, borderSurfaceLabel, "Border Surface", 140);
-			addLabel(this, 7, borderStyleLabel, "Border Style", 140);
-			addLabel(this, 8, barrierWidthLabel, "Barrier Width", 140);
-			addLabel(this, 9, barrierHeightLabel, "Barrier Height", 140);
-			addLabel(this, 10, barrierSurfaceLabel, "Barrier Surface", 140);
-			addLabel(this, 11, barrierStyleLabel, "Barrier Style", 140);
+			// the Main Track has only one side width: segments have start and end widths
+			addLabel(this, 0, sideWidthLabel, "Side Width", 140);
+			addLabel(this, 1, sideSurfaceLabel, "Side Surface", 140);
+			addLabel(this, 2, sideBankingTypeLabel, "Side Banking Type", 140);
+			addLabel(this, 3, borderWidthLabel, "Border Width", 140);
+			addLabel(this, 4, borderHeightLabel, "Border Height", 140);
+			addLabel(this, 5, borderSurfaceLabel, "Border Surface", 140);
+			addLabel(this, 6, borderStyleLabel, "Border Style", 140);
+			addLabel(this, 7, barrierWidthLabel, "Barrier Width", 140);
+			addLabel(this, 8, barrierHeightLabel, "Barrier Height", 140);
+			addLabel(this, 9, barrierSurfaceLabel, "Barrier Surface", 140);
+			addLabel(this, 10, barrierStyleLabel, "Barrier Style", 140);
 			
-			addTextField(this, 0, sideStartWidthTextField, side.getSideStartWidth(), 150, 125);
-			addTextField(this, 1, sideEndWidthTextField, side.getSideEndWidth(), 150, 125);
+			addTextField(this, 0, sideWidthTextField, side.getMainTrackSideWidth(), 150, 125);
 
 			add(getSideSurfaceComboBox(), null);
 			add(getSideBankingTypeComboBox(), null);
 
-			addTextField(this, 4, borderWidthTextField, side.getBorderWidth(), 150, 125);
-			addTextField(this, 5, borderHeightTextField, side.getBorderHeight(), 150, 125);
+			addTextField(this, 3, borderWidthTextField, side.getBorderWidth(), 150, 125);
+			addTextField(this, 4, borderHeightTextField, side.getBorderHeight(), 150, 125);
 
 			add(getBorderSurfaceComboBox(), null);
 			add(getBorderStyleComboBox(), null);
 
-			addTextField(this, 8, barrierWidthTextField, side.getBarrierWidth(), 150, 125);
-			addTextField(this, 9, barrierHeightTextField, side.getBarrierHeight(), 150, 125);
+			addTextField(this, 7, barrierWidthTextField, side.getBarrierWidth(), 150, 125);
+			addTextField(this, 8, barrierHeightTextField, side.getBarrierHeight(), 150, 125);
 
 			add(getBarrierSurfaceComboBox(), null);
 			add(getBarrierStyleComboBox(), null);
@@ -420,7 +417,7 @@ public class TrackProperties extends PropertyPanel
 			{
 				addSurface(sideSurfaceVector, side.getSideSurface());
 				sideSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), sideSurfaceVector);
-				sideSurfaceComboBox.setBounds(150, 64, 200, 23);
+				sideSurfaceComboBox.setBounds(150, 37, 200, 23);
 				sideSurfaceComboBox.setSelectedItem(side.getSideSurface());
 				sideSurfaceComboBox.addActionListener(new ActionListener()
 				{
@@ -444,7 +441,7 @@ public class TrackProperties extends PropertyPanel
 			{
 				String[] items = {"none", "level", "tangent"};
 				sideBankingTypeComboBox = new JComboBox<String>();
-				sideBankingTypeComboBox.setBounds(150, 91, 125, 23);
+				sideBankingTypeComboBox.setBounds(150, 64, 125, 23);
 				sideBankingTypeComboBox.setModel(new DefaultComboBoxModel<String>(items));
 				String type = side.getSideBankingType();
 				if (type == null || type.isEmpty())
@@ -472,7 +469,7 @@ public class TrackProperties extends PropertyPanel
 			{
 				addSurface(borderSurfaceVector, side.getBorderSurface());
 				borderSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), borderSurfaceVector);
-				borderSurfaceComboBox.setBounds(150, 172, 200, 23);
+				borderSurfaceComboBox.setBounds(150, 145, 200, 23);
 				borderSurfaceComboBox.setSelectedItem(side.getBorderSurface());
 				borderSurfaceComboBox.addActionListener(new ActionListener()
 				{
@@ -495,7 +492,7 @@ public class TrackProperties extends PropertyPanel
 			if (borderStyleComboBox == null)
 			{
 				borderStyleComboBox = new JComboBox<String>();
-				borderStyleComboBox.setBounds(150, 199, 125, 23);
+				borderStyleComboBox.setBounds(150, 172, 125, 23);
 				borderStyleComboBox.setModel(new DefaultComboBoxModel<String>(borderStyleItems));
 				String style = side.getBorderStyle();
 				selectItem(borderStyleComboBox, style);
@@ -574,7 +571,7 @@ public class TrackProperties extends PropertyPanel
 			{
 				addSurface(barrierSurfaceVector, side.getBarrierSurface());
 				barrierSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), barrierSurfaceVector);
-				barrierSurfaceComboBox.setBounds(150, 280, 200, 23);
+				barrierSurfaceComboBox.setBounds(150, 253, 200, 23);
 				barrierSurfaceComboBox.setSelectedItem(side.getBarrierSurface());
 				barrierSurfaceComboBox.addActionListener(new ActionListener()
 				{
@@ -597,7 +594,7 @@ public class TrackProperties extends PropertyPanel
 			if (barrierStyleComboBox == null)
 			{
 				barrierStyleComboBox = new JComboBox<String>();
-				barrierStyleComboBox.setBounds(150, 307, 125, 23);
+				barrierStyleComboBox.setBounds(150, 280, 125, 23);
 				String style = side.getBarrierStyle();
 				if (style == null || style.isEmpty())
 					style = "none";
@@ -707,18 +704,14 @@ public class TrackProperties extends PropertyPanel
 
         SidePanel left = (SidePanel) tabbedPane.getComponentAt(0);
 
-        if (isDifferent(left.sideStartWidthTextField.getText(),
-        	getEditorFrame().getTrackData().getMainTrack().getLeft().getSideStartWidth(), doubleResult))
-        {
-            getEditorFrame().getTrackData().getMainTrack().getLeft().setSideStartWidth(doubleResult.getValue());
-            getEditorFrame().documentIsModified = true;        	
-        }
-        if (isDifferent(left.sideEndWidthTextField.getText(),
-            getEditorFrame().getTrackData().getMainTrack().getLeft().getSideEndWidth(), doubleResult))
-        {
-            getEditorFrame().getTrackData().getMainTrack().getLeft().setSideEndWidth(doubleResult.getValue());
-            getEditorFrame().documentIsModified = true;        	
-        }
+		SegmentSide mainLeft = getEditorFrame().getTrackData().getMainTrack().getLeft();
+		if (isDifferent(left.sideWidthTextField.getText(), mainLeft.getMainTrackSideWidth(), doubleResult))
+		{
+			// the Main Track's one width is kept as both
+			mainLeft.setSideStartWidth(doubleResult.getValue());
+			mainLeft.setSideEndWidth(doubleResult.getValue());
+			getEditorFrame().documentIsModified = true;
+		}
 		if (isDifferent((String) left.sideSurfaceComboBox.getSelectedItem(),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getSideSurface(), stringResult))
 		{
@@ -782,18 +775,14 @@ public class TrackProperties extends PropertyPanel
 
         SidePanel right = (SidePanel) tabbedPane.getComponentAt(1);
 
-        if (isDifferent(right.sideStartWidthTextField.getText(),
-        	getEditorFrame().getTrackData().getMainTrack().getRight().getSideStartWidth(), doubleResult))
-        {
-            getEditorFrame().getTrackData().getMainTrack().getRight().setSideStartWidth(doubleResult.getValue());
-            getEditorFrame().documentIsModified = true;        	
-        }
-        if (isDifferent(right.sideEndWidthTextField.getText(),
-            getEditorFrame().getTrackData().getMainTrack().getRight().getSideEndWidth(), doubleResult))
-        {
-            getEditorFrame().getTrackData().getMainTrack().getRight().setSideEndWidth(doubleResult.getValue());
-            getEditorFrame().documentIsModified = true;        	
-        }
+		SegmentSide mainRight = getEditorFrame().getTrackData().getMainTrack().getRight();
+		if (isDifferent(right.sideWidthTextField.getText(), mainRight.getMainTrackSideWidth(), doubleResult))
+		{
+			// the Main Track's one width is kept as both
+			mainRight.setSideStartWidth(doubleResult.getValue());
+			mainRight.setSideEndWidth(doubleResult.getValue());
+			getEditorFrame().documentIsModified = true;
+		}
 		if (isDifferent((String) right.sideSurfaceComboBox.getSelectedItem(),
             getEditorFrame().getTrackData().getMainTrack().getRight().getSideSurface(), stringResult))
 		{

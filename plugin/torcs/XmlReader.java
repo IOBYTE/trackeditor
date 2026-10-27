@@ -1245,7 +1245,14 @@ public class XmlReader
         if (el != null)
         {
             double width = getAttrNumValue(el, "width", "m");
-			if (!mainTrack && !editorFrame.getGameType().widthSetsBothSideWidths())
+			if (mainTrack)
+			{
+				// the games read only "width" for the Main Track ("start width" and
+				// "end width" are segment keys), and the editor keeps it as both widths
+				part.setSideStartWidth(width);
+				part.setSideEndWidth(width);
+			}
+			else if (!editorFrame.getGameType().widthSetsBothSideWidths())
 			{
 				// TORCS: the start width is "start width" (or else the previous end width),
 				// the end width is "end width", or else "width", or else the start width

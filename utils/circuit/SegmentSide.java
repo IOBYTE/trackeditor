@@ -381,6 +381,16 @@ public class SegmentSide implements Cloneable
 	}
 
 	/**
+	 * @return the width of a Main Track side, which has only one ("width"): the editor
+	 *         keeps it as equal start and end widths (the end width, or else the start
+	 *         width, if they differ)
+	 */
+	public double getMainTrackSideWidth()
+	{
+		return Double.isNaN(sideEndWidth) ? sideStartWidth : sideEndWidth;
+	}
+
+	/**
 	 * @return Returns the sideStartWidth.
 	 */
 	public double getSideStartWidth()
