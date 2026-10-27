@@ -235,10 +235,20 @@ public class GeneralProperties extends PropertyPanel
 	{
 		if (versionComboBox == null)
 		{
-			String[] items = {"3", "4", "5"};
+			// a version 3 or 5 track can stay as it is or become version 4, but a
+			// version 4 track can't become version 3 or 5
+			int version = getEditorFrame().getTrackData().getHeader().getVersion();
+			String[] items;
+			if (version == 4)
+				items = new String[] {"4"};
+			else if (version < 4)
+				items = new String[] {version + "", "4"};
+			else
+				items = new String[] {"4", version + ""};
 			versionComboBox = new JComboBox<String>(items);
 			versionComboBox.setBounds(130, 118, 125, 23);
-			versionComboBox.setSelectedItem(getEditorFrame().getTrackData().getHeader().getVersion() + "");
+			versionComboBox.setSelectedItem(version + "");
+			versionComboBox.setEnabled(items.length > 1);
 		}
 		return versionComboBox;
 	}
