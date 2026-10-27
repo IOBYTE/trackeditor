@@ -320,8 +320,15 @@ public class TrackObjectDialog extends JDialog
 			}
 		}
 
+		// the track only has the default objects when its Objects section includes
+		// &default-objects; (Object Properties > Default Objects)
+		boolean defaults = editorFrame.getTrackData().getHasObjectsReference();
+		defaultCheckBox.setEnabled(defaults);
+		if (!defaults)
+			defaultCheckBox.setToolTipText("The track doesn't include the default objects (Object Properties > Default Objects)");
+
 		// search in default objects if not found
-		if (objectIndex == -1)
+		if (objectIndex == -1 && defaults)
 		{
 			trackObjects = editorFrame.getDefaultObjects();
 			for (int i = 0; i < trackObjects.size(); i++)
@@ -335,7 +342,7 @@ public class TrackObjectDialog extends JDialog
 			}
 		}
 
-		if (objectIndex == -1)
+		if (objectIndex == -1 && defaults)
 		{
 			// no object has this color so show default objects
 			defaultCheckBox.setSelected(true);

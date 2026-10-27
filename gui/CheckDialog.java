@@ -67,7 +67,12 @@ public class CheckDialog extends JDialog
 		super();
 		this.editorFrame = editorFrame;
 		defaultSurfaces = editorFrame.getDefaultSurfaces();
-		defaultObjects = editorFrame.getDefaultObjects();
+		// the track only has the default objects when its Objects section includes
+		// &default-objects; (Object Properties > Default Objects)
+		if (editorFrame.getTrackData().getHasObjectsReference())
+			defaultObjects = editorFrame.getDefaultObjects();
+		else
+			defaultObjects = new Vector<TrackObject>();
 		dataDirectory = editorFrame.getDataDirectory();
 		trackData = editorFrame.getTrackData();
 		initialize();
