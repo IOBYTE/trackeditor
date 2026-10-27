@@ -66,9 +66,12 @@ public class CheckDialog extends JDialog
 	{
 		super();
 		this.editorFrame = editorFrame;
-		defaultSurfaces = editorFrame.getDefaultSurfaces();
-		// the track only has the default objects when its Objects section includes
-		// &default-objects; (Object Properties > Default Objects)
+		// the track only has the default surfaces and objects when its Surfaces and
+		// Objects sections include &default-surfaces; and &default-objects;
+		if (editorFrame.getTrackData().getHasSurfacesReference())
+			defaultSurfaces = editorFrame.getDefaultSurfaces();
+		else
+			defaultSurfaces = new Vector<Surface>();
 		if (editorFrame.getTrackData().getHasObjectsReference())
 			defaultObjects = editorFrame.getDefaultObjects();
 		else
@@ -168,6 +171,9 @@ public class CheckDialog extends JDialog
 			}
 		}
 		
+		checkMainTrackSide(trackData.getMainTrack().getLeft(), "Left");
+		checkMainTrackSide(trackData.getMainTrack().getRight(), "Right");
+
 		// the editor shows what the game uses (see GameSides); these point out values in the
 		// file that the game ignores or that it takes from an earlier segment
 		for (int i = 0; i < segments.size(); i++)
@@ -177,6 +183,46 @@ public class CheckDialog extends JDialog
 
 			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
 			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
+		}
+	}
+
+	/**
+	 * The Main Track's border and barrier, which the segments start from. Every game and
+	 * track version makes a border style other than plan and curb a wall, and a barrier
+	 * style other than fence a wall (Speed Dreams' version 4 and 5 loaders also have
+	 * fence1 and fence2), "no barrier" too: only a segment can have no barrier.
+	 */
+	private void checkMainTrackSide(SegmentSide main, String name)
+	{
+		String prefix = "Main Track " + name;
+		boolean version3 = trackData.getHeader().getVersion() == 3;
+
+		// border (plan when it isn't set)
+		String borderStyle = main.getBorderStyle();
+		if (hasText(borderStyle) && !borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
+		{
+			textArea.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
+		}
+		if (editorFrame.getGameType().planBorderResetsHeight() && (!hasText(borderStyle) || borderStyle.equals("plan")) &&
+			!Double.isNaN(main.getBorderHeight()) && main.getBorderHeight() != 0)
+		{
+			textArea.append(prefix + " border style is plan with " + main.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
+		}
+
+		// barrier (fence when it isn't set)
+		String barrierStyle = main.getBarrierStyle();
+		boolean fence1Fence2 = !version3 && editorFrame.getGameType().hasFence1Fence2();
+		boolean fence = !hasText(barrierStyle) || barrierStyle.equals("fence") ||
+			(fence1Fence2 && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2")));
+		if (!fence && !barrierStyle.equals("wall"))
+		{
+			textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't " + (fence1Fence2 ? "fence, fence1, fence2" : "fence") +
+				" or wall" + (version3 ? " in a version 3 track" : "") + ", so the game makes it a wall" +
+				(barrierStyle.equals("no barrier") ? " (only a segment can have no barrier)" : "") + "\n");
+		}
+		if (fence && !Double.isNaN(main.getBarrierWidth()) && main.getBarrierWidth() != 0)
+		{
+			textArea.append(prefix + " barrier style is " + (hasText(barrierStyle) ? barrierStyle : "fence") + " with " + main.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
 		}
 	}
 
@@ -247,7 +293,8 @@ public class CheckDialog extends JDialog
 	
 	public void checkHeader()
 	{
-		if (trackData.getHeader().getSubcategory() != null)
+		// TORCS reads no subcategory
+		if (editorFrame.getGameType().hasSpeedDreamsExtensions() && trackData.getHeader().getSubcategory() != null)
 		{
 			if (!"speedway".equals(trackData.getHeader().getCategory()))
 			{
@@ -266,34 +313,42 @@ public class CheckDialog extends JDialog
 		boolean noSegments = !hasText(pits.getEntry()) && !hasText(pits.getStart()) && !hasText(pits.getEnd())
 				&& !hasText(pits.getExit());
 
+		// version 3 tracks only have pits with the pit type "track side"
+		if (!noSegments && trackData.getHeader().getVersion() == 3 && pits.getStyle() != 1)
+		{
+			textArea.append("Pit segments are set, but a version 3 track only has pits when the pit type is \"track side\", so the game ignores them\n");
+			return;
+		}
+
 		if (!noSegments)
 		{
 			SegmentVector segments = trackData.getSegments();
 
 			if (!hasText(pits.getEntry()))
-				textArea.append("Missing pit entry\n");
+				textArea.append("Missing pit entry: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getEntry()) == null)
-				textArea.append("Invalid pit entry: " + pits.getEntry() + "\n");
+				textArea.append("Invalid pit entry: " + pits.getEntry() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getStart()))
-				textArea.append("Missing pit start\n");
+				textArea.append("Missing pit start: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getStart()) == null)
-				textArea.append("Invalid pit start: " + pits.getStart() + "\n");
+				textArea.append("Invalid pit start: " + pits.getStart() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getEnd()))
-				textArea.append("Missing pit end\n");
+				textArea.append("Missing pit end: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getEnd()) == null)
-				textArea.append("Invalid pit end: " + pits.getEnd() + "\n");
+				textArea.append("Invalid pit end: " + pits.getEnd() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getExit()))
-				textArea.append("Missing pit exit\n");
+				textArea.append("Missing pit exit: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getExit()) == null)
-				textArea.append("Invalid pit exit: " + pits.getExit() + "\n");
+				textArea.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
 
+			// the games read any side but "right" as left
 			if (!hasText(pits.getSide()))
-				textArea.append("Missing pit side\n");
+				textArea.append("Missing pit side: the game uses right\n");
 			else if (!(pits.getSide().equals("left") || pits.getSide().equals("right")))
-				textArea.append("Invalid pit side: " + pits.getSide() + "\n");
+				textArea.append("Invalid pit side: " + pits.getSide() + " (the game uses left)\n");
 		}
 	}
 
@@ -1280,7 +1335,7 @@ public class CheckDialog extends JDialog
 				{
 					if (name.equals(trackData.getSurfaces().get(j).getName()))
 					{
-						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Track surface " + (j + 1) + " " + trackData.getSurfaces().get(i).getName() + "\n");
+						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Track surface " + (j + 1) + " " + trackData.getSurfaces().get(j).getName() + "\n");
 					}
 				}
 
@@ -1288,7 +1343,7 @@ public class CheckDialog extends JDialog
 				{
 					if (name.equals(defaultSurfaces.get(j).getName()))
 					{
-						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Default surface " + (j + 1) + " " + defaultSurfaces.get(i).getName() + "\n");
+						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Default surface " + (j + 1) + " " + defaultSurfaces.get(j).getName() + "\n");
 					}
 				}
 			}

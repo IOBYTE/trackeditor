@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
+import gui.EditorFrame;
 import utils.SurfaceComboBox;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -930,37 +931,17 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		// a fresh list each time, so an unlisted style shown for one segment isn't offered for the next
 		getBorderStyleComboBox().setModel(new DefaultComboBoxModel<String>(borderStyleItems));
 		selectStyle(getBorderStyleComboBox(), style);
+		if (parent.editorFrame.getInteractiveFixes())
+			fixBorder(segment, side);
 		switch (style)
 		{
 		case "none":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				String inheritedStyle = getBorderStyle(segment, side);
-				if (inheritedStyle == null || inheritedStyle.isEmpty())
-					inheritedStyle = "none";
-				switch (inheritedStyle)
-				{
-				case "none":
-					break;
-				case "plan":
-					checkBorderPlan(segment, side);
-					break;
-				case "wall":
-					break;
-				case "curb":
-					break;
-				}
-			}
 			getBorderHeightSlider().setValue(side.getBorderHeight());
 			getBorderHeightSlider().setEnabled(false);
 			getBorderWidthSlider().setValue(side.getBorderWidth());
 			getBorderWidthSlider().setEnabled(false);
 			break;
 		case "plan":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				checkBorderPlan(segment, side);
-			}
 			getBorderHeightSlider().setEnabled(true);
 			getBorderHeightSlider().setValueFrozen(side.getBorderHeight());
 			getBorderWidthSlider().setEnabled(true);
@@ -1010,36 +991,11 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		getBarrierStyleComboBox().setModel(new DefaultComboBoxModel<String>(barrierStyleItems(style)));
 		selectStyle(getBarrierStyleComboBox(), style);
 		updatingBarrierStyle = false;
+		if (parent.editorFrame.getInteractiveFixes())
+			fixBarrier(segment, side);
 		switch (style)
 		{
 		case "none":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				String inheritedStyle = getBarrierStyle(segment, side);
-				if (inheritedStyle == null || inheritedStyle.isEmpty())
-					inheritedStyle = "none";
-				switch (inheritedStyle)
-				{
-				case "none":
-					break;
-				case "no barrier":
-					checkBarrierNoBarrier(segment, side);
-					break;
-				case "wall":
-					checkBarrierWall(segment, side);
-					break;
-				case "fence":
-					checkBarrierFence(segment, side);
-					break;
-				case "fence1":
-					checkBarrierFence(segment, side);
-					break;
-				case "plan":
-				case "curb":
-					checkBarrierInvalid(segment, side);
-					break;
-				}
-			}
 			getBarrierSurfaceComboBox().setSelectedIndex(-1);
 			getBarrierHeightSlider().setValue(side.getBarrierHeight());
 			getBarrierHeightSlider().setEnabled(false);
@@ -1047,20 +1003,12 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			getBarrierWidthSlider().setEnabled(false);
 			break;
 		case "no barrier":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				checkBarrierNoBarrier(segment, side);
-			}
 			getBarrierHeightSlider().setEnabled(true);
 			getBarrierHeightSlider().setValueFrozen(side.getBarrierHeight());
 			getBarrierWidthSlider().setEnabled(true);
 			getBarrierWidthSlider().setValueFrozen(side.getBarrierWidth());
 			break;
 		case "wall":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				checkBarrierWall(segment, side);
-			}
 			getBarrierHeightSlider().setEnabled(true);
 			getBarrierHeightSlider().setValue(side.getBarrierHeight());
 			getBarrierWidthSlider().setEnabled(true);
@@ -1069,10 +1017,6 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		case "fence":
 		case "fence1":
 		case "fence2":
-			if (parent.editorFrame.getInteractiveFixes())
-			{
-				checkBarrierFence(segment, side);
-			}
 			getBarrierHeightSlider().setEnabled(true);
 			getBarrierHeightSlider().setValue(side.getBarrierHeight());
 			getBarrierWidthSlider().setEnabled(true);
@@ -1081,12 +1025,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		case "plan":
 		case "curb":
 		default:
-			// a style the game doesn't know: it keeps the barrier from before, but the
-			// values set here are still edited
-			if (parent.editorFrame.getInteractiveFixes() && (style.equals("plan") || style.equals("curb")))
-			{
-				checkBarrierInvalid(segment, side);
-			}
+			// a style the game doesn't know (see fixBarrier), but the values set here
+			// are still edited
 			getBarrierHeightSlider().setEnabled(true);
 			getBarrierHeightSlider().setValue(side.getBarrierHeight());
 			getBarrierWidthSlider().setEnabled(true);
@@ -1096,6 +1036,52 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 		this.validate();
 		this.repaint();
+	}
+
+	/**
+	 * The interactive fix for a segment's border, from what the game makes of it. Only
+	 * Speed Dreams and CSR ignore a plan border's height (they use 0): TORCS keeps it for
+	 * the curb and wall borders after it, so it isn't wrong there.
+	 */
+	private void fixBorder(Segment segment, SegmentSide side)
+	{
+		if (parent.editorFrame.getGameType().planBorderResetsHeight() && "plan".equals(getBorderStyle(segment, side)))
+			checkBorderPlan(segment, side);
+	}
+
+	/**
+	 * @return whether the game knows a segment barrier style: wall and fence, fence1 and
+	 *         fence2 only in Speed Dreams, and no barrier only in Speed Dreams
+	 */
+	private boolean isKnownBarrierStyle(String style)
+	{
+		EditorFrame.GameType game = parent.editorFrame.getGameType();
+		return style.equals("wall") || style.equals("fence") ||
+			(game.hasFence1Fence2() && (style.equals("fence1") || style.equals("fence2"))) ||
+			(game.hasNoBarrier() && style.equals("no barrier"));
+	}
+
+	/**
+	 * The interactive fix for a segment's barrier (version 4 and 5 tracks: version 3
+	 * tracks only have the Main Track's). A style the game doesn't know is offered to be
+	 * changed (TORCS makes it a wall, the others keep the barrier from before); otherwise
+	 * the barrier the game uses, set here or from before, is checked for its style.
+	 */
+	private void fixBarrier(Segment segment, SegmentSide side)
+	{
+		String own = side.getBarrierStyle();
+		if (own != null && !own.isEmpty() && !isKnownBarrierStyle(own))
+		{
+			checkBarrierInvalid(segment, side);
+			return;
+		}
+		String style = side.isRight() ? segment.getValidRightBarrierStyle(parent.editorFrame) : segment.getValidLeftBarrierStyle(parent.editorFrame);
+		if (style.equals("no barrier"))
+			checkBarrierNoBarrier(segment, side);
+		else if (style.equals("wall"))
+			checkBarrierWall(segment, side);
+		else if (style.startsWith("fence"))
+			checkBarrierFence(segment, side);
 	}
 
 	private void checkBorderPlan(Segment segment, SegmentSide side)
@@ -1128,14 +1114,16 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 	private void checkBarrierInvalid(Segment segment, SegmentSide side)
 	{
-		// fix up bad value (plan and curb are not a valid style)
+		// fix up bad value (a style the game doesn't know)
 		// only Speed Dreams is offered no barrier (see basicBarrierStyleItems)
 		boolean withoutNoBarrier = !parent.editorFrame.getGameType().hasNoBarrier();
 		String[] options = withoutNoBarrier ?
 			new String[] { "Set style to none", "Set style to fence", "Set style to wall", "Ignore" } :
 			new String[] { "Set style to none", "Set style to no barrier", "Set style to fence", "Set style to wall", "Ignore" };
+		String result = parent.editorFrame.getGameType().otherBarrierStylesAreWalls() ? "the game makes it a wall" : "the game keeps the barrier from before";
 		int choice = JOptionPane.showOptionDialog(null, "Found " + side.getName() + getBarrierStyleText(segment, side) + " with" +
-				getBarrierWidthText(segment, side) + getBarrierHeightText(segment, side) + getBarrierSurfaceText(segment, side),
+				getBarrierWidthText(segment, side) + getBarrierHeightText(segment, side) + getBarrierSurfaceText(segment, side) +
+				"\n(" + result + ")",
 				"Invalid Barrier Style", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[options.length - 1]);
 		// the choices after none are one further on in the full list
 		if (withoutNoBarrier && choice >= 1)
@@ -1253,21 +1241,24 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		// fix up bad value (width should not be 0)
 		if (getBarrierHeight(segment, side) == 0)
 		{
-			String[] options = { "Set height to not be 0.0", "Set style to plan", "Ignore" };
-			switch (JOptionPane.showOptionDialog(null, "Found " + side.getName() + getBarrierStyleText(segment, side) + " with" +
+			// (plan isn't a barrier style: only Speed Dreams has no barrier)
+			boolean noBarrier = parent.editorFrame.getGameType().hasNoBarrier();
+			String[] options = noBarrier ?
+				new String[] { "Set height to " + SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT, "Set style to no barrier", "Ignore" } :
+				new String[] { "Set height to " + SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT, "Ignore" };
+			int choice = JOptionPane.showOptionDialog(null, "Found " + side.getName() + getBarrierStyleText(segment, side) + " with" +
 					getBarrierWidthText(segment, side) + getBarrierHeightText(segment, side) + getBarrierSurfaceText(segment, side),
-					"Invalid Barrier Height", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]))
+					"Invalid Barrier Height", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[options.length - 1]);
+			if (choice == 0)
 			{
-			case 0: // set width to 0
 				side.setBarrierHeight(SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT);
-				break;
-			case 1: // set style to plan
-				side.setBarrierStyle("plan");
+			}
+			else if (noBarrier && choice == 1)
+			{
+				side.setBarrierStyle("no barrier");
+				side.setBarrierHeight(0.0);
+				side.setBarrierWidth(0.0);
 				getBarrierStyleComboBox().setSelectedItem(side.getBarrierStyle());
-				break;
-			case 2: // ignore
-				// nothing
-				break;
 			}
 		}
 	}
