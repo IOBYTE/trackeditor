@@ -789,15 +789,17 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * @return trackgen's arguments for where the track is: CSR trackgen reads the track
-	 *         from, and writes its files into, the game's installed data unless it's given
-	 *         the track's folder (-i and -o), so it's given the folder the track is in.
-	 *         It finds the relief, object maps and objects next to the track file.
+	 * @return trackgen's arguments for where the track is: CSR's and Speed Dreams'
+	 *         trackgen read the track from, and write their files into, the game's
+	 *         installed data unless given the track's folder (-i and -o), so they're given
+	 *         the folder the track is in. They find the relief, object maps and objects
+	 *         next to the track file. TORCS trackgen has -i and -o too, but still looks
+	 *         for those under its tracks/<category>/<name>, so it isn't given them.
 	 */
 	public List<String> getTrackgenFolderArgs()
 	{
 		List<String> args = new ArrayList<String>();
-		if (gameType == GameType.CARS_SPORTS_RACING)
+		if (gameType != GameType.TORCS)
 		{
 			String path = Editor.getProperties().getPath();
 			args.add("-i");
@@ -3490,15 +3492,8 @@ public class EditorFrame extends JFrame
 		trackgen.add(category);
 		trackgen.add("-n");
 		trackgen.add(trackName);
-		// CSR's and Speed Dreams' trackgen read the track from, and write into, their
-		// installed data unless given the track's folder: accc reads the files there
-		if (gameType != GameType.TORCS)
-		{
-			trackgen.add("-i");
-			trackgen.add(path);
-			trackgen.add("-o");
-			trackgen.add(path);
-		}
+		// where the track is (CSR and Speed Dreams): accc reads the files trackgen makes there
+		trackgen.addAll(getTrackgenFolderArgs());
 
 		boolean raceline = false;
 		List<String> other = new ArrayList<String>();

@@ -184,7 +184,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 		cmd.add(editorFrame.getTrackData().getHeader().getCategory());
 		cmd.add("-n");
 		cmd.add(trackName);
-		// where the track is (CSR)
+		// where the track is (CSR and Speed Dreams)
 		cmd.addAll(editorFrame.getTrackgenFolderArgs());
 
 		// each option is its own argument, e.g. " -E 0" -> "-E", "0"
