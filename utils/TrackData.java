@@ -49,24 +49,40 @@ import utils.circuit.TrackObject;
  */
 public final class TrackData
 {
-	private Header				header					= new Header();
-    private LocalInfo			localInfo				= new LocalInfo();
-    private StartingGrid		startingGrid			= new StartingGrid();
-    private Graphic				graphic					= new Graphic();
-    private Vector<Surface> 	surfaces				= new Vector<Surface>();
-    private Vector<Camera> 		cameras					= new Vector<Camera>();
-    private Vector<TrackObject> trackObjects			= new Vector<TrackObject>();
-    private Vector<TrackLight> 	trackLights				= new Vector<TrackLight>();
-    private MainTrack			mainTrack				= new MainTrack();
-    private SegmentVector		segments				= null;
-    private Vector<Sector>		sectors					= new Vector<Sector>();
+	private Header					header					= new Header();
+	private java.util.List<String>	unusedKeys				= new java.util.ArrayList<String>();
+    private LocalInfo				localInfo				= new LocalInfo();
+    private StartingGrid			startingGrid			= new StartingGrid();
+    private Graphic					graphic					= new Graphic();
+    private Vector<Surface> 		surfaces				= new Vector<Surface>();
+    private Vector<Camera> 			cameras					= new Vector<Camera>();
+    private Vector<TrackObject> 	trackObjects			= new Vector<TrackObject>();
+    private Vector<TrackLight> 		trackLights				= new Vector<TrackLight>();
+    private MainTrack				mainTrack				= new MainTrack();
+    private SegmentVector			segments				= null;
+    private Vector<Sector>			sectors					= new Vector<Sector>();
 	// TORCS only
-	private Georeference		georeference			= new Georeference();
+	private Georeference			georeference			= new Georeference();
 
-    private boolean				hasSurfacesEntity		= false;
-    private boolean				hasSurfacesReference	= false;
-    private boolean				hasObjectsEntity		= false;
-    private boolean				hasObjectsReference		= false;
+    private boolean					hasSurfacesEntity		= false;
+    private boolean					hasSurfacesReference	= false;
+    private boolean					hasObjectsEntity		= false;
+    private boolean					hasObjectsReference		= false;
+
+	/**
+	 * @return the keys and sections in the file the track was read from that saving
+	 *         won't keep, as messages: ones the editor doesn't read, and ones it reads
+	 *         that the game doesn't use
+	 */
+	public java.util.List<String> getUnusedKeys()
+	{
+		return unusedKeys;
+	}
+
+	public void setUnusedKeys(java.util.List<String> unusedKeys)
+	{
+		this.unusedKeys = unusedKeys;
+	}
 
 	/**
 	 * @return Returns the header.

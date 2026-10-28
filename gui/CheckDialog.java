@@ -122,6 +122,7 @@ public class CheckDialog extends JDialog
 	    		checkPits();
 	    		checkTrack();
 	    		checkHeader();
+				checkUnusedKeys();
 
 	    		textArea.append("Checking complete!");
 	    	}
@@ -291,6 +292,16 @@ public class CheckDialog extends JDialog
 		}
 	}
 	
+	/**
+	 * What's in the track file that saving won't keep: keys and sections the editor
+	 * doesn't read, and keys the game in use doesn't (found when the track was read).
+	 */
+	private void checkUnusedKeys()
+	{
+		for (String message : trackData.getUnusedKeys())
+			textArea.append(message + "\n");
+	}
+
 	public void checkHeader()
 	{
 		// TORCS reads no subcategory

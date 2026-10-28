@@ -4503,6 +4503,89 @@ public class EditorFrame extends JFrame
 	 * @return true if the track was read
 	 */
 	/**
+	 * @return the keys and sections in the file just read that saving won't keep, as
+	 *         messages: the ones the editor doesn't read, and the ones it reads that it
+	 *         doesn't write for this game (the game doesn't use them)
+	 */
+	private List<String> findUnusedKeys(XmlReader xmlReader)
+	{
+		List<String> messages = new ArrayList<String>();
+		for (XmlReader.FileKey key : xmlReader.getUnreadKeys())
+		{
+			String what = key.section ? "section " + key.path + " (" + key.keys + (key.keys == 1 ? " key" : " keys") + ")" : key.path;
+			if ("attstr".equals(key.wrongType))
+				messages.add(lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it");
+			else if ("attnum".equals(key.wrongType))
+				messages.add(lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it");
+			else
+				messages.add(lineText(key) + what + ": the editor doesn't read it, so saving removes it");
+		}
+		try
+		{
+			java.util.Set<String> written = XmlReader.getKeyPaths(new XmlWriter(this).getDocument(""));
+			for (XmlReader.FileKey key : xmlReader.getReadKeys())
+			{
+				if (!written.contains(key.path) && !writtenAsOther(key.path, written))
+					messages.add(lineText(key) + key.path + ": " + gameType.getName() + " doesn't use it, so saving for " +
+						gameType.getShortName() + " removes it");
+			}
+		}
+		catch (Exception e)
+		{
+			// only this part of the check is lost
+			e.printStackTrace();
+		}
+		return messages;
+	}
+
+	/**
+	 * @return whether the writer keeps the key under another name in its section: a
+	 *         side's equal start and end widths become "width" (and a TORCS end width
+	 *         "width" can become "end width"), and the pits' "type" of some TORCS tracks
+	 *         becomes "pit style", and a curve's end radius equal to its start radius
+	 *         is left out
+	 */
+	private static boolean writtenAsOther(String path, java.util.Set<String> written)
+	{
+		int slash = path.lastIndexOf('/');
+		if (slash < 0)
+			return false;
+		String section = path.substring(0, slash + 1);
+		String name = path.substring(slash + 1);
+		String[] others;
+		switch (name)
+		{
+		case "start width":
+		case "end width":
+			others = new String[] {"width"};
+			break;
+		case "width":
+			others = new String[] {"start width", "end width"};
+			break;
+		case "type":
+			others = section.endsWith("Pits/") ? new String[] {"pit style"} : new String[0];
+			break;
+		case "end radius":
+			// left out when it's the start radius, which the game uses then
+			others = new String[] {"radius"};
+			break;
+		default:
+			others = new String[0];
+		}
+		for (String other : others)
+		{
+			if (written.contains(section + other))
+				return true;
+		}
+		return false;
+	}
+
+	private static String lineText(XmlReader.FileKey key)
+	{
+		return key.line > 0 ? "Line " + key.line + ": " : "";
+	}
+
+	/**
 	 * Closes the windows that show or edit the track that was open, when another
 	 * track replaces it. Left open they would show the old track, and editing in
 	 * them would change a track that is no longer open.
@@ -4583,6 +4666,9 @@ public class EditorFrame extends JFrame
 				trackData.getHeader().setVersion(4);
 				documentIsModified = true;
 			}
+
+			// what saving won't keep from the file, for the Check dialog
+			trackData.setUnusedKeys(findUnusedKeys(xmlReader));
 		}
 		catch (Exception e)
 		{

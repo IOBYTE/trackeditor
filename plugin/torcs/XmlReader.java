@@ -126,6 +126,41 @@ public class XmlReader
 	private EditorFrame		editorFrame = null;
 	private String			filename	= null;
 	private List<String>	warnings	= new java.util.ArrayList<String>();
+	// the elements the editor read, to find what it didn't (see getUnreadKeys)
+	private final java.util.Set<Element>	read		=
+		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+	// the keys read as the type they are (attnum or attstr), and the ones the editor
+	// tried to read as the other type: the game doesn't read those either
+	private final java.util.Set<Element>	typeMatched	=
+		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+	private final java.util.Set<Element>	typeMismatched	=
+		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+	// what the editor read and what it didn't, found once the track is read
+	private final List<FileKey>				readKeys	= new java.util.ArrayList<FileKey>();
+	private final List<FileKey>				unreadKeys	= new java.util.ArrayList<FileKey>();
+
+	/**
+	 * A key (attnum or attstr) or a section in the track file: its line, its path of
+	 * section names and its name, and for a section how many keys it holds.
+	 */
+	public static class FileKey
+	{
+		public final int		line;
+		public final String		path;
+		public final boolean	section;
+		public final int		keys;
+		// an attnum read as text or an attstr read as a number: what it is
+		public final String		wrongType;
+
+		FileKey(int line, String path, boolean section, int keys, String wrongType)
+		{
+			this.line = line;
+			this.path = path;
+			this.section = section;
+			this.keys = keys;
+			this.wrongType = wrongType;
+		}
+	}
 
 	public XmlReader(EditorFrame editorFrame)
 	{
@@ -140,7 +175,123 @@ public class XmlReader
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
         checkStructure(element);
+        read.clear();
+        typeMatched.clear();
+        typeMismatched.clear();
         setTrackData(element);
+        findUnread(element);
+    }
+
+    /** @return the keys the editor read, with their paths (see getKeyPaths) */
+    public List<FileKey> getReadKeys()
+    {
+        return readKeys;
+    }
+
+    /**
+     * @return the keys and sections in the file the editor didn't read, so saving
+     *         doesn't keep them: a section is listed once when nothing in it was read.
+     *         Duplicate keys aren't listed: they are reported when the track is read.
+     */
+    public List<FileKey> getUnreadKeys()
+    {
+        return unreadKeys;
+    }
+
+    private void findUnread(Element root)
+    {
+        readKeys.clear();
+        unreadKeys.clear();
+        findUnread(root, "");
+    }
+
+    private void findUnread(Element element, String path)
+    {
+        for (Object o : element.getChildren())
+        {
+            Element child = (Element) o;
+            String name = child.getAttributeValue("name");
+            String childPath = path.isEmpty() ? name : path + "/" + name;
+            int line = child instanceof MyElement ? ((MyElement) child).getLineNumber() : 0;
+
+            if (child.getName().equals("section"))
+            {
+                if (read.contains(child) || hasRead(child))
+                    findUnread(child, childPath);
+                else
+                    unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null));
+            }
+            else if (child.getName().equals("attnum") || child.getName().equals("attstr"))
+            {
+                if (read.contains(child) && typeMismatched.contains(child) && !typeMatched.contains(child))
+                    unreadKeys.add(new FileKey(line, childPath, false, 1, child.getName()));
+                else if (read.contains(child))
+                    readKeys.add(new FileKey(line, childPath, false, 1, null));
+                else if (!reportedDuplicates.contains(child))
+                    unreadKeys.add(new FileKey(line, childPath, false, 1, null));
+            }
+        }
+    }
+
+    /**
+     * @return whether the key is of the type (attnum or attstr), and keeps track of it:
+     *         the game reads a number only from an attnum, and text only from an attstr
+     */
+    private boolean isType(Element e, String tag)
+    {
+        if (e == null)
+            return false;
+        boolean ok = e.getName().equals(tag);
+        (ok ? typeMatched : typeMismatched).add(e);
+        return ok;
+    }
+
+    /** @return whether anything in the section was read */
+    private boolean hasRead(Element section)
+    {
+        for (Object o : section.getChildren())
+        {
+            Element child = (Element) o;
+            if (read.contains(child) || hasRead(child))
+                return true;
+        }
+        return false;
+    }
+
+    private static int countKeys(Element section)
+    {
+        int count = 0;
+        for (Object o : section.getChildren())
+        {
+            Element child = (Element) o;
+            count += child.getName().equals("section") ? countKeys(child) : 1;
+        }
+        return count;
+    }
+
+    /**
+     * @return the paths of the keys (attnum and attstr) in a document, like a track file
+     *         the writer made: its section names and the key's name
+     */
+    public static java.util.Set<String> getKeyPaths(Document doc)
+    {
+        java.util.Set<String> paths = new java.util.HashSet<String>();
+        addKeyPaths(doc.getRootElement(), "", paths);
+        return paths;
+    }
+
+    private static void addKeyPaths(Element element, String path, java.util.Set<String> paths)
+    {
+        for (Object o : element.getChildren())
+        {
+            Element child = (Element) o;
+            String name = child.getAttributeValue("name");
+            String childPath = path.isEmpty() ? name : path + "/" + name;
+            if (child.getName().equals("section"))
+                addKeyPaths(child, childPath, paths);
+            else
+                paths.add(childPath);
+        }
     }
 
     /**
@@ -475,6 +626,7 @@ public class XmlReader
             Camera cam = new Camera();
 
             Element camera = (Element) it.next();
+            read.add(camera);
             cam.setName(camera.getAttribute("name").getValue());
             cam.setComment(getAttrStrValue(camera, "comment"));
             cam.setSegment(getAttrStrValue(camera, "segment"));
@@ -513,6 +665,7 @@ public class XmlReader
             TrackLight lit = new TrackLight();
 
             Element light = (Element) it.next();
+            read.add(light);
             lit.setName(light.getAttribute("name").getValue());
 
             Element corner = getChildWithName(light, "topleft");
@@ -564,6 +717,7 @@ public class XmlReader
             Sector sector = new Sector();
 
             Element element = (Element) it.next();
+            read.add(element);
             sector.setName(element.getAttribute("name").getValue());
             sector.setComment(getAttrStrValue(element, "comment"));
             sector.setDistanceFromStart(getAttrNumValue(element, "distance from start", "m"));
@@ -661,6 +815,7 @@ public class XmlReader
             Surface surf = new Surface();
 
             Element surface = (Element) it.next();
+            read.add(surface);
             surf.setName(surface.getAttribute("name").getValue());
             surf.setComment(getAttrStrValue(surface, "comment"));
             surf.setColorR1(getAttrNumValue(surface, "color R1"));
@@ -718,6 +873,7 @@ public class XmlReader
             TrackObject obj = new TrackObject();
 
             Element object = (Element) it.next();
+            read.add(object);
             obj.setName(object.getAttribute("name").getValue());
             obj.setObject(getAttrStrValue(object, "object"));
             obj.setComment(getAttrStrValue(object, "comment"));
@@ -869,6 +1025,7 @@ public class XmlReader
 	        	while (it.hasNext())
 	        	{
 	        		Element el = (Element) it.next();
+					read.add(el);
 	        		GraphicObject object = new GraphicObject(el.getAttribute("name").getValue(),
 	        				getAttrIntValue(el, "color"),
 	        				new Point2D.Double(getAttrNumValue(el, "x"), getAttrNumValue(el, "y")));
@@ -891,6 +1048,7 @@ public class XmlReader
                     ObjectMap obj = new ObjectMap();
 
 		            Element el = (Element) it.next();
+		            read.add(el);
 		            obj.setName(el.getAttribute("name").getValue());
 
 		            try
@@ -931,6 +1089,7 @@ public class XmlReader
 	            EnvironmentMapping env = new EnvironmentMapping();
 
 	            Element el = (Element) it.next();
+	            read.add(el);
 	            env.setName(el.getAttribute("name").getValue());
 
 	            env.setEnvMapImage(getAttrStrValue(el, "env map image"));
@@ -1093,6 +1252,7 @@ public class XmlReader
         while (it.hasNext())
         {
             Element e = (Element) it.next();
+            read.add(e);
             String type = getAttrStrValue(e, "type");
             // like the game, skip a segment without a type (or one it doesn't know)
             if (type == null || !(type.equals("str") || type.equals("lft") || type.equals("rgt")))
@@ -1325,6 +1485,8 @@ public class XmlReader
 					warn(child, "is in its section more than once: like the game, the first one is used, so this one isn't saved.");
 			}
 		}
+		if (out != null)
+			read.add(out);
 		return out;
     }
 
@@ -1357,7 +1519,7 @@ public class XmlReader
 
         try
         {
-            if (el.getName().equals("attstr"))
+            if (isType(el, "attstr"))
             {
                 out = el.getAttributeValue("val");
             }
@@ -1445,7 +1607,7 @@ public class XmlReader
     public synchronized DoubleValue getAttrNumUnitsValue(Element element, String name)
     {
         Element e = getChildWithName(element, name);
-        if (e != null && e.getName().equals("attnum"))
+        if (isType(e, "attnum"))
         {
             double out = readNumber(e);
 
@@ -1465,7 +1627,7 @@ public class XmlReader
     {
         double out = Double.NaN;
         Element e = getChildWithName(element, name);
-        if (e != null && e.getName().equals("attnum"))
+        if (isType(e, "attnum"))
         {
             out = readNumber(e);
 
@@ -1481,7 +1643,7 @@ public class XmlReader
     {
     	int out = Integer.MAX_VALUE;
     	Element e = getChildWithName(element, name);
-		if (e != null && e.getName().equals("attnum"))
+		if (isType(e, "attnum"))
     	{
 			// the game reads every attnum as a number (decimal, or hexadecimal after "0x",
 			// so "010" is 10, not octal 8), converts its unit and the code casts it

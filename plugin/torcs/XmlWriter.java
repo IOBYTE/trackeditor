@@ -69,6 +69,9 @@ public class XmlWriter
 {
 	private EditorFrame		editorFrame;
 	private List<String>	fileErrors		= new ArrayList<String>();
+	// false while only making the document (getDocument): the relief file and object
+	// maps aren't written then
+	private boolean			writeFiles		= true;
 
 	/**
 	 * The track xml was written, but relief or object map files it refers to were not.
@@ -104,6 +107,25 @@ public class XmlWriter
 
 		if (!fileErrors.isEmpty())
 			throw new ReferencedFileException(new ArrayList<String>(fileErrors));
+	}
+
+	/**
+	 * @return the track file the writer would write, without writing it or the files it
+	 *         refers to (the relief file and object maps)
+	 */
+	public Document getDocument(String trackName)
+	{
+		Document doc = new Document();
+		writeFiles = false;
+		try
+		{
+			getXml(doc, trackName);
+		}
+		finally
+		{
+			writeFiles = true;
+		}
+		return doc;
 	}
 
 	private void addFileError(String what, String file, Exception e)
@@ -1099,7 +1121,7 @@ public class XmlWriter
 
 		addContent(element, "relief file", editorFrame.getTerrainGeneration().getReliefFile());
 
-		if (editorFrame.getReliefs().getChanged())
+		if (writeFiles && editorFrame.getReliefs().getChanged())
 		{
 			try
 			{
@@ -1204,7 +1226,7 @@ public class XmlWriter
 
 			element.addContent(el);
 
-			if (data.getChanged())
+			if (writeFiles && data.getChanged())
 			{
 				try
 				{
