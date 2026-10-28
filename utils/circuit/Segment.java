@@ -1623,7 +1623,7 @@ public class Segment implements Cloneable
 		}
 
 		setGrade(previousShape.getGrade());
-		if (!Double.isNaN(bankingEnd))
+		if (!Double.isNaN(previousShape.getBankingEnd()))
 		{
 			setBankingStart(previousShape.getBankingEnd());
 			setBankingEnd(previousShape.getBankingEnd());
@@ -1660,41 +1660,208 @@ public class Segment implements Cloneable
 		getRight().setBorderStyle(previousShape.getRight().getBorderStyle());
     }
 
+	/**
+	 * What carries on from a segment to the ones after it, as the game uses it: the
+	 * surface, the side, border and barrier values (see GameSides), how it ends
+	 * (height, banking and spline tangents), and the last grade, which a later
+	 * segment without an end height uses. See keep.
+	 */
+	public static final class Carried
+	{
+		private String			surface;
+		private GameSides.State	left;
+		private GameSides.State	right;
+		private double			heightEnd;
+		private double			bankingEnd;
+		private double			endTangentLeft;
+		private double			endTangentRight;
+		// NaN when no segment up to this one has a grade
+		private double			grade;
+	}
+
+	/**
+	 * @return what this segment carries on (see Carried); TrackData.calculateSegmentValues
+	 *         must be up to date
+	 */
+	public Carried getCarried(EditorFrame editorFrame)
+	{
+		Carried carried = new Carried();
+		carried.surface = getValidSurface(editorFrame);
+		carried.left = GameSides.of(this, false, editorFrame);
+		carried.right = GameSides.of(this, true, editorFrame);
+		carried.heightEnd = calculatedHeightEnd;
+		carried.bankingEnd = calculatedBankingEnd;
+		carried.endTangentLeft = calculatedEndTangentLeft;
+		carried.endTangentRight = calculatedEndTangentRight;
+		carried.grade = Double.NaN;
+		int limit = editorFrame.getTrackData().getSegments().size();
+		Segment segment = this;
+		for (int i = 0; segment != null && i <= limit; i++, segment = segment.previousShape)
+		{
+			if (segment.hasGrade())
+			{
+				carried.grade = segment.grade;
+				break;
+			}
+		}
+		return carried;
+	}
+
+	/**
+	 * Makes this segment keep what it carried before a change to the segments before
+	 * it, by giving it the values that changed: its surface, side, border and barrier
+	 * values, its banking and spline tangents at its end, and the grade it and the
+	 * segments after use. Its start (height, banking, tangents and side widths) still
+	 * joins the end of the segment before it, as the game does, so the track has no
+	 * step there. Its end height isn't kept: like the game, it follows its start when
+	 * it comes from the grade or the segment before, so it and the segments after
+	 * move up or down with the change (a deleted segment's rise is gone).
+	 * TrackData.calculateSegmentValues must be up to date after the change.
+	 *
+	 * @param before what it carried before the change (getCarried)
+	 */
+	public void keep(EditorFrame editorFrame, Carried before)
+	{
+		set(editorFrame, getCarried(editorFrame), before, false);
+	}
+
+	/**
+	 * Gives this segment everything it otherwise takes from the segments before it, so
+	 * it doesn't depend on them: what keep sets, and its start too. Only the values the
+	 * game reads are set (not the barrier in a version 3 track, which the game takes
+	 * from the Main Track). TrackData.calculateSegmentValues must be up to date.
+	 */
 	public void unoptimize(EditorFrame editorFrame)
 	{
-		surface = getValidSurface(editorFrame);
-		if (!Double.isNaN(getValidProfilStepsLength(editorFrame)))
-			profilStepsLength = getValidProfilStepsLength(editorFrame);
+		Carried now = getCarried(editorFrame);
+		set(editorFrame, now, now, true);
 
-		// TODO: elevation, banking and other stuff needs to be implemented
+		heightStart = calculatedHeightStart;
+		heightStartLeft = Double.NaN;
+		heightStartRight = Double.NaN;
+		bankingStart = calculatedBankingStart;
+		if (isSpline())
+		{
+			setStartTangents(calculatedStartTangentLeft, calculatedStartTangentRight);
+		}
+	}
 
-		left.setBarrierWidth(getValidLeftBarrierWidth(editorFrame));
-		left.setBarrierHeight(getValidLeftBarrierHeight(editorFrame));
-		left.setBarrierSurface(getValidLeftBarrierSurface(editorFrame));
-		left.setBarrierStyle(getValidLeftBarrierStyle(editorFrame));
+	/**
+	 * Sets the carried values that differ (all of them with all), to want.
+	 */
+	private void set(EditorFrame editorFrame, Carried now, Carried want, boolean all)
+	{
+		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
 
-		left.setBorderWidth(getValidLeftBorderWidth(editorFrame));
-		left.setBorderHeight(getValidLeftBorderHeight(editorFrame));
-		left.setBorderSurface(getValidLeftBorderSurface(editorFrame));
-		left.setBorderStyle(getValidLeftBorderStyle(editorFrame));
+		if (all || !same(now.surface, want.surface))
+			surface = want.surface;
 
-		left.setSideStartWidth(getValidLeftSideStartWidth(editorFrame));
-		left.setSideEndWidth(getValidLeftSideEndWidth(editorFrame));
-		left.setSideSurface(getValidLeftSideSurface(editorFrame));
+		set(left, now.left, want.left, all, version3);
+		set(right, now.right, want.right, all, version3);
 
-		right.setBarrierWidth(getValidRightBarrierWidth(editorFrame));
-		right.setBarrierHeight(getValidRightBarrierHeight(editorFrame));
-		right.setBarrierSurface(getValidRightBarrierSurface(editorFrame));
-		right.setBarrierStyle(getValidRightBarrierStyle(editorFrame));
+		// the end height and banking give both end heights; only unoptimize sets the
+		// height, which otherwise follows the start (see keep)
+		if (all)
+		{
+			heightEnd = want.heightEnd;
+			heightEndLeft = Double.NaN;
+			heightEndRight = Double.NaN;
+			bankingEnd = want.bankingEnd;
+		}
+		else if (differ(now.bankingEnd, want.bankingEnd))
+		{
+			bankingEnd = want.bankingEnd;
+		}
 
-		right.setBorderWidth(getValidRightBorderWidth(editorFrame));
-		right.setBorderHeight(getValidRightBorderHeight(editorFrame));
-		right.setBorderSurface(getValidRightBorderSurface(editorFrame));
-		right.setBorderStyle(getValidRightBorderStyle(editorFrame));
+		// a spline's end tangents carry on to the spline segments after it
+		if (isSpline() && (all || differ(now.endTangentLeft, want.endTangentLeft) || differ(now.endTangentRight, want.endTangentRight)))
+		{
+			setEndTangents(want.endTangentLeft, want.endTangentRight);
+		}
 
-		right.setSideStartWidth(getValidRightSideStartWidth(editorFrame));
-		right.setSideEndWidth(getValidRightSideEndWidth(editorFrame));
-		right.setSideSurface(getValidRightSideSurface(editorFrame));
+		// the grade a later segment without an end height uses
+		if (!Double.isNaN(want.grade) && (all ? !hasGrade() : differ(now.grade, want.grade)))
+			grade = want.grade;
+	}
+
+	private static void set(SegmentSide side, GameSides.State now, GameSides.State want, boolean all, boolean version3)
+	{
+		if (all)
+			side.setSideStartWidth(want.sideStartWidth);
+		if (all || differ(now.sideEndWidth, want.sideEndWidth))
+			side.setSideEndWidth(want.sideEndWidth);
+		if (all || !same(now.sideSurface, want.sideSurface))
+			side.setSideSurface(want.sideSurface);
+
+		if (all || differ(now.borderWidth, want.borderWidth))
+			side.setBorderWidth(want.borderWidth);
+		if (all || differ(now.borderHeight, want.borderHeight))
+			side.setBorderHeight(want.borderHeight);
+		if (all || !same(now.borderSurface, want.borderSurface))
+			side.setBorderSurface(want.borderSurface);
+		if (all || !same(now.borderStyle, want.borderStyle))
+			side.setBorderStyle(want.borderStyle);
+
+		// the version 3 loaders read the barrier only from the Main Track
+		if (version3)
+			return;
+		if (all || differ(now.barrierWidth, want.barrierWidth))
+		{
+			side.setBarrierWidth(want.barrierWidth);
+			// a barrier style the game doesn't know makes it ignore the width too
+			side.setBarrierStyle(want.barrierStyle);
+		}
+		if (all || differ(now.barrierHeight, want.barrierHeight))
+			side.setBarrierHeight(want.barrierHeight);
+		if (all || !same(now.barrierSurface, want.barrierSurface))
+			side.setBarrierSurface(want.barrierSurface);
+		if (all || !same(now.barrierStyle, want.barrierStyle))
+			side.setBarrierStyle(want.barrierStyle);
+	}
+
+	private void setStartTangents(double left, double right)
+	{
+		if (left == right)
+		{
+			profilStartTangent = left;
+			profilStartTangentLeft = Double.NaN;
+			profilStartTangentRight = Double.NaN;
+		}
+		else
+		{
+			profilStartTangent = Double.NaN;
+			profilStartTangentLeft = left;
+			profilStartTangentRight = right;
+		}
+	}
+
+	private void setEndTangents(double left, double right)
+	{
+		if (left == right)
+		{
+			profilEndTangent = left;
+			profilEndTangentLeft = Double.NaN;
+			profilEndTangentRight = Double.NaN;
+		}
+		else
+		{
+			profilEndTangent = Double.NaN;
+			profilEndTangentLeft = left;
+			profilEndTangentRight = right;
+		}
+	}
+
+	/** @return whether two numbers differ by more than rounding */
+	private static boolean differ(double a, double b)
+	{
+		if (Double.isNaN(a) || Double.isNaN(b))
+			return Double.isNaN(a) != Double.isNaN(b);
+		return Math.abs(a - b) > 1e-9 * Math.max(1, Math.max(Math.abs(a), Math.abs(b)));
+	}
+
+	private static boolean same(String a, String b)
+	{
+		return a == null ? b == null : a.equals(b);
 	}
 
 	// from https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm

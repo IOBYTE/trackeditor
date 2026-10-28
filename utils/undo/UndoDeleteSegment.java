@@ -37,12 +37,23 @@ public class UndoDeleteSegment implements UndoInterface
 	private Segment 		undo;
 	private Segment 		redo;
 	private int 			pos;
+	// the segment after, which the delete changed so it keeps its look (see Segment.keep)
+	private Segment			next;
+	private Segment			nextBefore;
+	private Segment			nextAfter;
 
 	/**
 	 * 
 	 */
-	public UndoDeleteSegment(EditorFrame editorFrame, Segment segment)
+	/**
+	 * @param next the segment after, which the delete changes so it keeps its look,
+	 *        or null; call nextChanged once it has
+	 */
+	public UndoDeleteSegment(EditorFrame editorFrame, Segment segment, Segment next)
 	{
+		this.next = next;
+		if (next != null)
+			nextBefore = (Segment) next.clone();
 		data = editorFrame.getTrackData().getSegments();
 		undo = segment;
 		redo = null;
@@ -53,6 +64,15 @@ public class UndoDeleteSegment implements UndoInterface
 			System.out.println("UndoDeleteSegment");
 			data.dumpLinks();
 		}
+	}
+
+	/**
+	 * Records the segment after as the delete left it, for redo.
+	 */
+	public void nextChanged()
+	{
+		if (next != null)
+			nextAfter = (Segment) next.clone();
 	}
 
 	/* (non-Javadoc)
@@ -71,6 +91,8 @@ public class UndoDeleteSegment implements UndoInterface
 			Editor.getProperties().setCurveNameCount(count);			
 		}		
 		data.insertElementAt(undo,pos);
+		if (next != null)
+			next.set(nextBefore);
 		redo = undo;
 		undo = null;
 
@@ -98,6 +120,8 @@ public class UndoDeleteSegment implements UndoInterface
 			Editor.getProperties().setCurveNameCount(count);			
 		}		
 		data.remove(redo);
+		if (next != null && nextAfter != null)
+			next.set(nextAfter);
 		undo = redo;
 		redo = null;
 

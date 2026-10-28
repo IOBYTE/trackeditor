@@ -434,8 +434,24 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							// must check for a segment under the mouse
 							SegmentVector data = editorFrame.getTrackData().getSegments();
 							int pos = data.indexOf(handledShape);
-							Undo.add(new UndoDeleteSegment(editorFrame, handledShape));
+							// the segment after keeps its look and where it ends, so only the
+							// deleted segment's part of the track changes (see Segment.keep)
+							Segment next = pos + 1 < data.size() ? data.get(pos + 1) : null;
+							Segment.Carried carried = null;
+							if (next != null)
+							{
+								editorFrame.getTrackData().calculateSegmentValues();
+								carried = next.getCarried(editorFrame);
+							}
+							UndoDeleteSegment undo = new UndoDeleteSegment(editorFrame, handledShape, next);
+							Undo.add(undo);
 							data.remove(pos);
+							if (next != null)
+							{
+								editorFrame.getTrackData().calculateSegmentValues();
+								next.keep(editorFrame, carried);
+								undo.nextChanged();
+							}
 							handledShape = null;
 							//selectedShape = newShape;
 							
