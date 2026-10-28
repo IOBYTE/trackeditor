@@ -781,6 +781,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	/** input events management */
 	public void mouseExited(MouseEvent e)
 	{
+		// the cursor coordinates are only shown while the cursor is over the view
+		if (editorFrame.getCursorCoordinates())
+			repaint();
 	}
 
 	private void addPendingDragUndo()
@@ -1644,7 +1647,17 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		// visible part of screen in pixels
 		Rectangle r = getVisibleRect();
 
-		if (editorFrame.getCursorCoordinates())
+		// the point under the cursor, from where the cursor is now: opening a track,
+		// zooming and scrolling change it without the mouse moving (null when the
+		// cursor isn't over the view)
+		Point mouse = getMousePosition();
+		if (mouse != null)
+		{
+			mousePoint.setLocation(mouse.getX(), mouse.getY());
+			inverseAffineTransform.transform(mousePoint, mousePoint);
+		}
+
+		if (editorFrame.getCursorCoordinates() && mouse != null)
 		{
 			if (editorFrame.getTrackData() != null && editorFrame.getTrackData().getSegments() != null)
 			{
