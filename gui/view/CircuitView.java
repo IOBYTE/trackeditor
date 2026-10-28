@@ -58,6 +58,7 @@ import utils.circuit.ObjectMap;
 import utils.circuit.Reliefs;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
+import utils.circuit.TerrainGeneration;
 import utils.circuit.XmlObjPits;
 import utils.undo.DeletedObject;
 import utils.undo.MovedObject;
@@ -1511,6 +1512,48 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		Rectangle r = getVisibleRect();
 		return new Point2D.Double(r.getX() / zoomFactor + boundingRectangle.getX(),
 			r.getY() / zoomFactor + boundingRectangle.getY());
+	}
+
+	/**
+	 * Zooms and scrolls to show all of the track, its terrain border and its reliefs,
+	 * centred in the window.
+	 */
+	public void fitToWindow()
+	{
+		if (boundingRectangle == null)
+			return;
+
+		// the terrain border is the track's bounds and the border margin around them
+		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
+		if (Double.isNaN(border))
+			border = TerrainGeneration.DEFAULT_BORDER_MARGIN;
+		Rectangle2D.Double content = new Rectangle2D.Double(boundingRectangle.getX() - border,
+			boundingRectangle.getY() - border, boundingRectangle.getWidth() + 2 * border,
+			boundingRectangle.getHeight() + 2 * border);
+
+		// the reliefs (see ObjShapeRelief.calcShape)
+		Reliefs reliefs = editorFrame.getReliefs();
+		if (reliefs != null)
+		{
+			for (ObjShapeRelief relief : reliefs.getReliefs())
+			{
+				for (double[] vertex : relief.getVertices())
+					content.add(vertex[0] + boundingRectangle.getX(), -vertex[2] + boundingRectangle.getY());
+			}
+		}
+
+		Rectangle r = getVisibleRect();
+		if (r.getWidth() <= 0 || r.getHeight() <= 0 || content.getWidth() <= 0 || content.getHeight() <= 0)
+			return;
+
+		// a little room around it
+		double zoom = 0.95 * Math.min(r.getWidth() / content.getWidth(), r.getHeight() / content.getHeight());
+
+		// showAt's centre is in the view's own coordinates, which are flipped vertically
+		// about the track's bounds
+		double centerX = content.getCenterX();
+		double centerY = 2 * boundingRectangle.getY() + boundingRectangle.getHeight() - content.getCenterY();
+		showAt(zoom, new Point2D.Double(centerX, centerY));
 	}
 
 	/**

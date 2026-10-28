@@ -994,9 +994,15 @@ public class EditorFrame extends JFrame
 	}
 
 
+	/**
+	 * Puts a project file, or a track file that was imported, first in the recent files.
+	 * A saved project replaces its imported track file there.
+	 */
 	private void updateRecentFiles(String filename)
 	{
 		recentFiles.remove(filename);
+		if (filename.endsWith(".prj.xml"))
+			recentFiles.remove(filename.substring(0, filename.length() - ".prj.xml".length()) + ".xml");
 		recentFiles.add(0, filename);
 		
 		if (recentFiles.size() > recentFilesMax)
@@ -1020,7 +1026,7 @@ public class EditorFrame extends JFrame
 		{
 			if (i < (recentFilesMenu.getItemCount() - 2))
 			{
-				if (recentFilesMenu.getItem(i).getText() != recentFiles.get(i))
+				if (!recentFilesMenu.getItem(i).getText().equals(recentFiles.get(i)))
 				{
 					recentFilesMenu.getItem(i).setText(recentFiles.get(i));
 				}
@@ -1029,6 +1035,11 @@ public class EditorFrame extends JFrame
 			{
 				addRecentFilesMenuItem(recentFiles.get(i));
 			}
+		}
+		// a replaced entry leaves one menu item too many
+		while (recentFilesMenu.getItemCount() - 2 > recentFiles.size())
+		{
+			recentFilesMenu.remove(recentFiles.size());
 		}
 	}
 
@@ -1039,8 +1050,14 @@ public class EditorFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (canClose())
-					openProject(((JMenuItem) e.getSource()).getText());
+				String name = ((JMenuItem) e.getSource()).getText();
+				if (!canClose())
+					return;
+				// a track that was imported and not saved as a project is imported again
+				if (name.endsWith(".prj.xml"))
+					openProject(name);
+				else
+					importTrackFile(name);
 			}
 		});
 		recentFilesMenu.insert(recentFileMenuItem, recentFilesMenu.getItemCount() - 2);
@@ -1149,7 +1166,10 @@ public class EditorFrame extends JFrame
 	{
 		final double zoom = Editor.getProperties().getViewZoom();
 		if (!(zoom > 0) || Double.isInfinite(zoom))
+		{
+			fitView();
 			return;
+		}
 		final Point2D.Double center = new Point2D.Double(Editor.getProperties().getViewCenterX(),
 			Editor.getProperties().getViewCenterY());
 		view.showAt(zoom, center);
@@ -1158,6 +1178,103 @@ public class EditorFrame extends JFrame
 			mainScrollPane.validate();
 			view.showAt(zoom, center);
 		});
+	}
+
+	/**
+	 * Shows all of the track, its terrain border and its reliefs, once the view has
+	 * its size for the track.
+	 */
+	private void fitView()
+	{
+		SwingUtilities.invokeLater(() ->
+		{
+			mainScrollPane.validate();
+			view.fitToWindow();
+			SwingUtilities.invokeLater(() ->
+			{
+				mainScrollPane.validate();
+				view.fitToWindow();
+			});
+		});
+	}
+
+	/**
+	 * Writes the track view's zoom and centre into the track's project file when they
+	 * changed, without saving the track: only the view is changed in the file, so
+	 * nothing else that wasn't saved is written. Nothing is written for a track
+	 * without a project file.
+	 */
+	private void saveViewIfChanged()
+	{
+		if (trackData == null || view == null)
+			return;
+		Point2D.Double center = view.getVisibleCenter();
+		if (center == null)
+			return;
+		double zoom = view.getZoomFactor();
+		Properties properties = Editor.getProperties();
+		if (Math.abs(zoom - properties.getViewZoom()) < 1e-9 &&
+			Math.abs(center.getX() - properties.getViewCenterX()) < 0.01 &&
+			Math.abs(center.getY() - properties.getViewCenterY()) < 0.01)
+			return;
+
+		String path = properties.getPath();
+		if (path == null)
+			return;
+		String trackname = path.substring(path.lastIndexOf(sep) + 1);
+		Path target = Paths.get(path, trackname + ".prj.xml").toAbsolutePath();
+		if (!Files.isRegularFile(target))
+			return;
+
+		Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+		try
+		{
+			Properties project;
+			try (FileInputStream in = new FileInputStream(target.toFile()))
+			{
+				XMLDecoder decoder = new XMLDecoder(in);
+				project = (Properties) decoder.readObject();
+				decoder.close();
+			}
+			project.setViewZoom(zoom);
+			project.setViewCenterX(center.getX());
+			project.setViewCenterY(center.getY());
+
+			final Exception[] encoderError = { null };
+			try (FileOutputStream out = new FileOutputStream(temp.toFile()))
+			{
+				XMLEncoder encoder = new XMLEncoder(out);
+				encoder.setExceptionListener(e -> { if (encoderError[0] == null) encoderError[0] = e; });
+				encoder.writeObject(project);
+				encoder.close();
+			}
+			if (encoderError[0] != null)
+				throw encoderError[0];
+			try
+			{
+				Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			}
+			catch (IOException e)
+			{
+				// not every file system can replace atomically
+				Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+
+			properties.setViewZoom(zoom);
+			properties.setViewCenterX(center.getX());
+			properties.setViewCenterY(center.getY());
+		}
+		catch (Exception e)
+		{
+			// only the view is lost: not worth stopping the close for
+			try
+			{
+				Files.deleteIfExists(temp);
+			}
+			catch (IOException e2)
+			{
+			}
+		}
 	}
 
 	/**
@@ -2880,6 +2997,15 @@ public class EditorFrame extends JFrame
 
 	protected boolean canClose()
 	{
+		boolean close = canCloseTrack();
+		// a save writes the view with the project; otherwise keep a changed view
+		if (close && !documentIsModified)
+			saveViewIfChanged();
+		return close;
+	}
+
+	private boolean canCloseTrack()
+	{
 		if (documentIsModified)
 		{
 			// ask whether to save or not
@@ -2896,7 +3022,8 @@ public class EditorFrame extends JFrame
 				return saveProject();
 			} else
 			{
-				// don't save, but can close
+				// don't save, but can close (and keep the view)
+				saveViewIfChanged();
 				return true;
 			}
 		} else
@@ -4131,21 +4258,30 @@ public class EditorFrame extends JFrame
 		UIManager.put("FileChooser.readOnly", old);
 		if (result ==JFileChooser.APPROVE_OPTION)
 		{
-			String xmlFileName = fc.getSelectedFile().toString();
-			String path = xmlFileName;
-			path = path.substring(0, path.lastIndexOf(sep));
-			String oldPath = Editor.getProperties().getPath();
-			Editor.getProperties().setPath(path);
-			File file = new File(xmlFileName);
-			if (!readFile(file))
-			{
-				// the current track is still open
-				Editor.getProperties().setPath(oldPath);
-			}
-			else
-			{
-				clearBackgroundImage();
-			}
+			importTrackFile(fc.getSelectedFile().toString());
+		}
+	}
+
+	/**
+	 * Imports a track file without its project, and puts it in the recent files.
+	 */
+	private void importTrackFile(String xmlFileName)
+	{
+		String path = xmlFileName.substring(0, xmlFileName.lastIndexOf(sep));
+		String oldPath = Editor.getProperties().getPath();
+		Editor.getProperties().setPath(path);
+		File file = new File(xmlFileName);
+		if (!readFile(file))
+		{
+			// the current track is still open
+			Editor.getProperties().setPath(oldPath);
+		}
+		else
+		{
+			clearBackgroundImage();
+			// no project, so no saved view: show all of it
+			fitView();
+			updateRecentFiles(xmlFileName);
 		}
 	}
 	
@@ -4462,6 +4598,10 @@ public class EditorFrame extends JFrame
 				// cancel close request
 				return;
 			}
+		}
+		else if (e.getID() == WindowEvent.WINDOW_CLOSING)
+		{
+			saveViewIfChanged();
 		}
 		super.processWindowEvent(e);
 		if (e.getID() == WindowEvent.WINDOW_CLOSING)
