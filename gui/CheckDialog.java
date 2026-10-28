@@ -38,6 +38,7 @@ import utils.circuit.EnvironmentMapping;
 import utils.circuit.GameSides;
 import utils.circuit.GraphicObject;
 import utils.circuit.ObjShapeObject;
+import utils.circuit.ObjShapeTerrain;
 import utils.circuit.ObjectMap;
 import utils.circuit.Pits;
 import utils.circuit.Segment;
@@ -877,6 +878,10 @@ public class CheckDialog extends JDialog
 				 													 boundingRectangle.getWidth() + (border * 2),
 				 													 boundingRectangle.getHeight() + (border * 2));
 
+		// where trackgen makes terrain: the border or relief border, less the holes
+		ObjShapeTerrain terrainShape = new ObjShapeTerrain();
+		terrainShape.calcShape(editorFrame, boundingRectangle);
+
 		for (int i = 0; i < objectMaps.size(); i++)
 		{
 			ObjectMap objectMap = objectMaps.get(i);
@@ -901,11 +906,29 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " outside terrain boundary\n");
 				}
+				else
+				{
+					String place = placeText(terrainShape, location.x, location.y);
+					if (place != null)
+						textArea.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " " + place + "\n");
+				}
 			}
 		}
 		
-		//check for graphic objects with same name
+		//check for graphic objects outside the terrain (beyond the border or relief border)
+		//or inside a hole: trackgen finds no height there (no terrain or track), so it leaves them out
 		Vector<GraphicObject> graphicObjects = trackData.getGraphic().getTerrainGeneration().getGraphicObjects();
+		if (editorFrame.getGameType().hasGraphicObjects())
+		{
+			for (GraphicObject graphicObject : graphicObjects)
+			{
+				String place = placeText(terrainShape, graphicObject.getX(), graphicObject.getY());
+				if (place != null)
+					textArea.append("Graphic Object " + graphicObject.getName() + " " + place + "\n");
+			}
+		}
+
+		//check for graphic objects with same name
 		for (int i = 0; i < graphicObjects.size() - 1; i++)
 		{
 			for (int j = i + 1; j < graphicObjects.size(); j++)
@@ -951,6 +974,26 @@ public class CheckDialog extends JDialog
 	{
 		return !(text == null || text.trim().isEmpty());
 	}
+	/**
+	 * @return null when trackgen finds a height there for an object: on the terrain, or
+	 *         on the track (trackgen uses the track's height when there's no terrain);
+	 *         otherwise where it is
+	 */
+	private String placeText(ObjShapeTerrain terrainShape, double x, double y)
+	{
+		ObjShapeTerrain.Place place = terrainShape.place(x, y);
+		if (place == ObjShapeTerrain.Place.ON)
+			return null;
+		Point2D.Double point = new Point2D.Double(x, y);
+		for (Segment segment : editorFrame.getTrackData().getSegments())
+		{
+			if (segment.contains(point))
+				return null;
+		}
+		return (place == ObjShapeTerrain.Place.IN_HOLE ? "inside a terrain hole" : "outside terrain boundary") +
+			": trackgen leaves it out";
+	}
+
 	private void checkTrackObject(TrackObject trackObject, String type)
 	{
 		doubleSided = false;

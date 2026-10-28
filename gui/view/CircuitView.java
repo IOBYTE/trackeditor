@@ -761,8 +761,21 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 		else if (e.getButton() == MouseEvent.BUTTON3 && objectDragging)
 		{
+			// moved (the drag adds its undo when it starts moving)
+			boolean moved = pendingDragUndo == null;
 			pendingDragUndo = null;
 			objectDragging = false;
+			if (moved && objectShape != null && objectShape.getType().equals("graphic object"))
+			{
+				for (GraphicObject graphicObject : editorFrame.getGraphicObjects())
+				{
+					if (graphicObject.getShape() == objectShape)
+					{
+						warnIfOutsideTerrain(graphicObject);
+						break;
+					}
+				}
+			}
 			objectShape = null;
 		}
 		else if (e.getButton() == MouseEvent.BUTTON3 && reliefDragging)
@@ -3300,7 +3313,39 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			editorFrame.setCurrentObjectColor(graphicObject.getColor());
 			editorFrame.documentIsModified = true;
 			redrawCircuit();
+			warnIfOutsideTerrain(graphicObject);
 		}
+	}
+
+	/**
+	 * Warns when an individual object is where trackgen makes no terrain: outside the
+	 * border margin or the relief border, or in a hole (see ObjShapeTerrain). Trackgen
+	 * finds no height there, so it leaves the object out, unless it's on the track.
+	 */
+	private void warnIfOutsideTerrain(GraphicObject object)
+	{
+		if (boundingRectangle == null)
+			return;
+		terrain.calcShape(editorFrame, boundingRectangle);
+		ObjShapeTerrain.Place place = terrain.place(object.getX(), object.getY());
+		if (place == ObjShapeTerrain.Place.ON || isOnTrack(object.getX(), object.getY()))
+			return;
+		JOptionPane.showMessageDialog(editorFrame, "Object " + object.getName() +
+			(place == ObjShapeTerrain.Place.IN_HOLE ? " is inside a terrain hole" : " is outside the terrain boundary") + ".\n" +
+			"Trackgen finds no terrain or track height there, so it leaves the object out.",
+			"Object Outside Terrain", JOptionPane.WARNING_MESSAGE);
+	}
+
+	/** @return whether the position is on a segment's shape (trackgen uses the track's height there) */
+	private boolean isOnTrack(double x, double y)
+	{
+		Point2D.Double point = new Point2D.Double(x, y);
+		for (Segment segment : editorFrame.getTrackData().getSegments())
+		{
+			if (segment.contains(point))
+				return true;
+		}
+		return false;
 	}
 
 	/**
@@ -3507,6 +3552,10 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					GraphicObject	object = new GraphicObject(name, editorFrame.getCurrentObjectColor(), real);
 					editorFrame.getGraphicObjects().add(object);
 					Undo.add(new UndoAddGraphicObject(editorFrame.getGraphicObjects(), object));
+					editorFrame.documentIsModified = true;
+					redrawCircuit();
+					warnIfOutsideTerrain(object);
+					return;
 				}
 				else
 				{
@@ -3544,6 +3593,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				editorFrame.setCurrentObjectColor(object.getColor());
 				editorFrame.documentIsModified = true;
 				redrawCircuit();
+				warnIfOutsideTerrain(object);
 				return;
 			}
 			else if (editorFrame.getCurrentObjectMap() != -1)
