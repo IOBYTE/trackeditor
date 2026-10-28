@@ -7,7 +7,8 @@ public class GraphicObject
 	private ObjShapeObject	shape		= null;
 	private String			comment		= null;
 
-	// TODO add more overrides here
+	// the only values Speed Dreams trackgen reads for each placed object (added to
+	// its type's): the rest, such as the orientation type, comes from the object type
 	private double 			orientation = Double.NaN;
 	private double			height		= Double.NaN;
 

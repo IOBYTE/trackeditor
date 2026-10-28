@@ -112,16 +112,43 @@ public class Ac3d
 	}
 
 	/**
-	 * Reads the next line of object data: free text, so it isn't split into tokens.
+	 * Reads the next line of data: free text, so it isn't split into tokens.
 	 */
 	private void requireDataLine() throws IOException
 	{
 		line = br.readLine();
 
 		if (line == null)
-			throw new Ac3dException("unexpected end of file in the object data", linenum);
+			throw new Ac3dException("unexpected end of file in the data", linenum);
 
 		linenum++;
+	}
+
+	/**
+	 * Reads the text after a "data" line (an object's, or a version C material's).
+	 *
+	 * @param toRead the length the "data" line gives, which counts the line breaks inside it
+	 */
+	private String readData(int toRead) throws IOException
+	{
+		int wasRead = 0;
+		String data = new String();
+
+		while (wasRead < toRead)
+		{
+			requireDataLine();
+
+			if (wasRead > 0)
+			{
+				data = data + "\n";
+				wasRead++;
+			}
+
+			wasRead += line.length();
+			data = data + line;
+		}
+
+		return data;
 	}
 
 	/** The line being read, for messages */
@@ -171,6 +198,11 @@ public class Ac3d
 			{
 				material.setTrans(tokens);
 			}
+			else if (tokens[0].equals("data"))
+			{
+				// read like trackgen does; it isn't used
+				material.setData(readData(Integer.parseInt(tokens[1])));
+			}
 			else if (tokens[0].equals("ENDMAT"))
 			{
 				materials.add(material);
@@ -204,27 +236,7 @@ public class Ac3d
 			}
 			else if (tokens[0].equals("data"))
 			{
-				int toRead = Integer.parseInt(tokens[1]);
-
-				int wasRead = 0;
-				String data = new String();
-
-				while (wasRead < toRead)
-				{
-					requireDataLine();
-
-					// the count includes the line breaks inside the data
-					if (wasRead > 0)
-					{
-						data = data + "\n";
-						wasRead++;
-					}
-
-					wasRead += line.length();
-					data = data + line;
-				}
-
-				object.setData(data);
+				object.setData(readData(Integer.parseInt(tokens[1])));
 			}
 			else if (tokens[0].equals("texture"))
 			{
