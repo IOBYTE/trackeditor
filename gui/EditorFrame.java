@@ -403,16 +403,6 @@ public class EditorFrame extends JFrame
 		}
 
 		/**
-		 * @return whether the game loads the 3d file the graphic description names, so it
-		 * should match the file trackgen makes (not CSR: its tracks name the .acc its build
-		 * makes from the exported .ac)
-		 */
-		public boolean loadsDescribedFile()
-		{
-			return this != CARS_SPORTS_RACING;
-		}
-
-		/**
 		 * @return whether a segment side's "width" sets both its widths (not TORCS: there it
 		 * is the end width, and the start width is "start width" or the previous end width)
 		 */
@@ -3400,40 +3390,44 @@ public class EditorFrame extends JFrame
 		}
 
 		// the game loads the file named by the graphic description, so offer to
-		// make it match the file type being created
-		if (gameType.loadsDescribedFile())
+		// make it match the file type being created (CSR too: its build doesn't make
+		// the .acc, it installs the one in the track's folder)
+		String description = getTrackData().getGraphic().getDescription();
+		if (description == null)
 		{
-			String description = getTrackData().getGraphic().getDescription();
-			if (description == null)
+			// the writer uses <track name>.ac when there is no description
+			String path = Editor.getProperties().getPath();
+			description = path.substring(path.lastIndexOf(sep) + 1) + ".ac";
+		}
+		String newDescription = null;
+		if (acc && description.endsWith(".ac"))
+		{
+			if (JOptionPane.showConfirmDialog(this, "Change graphics file type to acc?", "Exporting ACC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 			{
-				// the writer uses <track name>.ac when there is no description
-				String path = Editor.getProperties().getPath();
-				description = path.substring(path.lastIndexOf(sep) + 1) + ".ac";
+				newDescription = description + "c";
 			}
-			String newDescription = null;
-			if (acc && description.endsWith(".ac"))
+		}
+		else if (!acc && description.endsWith(".acc"))
+		{
+			String question = "Change graphics file type to ac?";
+			// CSR's build (CSR_INSTALL_TRACK) installs the .acc files in the track's folder,
+			// but not an .ac that has an .acc of the same name
+			if (gameType == GameType.CARS_SPORTS_RACING)
+				question += "\n\nCSR's build doesn't install " + description.substring(0, description.length() - 1) +
+					" while " + description + " is in the track's folder,\nso delete " + description + " if you change it.";
+			if (JOptionPane.showConfirmDialog(this, question, "Exporting AC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 			{
-				if (JOptionPane.showConfirmDialog(this, "Change graphics file type to acc?", "Exporting ACC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-				{
-					newDescription = description + "c";
-				}
+				newDescription = description.substring(0, description.length() - 1);
 			}
-			else if (!acc && description.endsWith(".acc"))
-			{
-				if (JOptionPane.showConfirmDialog(this, "Change graphics file type to ac?", "Exporting AC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-				{
-					newDescription = description.substring(0, description.length() - 1);
-				}
-			}
-			if (newDescription != null)
-			{
-				getTrackData().getGraphic().setDescription(newDescription);
-				documentIsModified = true;
+		}
+		if (newDescription != null)
+		{
+			getTrackData().getGraphic().setDescription(newDescription);
+			documentIsModified = true;
 
-				// the track xml has to name the new file
-				if (!exportTrack())
-					return;
-			}
+			// the track xml has to name the new file
+			if (!exportTrack())
+				return;
 		}
 
 		String reliefBorder = getTrackData().getGraphic().getTerrainGeneration().getReliefBorder();
