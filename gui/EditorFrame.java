@@ -274,6 +274,9 @@ public class EditorFrame extends JFrame
 	private final static String	CURSOR_NAMES						= "CursorNames";
 	private boolean				checkDefaultObjects					= false;
 	private final static String	CHECK_DEFAULT_OBJECTS				= "CheckDefaultObjects";
+	// Speed Dreams: make acc files with accc like TORCS and CSR, not with trackgen -A
+	private boolean				speedDreamsAccWithAccc				= false;
+	private final static String	SPEED_DREAMS_ACC_WITH_ACCC			= "SpeedDreamsAccWithAccc";
 	/** The game the tracks are edited for */
 	public enum GameType
 	{
@@ -644,6 +647,7 @@ public class EditorFrame extends JFrame
 		cursorCoordinates = preferences.getBoolean(CURSOR_COORDINATES, false);
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
 		checkDefaultObjects = preferences.getBoolean(CHECK_DEFAULT_OBJECTS, false);
+		speedDreamsAccWithAccc = preferences.getBoolean(SPEED_DREAMS_ACC_WITH_ACCC, false);
 		// the game type is one preference shared by every way the editor is run
 		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
 		// the default until a game type has been chosen
@@ -987,6 +991,29 @@ public class EditorFrame extends JFrame
 		checkDefaultObjects = value;
 
 		preferences.putBoolean(CHECK_DEFAULT_OBJECTS, checkDefaultObjects);
+	}
+
+	/** @return whether Speed Dreams acc files are made with accc instead of trackgen -A */
+	public boolean getSpeedDreamsAccWithAccc()
+	{
+		return speedDreamsAccWithAccc;
+	}
+
+	public void setSpeedDreamsAccWithAccc(boolean value)
+	{
+		speedDreamsAccWithAccc = value;
+
+		preferences.putBoolean(SPEED_DREAMS_ACC_WITH_ACCC, speedDreamsAccWithAccc);
+	}
+
+	/**
+	 * @return whether acc files are made with accc from trackgen's ac files: always for
+	 *         TORCS and CSR, whose trackgen can't make them, and for Speed Dreams when
+	 *         the preference says so
+	 */
+	public boolean makesAccWithAccc()
+	{
+		return !gameType.canExportAcc() || speedDreamsAccWithAccc;
 	}
 
 	/** @return true when editing for Cars Sports Racing */
@@ -2260,6 +2287,7 @@ public class EditorFrame extends JFrame
 			setCursorCoordinates(preferencesDialog.getCursorCoordinates());
 			setCursorNames(preferencesDialog.getCursorNames());
 			setCheckDefaultObjects(preferencesDialog.getCheckDefaultObjects());
+			setSpeedDreamsAccWithAccc(preferencesDialog.getSpeedDreamsAccWithAccc());
 			readDefaultSurfaces();
 			readDefaultObjects();
 			// an open Default Surfaces or Default Objects window shows the new ones
@@ -3356,9 +3384,10 @@ public class EditorFrame extends JFrame
 			}
 		}
 
-		// TORCS and CSR make acc files with accc, which needs its settings
+		// TORCS and CSR (and Speed Dreams when chosen) make acc files with accc, which
+		// needs its settings
 		List<List<String>> acccSteps = null;
-		if (acc && !gameType.canExportAcc())
+		if (acc && makesAccWithAccc())
 		{
 			String missing = getMissingAcccSettings();
 			if (missing != null)
@@ -3421,7 +3450,7 @@ public class EditorFrame extends JFrame
 			JOptionPane.showMessageDialog(this, problem, "Exporting AC" + (acc ? "C" : ""), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		if (acc && !gameType.canExportAcc())
+		if (acc && makesAccWithAccc())
 			acccSteps = getAcccSteps(newArgs);
 		TrackgenPanel tg = acccSteps != null ? new TrackgenPanel(this, acccSteps, acc) : new TrackgenPanel(this, newArgs, acc);
 		tg.setModal(true);
@@ -3447,7 +3476,8 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * @return how TORCS and CSR make an acc track, one program after the other, like
+	 * @return how TORCS and CSR (and Speed Dreams when chosen) make an acc track, one
+	 *         program after the other, like
 	 *         TORCS's tracks are made: trackgen checks the track (-z), makes the track,
 	 *         terrain and objects (-a), then the raceline layer (-r) for a raceline export,
 	 *         and accc groups them into the acc file with the track's accc settings
@@ -3465,7 +3495,15 @@ public class EditorFrame extends JFrame
 		trackgen.add(category);
 		trackgen.add("-n");
 		trackgen.add(trackName);
-		trackgen.addAll(getTrackgenFolderArgs());
+		// CSR's and Speed Dreams' trackgen read the track from, and write into, their
+		// installed data unless given the track's folder: accc reads the files there
+		if (gameType != GameType.TORCS)
+		{
+			trackgen.add("-i");
+			trackgen.add(path);
+			trackgen.add("-o");
+			trackgen.add(path);
+		}
 
 		boolean raceline = false;
 		List<String> other = new ArrayList<String>();
@@ -3493,8 +3531,8 @@ public class EditorFrame extends JFrame
 			all.add("-q");
 		steps.add(all);
 
-		// trackgen writes the files next to the track (see getTrackgenProblem for TORCS
-		// and getTrackgenFolderArgs for CSR)
+		// trackgen writes the files next to the track (see getTrackgenProblem for TORCS,
+		// and -i and -o above for the others)
 		String base = path + sep + trackName;
 		if (raceline)
 		{

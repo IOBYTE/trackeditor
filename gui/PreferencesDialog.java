@@ -37,6 +37,7 @@ public class PreferencesDialog extends JDialog
 	private JCheckBox			cursorCoordinatesCheckBox	= null;
 	private JCheckBox			cursorNamesCheckBox			= null;
 	private JCheckBox			checkDefaultObjectsCheckBox	= null;
+	private JCheckBox			speedDreamsAccCheckBox		= null;
 	private JLabel				gameTypeLabel				= null;
 	private JComboBox<EditorFrame.GameType>	gameTypeComboBox	= null;
 	private JButton				okButton					= null;
@@ -71,7 +72,7 @@ public class PreferencesDialog extends JDialog
 	{
 		this.setContentPane(getJPanel());
 		// the panel's width plus the dialog's borders
-		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 334);
+		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 356);
 		this.setModal(true);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -128,6 +129,7 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(getCursorNamesCheckBox(), null);
 			jPanel.add(getCheckDefaultObjectsCheckBox(), null);
 			jPanel.add(getGameTypeComboBox(), null);
+			jPanel.add(getSpeedDreamsAccCheckBox(), null);
 			jPanel.add(getOkButton(), null);
 			jPanel.add(getCancelButton(), null);
 			updateGameLabels();
@@ -388,6 +390,21 @@ public class PreferencesDialog extends JDialog
 		return checkDefaultObjectsCheckBox;
 	}
 
+	/** Speed Dreams only: make acc files with accc, like TORCS and CSR, instead of trackgen -A */
+	private JCheckBox getSpeedDreamsAccCheckBox()
+	{
+		if (speedDreamsAccCheckBox == null)
+		{
+			speedDreamsAccCheckBox = new JCheckBox();
+			speedDreamsAccCheckBox.setBounds(fieldX, 249, 290, 23);
+			speedDreamsAccCheckBox.setText("Speed Dreams: make .acc files with accc");
+			speedDreamsAccCheckBox.setToolTipText("Run trackgen and then sd2-accc with the track's ACC settings " +
+				"(Properties > Terrain > ACC), like TORCS and CSR, instead of trackgen -A");
+			speedDreamsAccCheckBox.setSelected(editorFrame.getSpeedDreamsAccWithAccc());
+		}
+		return speedDreamsAccCheckBox;
+	}
+
 	private JComboBox<EditorFrame.GameType> getGameTypeComboBox()
 	{
 		if (gameTypeComboBox == null)
@@ -428,7 +445,7 @@ public class PreferencesDialog extends JDialog
 			okButton = new JButton();
 			// Ok and Cancel centred under the fields
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			okButton.setBounds(middle - 78 - 40, 259, 78, 25);
+			okButton.setBounds(middle - 78 - 40, 281, 78, 25);
 			okButton.setText("Ok");
 			okButton.addActionListener(new ActionListener()
 			{
@@ -447,7 +464,7 @@ public class PreferencesDialog extends JDialog
 		{
 			cancelButton = new JButton();
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			cancelButton.setBounds(middle + 40, 259, 78, 25);
+			cancelButton.setBounds(middle + 40, 281, 78, 25);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new ActionListener()
 			{
@@ -544,6 +561,11 @@ public class PreferencesDialog extends JDialog
 	public boolean getCheckDefaultObjects()
 	{
 		return getCheckDefaultObjectsCheckBox().isSelected();
+	}
+
+	public boolean getSpeedDreamsAccWithAccc()
+	{
+		return getSpeedDreamsAccCheckBox().isSelected();
 	}
 
 	public EditorFrame.GameType getGameType()
