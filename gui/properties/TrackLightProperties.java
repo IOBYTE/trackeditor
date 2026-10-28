@@ -460,6 +460,16 @@ public class TrackLightProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		getEditorFrame().getProject().setPropertiesEditorLightTab(this.tabbedPane.getSelectedIndex());	
+		rememberTab();
+	}
+
+	/**
+	 * Keeps the selected tab for the next time, also when the dialog is cancelled or
+	 * closed
+	 */
+	public void rememberTab()
+	{
+		if (tabbedPane != null)
+			getEditorFrame().getProject().setPropertiesEditorLightTab(tabbedPane.getSelectedIndex());
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

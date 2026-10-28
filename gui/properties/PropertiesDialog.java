@@ -456,6 +456,7 @@ public class PropertiesDialog extends JDialog
 			editorFrame.getProject().setPropertiesEditorX(this.getX());
 			editorFrame.getProject().setPropertiesEditorY(this.getY());
 			editorFrame.getProject().setPropertiesEditorTab(toAllTabs(this.tabbedPane.getSelectedIndex()));
+			rememberTabs();
 		}
 	}
 
@@ -522,6 +523,21 @@ public class PropertiesDialog extends JDialog
 		editorFrame.getProject().setPropertiesEditorX(this.getX());
 		editorFrame.getProject().setPropertiesEditorY(this.getY());
 		editorFrame.getProject().setPropertiesEditorTab(toAllTabs(this.tabbedPane.getSelectedIndex()));
+		rememberTabs();
 		this.dispose();
+	}
+
+	/**
+	 * Keeps the tabs selected inside the tabs for the next time
+	 */
+	private void rememberTabs()
+	{
+		this.terrainProperties.rememberTab();
+		this.surfaceProperties.rememberTab();
+		this.objectProperties.rememberTab();
+		this.cameraProperties.rememberTab();
+		// not in TORCS
+		if (this.trackLightProperties != null)
+			this.trackLightProperties.rememberTab();
 	}
 } //  @jve:decl-index=0:visual-constraint="6,6"

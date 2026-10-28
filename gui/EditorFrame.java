@@ -1490,7 +1490,8 @@ public class EditorFrame extends JFrame
 	{
 		if (canClose())
 		{
-			System.exit(0);
+			// like closing the window: keep the window places and tabs
+			exit();
 		}
 	}
 	/**
@@ -1759,7 +1760,7 @@ public class EditorFrame extends JFrame
 		getProject().setPropertiesEditorObjectTab(preferences.getInt("PropertiesEditorObjectTab", 0));
 		getProject().setPropertiesEditorCameraTab(preferences.getInt("PropertiesEditorCameraTab", 0));
 		getProject().setPropertiesEditorLightTab(preferences.getInt("PropertiesEditorLightTab", 0));
-		getProject().setPropertiesEditorTerrainTab(preferences.getInt("PropertiesEditorTerrainTab", 0));
+		getProject().setPropertiesEditorTerrainTab(preferences.get("PropertiesEditorTerrainTabName", ""));
 		getProject().setDefaultSurfacesDialogX(preferences.getInt("DefaultSurfacesDialogX", 0));
 		getProject().setDefaultSurfacesDialogY(preferences.getInt("DefaultSurfacesDialogY", 0));
 		getProject().setDefaultObjectsDialogX(preferences.getInt("DefaultObjectsDialogX", 0));
@@ -4948,7 +4949,9 @@ public class EditorFrame extends JFrame
 		preferences.putInt("PropertiesEditorObjectTab", getProject().getPropertiesEditorObjectTab());
 		preferences.putInt("PropertiesEditorCameraTab", getProject().getPropertiesEditorCameraTab());
 		preferences.putInt("PropertiesEditorLightTab", getProject().getPropertiesEditorLightTab());
-		preferences.putInt("PropertiesEditorTerrainTab", getProject().getPropertiesEditorTerrainTab());
+		preferences.put("PropertiesEditorTerrainTabName", getProject().getPropertiesEditorTerrainTab());
+		// was the tab's number, which changes with the game
+		preferences.remove("PropertiesEditorTerrainTab");
 		preferences.putInt("DefaultSurfacesDialogX", getProject().getDefaultSurfacesDialogX());
 		preferences.putInt("DefaultSurfacesDialogY", getProject().getDefaultSurfacesDialogY());
 		preferences.putInt("DefaultObjectsDialogX", getProject().getDefaultObjectsDialogX());

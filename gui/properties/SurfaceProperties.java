@@ -833,7 +833,17 @@ public class SurfaceProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		getEditorFrame().getProject().setPropertiesEditorSurfaceTab(this.tabbedPane.getSelectedIndex());
+		rememberTab();
+	}
+
+	/**
+	 * Keeps the selected tab for the next time, also when the dialog is cancelled or
+	 * closed
+	 */
+	public void rememberTab()
+	{
+		if (tabbedPane != null)
+			getEditorFrame().getProject().setPropertiesEditorSurfaceTab(tabbedPane.getSelectedIndex());
 	}
 
 	private void setSurfaceFromPanel(Surface surface, SurfacePanel panel)

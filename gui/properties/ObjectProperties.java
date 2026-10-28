@@ -879,7 +879,17 @@ public class ObjectProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		getEditorFrame().getProject().setPropertiesEditorObjectTab(this.tabbedPane.getSelectedIndex());
+		rememberTab();
+	}
+
+	/**
+	 * Keeps the selected tab for the next time, also when the dialog is cancelled or
+	 * closed
+	 */
+	public void rememberTab()
+	{
+		if (tabbedPane != null)
+			getEditorFrame().getProject().setPropertiesEditorObjectTab(tabbedPane.getSelectedIndex());
 	}
 
 	private void setObjectFromPanel(TrackObject object, ObjectPanel panel)

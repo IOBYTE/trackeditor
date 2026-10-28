@@ -424,9 +424,11 @@ public class TerrainProperties extends PropertyPanel
 			try
 			{
 				reliefs.setFileName(fileName);
-				tabbedPane.remove(2);
-				tabbedPane.addTab("Reliefs", null, new ReliefProperties(getEditorFrame(), reliefs));
-				tabbedPane.setSelectedIndex(2);
+				// replace the Reliefs tab in its place, which depends on the game
+				int reliefTab = tabbedPane.indexOfTab("Reliefs");
+				tabbedPane.remove(reliefTab);
+				tabbedPane.insertTab("Reliefs", null, new ReliefProperties(getEditorFrame(), reliefs), null, reliefTab);
+				tabbedPane.setSelectedIndex(reliefTab);
 			}
 			catch (IOException e)
 			{
@@ -596,12 +598,9 @@ public class TerrainProperties extends PropertyPanel
 			{
 				public void run()
 				{
-					int lastTab = getEditorFrame().getProject().getPropertiesEditorTerrainTab();
-					if (lastTab == -1 && tabbedPane.getTabCount() > 0)
-					{
-						lastTab = 0;
-					}
-					if (lastTab < tabbedPane.getTabCount())
+					// by title, as the tabs depend on the game
+					int lastTab = tabbedPane.indexOfTab(getEditorFrame().getProject().getPropertiesEditorTerrainTab());
+					if (lastTab != -1)
 					{
 						tabbedPane.setSelectedIndex(lastTab);
 					}
@@ -899,6 +898,17 @@ public class TerrainProperties extends PropertyPanel
 				((ReliefProperties)component).exit();
 		}
 
-		getEditorFrame().getProject().setPropertiesEditorTerrainTab(this.tabbedPane.getSelectedIndex());
+		rememberTab();
+	}
+
+	/**
+	 * Keeps the selected tab for the next time, also when the dialog is cancelled or
+	 * closed
+	 */
+	public void rememberTab()
+	{
+		int tab = tabbedPane == null ? -1 : tabbedPane.getSelectedIndex();
+		if (tab != -1)
+			getEditorFrame().getProject().setPropertiesEditorTerrainTab(tabbedPane.getTitleAt(tab));
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

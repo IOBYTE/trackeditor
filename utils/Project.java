@@ -53,7 +53,8 @@ public class Project
 	private int propertiesEditorObjectTab = 0;
 	private int propertiesEditorCameraTab = 0;
 	private int propertiesEditorLightTab = 0;
-	private int propertiesEditorTerrainTab = 0;
+	// the terrain tab's title: which tabs there are depends on the game
+	private String propertiesEditorTerrainTab = "";
 	
 	public Project()
 	{
@@ -327,12 +328,12 @@ public class Project
 		this.propertiesEditorLightTab = propertiesEditorLightTab;
 	}
 
-	public int getPropertiesEditorTerrainTab()
+	public String getPropertiesEditorTerrainTab()
 	{
 		return propertiesEditorTerrainTab;
 	}
 
-	public void setPropertiesEditorTerrainTab(int propertiesEditorTerrainTab)
+	public void setPropertiesEditorTerrainTab(String propertiesEditorTerrainTab)
 	{
 		this.propertiesEditorTerrainTab = propertiesEditorTerrainTab;
 	}
