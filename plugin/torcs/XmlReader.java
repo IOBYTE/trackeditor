@@ -854,6 +854,11 @@ public class XmlReader
 			data.getTerrainGeneration().setCrossingBridgeThickness(getAttrNumValue(terrain, "crossing bridge thickness", "m"));
 			for (int i = 0; i < utils.circuit.TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
 				data.getTerrainGeneration().setCrossingBridgeSurface(i, getAttrStrValue(terrain, utils.circuit.TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS[i]));
+			// accc's settings, for every game
+			for (int i = 0; i < utils.circuit.TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length; i++)
+				data.getTerrainGeneration().setAccGroupDistance(i, getAttrNumValue(terrain, utils.circuit.TerrainGeneration.ACC_GROUP_DISTANCE_KEYS[i], "m"));
+			data.getTerrainGeneration().setAccSplitDistance(getAttrNumValue(terrain, utils.circuit.TerrainGeneration.ACC_SPLIT_DISTANCE_KEY, "m"));
+			data.getTerrainGeneration().setAccExtendedStrips(getAttrStrValue(terrain, utils.circuit.TerrainGeneration.ACC_EXTENDED_STRIPS_KEY));
 
 	        Element objects = getChildWithName(terrain, "Objects");
 

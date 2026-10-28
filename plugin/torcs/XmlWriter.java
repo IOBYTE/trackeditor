@@ -1126,6 +1126,11 @@ public class XmlWriter
 		}
 		if (editorFrame.getGameType().hasTiledFile())
 			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
+		// accc's settings, for every game (TORCS and CSR make .acc tracks with accc)
+		for (int i = 0; i < TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length; i++)
+			addContent(element, TerrainGeneration.ACC_GROUP_DISTANCE_KEYS[i], "m", editorFrame.getTerrainGeneration().getAccGroupDistance(i));
+		addContent(element, TerrainGeneration.ACC_SPLIT_DISTANCE_KEY, "m", editorFrame.getTerrainGeneration().getAccSplitDistance());
+		addContent(element, TerrainGeneration.ACC_EXTENDED_STRIPS_KEY, editorFrame.getTerrainGeneration().getAccExtendedStrips());
 
 		if (!torcs || !editorFrame.getTerrainGeneration().getObjectMaps().isEmpty())
 			element.addContent(getObjectMaps());

@@ -30,6 +30,13 @@ public class TerrainGeneration
 	public static final String[]	CROSSING_BRIDGE_SURFACE_NAMES	= {"Underside", "Side", "Socket", "Floor"};
 	public static final String[]	DEFAULT_CROSSING_BRIDGE_SURFACES	=
 		{"bridge-underside", "bridge-side", "bridge-socket", "bridge-floor"};
+	// what accc needs to make a .acc track from trackgen's .ac files: no game or
+	// trackgen reads them (yet), they are kept with the track. The group distances
+	// are accc's -d1, -d2 and -d3, the split distance its -S, extended strips its -es.
+	public static final String[]	ACC_GROUP_DISTANCE_KEYS			=
+		{"acc group 1 distance", "acc group 2 distance", "acc group 3 distance"};
+	public static final String		ACC_SPLIT_DISTANCE_KEY			= "acc terrain split distance";
+	public static final String		ACC_EXTENDED_STRIPS_KEY			= "acc extended strips";
 
 	private double					trackStep						= Double.NaN;
 	private double					borderMargin					= Double.NaN;
@@ -51,6 +58,9 @@ public class TerrainGeneration
 	private double					crossingBridgeSocketGap			= Double.NaN;
 	private double					crossingBridgeThickness			= Double.NaN;
 	private String[]				crossingBridgeSurfaces			= new String[CROSSING_BRIDGE_SURFACE_KEYS.length];
+	private double[]				accGroupDistances				= {Double.NaN, Double.NaN, Double.NaN};
+	private double					accSplitDistance				= Double.NaN;
+	private String					accExtendedStrips				= null;
 	private Vector<ObjectMap>		objectMaps						= new Vector<ObjectMap>();
 	private Vector<GraphicObject>	graphicObjects					= new Vector<GraphicObject>();
 
@@ -320,6 +330,38 @@ public class TerrainGeneration
 		crossingBridgeSurfaces[index] = surface;
 	}
 
+	/**
+	 * @param index 0, 1 or 2 for accc's -d1, -d2 and -d3
+	 */
+	public double getAccGroupDistance(int index)
+	{
+		return accGroupDistances[index];
+	}
+	public void setAccGroupDistance(int index, double distance)
+	{
+		accGroupDistances[index] = distance;
+	}
+
+	/** @return accc's -S: the distance TERRAIN objects are split at */
+	public double getAccSplitDistance()
+	{
+		return accSplitDistance;
+	}
+	public void setAccSplitDistance(double accSplitDistance)
+	{
+		this.accSplitDistance = accSplitDistance;
+	}
+
+	/** @return "yes" for accc's -es (the extended file format for strips), "no" or null */
+	public String getAccExtendedStrips()
+	{
+		return accExtendedStrips;
+	}
+	public void setAccExtendedStrips(String accExtendedStrips)
+	{
+		this.accExtendedStrips = accExtendedStrips;
+	}
+
 	public Vector<GraphicObject> getGraphicObjects()
 	{
 		return graphicObjects;
@@ -352,6 +394,10 @@ public class TerrainGeneration
 		System.out.println(indent + "  bridge thickness     : " + crossingBridgeThickness);
 		for (int i = 0; i < crossingBridgeSurfaces.length; i++)
 			System.out.println(indent + "  " + CROSSING_BRIDGE_SURFACE_KEYS[i] + " : " + crossingBridgeSurfaces[i]);
+		for (int i = 0; i < accGroupDistances.length; i++)
+			System.out.println(indent + "  " + ACC_GROUP_DISTANCE_KEYS[i] + " : " + accGroupDistances[i]);
+		System.out.println(indent + "  " + ACC_SPLIT_DISTANCE_KEY + " : " + accSplitDistance);
+		System.out.println(indent + "  " + ACC_EXTENDED_STRIPS_KEY + " : " + accExtendedStrips);
 		System.out.println(indent + "  objectMaps           : " + objectMaps.size());
 		for (int i = 0; i < objectMaps.size(); i++)
 		{

@@ -277,19 +277,27 @@ public class EditorFrame extends JFrame
 	/** The game the tracks are edited for */
 	public enum GameType
 	{
-		SPEED_DREAMS("Speed Dreams", "Speed Dreams", "sd2-trackgen"),
-		CARS_SPORTS_RACING("Cars Sports Racing", "CSR", "csr-trackgen"),
-		TORCS("TORCS", "TORCS", "trackgen");
+		SPEED_DREAMS("Speed Dreams", "Speed Dreams", "sd2-trackgen", "sd2-accc"),
+		CARS_SPORTS_RACING("Cars Sports Racing", "CSR", "csr-trackgen", "csr-accc"),
+		TORCS("TORCS", "TORCS", "trackgen", "accc");
 
 		private final String	name;
 		private final String	shortName;
 		private final String	trackgen;
+		private final String	accc;
 
-		GameType(String name, String shortName, String trackgen)
+		GameType(String name, String shortName, String trackgen, String accc)
 		{
 			this.name = name;
 			this.shortName = shortName;
 			this.trackgen = trackgen;
+			this.accc = accc;
+		}
+
+		/** @return the game's accc program, which makes a .acc track from trackgen's .ac files */
+		public String getAccc()
+		{
+			return accc;
 		}
 
 		/** @return the game's name, like "Cars Sports Racing" */
@@ -310,10 +318,19 @@ public class EditorFrame extends JFrame
 			return trackgen;
 		}
 
-		/** @return whether the game's trackgen can make acc files (only Speed Dreams') */
+		/**
+		 * @return whether the game's trackgen can make acc files itself (only Speed
+		 * Dreams': the others make them with accc from trackgen's .ac files)
+		 */
 		public boolean canExportAcc()
 		{
 			return this == SPEED_DREAMS;
+		}
+
+		/** @return whether trackgen has -q, quiet mode (only TORCS') */
+		public boolean hasQuietTrackgen()
+		{
+			return this == TORCS;
 		}
 
 		/** @return whether the game has the fence1 and fence2 barrier styles (only Speed Dreams) */
@@ -775,6 +792,42 @@ public class EditorFrame extends JFrame
 			(new File(data, trackgen).isFile() || new File(data, trackgen + ".exe").isFile()))
 			return data + sep + trackgen;
 		return trackgen;
+	}
+
+	/**
+	 * @return trackgen's arguments for where the track is: CSR trackgen reads the track
+	 *         from, and writes its files into, the game's installed data unless it's given
+	 *         the track's folder (-i and -o), so it's given the folder the track is in.
+	 *         It finds the relief, object maps and objects next to the track file.
+	 */
+	public List<String> getTrackgenFolderArgs()
+	{
+		List<String> args = new ArrayList<String>();
+		if (gameType == GameType.CARS_SPORTS_RACING)
+		{
+			String path = Editor.getProperties().getPath();
+			args.add("-i");
+			args.add(path);
+			args.add("-o");
+			args.add(path);
+		}
+		return args;
+	}
+
+	/**
+	 * @return the game's accc, found like trackgen (see getTrackgenPath)
+	 */
+	public String getAcccPath()
+	{
+		String accc = gameType.getAccc();
+		String bin = getBinDirectory();
+		if (bin != null && !bin.isEmpty())
+			return bin + sep + accc;
+		String data = getDataDirectory();
+		if (gameType == GameType.TORCS && data != null && !data.isEmpty() &&
+			(new File(data, accc).isFile() || new File(data, accc + ".exe").isFile()))
+			return data + sep + accc;
+		return accc;
 	}
 
 	/**
@@ -2385,11 +2438,12 @@ public class EditorFrame extends JFrame
 	 * @return javax.swing.JMenuItem
 	 */
 	/**
-	 * Only Speed Dreams trackgen can make acc files, so hide those exports for the other games.
+	 * The acc exports are for every game: Speed Dreams trackgen makes acc files itself,
+	 * the others' accc makes them from trackgen's ac files.
 	 */
 	private void updateExportMenu()
 	{
-		boolean acc = gameType.canExportAcc();
+		boolean acc = true;
 
 		getExportAllACCMenuItem().setVisible(acc);
 		getExportAllACCWithRacelineMenuItem().setVisible(acc);
@@ -3302,10 +3356,17 @@ public class EditorFrame extends JFrame
 			}
 		}
 
+		// TORCS and CSR make acc files with accc, which needs its settings
+		List<List<String>> acccSteps = null;
 		if (acc && !gameType.canExportAcc())
 		{
-			JOptionPane.showMessageDialog(this, gameType.getTrackgen() + " can't create acc files", "Exporting ACC", JOptionPane.ERROR_MESSAGE);
-			return;
+			String missing = getMissingAcccSettings();
+			if (missing != null)
+			{
+				JOptionPane.showMessageDialog(this, "Set the accc " + missing + " in Properties > Terrain > ACC:\n" +
+					"accc needs them to make the acc file.", "Exporting ACC", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 		}
 
 		// the game loads the file named by the graphic description, so offer to
@@ -3360,9 +3421,121 @@ public class EditorFrame extends JFrame
 			JOptionPane.showMessageDialog(this, problem, "Exporting AC" + (acc ? "C" : ""), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		TrackgenPanel tg = new TrackgenPanel(this, newArgs, acc);
+		if (acc && !gameType.canExportAcc())
+			acccSteps = getAcccSteps(newArgs);
+		TrackgenPanel tg = acccSteps != null ? new TrackgenPanel(this, acccSteps, acc) : new TrackgenPanel(this, newArgs, acc);
 		tg.setModal(true);
 		tg.setVisible(true);
+	}
+
+	/**
+	 * @return the accc settings that aren't set, or null: without the group and split
+	 *         distances accc doesn't group the track by distance
+	 */
+	private String getMissingAcccSettings()
+	{
+		TerrainGeneration terrain = getTerrainGeneration();
+		List<String> missing = new ArrayList<String>();
+		for (int i = 0; i < TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length; i++)
+		{
+			if (Double.isNaN(terrain.getAccGroupDistance(i)))
+				missing.add("group " + (i + 1) + " distance");
+		}
+		if (Double.isNaN(terrain.getAccSplitDistance()))
+			missing.add("split distance");
+		return missing.isEmpty() ? null : String.join(", ", missing);
+	}
+
+	/**
+	 * @return how TORCS and CSR make an acc track, one program after the other, like
+	 *         TORCS's tracks are made: trackgen checks the track (-z), makes the track,
+	 *         terrain and objects (-a), then the raceline layer (-r) for a raceline export,
+	 *         and accc groups them into the acc file with the track's accc settings
+	 * @param args trackgen's other arguments: -r for the raceline, -B and so on
+	 */
+	private List<List<String>> getAcccSteps(String args)
+	{
+		String path = Editor.getProperties().getPath();
+		String trackName = path.substring(path.lastIndexOf(sep) + 1);
+		String category = getTrackData().getHeader().getCategory();
+
+		List<String> trackgen = new ArrayList<String>();
+		trackgen.add(getTrackgenPath());
+		trackgen.add("-c");
+		trackgen.add(category);
+		trackgen.add("-n");
+		trackgen.add(trackName);
+		trackgen.addAll(getTrackgenFolderArgs());
+
+		boolean raceline = false;
+		List<String> other = new ArrayList<String>();
+		if (args != null)
+		{
+			for (String arg : args.trim().split("\\s+"))
+			{
+				if (arg.equals("-r"))
+					raceline = true;
+				else if (!arg.isEmpty())
+					other.add(arg);
+			}
+		}
+
+		List<List<String>> steps = new ArrayList<List<String>>();
+
+		List<String> check = new ArrayList<String>(trackgen);
+		check.add("-z");
+		steps.add(check);
+
+		List<String> all = new ArrayList<String>(trackgen);
+		all.addAll(other);
+		all.add("-a");
+		if (gameType.hasQuietTrackgen())
+			all.add("-q");
+		steps.add(all);
+
+		// trackgen writes the files next to the track (see getTrackgenProblem for TORCS
+		// and getTrackgenFolderArgs for CSR)
+		String base = path + sep + trackName;
+		if (raceline)
+		{
+			List<String> racelineLayer = new ArrayList<String>(trackgen);
+			racelineLayer.add("-r");
+			steps.add(racelineLayer);
+		}
+
+		TerrainGeneration terrain = getTerrainGeneration();
+		List<String> accc = new ArrayList<String>();
+		accc.add(getAcccPath());
+		accc.add("-g");
+		accc.add(base + ".acc");
+		accc.add("-l0");
+		accc.add(base + ".ac");
+		if (raceline)
+		{
+			accc.add("-l1");
+			accc.add(base + "-trk-raceline.ac");
+		}
+		accc.add("-d3");
+		accc.add(acccNumber(terrain.getAccGroupDistance(2)));
+		accc.add("-d2");
+		accc.add(acccNumber(terrain.getAccGroupDistance(1)));
+		accc.add("-d1");
+		accc.add(acccNumber(terrain.getAccGroupDistance(0)));
+		accc.add("-S");
+		accc.add(acccNumber(terrain.getAccSplitDistance()));
+		if ("yes".equals(terrain.getAccExtendedStrips()))
+			accc.add("-es");
+		steps.add(accc);
+
+		return steps;
+	}
+
+	/** @return the number as accc reads it: TORCS's accc reads whole numbers */
+	private static String acccNumber(double value)
+	{
+		if (value == Math.rint(value) && Math.abs(value) < 1e15)
+			return Long.toString((long) value);
+		return Double.toString(value);
 	}
 
 	/**

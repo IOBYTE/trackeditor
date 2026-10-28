@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -69,6 +71,11 @@ public class TrackgenPanel extends JDialog implements Runnable
 	private JScrollPane			errorsScrollPane	= null;
 	private JTextArea			errorsTextArea		= null;
 	private boolean				acc					= false;
+	// the programs to run one after the other, each with its arguments (trackgen and
+	// then accc for a TORCS or CSR .acc track); null runs trackgen with additionalArgs
+	private List<List<String>>	steps				= null;
+	// whether accc is running: it writes its progress to the error output
+	private volatile boolean	runningAccc			= false;
 	// the running trackgen, so closing the window can stop it
 	private volatile Process	process				= null;
 	private volatile boolean	closed				= false;
@@ -81,6 +88,19 @@ public class TrackgenPanel extends JDialog implements Runnable
 		super();
 		this.editorFrame = editorFrame;
 		this.additionalArgs = additionalArgs;
+		this.acc = acc;
+		initialize();
+		ac3d.start();
+	}
+
+	/**
+	 * Runs the programs one after the other, until one fails.
+	 */
+	public TrackgenPanel(EditorFrame editorFrame, List<List<String>> steps, boolean acc)
+	{
+		super();
+		this.editorFrame = editorFrame;
+		this.steps = steps;
 		this.acc = acc;
 		initialize();
 		ac3d.start();
@@ -106,7 +126,54 @@ public class TrackgenPanel extends JDialog implements Runnable
 
 	public void run()
 	{
-		int result = -1;
+		List<List<String>> commands = steps;
+		if (commands == null)
+			commands = Collections.singletonList(trackgenCommand());
+
+		int result = 0;
+		String failed = null;
+		for (int i = 0; i < commands.size() && result == 0 && !closed; i++)
+		{
+			List<String> cmd = commands.get(i);
+			String program = new java.io.File(cmd.get(0)).getName();
+			runningAccc = program.contains("accc");
+			if (commands.size() > 1)
+			{
+				final String text = "> " + String.join(" ", cmd);
+				final String wait = "Running " + program + " (" + (i + 1) + " of " + commands.size() + "). Please wait...";
+				SwingUtilities.invokeLater(() ->
+				{
+					outputLine(text);
+					waitLabel.setText(wait);
+				});
+			}
+			result = runCommand(cmd);
+			if (result != 0)
+				failed = program;
+		}
+
+		if (closed)
+			return;
+
+		final int status = result;
+		final String failedProgram = commands.size() > 1 ? failed : null;
+		SwingUtilities.invokeLater(() ->
+		{
+			if (status == 0)
+			{
+				waitLabel.setText("Track finished");
+			}
+			else
+			{
+				waitLabel.setText("Failed " + (failedProgram != null ? "in " + failedProgram + " " : "to generate track ") +
+					"with exit status " + status);
+			}
+		});
+	}
+
+	/** @return the trackgen command for additionalArgs */
+	private List<String> trackgenCommand()
+	{
 		String path = Editor.getProperties().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
 		String trackgen = editorFrame.getTrackgenPath();
@@ -117,6 +184,8 @@ public class TrackgenPanel extends JDialog implements Runnable
 		cmd.add(editorFrame.getTrackData().getHeader().getCategory());
 		cmd.add("-n");
 		cmd.add(trackName);
+		// where the track is (CSR)
+		cmd.addAll(editorFrame.getTrackgenFolderArgs());
 
 		// each option is its own argument, e.g. " -E 0" -> "-E", "0"
 		if (additionalArgs != null)
@@ -138,6 +207,13 @@ public class TrackgenPanel extends JDialog implements Runnable
 			cmd.add("-a");
 		}
 
+		return cmd;
+	}
+
+	/** @return the program's exit status, or -1 when it couldn't run */
+	private int runCommand(List<String> cmd)
+	{
+		int result = -1;
 		System.out.println(cmd);
 
 		try
@@ -178,26 +254,13 @@ public class TrackgenPanel extends JDialog implements Runnable
 		{
 			process = null;
 		}
-
-		if (closed)
-			return;
-
-		final int status = result;
-		SwingUtilities.invokeLater(() ->
-		{
-			if (status == 0)
-			{
-				waitLabel.setText("Track finished");
-			}
-			else
-			{
-				waitLabel.setText("Failed to generate track with exit status " + status);
-			}
-		});
+		return result;
 	}
 
 	private Thread readLines(InputStream stream, boolean isError)
 	{
+		// the lines are shown later, maybe after the next program started
+		final boolean accc = runningAccc;
 		Thread thread = new Thread(() ->
 		{
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream)))
@@ -209,7 +272,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 					SwingUtilities.invokeLater(() ->
 					{
 						if (isError)
-							errorLine(text);
+							errorLine(text, accc);
 						else
 							outputLine(text);
 					});
@@ -227,8 +290,19 @@ public class TrackgenPanel extends JDialog implements Runnable
 		return thread;
 	}
 
-	private void errorLine(String str)
+	private void errorLine(String str, boolean accc)
 	{
+		// accc writes its progress to the error output too: only its errors are errors
+		if (accc)
+		{
+			String lower = str.toLowerCase();
+			if (lower.contains("couldn't") || lower.contains("cannot") || lower.contains("error"))
+				append(errorsTextArea, str);
+			else if (!str.trim().isEmpty())
+				outputLine(str);
+			return;
+		}
+
 		// TORCS trackgen writes its errors ("Cannot find ...") without a keyword
 		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
 		{

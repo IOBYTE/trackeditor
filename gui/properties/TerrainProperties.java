@@ -99,6 +99,10 @@ public class TerrainProperties extends PropertyPanel
 	private JTextField			socketGapTextField			= new JTextField();
 	private JTextField			thicknessTextField			= new JTextField();
 	private SurfaceComboBox[]	bridgeSurfaceComboBoxes		= new SurfaceComboBox[TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length];
+	// accc
+	private JTextField[]		accGroupDistanceTextFields	= new JTextField[TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length];
+	private JTextField			accSplitDistanceTextField	= new JTextField();
+	private JComboBox<String>	accExtendedStripsComboBox	= null;
 
 	private final String sep = System.getProperty("file.separator");
 
@@ -587,6 +591,7 @@ public class TerrainProperties extends PropertyPanel
 			// last, so the other tabs keep their places
 			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
 				tabbedPane.addTab("Bridges", null, getBridgesPanel());
+			tabbedPane.addTab("ACC", null, getAccPanel());
 			SwingUtilities.invokeLater( new Runnable()
 			{
 				public void run()
@@ -649,6 +654,47 @@ public class TerrainProperties extends PropertyPanel
 			bridgeSurfaceComboBoxes[i].setToolTipText("none = " + TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[i]);
 			panel.add(bridgeSurfaceComboBoxes[i]);
 		}
+
+		return panel;
+	}
+
+	/**
+	 * @return what accc needs to make a .acc track from trackgen's .ac files (kept in
+	 *         the track for every game: no game or trackgen reads them)
+	 */
+	private javax.swing.JPanel getAccPanel()
+	{
+		javax.swing.JPanel panel = new javax.swing.JPanel();
+		panel.setLayout(null);
+		TerrainGeneration terrain = getEditorFrame().getTerrainGeneration();
+
+		String[] names = {"Group 1 Distance", "Group 2 Distance", "Group 3 Distance"};
+		String[] tips = {"accc -d1: the distance of group 1 (for example 300 m)",
+			"accc -d2: the distance of group 2 (for example 500 m)",
+			"accc -d3: the largest distance of the groups (for example 1000 m)"};
+		for (int i = 0; i < accGroupDistanceTextFields.length; i++)
+		{
+			accGroupDistanceTextFields[i] = new JTextField();
+			addLabel(panel, i, new JLabel(), names[i], 120);
+			addTextField(panel, i, accGroupDistanceTextFields[i], terrain.getAccGroupDistance(i), 140, 125);
+			accGroupDistanceTextFields[i].setToolTipText(tips[i]);
+		}
+		addLabel(panel, 3, new JLabel(), "Split Distance", 120);
+		addTextField(panel, 3, accSplitDistanceTextField, terrain.getAccSplitDistance(), 140, 125);
+		accSplitDistanceTextField.setToolTipText("accc -S: the distance TERRAIN objects are split at (for example 300 m)");
+
+		addLabel(panel, 4, new JLabel(), "Extended Strips", 120);
+		String[] items = {"none", "yes", "no"};
+		accExtendedStripsComboBox = new JComboBox<String>(items);
+		accExtendedStripsComboBox.setBounds(140, 10 + 4 * 27, 125, 23);
+		selectItem(accExtendedStripsComboBox, toNoneString(terrain.getAccExtendedStrips()));
+		accExtendedStripsComboBox.setToolTipText("accc -es: the extended file format for strips");
+		panel.add(accExtendedStripsComboBox);
+
+		JLabel note = new JLabel("<html>The settings accc needs to make a .acc track from trackgen's .ac files. " +
+			"accc doesn't group by distance without the group distances.</html>");
+		note.setBounds(10, 10 + 6 * 27, 480, 50);
+		panel.add(note);
 
 		return panel;
 	}
@@ -819,6 +865,26 @@ public class TerrainProperties extends PropertyPanel
 					getEditorFrame().documentIsModified = true;
 				}
 			}
+		}
+
+		TerrainGeneration accTerrain = getEditorFrame().getTerrainGeneration();
+		for (int i = 0; i < accGroupDistanceTextFields.length; i++)
+		{
+			if (isDifferent(accGroupDistanceTextFields[i].getText(), accTerrain.getAccGroupDistance(i), doubleResult))
+			{
+				accTerrain.setAccGroupDistance(i, doubleResult.getValue());
+				getEditorFrame().documentIsModified = true;
+			}
+		}
+		if (isDifferent(accSplitDistanceTextField.getText(), accTerrain.getAccSplitDistance(), doubleResult))
+		{
+			accTerrain.setAccSplitDistance(doubleResult.getValue());
+			getEditorFrame().documentIsModified = true;
+		}
+		if (isDifferent((String) accExtendedStripsComboBox.getSelectedItem(), accTerrain.getAccExtendedStrips(), stringResult))
+		{
+			accTerrain.setAccExtendedStrips(stringResult.getValue());
+			getEditorFrame().documentIsModified = true;
 		}
 
 		// the Objects tab only exists for Speed Dreams
