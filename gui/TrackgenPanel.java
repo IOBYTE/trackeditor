@@ -394,7 +394,9 @@ public class TrackgenPanel extends JDialog implements Runnable
 			}
 			lastLineIsNodes = isNodes;
 
-			nodesTextArea.setCaretPosition(nodesTextArea.getDocument().getLength());
+			// the start of the last line: scrolled down to it, but not to the right to the
+			// end of a long line (such as a command with its paths)
+			nodesTextArea.setCaretPosition(lastLineStart);
 		}
 	}
 
@@ -405,7 +407,10 @@ public class TrackgenPanel extends JDialog implements Runnable
 			textArea.append(newline);
 		}
 
-		textArea.append(text);		
+		// at the start of the new line, so a long line doesn't scroll the area to the right
+		int start = textArea.getDocument().getLength();
+		textArea.append(text);
+		textArea.setCaretPosition(start);
 	}
 	
 	/**
