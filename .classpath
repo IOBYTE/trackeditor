@@ -12,5 +12,13 @@
 	<classpathentry kind="lib" path="jdom-1.1.3.jar" sourcepath="jdom-1.1.3-sources.jar"/>
 	<classpathentry kind="lib" path="gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="jogl-all.jar"/>
+	<classpathentry kind="lib" path="gluegen-rt-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="jogl-all-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="gluegen-rt-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="jogl-all-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="gluegen-rt-natives-linux-aarch64.jar"/>
+	<classpathentry kind="lib" path="jogl-all-natives-linux-aarch64.jar"/>
+	<classpathentry kind="lib" path="gluegen-rt-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="jogl-all-natives-macosx-universal.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>
