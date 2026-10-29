@@ -37,6 +37,8 @@ public class SceneTorcs extends TrackScene
 		side(TR_SIDE_LFT);
 		barriers(TR_SIDE_RGT);
 		barriers(TR_SIDE_LFT);
+		furniture();
+		crossings();
 	}
 
 	private static float texS(int side, float texLen)

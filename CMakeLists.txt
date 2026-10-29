@@ -81,6 +81,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/view3d/SceneTorcs.java
          gui/view3d/Track3DRenderer.java
          gui/view3d/Track3DWindow.java
+         gui/view3d/TrackCrossing.java
          gui/view3d/TrackScene.java
          miscel/EPMath.java
          miscel/TCPopupEventQueue.java

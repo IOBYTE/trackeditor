@@ -10,9 +10,11 @@ package gui.view3d;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 
@@ -63,8 +66,12 @@ public class Track3DRenderer implements GLEventListener
 	private final List<Texture>		runTextures		= new ArrayList<Texture>();
 	private final List<Texture>		runRacelines	= new ArrayList<Texture>();
 	private final List<int[]>		runs			= new ArrayList<int[]>();
+	// the strips with textures that can be seen through, drawn one by one
+	private final List<SeeThrough>	seeThrough		= new ArrayList<SeeThrough>();
 	// the textures loaded so far, by file and time, and the ones that couldn't be read
 	private final Map<String, Texture>	textures	= new HashMap<String, Texture>();
+	// the textures with parts that can be seen through, such as a fence's gaps
+	private final java.util.Set<Texture>	translucent	= new HashSet<Texture>();
 	private final Map<String, String>	textureErrors	= new HashMap<String, String>();
 	private float					anisotropy		= 0;
 	private int						width = 1, height = 1;
@@ -173,6 +180,7 @@ public class Track3DRenderer implements GLEventListener
 		}
 		// a new context has none of the textures
 		textures.clear();
+		translucent.clear();
 		textureErrors.clear();
 		buffersStale = true;
 	}
@@ -191,6 +199,7 @@ public class Track3DRenderer implements GLEventListener
 		for (Texture texture : textures.values())
 			texture.destroy(gl);
 		textures.clear();
+		translucent.clear();
 	}
 
 	@Override
@@ -249,48 +258,50 @@ public class Track3DRenderer implements GLEventListener
 				gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
 				gl.glEnableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
 				gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, texCoords);
-				// a texture's clear parts (a fence's gaps) aren't drawn
+				// a texture's clear parts (a fence's gaps) aren't drawn, and don't hide what is behind
 				gl.glEnable(GL2.GL_ALPHA_TEST);
-				gl.glAlphaFunc(GL.GL_GREATER, 0.5f);
+				gl.glAlphaFunc(GL.GL_GREATER, 0.02f);
 				// the raceline layer's coordinates, for the second texture unit
 				gl.glClientActiveTexture(GL.GL_TEXTURE1);
 				gl.glEnableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
 				gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, racelineCoords);
 				gl.glClientActiveTexture(GL.GL_TEXTURE0);
+				// what can't be seen through first
 				for (int r = 0; r < runs.size(); r++)
 				{
-					// the raceline layer is multiplied in, and doesn't repeat, as in the game
-					Texture layer = raceline ? runRacelines.get(r) : null;
-					gl.glActiveTexture(GL.GL_TEXTURE1);
-					if (layer != null)
-					{
-						layer.enable(gl);
-						layer.bind(gl);
-						gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-						gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
-						gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
-					}
-					else
-						gl.glDisable(GL.GL_TEXTURE_2D);
-					gl.glActiveTexture(GL.GL_TEXTURE0);
-					Texture texture = runTextures.get(r);
-					if (texture != null)
-					{
-						texture.enable(gl);
-						texture.bind(gl);
-						gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
-						gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
-					}
-					else
-						gl.glDisable(GL.GL_TEXTURE_2D);
-					// the game culls one-sided surfaces only; a fence's two faces always,
-					// as they are in the same place and would show through each other
-					if (culling && runs.get(r)[2] == ONE_SIDED || runs.get(r)[2] == BACK_TO_BACK)
-						gl.glEnable(GL.GL_CULL_FACE);
-					else
-						gl.glDisable(GL.GL_CULL_FACE);
+					if (translucent.contains(runTextures.get(r)))
+						continue;
+					bind(gl, runTextures.get(r), runRacelines.get(r), runs.get(r)[2]);
 					gl.glDrawArrays(GL.GL_TRIANGLES, runs.get(r)[0], runs.get(r)[1]);
 				}
+				// then the strips with textures that can be seen through, blended as the games do
+				// (a fence's wires fade with the distance instead of breaking up), from the
+				// farthest from the camera to the nearest, as Speed Dreams sorts its transparent
+				// objects, so a near one doesn't hide one behind it
+				gl.glEnable(GL.GL_BLEND);
+				gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+				int count = seeThrough.size();
+				Integer[] order = new Integer[count];
+				double[] distance = new double[count];
+				for (int i = 0; i < count; i++)
+				{
+					float[] center = seeThrough.get(i).center;
+					double dx = center[0] - eye[0], dy = center[1] - eye[1], dz = center[2] - eye[2];
+					distance[i] = dx * dx + dy * dy + dz * dz;
+					order[i] = i;
+				}
+				java.util.Arrays.sort(order, (i, j) -> Double.compare(distance[j], distance[i]));
+				SeeThrough bound = null;
+				for (int i : order)
+				{
+					SeeThrough strip = seeThrough.get(i);
+					// neighbors often have the same texture: bind only what changes
+					if (bound == null || strip.texture != bound.texture || strip.layer != bound.layer || strip.faces != bound.faces)
+						bind(gl, strip.texture, strip.layer, strip.faces);
+					bound = strip;
+					gl.glDrawArrays(GL.GL_TRIANGLES, strip.first, strip.count);
+				}
+				gl.glDisable(GL.GL_BLEND);
 				gl.glActiveTexture(GL.GL_TEXTURE1);
 				gl.glDisable(GL.GL_TEXTURE_2D);
 				gl.glActiveTexture(GL.GL_TEXTURE0);
@@ -404,6 +415,7 @@ public class Track3DRenderer implements GLEventListener
 		runs.clear();
 		runTextures.clear();
 		runRacelines.clear();
+		seeThrough.clear();
 		float scale = (float) heightScale;
 		double heightRange = Math.max(1e-6, mesh.maxZ - mesh.minZ);
 		int tri = 0;
@@ -420,10 +432,12 @@ public class Track3DRenderer implements GLEventListener
 				runRacelines.add(layer);
 			}
 			runs.get(runs.size() - 1)[1] += order.length;
+			if (translucent.contains(texture) && order.length > 0)
+				seeThrough.add(new SeeThrough(strip, texture, layer, faces(strip), tri * 3, order.length, scale));
 			boolean flip = texture != null && texture.getMustFlipVertically();
 			boolean flipLayer = layer != null && layer.getMustFlipVertically();
 			// a texture is lit as it is; a missing one shows the surface's color
-			float[] plain = texture != null ? new float[] { 1, 1, 1 } : coloring == Coloring.PLAIN ? partColor(strip.part) : surfaceColor(strip.surface);
+			float[] plain = texture != null ? new float[] { 1, 1, 1 } : coloring == Coloring.PLAIN ? partColor(strip.part) : surfaceColor(strip.surface != null ? strip.surface : strip.texture);
 			for (int k = 0; k < order.length; k += 3, tri++)
 			{
 				int a = order[k], b = order[k + 1], d = order[k + 2];
@@ -475,6 +489,70 @@ public class Track3DRenderer implements GLEventListener
 		drawnTriangles = tri;
 	}
 
+	/** A strip with a texture that can be seen through: where it is in the arrays, and its middle. */
+	private static final class SeeThrough
+	{
+		final Texture	texture, layer;
+		final int		faces, first, count;
+		final float[]	center;
+
+		SeeThrough(TrackScene.Strip strip, Texture texture, Texture layer, int faces, int first, int count, float scale)
+		{
+			this.texture = texture;
+			this.layer = layer;
+			this.faces = faces;
+			this.first = first;
+			this.count = count;
+			// the middle of its bounds
+			float x0 = Float.MAX_VALUE, x1 = -Float.MAX_VALUE, y0 = Float.MAX_VALUE, y1 = -Float.MAX_VALUE, z0 = Float.MAX_VALUE, z1 = -Float.MAX_VALUE;
+			for (int i = 0; i < strip.size(); i++)
+			{
+				x0 = Math.min(x0, strip.x(i));
+				x1 = Math.max(x1, strip.x(i));
+				y0 = Math.min(y0, strip.y(i));
+				y1 = Math.max(y1, strip.y(i));
+				z0 = Math.min(z0, strip.z(i));
+				z1 = Math.max(z1, strip.z(i));
+			}
+			center = new float[] { (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2 * scale };
+		}
+	}
+
+	/** Binds a run's texture and raceline layer, and culls as the game does. */
+	private void bind(GL2 gl, Texture texture, Texture layer, int faces)
+	{
+		// the raceline layer is multiplied in, and doesn't repeat, as in the game
+		if (!raceline)
+			layer = null;
+		gl.glActiveTexture(GL.GL_TEXTURE1);
+		if (layer != null)
+		{
+			layer.enable(gl);
+			layer.bind(gl);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
+		}
+		else
+			gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glActiveTexture(GL.GL_TEXTURE0);
+		if (texture != null)
+		{
+			texture.enable(gl);
+			texture.bind(gl);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
+		}
+		else
+			gl.glDisable(GL.GL_TEXTURE_2D);
+		// the game culls one-sided surfaces only; a fence's two faces always,
+		// as they are in the same place and would show through each other
+		if (culling && faces == ONE_SIDED || faces == BACK_TO_BACK)
+			gl.glEnable(GL.GL_CULL_FACE);
+		else
+			gl.glDisable(GL.GL_CULL_FACE);
+	}
+
 	// how a run of strips is culled
 	private static final int	ONE_SIDED		= 0;
 	private static final int	DOUBLE_SIDED	= 1;
@@ -496,6 +574,14 @@ public class Track3DRenderer implements GLEventListener
 			return new float[] { 0.5f, 0.58f, 0.48f };
 		case BARRIER:
 			return new float[] { 0.78f, 0.78f, 0.8f };
+		case TURN_MARK:
+			return new float[] { 0.86f, 0.62f, 0.24f };
+		case START_BRIDGE:
+			return new float[] { 0.62f, 0.5f, 0.72f };
+		case PIT_BUILDING:
+			return new float[] { 0.82f, 0.8f, 0.72f };
+		case CROSSING:
+			return new float[] { 0.7f, 0.66f, 0.6f };
 		default:
 			return new float[] { 0.6f, 0.64f, 0.63f };
 		}
@@ -504,6 +590,36 @@ public class Track3DRenderer implements GLEventListener
 	private static String textureKey(File file)
 	{
 		return file.getAbsolutePath() + "|" + file.lastModified();
+	}
+
+	/** @return whether some of the image can be seen through */
+	private static boolean seeThrough(BufferedImage image)
+	{
+		if (!image.getColorModel().hasAlpha())
+			return false;
+		int[] row = new int[image.getWidth()];
+		for (int y = 0; y < image.getHeight(); y++)
+		{
+			image.getRGB(0, y, row.length, 1, row, 0, row.length);
+			for (int argb : row)
+				if ((argb >>> 24) < 250)
+					return true;
+		}
+		return false;
+	}
+
+	/** @return whether some of an SGI image can be seen through */
+	private static boolean seeThrough(TextureData data)
+	{
+		if (data.getPixelFormat() != GL.GL_RGBA || !(data.getBuffer() instanceof ByteBuffer))
+			return false;
+		ByteBuffer pixels = ((ByteBuffer) data.getBuffer()).duplicate();
+		pixels.rewind();
+		int size = data.getWidth() * data.getHeight() * 4;
+		for (int i = 3; i < size && i < pixels.limit(); i += 4)
+			if ((pixels.get(i) & 0xff) < 250)
+				return true;
+		return false;
 	}
 
 	/** @return the texture of an image file, loaded once, or null when it can't be read */
@@ -520,7 +636,10 @@ public class Track3DRenderer implements GLEventListener
 			String name = file.getName().toLowerCase();
 			if (name.endsWith(".rgb") || name.endsWith(".rgba") || name.endsWith(".sgi") || name.endsWith(".bw"))
 			{
-				texture = TextureIO.newTexture(TextureIO.newTextureData(gl.getGLProfile(), file, true, TextureIO.SGI));
+				TextureData data = TextureIO.newTextureData(gl.getGLProfile(), file, true, TextureIO.SGI);
+				texture = TextureIO.newTexture(data);
+				if (seeThrough(data))
+					translucent.add(texture);
 			}
 			else
 			{
@@ -528,6 +647,8 @@ public class Track3DRenderer implements GLEventListener
 				if (image == null)
 					throw new java.io.IOException("not an image ImageIO can read");
 				texture = AWTTextureIO.newTexture(gl.getGLProfile(), image, true);
+				if (seeThrough(image))
+					translucent.add(texture);
 			}
 			texture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
 			texture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);

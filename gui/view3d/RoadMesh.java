@@ -48,7 +48,7 @@ public class RoadMesh
 		{
 			for (TrackScene.Strip strip : scene.strips)
 			{
-				triangles += strip.size() - 2;
+				triangles += strip.triangles().length / 3;
 				for (String texture : new String[] { strip.texture, strip.racelineTexture })
 				{
 					if (texture != null && !names.contains(texture))

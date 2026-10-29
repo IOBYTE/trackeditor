@@ -45,6 +45,7 @@ public class SceneCsrSd extends TrackScene
 		side(TR_SIDE_LFT);
 		rightBarrier();
 		leftBarrier();
+		furniture();
 	}
 
 	/** A border: plan in one strip, curbs in two (top, then the face), walls in three. */

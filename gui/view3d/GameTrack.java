@@ -111,6 +111,8 @@ public class GameTrack
 		/** the next segment out to the right and left; CSR also links borders back to the main segment */
 		public Seg			rside, lside;
 		public Seg			prev, next;
+		/** the turn marks the game gives the first step of a segment: distances before it, in meters */
+		public int[]		marks;
 		public final Barrier[]	barrier	= new Barrier[2];
 
 		public Seg side(int side)
@@ -234,6 +236,8 @@ public class GameTrack
 					last.next = m;
 					m.prev = last;
 				}
+				if (step == 0 && segment instanceof Curve)
+					m.marks = marks(((Curve) segment).getMarks());
 				segs.add(m);
 			}
 		}
@@ -453,6 +457,313 @@ public class GameTrack
 			if (m.next == buildingsStart)
 				break;
 		}
+	}
+
+	/** The segment's "marks" as the track loader reads them: numbers separated by ';', as strtol reads them. */
+	private static int[] marks(String text)
+	{
+		if (text == null)
+			return null;
+		List<Integer> marks = new ArrayList<Integer>();
+		for (String token : text.split(";"))
+			if (!token.isEmpty())
+				marks.add(strtol(token));
+		if (marks.isEmpty())
+			return null;
+		int[] result = new int[marks.size()];
+		for (int i = 0; i < result.length; i++)
+			result[i] = marks.get(i);
+		return result;
+	}
+
+	/** strtol(s, NULL, 0): decimal, 0x hexadecimal or 0 octal, up to the first character that doesn't fit; 0 when none does */
+	private static int strtol(String s)
+	{
+		int i = 0, n = s.length();
+		while (i < n && Character.isWhitespace(s.charAt(i)))
+			i++;
+		boolean negative = false;
+		if (i < n && (s.charAt(i) == '+' || s.charAt(i) == '-'))
+			negative = s.charAt(i++) == '-';
+		int radix = 10;
+		if (i + 1 < n && s.charAt(i) == '0' && (s.charAt(i + 1) == 'x' || s.charAt(i + 1) == 'X') && i + 2 < n && Character.digit(s.charAt(i + 2), 16) >= 0)
+		{
+			radix = 16;
+			i += 2;
+		}
+		else if (i < n && s.charAt(i) == '0')
+			radix = 8;
+		long value = 0;
+		for (; i < n; i++)
+		{
+			int d = Character.digit(s.charAt(i), radix);
+			if (d < 0)
+				break;
+			value = value * radix + d;
+			if (value > Integer.MAX_VALUE)
+				value = Integer.MAX_VALUE;
+		}
+		return (int) (negative ? -value : value);
+	}
+
+	/** @return the track's length: its main segments' */
+	public float length()
+	{
+		float length = 0;
+		for (Seg seg : segs)
+			length += seg.length;
+		return length;
+	}
+
+	/** RtTrackSideNormalG: the horizontal normal into the track at a side (TR_RGT or TR_LFT) of the segment, near (x, y). */
+	public static float[] sideNormal(Seg seg, float x, float y, int side)
+	{
+		float nx, ny;
+		if (seg.type == TR_STR)
+		{
+			// rgtSideNormal: across the segment from its right side
+			nx = (float) -Math.sin(seg.angleZS);
+			ny = (float) Math.cos(seg.angleZS);
+			if (side != TR_RGT)
+			{
+				nx = -nx;
+				ny = -ny;
+			}
+		}
+		else
+		{
+			// away from the center at the outer side, toward it at the inner one
+			boolean outer = side == seg.type;
+			nx = outer ? x - seg.centerX : seg.centerX - x;
+			ny = outer ? y - seg.centerY : seg.centerY - y;
+			float lg = 1.0f / (float) Math.sqrt(nx * nx + ny * ny);
+			nx *= lg;
+			ny *= lg;
+		}
+		return new float[] { nx, ny };
+	}
+
+	/** A local position: toStart along the segment (a length on a straight, an angle in a curve), toRight across it. */
+	public static final class LocalPos
+	{
+		public Seg		seg;
+		public float	toStart, toRight;
+	}
+
+	/**
+	 * RtTrackGlobal2Local with TR_LPOS_SEGMENT: the main segment, searched for from
+	 * start, that (x, y) is along, then the border or side it is on with toRight
+	 * from that one's right side.
+	 */
+	public static LocalPos global2Local(Seg start, float x, float y)
+	{
+		LocalPos p = new LocalPos();
+		Seg seg = start;
+		int depl = 0;
+		// the search only goes one way once it has moved: it ends
+		for (int guard = 0; ; guard++)
+		{
+			boolean found;
+			if (seg.type == TR_STR)
+			{
+				float dx = x - seg.vertex[TR_SR][0], dy = y - seg.vertex[TR_SR][1];
+				float cos = (float) Math.cos(seg.angleZS), sin = (float) Math.sin(seg.angleZS);
+				float ts = dx * cos + dy * sin;
+				p.seg = seg;
+				p.toStart = ts;
+				p.toRight = dy * cos - dx * sin;
+				found = !(ts < 0 && depl < 1) && !(ts > seg.length && depl > -1);
+				if (ts < 0 && depl < 1)
+				{
+					seg = seg.prev;
+					depl = -1;
+				}
+				else if (ts > seg.length && depl > -1)
+				{
+					seg = seg.next;
+					depl = 1;
+				}
+			}
+			else
+			{
+				boolean left = seg.type == TR_LFT;
+				float dx = x - seg.centerX, dy = y - seg.centerY;
+				float a2 = seg.arc / 2.0f;
+				// angle[TR_CS]: the start's direction from the center
+				float cs = (float) (left ? seg.angleZS - Math.PI / 2 : seg.angleZS + Math.PI / 2);
+				float theta = (float) (left ? Math.atan2(dy, dx) - (cs + a2) : cs - a2 - Math.atan2(dy, dx));
+				while (theta > Math.PI)
+					theta -= (float) (2 * Math.PI);
+				while (theta < -Math.PI)
+					theta += (float) (2 * Math.PI);
+				float r = (float) Math.sqrt(dx * dx + dy * dy);
+				p.seg = seg;
+				p.toStart = theta + a2;
+				p.toRight = left ? seg.radiusr - r : r - seg.radiusr;
+				found = !(theta < -a2 && depl < 1) && !(theta > a2 && depl > -1);
+				if (theta < -a2 && depl < 1)
+				{
+					seg = seg.prev;
+					depl = -1;
+				}
+				else if (theta > a2 && depl > -1)
+				{
+					seg = seg.next;
+					depl = 1;
+				}
+			}
+			if (found || guard > 2 * 100000)
+				break;
+		}
+		seg = p.seg;
+
+		// the border or side it is on
+		float toLeft = seg.width - p.toRight;
+		if (p.toRight < 0 && seg.rside != null)
+		{
+			Seg side = seg.rside;
+			p.seg = side;
+			p.toRight += width(side, p.toStart);
+			if (p.toRight < 0 && side.rside != null)
+			{
+				p.seg = side.rside;
+				p.toRight += width(side.rside, p.toStart);
+			}
+		}
+		else if (toLeft < 0 && seg.lside != null)
+		{
+			Seg side = seg.lside;
+			p.seg = side;
+			float curWidth = width(side, p.toStart);
+			p.toRight -= seg.width;
+			toLeft += curWidth;
+			if (toLeft < 0 && side.lside != null)
+			{
+				p.toRight -= curWidth;
+				p.seg = side.lside;
+			}
+		}
+		return p;
+	}
+
+	/** RtTrackHeightG: the height of the road or side at (x, y), from the main segment seg. */
+	public float heightG(Seg seg, float x, float y)
+	{
+		LocalPos p = global2Local(seg, x, y);
+		return heightL(p.seg, p.toStart, p.toRight);
+	}
+
+	/** Where trackgen puts the pit buildings: the pits' side and length, and each pit's place. */
+	public static final class PitLayout
+	{
+		/** TR_RGT or TR_LFT */
+		public int					side;
+		public float				len;
+		/** each pit's start, on its main segment: toStart is a length, also in a curve, as trackgen has it */
+		public final List<LocalPos>	pits	= new ArrayList<LocalPos>();
+	}
+
+	/**
+	 * The pits trackgen draws buildings for, as its initPits places them, with the
+	 * count the game's track loader works out; null when there are none.
+	 */
+	public PitLayout pitBuildings()
+	{
+		Pits pits = editorFrame.getTrackData().getMainTrack().getPits();
+		if (pits == null)
+			return null;
+		Seg entry = first(pits.getEntry()), exit = last(pits.getExit());
+		Seg start = first(pits.getStart()), end = last(pits.getEnd());
+		// the loader only sets the pits up with all four
+		if (entry == null || exit == null || start == null || end == null)
+			return null;
+		PitLayout layout = new PitLayout();
+		layout.side = "left".equals(pits.getSide()) ? TR_LFT : TR_RGT;
+		layout.len = (float) (Double.isNaN(pits.getLength()) ? 15.0 : pits.getLength());
+		if (!(layout.len > 0))
+			return null;
+		float trackLength = length();
+
+		Seg first;
+		int count;
+		if (game == EditorFrame.GameType.TORCS)
+		{
+			// as many as fit from the pit start to the pit end
+			first = start;
+			count = pitCount(start, end, layout.len, trackLength);
+		}
+		else
+		{
+			// only the pit style with buildings; as many as fit along the buildings, at most "max pits"
+			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
+			if (style != 1)
+				return null;
+			Seg buildingsStart = pits.getStartBuildings() == null ? null : first(pits.getStartBuildings());
+			if (buildingsStart == null)
+				buildingsStart = start;
+			Seg buildingsEnd = pits.getStopBuildings() == null ? null : last(pits.getStopBuildings());
+			if (buildingsEnd == null)
+				buildingsEnd = end;
+			int nPitSeg = pitCount(buildingsStart, buildingsEnd, layout.len, trackLength);
+			int nMaxPits = Math.min(nPitSeg, pits.getMaxPits() == Integer.MAX_VALUE ? nPitSeg : pits.getMaxPits());
+			first = buildingsStart;
+			count = Math.min(nPitSeg, nMaxPits);
+		}
+
+		// initPits: one after the other from the start, "to start" a length even in a curve
+		Seg curMainSeg = first.prev;
+		boolean changeSeg = true;
+		float toStart = 0, offset = 0;
+		Seg curPitSeg = null;
+		int i = 0;
+		for (int guard = 0; i < count && guard < 1000000; guard++)
+		{
+			if (changeSeg)
+			{
+				changeSeg = false;
+				offset = 0;
+				curMainSeg = curMainSeg.next;
+				curPitSeg = layout.side == TR_RGT ? curMainSeg.rside : curMainSeg.lside;
+				if (curPitSeg == null)
+					return layout.pits.isEmpty() ? null : layout;
+				Seg outer = layout.side == TR_RGT ? curPitSeg.rside : curPitSeg.lside;
+				if (outer != null)
+				{
+					offset = curPitSeg.width;
+					curPitSeg = outer;
+				}
+				if (toStart >= curMainSeg.length)
+				{
+					toStart -= curMainSeg.length;
+					changeSeg = true;
+					continue;
+				}
+			}
+			LocalPos pos = new LocalPos();
+			pos.seg = curMainSeg;
+			pos.toStart = toStart;
+			float out = -offset - width(curPitSeg, toStart);
+			// to the right of the right side, or as far left of the left one
+			pos.toRight = layout.side == TR_RGT ? out : curMainSeg.width - out;
+			layout.pits.add(pos);
+			toStart += layout.len;
+			if (toStart >= curMainSeg.length)
+			{
+				toStart -= curMainSeg.length;
+				changeSeg = true;
+			}
+			i++;
+		}
+		return layout.pits.isEmpty() ? null : layout;
+	}
+
+	/** @return how many pits of length len fit from the start of one segment to the end of another */
+	private static int pitCount(Seg from, Seg to, float len, float trackLength)
+	{
+		double length = from.lgfromstart > to.lgfromstart
+			? trackLength - from.lgfromstart + to.lgfromstart + to.length
+			: to.lgfromstart + to.length - from.lgfromstart;
+		return (int) ((length + len / 2.0) / len);
 	}
 
 	private static Barrier copyWithStyle(Barrier barrier, int style)
