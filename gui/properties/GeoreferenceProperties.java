@@ -8,7 +8,7 @@ import utils.MutableDouble;
 import utils.circuit.Georeference;
 
 /**
- * The TORCS Georeference section: where the main road centre is at the start of
+ * The TORCS Georeference section: where the main road center is at the start of
  * the first segment, and the heading there.
  */
 public class GeoreferenceProperties extends PropertyPanel
@@ -43,7 +43,7 @@ public class GeoreferenceProperties extends PropertyPanel
 		addLabel(this, 1, longitudeLabel, "Longitude (deg)", 150);
 		addLabel(this, 2, altitudeLabel, "Altitude (m)", 150);
 		addLabel(this, 3, headingLabel, "Heading (deg)", 150);
-		addLabel(this, 5, noteLabel, "<html>The main road centre at the start of the first segment: north latitude, " +
+		addLabel(this, 5, noteLabel, "<html>The main road center at the start of the first segment: north latitude, " +
 			"east longitude, altitude above mean sea level, and heading clockwise from true north.</html>", 10, 480);
 		noteLabel.setSize(480, 50);
 

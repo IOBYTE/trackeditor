@@ -1,9 +1,9 @@
 package utils.circuit;
 
 /**
- * The TORCS track's geographic reference: where the main road centre is at the
+ * The TORCS track's geographic reference: where the main road center is at the
  * start of the first segment (WGS84 latitude and longitude in degrees, altitude
- * in metres above mean sea level) and the heading there in degrees clockwise
+ * in meters above mean sea level) and the heading there in degrees clockwise
  * from true north. Values not set are NaN.
  */
 public class Georeference

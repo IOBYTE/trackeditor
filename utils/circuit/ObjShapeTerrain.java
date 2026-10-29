@@ -52,7 +52,7 @@ public class ObjShapeTerrain extends Segment
 	 * bounds and the border margin around them.</li>
 	 * <li>Without it (Relief border "yes", trackgen -B), the triangulation fills the
 	 * convex hull of the track and the relief lines, unless a closed exterior relief
-	 * line that runs anticlockwise goes round the whole track: then that line is the
+	 * line that runs counterclockwise goes around the whole track: then that line is the
 	 * outer edge (erase() removes what's between it and the hull).</li>
 	 * <li>A closed relief line, interior or exterior, that runs clockwise is a hole:
 	 * EasyMesh's erase() removes the triangles whose corners are all on one closed
@@ -177,7 +177,7 @@ public class ObjShapeTerrain extends Segment
 		return true;
 	}
 
-	/** @return twice the area, positive when the ring runs anticlockwise */
+	/** @return twice the area, positive when the ring runs counterclockwise */
 	private static double signedArea(List<Point2D.Double> ring)
 	{
 		double area = 0;
@@ -200,7 +200,7 @@ public class ObjShapeTerrain extends Segment
 		return path;
 	}
 
-	/** @return the convex hull, anticlockwise (Andrew's monotone chain) */
+	/** @return the convex hull, counterclockwise (Andrew's monotone chain) */
 	private static List<Point2D.Double> convexHull(List<Point2D.Double> points)
 	{
 		List<Point2D.Double> sorted = new ArrayList<Point2D.Double>(points);

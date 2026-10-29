@@ -42,7 +42,7 @@ public class Curve extends Segment
 	protected double 		radiusEnd;
 
 	public Point2D.Double	center = new Point2D.Double();
-	// rotation centre of each step, for the bounds
+	// rotation center of each step, for the bounds
 	private double[]		stepCenters = new double[0];
 
 	protected String		marks;

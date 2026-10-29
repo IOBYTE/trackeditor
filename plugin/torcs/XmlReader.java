@@ -495,7 +495,7 @@ public class XmlReader
     }
 
 	/**
-	 * The TORCS Georeference section (degrees, and metres for the altitude, like TORCS).
+	 * The TORCS Georeference section (degrees, and meters for the altitude, like TORCS).
 	 */
 	private void setGeoreference(Element root)
 	{

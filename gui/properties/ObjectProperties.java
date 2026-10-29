@@ -883,7 +883,7 @@ public class ObjectProperties extends PropertyPanel
 	}
 
 	/**
-	 * Keeps the selected tab for the next time, also when the dialog is cancelled or
+	 * Keeps the selected tab for the next time, also when the dialog is canceled or
 	 * closed
 	 */
 	public void rememberTab()

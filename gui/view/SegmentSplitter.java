@@ -97,7 +97,7 @@ class SegmentSplitter
 				stepLength *= arc / angle;
 			}
 
-			// find the distance along the centre line closest to the click
+			// find the distance along the center line closest to the click
 			double best = Double.MAX_VALUE, bestDist = 0;
 			double x = x0, y = y0, a = a0, dist = 0;
 			int samples = 64;
@@ -251,7 +251,7 @@ class SegmentSplitter
 			   (3 * t2 - 4 * t + 1) * tan0 / 100 * length + (3 * t2 - 2 * t) * tan1 / 100 * length;
 	}
 
-	/** heights at the split: centre, left, right */
+	/** heights at the split: center, left, right */
 	private final double[]	splitHeights	= new double[3];
 
 	private void fixHeight(double actual, double wanted, Runnable set)

@@ -1,3 +1,5 @@
 Manifest-Version: 1.0
 Main-Class: utils.TrackEditor
-Class-Path: bsh-2.0b4.jar jdom-1.1.3.jar jgoodies-looks-2.5.3.jar jgoodies-common-1.8.1.jar
+Class-Path: bsh-2.0b4.jar jdom-1.1.3.jar jgoodies-looks-2.5.3.jar jgoodies-common-1.8.1.jar gluegen-rt.jar jogl-all.jar
+Enable-Native-Access: ALL-UNNAMED
+Add-Opens: java.desktop/sun.awt java.desktop/sun.awt.windows java.desktop/sun.java2d

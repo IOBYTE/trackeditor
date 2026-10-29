@@ -64,7 +64,7 @@ public class SplashScreen extends JWindow
 		// stay above the editor window when it opens, instead of going behind it and
 		// coming back (a blink)
 		setAlwaysOnTop(true);
-		// centre the whole window, once it has its size
+		// center the whole window, once it has its size
 		setLocationRelativeTo(null);
 	}
 

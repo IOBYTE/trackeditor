@@ -73,6 +73,15 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/view/CircuitViewSelectionEvent.java
          gui/view/CircuitViewSelectionListener.java
          gui/view/SegmentSplitter.java
+         gui/view3d/GameTrack.java
+         gui/view3d/OrbitCamera.java
+         gui/view3d/RaceLine.java
+         gui/view3d/RoadMesh.java
+         gui/view3d/SceneCsrSd.java
+         gui/view3d/SceneTorcs.java
+         gui/view3d/Track3DRenderer.java
+         gui/view3d/Track3DWindow.java
+         gui/view3d/TrackScene.java
          miscel/EPMath.java
          miscel/TCPopupEventQueue.java
          plugin/torcs/GfParmNumbers.java
@@ -120,6 +129,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/circuit/Pits.java
          utils/circuit/Point3D.java
          utils/circuit/Reliefs.java
+         utils/circuit/RoadTexture.java
          utils/circuit/Sector.java
          utils/circuit/Segment.java
          utils/circuit/SegmentListener.java
@@ -186,6 +196,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
             gui/icons/TurnLeft24.gif
             gui/icons/TurnRight24.gif
             gui/icons/Undo24.gif
+            gui/icons/View3D24.gif
             gui/icons/Zoom24.gif
             gui/icons/ZoomIn24.gif
             gui/icons/ZoomOut24.gif
@@ -194,7 +205,20 @@ IF(Java_Development_FOUND AND Java_FOUND)
    SET(JAVA_JARS bsh-2.0b4.jar
                   jdom-1.1.3.jar
                   jgoodies-looks-2.5.3.jar
-                  jgoodies-common-1.8.1.jar )
+                  jgoodies-common-1.8.1.jar
+                  gluegen-rt.jar
+                  jogl-all.jar )
+
+   # JOGL's native libraries (3D View): JOGL loads them from these jars when they
+   # are beside gluegen-rt.jar and jogl-all.jar. Only the ones present are used.
+   SET(_JOGL_NATIVE_JARS)
+   FOREACH(_PLATFORM windows-amd64 linux-amd64 linux-aarch64 macosx-universal)
+      FOREACH(_JAR gluegen-rt-natives-${_PLATFORM}.jar jogl-all-natives-${_PLATFORM}.jar)
+         IF(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${_JAR}")
+            LIST(APPEND _JOGL_NATIVE_JARS ${_JAR})
+         ENDIF()
+      ENDFOREACH()
+   ENDFOREACH()
 
    # ========= Debug
    #message(STATUS "JAVA_JARS = ${JAVA_JARS}")
@@ -218,7 +242,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
       ADD_CUSTOM_COMMAND(TARGET ${_TARGET_NAME} POST_BUILD
                         COMMAND ${CMAKE_COMMAND} -E make_directory "${_TGT_DIR}"
                         VERBATIM)
-      FOREACH(_JAR ${JAVA_JARS})
+      FOREACH(_JAR ${JAVA_JARS} ${_JOGL_NATIVE_JARS})
          ADD_CUSTOM_COMMAND(TARGET ${_TARGET_NAME} POST_BUILD
                               COMMAND ${CMAKE_COMMAND} -E echo Copying "${_JAR}" to "${_TGT_DIR}"
                               COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/${_JAR}" "${_TGT_DIR}"
@@ -229,10 +253,10 @@ IF(Java_Development_FOUND AND Java_FOUND)
    INSTALL_JAR(${_TARGET_NAME} DESTINATION ${CSR_BINDIR})
 
    IF(_STANDALONE)
-      INSTALL(FILES ${JAVA_JARS} DESTINATION ${CSR_BINDIR})
+      INSTALL(FILES ${JAVA_JARS} ${_JOGL_NATIVE_JARS} DESTINATION ${CSR_BINDIR})
    ELSE(_STANDALONE)
       # install the jar dependencies
-      CSR_INSTALL_FILES(BIN FILES ${JAVA_JARS})
+      CSR_INSTALL_FILES(BIN FILES ${JAVA_JARS} ${_JOGL_NATIVE_JARS})
    ENDIF(_STANDALONE)
 
    # TODO remove this when CMake issue 23668 is fixed
@@ -259,6 +283,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
    # http://www.jdom.org/dist/binary/archive/jdom-1.1.3.zip
    # http://www.java2s.com/Code/JarDownload/jgoodies/jgoodies-common-1.8.1.jar.zip
    # http://www.java2s.com/Code/JarDownload/jgoodies/jgoodies-looks-2.5.3.jar.zip
+   # https://jogamp.org/deployment/v2.6.0/jar/ (gluegen-rt, jogl-all and their -natives- jars)
 
 ELSE(Java_Development_FOUND AND Java_FOUND)
    MESSAGE(WARNING "Java_FOUND = ${Java_FOUND}")

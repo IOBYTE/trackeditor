@@ -199,6 +199,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	/** selection listener management */
 	private transient Vector<CircuitViewSelectionListener>	selectionListeners;
+	// told after each redraw, when the track's shape may have changed (the 3D view)
+	private final java.util.List<Runnable>	trackChangeListeners	= new java.util.concurrent.CopyOnWriteArrayList<Runnable>();
 
 	//private double				imgCo							= 1.0; //3.4;
 	//private Point2D.Double		imgOffset						= new Point2D.Double(0, 0);
@@ -1534,7 +1536,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	}
 
 	/**
-	 * @return the point at the centre of the visible part of the view, in the same
+	 * @return the point at the center of the visible part of the view, in the same
 	 *         coordinates as screenCenter (which is only updated when painting)
 	 */
 	public Point2D.Double getVisibleCenter()
@@ -1548,7 +1550,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	/**
 	 * Zooms and scrolls to show all of the track, its terrain border and its reliefs,
-	 * centred in the window.
+	 * centered in the window.
 	 */
 	public void fitToWindow()
 	{
@@ -1581,7 +1583,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		// a little room around it
 		double zoom = 0.95 * Math.min(r.getWidth() / content.getWidth(), r.getHeight() / content.getHeight());
 
-		// showAt's centre is in the view's own coordinates, which are flipped vertically
+		// showAt's center is in the view's own coordinates, which are flipped vertically
 		// about the track's bounds
 		double centerX = content.getCenterX();
 		double centerY = 2 * boundingRectangle.getY() + boundingRectangle.getHeight() - content.getCenterY();
@@ -1589,7 +1591,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	}
 
 	/**
-	 * Zooms to the zoom factor with the point (from getVisibleCenter) at the centre.
+	 * Zooms to the zoom factor with the point (from getVisibleCenter) at the center.
 	 */
 	public void showAt(double newZoomFactor, Point2D.Double center)
 	{
@@ -2235,16 +2237,42 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 	}
 
+	/**
+	 * Tells l after each redraw, when the track's shape may have changed: every edit
+	 * of the track, and closing or opening one, ends in a redraw.
+	 */
+	public void addTrackChangeListener(Runnable l)
+	{
+		trackChangeListeners.add(l);
+	}
+
+	public void removeTrackChangeListener(Runnable l)
+	{
+		trackChangeListeners.remove(l);
+	}
+
+	public void fireTrackChanged()
+	{
+		for (Runnable l : trackChangeListeners)
+			l.run();
+	}
+
 	public void redrawCircuit()
 	{
 		if (editorFrame.getTrackData() == null)
+		{
+			fireTrackChanged();
 			return;
+		}
 
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		
 		// a failed import can leave no segments
 		if (track == null)
+		{
+			fireTrackChanged();
 			return;
+		}
 
 		editorFrame.getTrackData().calculateSegmentValues();
 		
@@ -2294,6 +2322,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 //		 zoom
 		setZoomFactor(zoomFactor);
+
+		fireTrackChanged();
 	}
 	
 	private void openSegmentDialog(Segment shape)
@@ -2787,7 +2817,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 								editorFrame.documentIsModified = true;
 							}
-							// (no undo step was added for a cancelled dialog, so there is none to remove)
+							// (no undo step was added for a canceled dialog, so there is none to remove)
 
 							selectedShape = null;
 							invalidate();

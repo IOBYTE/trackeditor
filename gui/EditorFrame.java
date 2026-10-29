@@ -54,8 +54,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
+import java.util.function.Supplier;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -96,9 +98,9 @@ import utils.circuit.GraphicObject;
 import utils.circuit.MainTrack;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjectMap;
-import utils.circuit.Point3D;
 import utils.circuit.Pits;
 import utils.circuit.Reliefs;
+import utils.circuit.RoadTexture;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
 import utils.circuit.Surface;
@@ -155,6 +157,12 @@ public class EditorFrame extends JFrame
 	ExportAC3RacelineAction		ac3RacelineAction					= null;
 	PropertiesAction			propertiesAction					= null;
 	CalcDeltaAction				calcDeltaAction						= null;
+	View3DAction				view3DAction						= null;
+	// the 3D view's camera and raceline layer for the open track, after its window
+	// closed: null when they are still the ones in the track's project
+	private String				view3D								= null;
+	// gives the open 3D window's camera and raceline layer
+	private Supplier<String>	view3DSource						= null;
 	CheckAction					checkAction							= null;
 	FinishLineAction			finishLineAction					= null;
 
@@ -214,6 +222,7 @@ public class EditorFrame extends JFrame
 	private JMenuItem			showBackgroundMenuItem				= null;
 	private JMenuItem			showObjectsMenuItem					= null;
 	private JMenuItem			showReliefsMenuItem					= null;
+	private JMenuItem			view3DMenuItem						= null;
 	private JMenuItem			defaultSurfacesItem					= null;
 	private JMenuItem			defaultObjectsItem					= null;
 	private JToggleButton		moveButton							= null;
@@ -259,6 +268,7 @@ public class EditorFrame extends JFrame
 	private String 				sep									= System.getProperty("file.separator");
 
 	private JButton 			calculateDeltaButton				= null;
+	private JButton				view3DButton						= null;
 	
 	private Preferences			preferences							= Preferences.userNodeForPackage(EditorFrame.class);
 	private List<String>		recentFiles							= new ArrayList<String>();
@@ -1217,11 +1227,13 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * Keeps the track view's zoom and centre in the project, to show the track the
+	 * Keeps the track view's zoom and center in the project, to show the track the
 	 * same way when the project is opened again.
 	 */
 	private void storeView()
 	{
+		Editor.getProperties().setView3D(current3DView());
+		view3D = null;
 		Point2D.Double center = view.getVisibleCenter();
 		if (center == null)
 			return;
@@ -1231,7 +1243,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * Shows the track with the zoom and centre saved in its project, if it has them.
+	 * Shows the track with the zoom and center saved in its project, if it has them.
 	 * Once more after the view has its new size, as scrolling is limited to its size.
 	 */
 	private void restoreView()
@@ -1271,7 +1283,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * Writes the track view's zoom and centre into the track's project file when they
+	 * Writes the track view's zoom and center into the track's project file when they
 	 * changed, without saving the track: only the view is changed in the file, so
 	 * nothing else that wasn't saved is written. Nothing is written for a track
 	 * without a project file.
@@ -1285,9 +1297,11 @@ public class EditorFrame extends JFrame
 			return;
 		double zoom = view.getZoomFactor();
 		Properties properties = Editor.getProperties();
+		String view3DNow = current3DView();
 		if (Math.abs(zoom - properties.getViewZoom()) < 1e-9 &&
 			Math.abs(center.getX() - properties.getViewCenterX()) < 0.01 &&
-			Math.abs(center.getY() - properties.getViewCenterY()) < 0.01)
+			Math.abs(center.getY() - properties.getViewCenterY()) < 0.01 &&
+			Objects.equals(view3DNow, properties.getView3D()))
 			return;
 
 		String path = properties.getPath();
@@ -1311,6 +1325,7 @@ public class EditorFrame extends JFrame
 			project.setViewZoom(zoom);
 			project.setViewCenterX(center.getX());
 			project.setViewCenterY(center.getY());
+			project.setView3D(view3DNow);
 
 			final Exception[] encoderError = { null };
 			try (FileOutputStream out = new FileOutputStream(temp.toFile()))
@@ -1335,6 +1350,8 @@ public class EditorFrame extends JFrame
 			properties.setViewZoom(zoom);
 			properties.setViewCenterX(center.getX());
 			properties.setViewCenterY(center.getY());
+			properties.setView3D(view3DNow);
+			view3D = null;
 		}
 		catch (Exception e)
 		{
@@ -1560,6 +1577,9 @@ public class EditorFrame extends JFrame
 
         trackData = null;
         trackData = new TrackData();
+        // a new track: the 3D view shows all of it
+        view3D = null;
+        Editor.getProperties().setView3D(null);
         Undo.clear();
         closeTrackWindows();
         clearBackgroundImage();
@@ -1737,6 +1757,8 @@ public class EditorFrame extends JFrame
 		viewMenu.add(getShowReliefsMenuItem());
 		viewMenu.add(menuItemShoStartPoint);
 		viewMenu.add(menuItemAddBackground);
+		viewMenu.addSeparator();
+		viewMenu.add(getView3DMenuItem());
 		viewMenu.addSeparator();
 		viewMenu.add(getDefaultSurfacesMenuItem());
 		viewMenu.add(getDefaultObjectsMenuItem());
@@ -2168,6 +2190,116 @@ public class EditorFrame extends JFrame
 			showReliefsMenuItem.setIcon(null);
 		}
 		return showReliefsMenuItem;
+	}
+
+	private JMenuItem getView3DMenuItem()
+	{
+		if (view3DMenuItem == null)
+		{
+			view3DMenuItem = new JMenuItem();
+			view3DMenuItem.setAction(view3DAction);
+			view3DMenuItem.setIcon(null);
+			view3DMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, ActionEvent.CTRL_MASK));
+		}
+		return view3DMenuItem;
+	}
+
+	/** The toolbar button that opens the 3D view, like View > 3D View. */
+	private JButton getView3DButton()
+	{
+		if (view3DButton == null)
+		{
+			view3DButton = new JButton();
+			view3DButton.setAction(view3DAction);
+			if (view3DButton.getIcon() != null)
+			{
+				view3DButton.setText("");
+			}
+		}
+		return view3DButton;
+	}
+
+	public class View3DAction extends AbstractAction
+	{
+		public View3DAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			open3DView();
+		}
+	}
+
+	/**
+	 * Opens the 3D view. It needs the JOGL jars beside the editor's, and OpenGL: when
+	 * either is missing the editor carries on without it.
+	 */
+	private void open3DView()
+	{
+		// not again until this one is up: a second click would start another window
+		view3DAction.setEnabled(false);
+		try
+		{
+			gui.view3d.Track3DWindow.open(this, error -> {
+				view3DAction.setEnabled(true);
+				if (error != null)
+					show3DViewError(error);
+			});
+		}
+		catch (Throwable t)
+		{
+			view3DAction.setEnabled(true);
+			show3DViewError(t);
+		}
+	}
+
+	private void show3DViewError(Throwable t)
+	{
+		t.printStackTrace();
+		// LinkageError: a JOGL jar or its native libraries are missing; GLException: no OpenGL
+		String cause = t instanceof LinkageError
+			? "It needs gluegen-rt.jar, jogl-all.jar and their natives jars\nin the editor's folder."
+			: "The full error is in the console.";
+		JOptionPane.showMessageDialog(this,
+			"The 3D view can't start.\n\n" + t + "\n\n" + cause,
+			"3D View", JOptionPane.ERROR_MESSAGE);
+	}
+
+	/**
+	 * @return the camera and raceline layer the 3D view last showed the open track
+	 *         with, or null to show all of it
+	 */
+	public String get3DView()
+	{
+		return view3D != null ? view3D : Editor.getProperties().getView3D();
+	}
+
+	/** Keeps the camera and raceline layer of the 3D window that closes, for the next one. */
+	public void set3DView(String view3D)
+	{
+		this.view3D = view3D;
+	}
+
+	/** Sets what gives the open 3D window's camera and raceline layer. */
+	public void set3DViewSource(Supplier<String> source)
+	{
+		view3DSource = source;
+	}
+
+	public void remove3DViewSource(Supplier<String> source)
+	{
+		if (view3DSource == source)
+			view3DSource = null;
+	}
+
+	/** @return the 3D view's camera and raceline layer for the open track now */
+	private String current3DView()
+	{
+		String shown = view3DSource != null ? view3DSource.get() : null;
+		return shown != null ? shown : get3DView();
 	}
 
 	private JMenuItem getDefaultSurfacesMenuItem()
@@ -3353,6 +3485,7 @@ public class EditorFrame extends JFrame
 			jToolBar.add(getShowBackgroundButton());
 			jToolBar.add(getShowObjectsButton());
 			jToolBar.add(getShowReliefsButton());
+			jToolBar.add(getView3DButton());
 			jToolBar.add(getCalculateDeltaButton());
 			jToolBar.add(getCheckButton());
 			jToolBar.add(getFinishLineToggleButton());
@@ -3644,6 +3777,7 @@ public class EditorFrame extends JFrame
 		ac3E3Action = new ExportAC3E3Action("AC with track elevation map", null, "Create AC file and track elevation map.", null);
 		ac3E4Action = new ExportAC3E4Action("AC with track with height steps elevation map", null, "Create AC file and track with height steps elevation map.", null);
 		ac3RacelineAction = new ExportAC3RacelineAction("AC race line", null, "Create AC race line file.", null);
+		view3DAction = new View3DAction("3D View", createNavigationIcon("View3D24"), "Show the track in 3D (Ctrl+3).", KeyEvent.VK_3);
 		calcDeltaAction = new CalcDeltaAction("Delta's", createNavigationIcon("Calc24"), "Calculate Delta's for x,y,z and angle.", KeyEvent.VK_S);
 		importAction = new ImportAction("Track XML", null, "Track xml file", null);
 		exportAction = new ExportAction("Track XML", null, "Track xml file", null);
@@ -4421,12 +4555,15 @@ public class EditorFrame extends JFrame
 
 		closeTrackWindows();
 		trackData = null;
+		view3D = null;
 		Undo.clear();
 		documentIsModified = false;
 		// the background image belongs to the closed track
 		clearBackgroundImage();
 		setTitle(originalTitle);
 		refresh();
+		if (view != null)
+			view.fireTrackChanged();
 	}
 
 	public void importTrack()
@@ -4482,6 +4619,7 @@ public class EditorFrame extends JFrame
 			clearBackgroundImage();
 			// no project, so no saved view: show all of it
 			fitView();
+			Editor.getProperties().setView3D(null);
 			updateRecentFiles(xmlFileName);
 		}
 	}
@@ -4645,6 +4783,8 @@ public class EditorFrame extends JFrame
 
 			// a freshly loaded track has nothing to save, and nothing to undo
 			documentIsModified = false;
+			// the 3D view's camera is the one in its project, if it has one
+			view3D = null;
 			Undo.clear();
 			// the previous track's object map selection doesn't apply
 			currentObjectMap = -1;
@@ -4756,8 +4896,9 @@ public class EditorFrame extends JFrame
 		group.setName("track");
 		world.addKid(group);
 
-		// distance along the track, for the texture coordinates
-		double distance = 0;
+		// the road's texture and texture coordinates, as trackgen makes them
+		java.util.List<RoadTexture> mappings = RoadTexture.of(this);
+		int segmentIndex = 0;
 
 		for (Segment segment : trackData.getSegments())
 		{
@@ -4765,67 +4906,30 @@ public class EditorFrame extends JFrame
 
 			object.setName(segment.getName());
 
-			// the surface the game uses: the segment's own, else the previous
-			// segment's, else the Main Track's; looked up by name in the track's
-			// surfaces first, then in the default surfaces
-			String surfaceName = segment.getValidSurface(this);
-			Surface trackSurface = null;
-
-			for (Surface surface : trackData.getSurfaces())
-			{
-				if (surface.getName().equals(surfaceName))
-				{
-					trackSurface = surface;
-					break;
-				}
-			}
-
-			if (trackSurface == null)
-			{
-				for (Surface surface : defaultSurfaces)
-				{
-					if (surface.getName().equals(surfaceName))
-					{
-						trackSurface = surface;
-						break;
-					}
-				}
-			}
-
-			double textureSize = 10;
-			if (trackSurface != null) 
-			{
-				object.setTexture(trackSurface.getTextureName());
-				if (trackSurface.getTextureSize() > 0)
-					textureSize = trackSurface.getTextureSize();
-			}
+			RoadTexture mapping = mappings.get(segmentIndex++);
+			object.setTexture(mapping.texture);
 
 			// the steps the segment was drawn with
 			int steps = segment.nbSteps;
 
 			int stride = segment.points.length / steps;
 
-			// texture coordinates: along the track and across it, in texture sizes
-			double across = getTrackData().getMainTrack().getValidWidth() / textureSize;
+			// texture coordinates: u along the road, v across it from 0 on the right
+			double across = mapping.vLeft;
 			java.util.Vector<double[]> uv = new java.util.Vector<double[]>();
 
 			for (int i = 0; i < steps; i++)
 			{
 				int offset = i * stride;
 
-				Point3D[] p = segment.getPoints();
-				double startX = (p[offset].x + p[offset + 3].x) / 2, startY = (p[offset].y + p[offset + 3].y) / 2;
-				double endX = (p[offset + 1].x + p[offset + 2].x) / 2, endY = (p[offset + 1].y + p[offset + 2].y) / 2;
-
 				if (i == 0)
 				{
-					uv.add(new double[] { distance / textureSize, across });
-					uv.add(new double[] { distance / textureSize, 0 });
+					uv.add(new double[] { mapping.u(0, steps), across });
+					uv.add(new double[] { mapping.u(0, steps), 0 });
 				}
 
-				distance += Math.hypot(endX - startX, endY - startY);
-				uv.add(new double[] { distance / textureSize, across });
-				uv.add(new double[] { distance / textureSize, 0 });
+				uv.add(new double[] { mapping.u(i + 1, steps), across });
+				uv.add(new double[] { mapping.u(i + 1, steps), 0 });
 
 				if (i == 0)
 				{

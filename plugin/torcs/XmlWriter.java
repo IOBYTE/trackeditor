@@ -784,7 +784,7 @@ public class XmlWriter
 
 		Georeference data = editorFrame.getTrackData().getGeoreference();
 
-		// TORCS keeps them as floats (good to about a metre), but the file keeps every
+		// TORCS keeps them as floats (good to about a meter), but the file keeps every
 		// digit given, for other tools and for a game that reads them more precisely
 		addPreciseContent(element, "latitude", "deg", data.getLatitude());
 		addPreciseContent(element, "longitude", "deg", data.getLongitude());

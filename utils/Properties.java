@@ -41,10 +41,12 @@ public  class Properties
 	private String				image					= "";
 	private EditorPoint			imgOffset				= new EditorPoint();
 	private double				initx;
-	// the track view: its zoom (0 when not saved) and the point at its centre
+	// the track view: its zoom (0 when not saved) and the point at its center
 	private double				viewZoom				= 0;
 	private double				viewCenterX				= 0;
 	private double				viewCenterY				= 0;
+	// the 3D view's camera and raceline layer (see Track3DWindow), null when not saved
+	private String				view3D					= null;
 	private double				inity;
 
 	private double				currentX				= 0;
@@ -171,7 +173,7 @@ public  class Properties
 	}
 
 	/**
-	 * @return the point at the centre of the track view when the project was saved
+	 * @return the point at the center of the track view when the project was saved
 	 *         (in the view's own coordinates)
 	 */
 	public double getViewCenterX()
@@ -189,6 +191,19 @@ public  class Properties
 	public void setViewCenterY(double viewCenterY)
 	{
 		this.viewCenterY = viewCenterY;
+	}
+
+	/**
+	 * @return the 3D view's camera and raceline layer when the project was saved, null
+	 *         when they weren't
+	 */
+	public String getView3D()
+	{
+		return view3D;
+	}
+	public void setView3D(String view3D)
+	{
+		this.view3D = view3D;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)

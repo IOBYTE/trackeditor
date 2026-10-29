@@ -384,7 +384,7 @@ public class DeltaPanel extends JDialog
 			SwingUtilities.invokeLater(() -> {
 				busy.dispose();
 				if (cancelled)
-					waitLabel.setText("Calculation cancelled");
+					waitLabel.setText("Calculation canceled");
 				else
 					waitLabel.setText(f ? "Calculation failed" : "Calculation finished");
 				setButtonsEnabled(true);

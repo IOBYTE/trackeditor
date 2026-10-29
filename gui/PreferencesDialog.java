@@ -443,7 +443,7 @@ public class PreferencesDialog extends JDialog
 		if (okButton == null)
 		{
 			okButton = new JButton();
-			// Ok and Cancel centred under the fields
+			// Ok and Cancel centered under the fields
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
 			okButton.setBounds(middle - 78 - 40, 281, 78, 25);
 			okButton.setText("Ok");
