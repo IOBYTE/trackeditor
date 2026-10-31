@@ -32,7 +32,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 /**
  * @author babis
  *
@@ -509,7 +509,7 @@ public class PropertiesDialog extends JDialog
 			this.sectorProperties.exit();
 		if (this.georeferenceProperties != null)
 			this.georeferenceProperties.exit();
-		Editor.getProperties().valueChanged();
+		Properties.getInstance().valueChanged();
 		APPROVE = true;
 		cancel();
 	}

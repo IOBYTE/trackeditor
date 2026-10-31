@@ -24,7 +24,7 @@ import java.awt.geom.Point2D;
 import java.io.PrintStream;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 
 import miscel.EPMath;
 
@@ -155,11 +155,11 @@ public class Curve extends Segment
 
 	public void calcShape(EditorFrame editorFrame) throws Exception
 	{
-		double	currentX	= Editor.getProperties().getCurrentX();
-		double	currentY	= Editor.getProperties().getCurrentY();
-		double	currentA	= Editor.getProperties().getCurrentA();
-		double 	showArrows = Editor.getProperties().getShowArrows();
-		double	trackStartDist = Editor.getProperties().getTrackStartDist();
+		double	currentX	= Properties.getInstance().getCurrentX();
+		double	currentY	= Properties.getInstance().getCurrentY();
+		double	currentA	= Properties.getInstance().getCurrentA();
+		double 	showArrows = Properties.getInstance().getShowArrows();
+		double	trackStartDist = Properties.getInstance().getTrackStartDist();
 		double	trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double	rightBorderWidth = getValidRightBorderWidth(editorFrame);
@@ -491,9 +491,9 @@ public class Curve extends Segment
 
 		setBounds();
 
-		Editor.getProperties().setCurrentA(currentA);
-		Editor.getProperties().setCurrentX(currentX);
-		Editor.getProperties().setCurrentY(currentY);
+		Properties.getInstance().setCurrentA(currentA);
+		Properties.getInstance().setCurrentX(currentX);
+		Properties.getInstance().setCurrentY(currentY);
 	}
 
 	public void drag(Point2D.Double dragDelta)

@@ -39,7 +39,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import utils.Editor;
+import utils.Properties;
 
 /**
  * @author babis
@@ -174,7 +174,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 	/** @return the trackgen command for additionalArgs */
 	private List<String> trackgenCommand()
 	{
-		String path = Editor.getProperties().getPath();
+		String path = Properties.getInstance().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
 		String trackgen = editorFrame.getTrackgenPath();
 		ArrayList<String> cmd = new ArrayList<String>();

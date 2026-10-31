@@ -24,7 +24,7 @@ import java.awt.geom.Point2D;
 import java.io.PrintStream;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 
 
 /**
@@ -64,7 +64,7 @@ public class Straight extends Segment
 			return false;
 
 		int count = 0;
-		int stride = 4 * (7 + (Editor.getProperties().getShowArrows() > 0.0 ? 1 : 0));
+		int stride = 4 * (7 + (Properties.getInstance().getShowArrows() > 0.0 ? 1 : 0));
 		int last = stride * (nbSteps - 1);
 
 		// offset to 4 corners of straight
@@ -109,7 +109,7 @@ public class Straight extends Segment
 		double minY = Double.MAX_VALUE;
 		double maxY = -Double.MAX_VALUE;
 
-		int stride = 4 * (7 + (Editor.getProperties().getShowArrows() > 0.0 ? 1 : 0));
+		int stride = 4 * (7 + (Properties.getInstance().getShowArrows() > 0.0 ? 1 : 0));
 		int last = stride * (nbSteps - 1);
 
 		// like the game's track loader: the track, borders and sides, not the
@@ -138,10 +138,10 @@ public class Straight extends Segment
 
 	public void calcShape(EditorFrame editorFrame) throws Exception
 	{
-		double currentX = Editor.getProperties().getCurrentX();
-		double currentY = Editor.getProperties().getCurrentY();
-		double currentA = Editor.getProperties().getCurrentA();
-		double showArrows = Editor.getProperties().getShowArrows();
+		double currentX = Properties.getInstance().getCurrentX();
+		double currentY = Properties.getInstance().getCurrentY();
+		double currentA = Properties.getInstance().getCurrentA();
+		double showArrows = Properties.getInstance().getShowArrows();
 		double trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
 		double leftBorderWidth = getValidLeftBorderWidth(editorFrame);
 		double rightBorderWidth = getValidRightBorderWidth(editorFrame);
@@ -360,9 +360,9 @@ public class Straight extends Segment
 
 		setBounds();
 
-		Editor.getProperties().setCurrentA(currentA);
-		Editor.getProperties().setCurrentX(currentX);
-		Editor.getProperties().setCurrentY(currentY);
+		Properties.getInstance().setCurrentA(currentA);
+		Properties.getInstance().setCurrentX(currentX);
+		Properties.getInstance().setCurrentY(currentY);
 	}
 
 	public void drag(Point2D.Double dragDelta)

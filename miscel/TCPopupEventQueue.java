@@ -73,7 +73,7 @@ public class TCPopupEventQueue extends EventQueue {
 	/** The shortcut for key with the platform's menu key (Ctrl, or Cmd on macOS) */
 	private static KeyStroke shortcut(int key)
 	{
-		return KeyStroke.getKeyStroke(key, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+		return KeyStroke.getKeyStroke(key, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 	}
 	public abstract class BasicAction extends AbstractAction{
 		JTextComponent comp;

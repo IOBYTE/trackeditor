@@ -21,7 +21,7 @@
 package utils.undo;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Segment;
 
@@ -43,7 +43,7 @@ public class UndoDeleteSegment implements UndoInterface
 	private Segment			nextAfter;
 
 	/**
-	 * 
+	 *
 	 */
 	/**
 	 * @param next the segment after, which the delete changes so it keeps its look,
@@ -82,14 +82,14 @@ public class UndoDeleteSegment implements UndoInterface
 	{
 		if ("str".equals(undo.getType()))
 		{
-			int count = Editor.getProperties().getStraightNameCount() + 1;
-			Editor.getProperties().setStraightNameCount(count);
+			int count = Properties.getInstance().getStraightNameCount() + 1;
+			Properties.getInstance().setStraightNameCount(count);
 		}
 		else
 		{
-			int count = Editor.getProperties().getCurveNameCount() + 1;
-			Editor.getProperties().setCurveNameCount(count);			
-		}		
+			int count = Properties.getInstance().getCurveNameCount() + 1;
+			Properties.getInstance().setCurveNameCount(count);
+		}
 		data.insertElementAt(undo,pos);
 		if (next != null)
 			next.set(nextBefore);
@@ -111,14 +111,14 @@ public class UndoDeleteSegment implements UndoInterface
 		pos = data.indexOf(redo);
 		if ("str".equals(redo.getType()))
 		{
-			int count = Editor.getProperties().getStraightNameCount() - 1;
-			Editor.getProperties().setStraightNameCount(count);
+			int count = Properties.getInstance().getStraightNameCount() - 1;
+			Properties.getInstance().setStraightNameCount(count);
 		}
 		else
 		{
-			int count = Editor.getProperties().getCurveNameCount() - 1;
-			Editor.getProperties().setCurveNameCount(count);			
-		}		
+			int count = Properties.getInstance().getCurveNameCount() - 1;
+			Properties.getInstance().setCurveNameCount(count);
+		}
 		data.remove(redo);
 		if (next != null && nextAfter != null)
 			next.set(nextAfter);

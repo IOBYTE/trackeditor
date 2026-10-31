@@ -44,7 +44,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import utils.Editor;
+import utils.Properties;
 import utils.EditorPoint;
 import utils.MutableDouble;
 import utils.SegmentVector;
@@ -241,7 +241,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			addMouseWheelListener(this);
 			this.editorFrame = editorFrame;
 			terrain = new ObjShapeTerrain();
-			Editor.getProperties().addPropertiesListener(new ActionListener()
+			Properties.getInstance().addPropertiesListener(new ActionListener()
 			{
 
 				public void actionPerformed(ActionEvent e)
@@ -343,8 +343,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						newShape.setRadiusStart(50);
 						newShape.setRadiusEnd(50);
 						newShape.inheritProperties(handledShape);
-						int count = Editor.getProperties().getCurveNameCount()+1;
-						Editor.getProperties().setCurveNameCount(count);
+						int count = Properties.getInstance().getCurveNameCount()+1;
+						Properties.getInstance().setCurveNameCount(count);
 						newShape.setName("curve "+count);
 						data.insertElementAt(newShape,pos+1);
 						newShape.setCount(data.indexOf(newShape) + 1);
@@ -369,8 +369,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						newShape.setRadiusStart(50);
 						newShape.setRadiusEnd(50);
 						newShape.inheritProperties(handledShape);
-						int count = Editor.getProperties().getCurveNameCount()+1;
-						Editor.getProperties().setCurveNameCount(count);
+						int count = Properties.getInstance().getCurveNameCount()+1;
+						Properties.getInstance().setCurveNameCount(count);
 						newShape.setName("curve "+count);
 						data.insertElementAt(newShape,pos+1);
 						newShape.setCount(data.indexOf(newShape) + 1);
@@ -394,8 +394,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						Straight newShape = new Straight();
 						newShape.setLength(50);
 						newShape.inheritProperties(handledShape);
-						int count = Editor.getProperties().getStraightNameCount()+1;
-						Editor.getProperties().setStraightNameCount(count);
+						int count = Properties.getInstance().getStraightNameCount()+1;
+						Properties.getInstance().setStraightNameCount(count);
 						newShape.setName("straight "+count);
 						data.insertElementAt(newShape, pos + 1);
 						newShape.setCount(data.indexOf(newShape) + 1);
@@ -591,7 +591,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				Point2D.Double tmp = new Point2D.Double(imgOffsetStart.getX(),imgOffsetStart.getY());
 				screenToReal(e, tmp);
 				imgOffsetStart.setLocation(tmp.getX(),tmp.getY());
-				imgOffsetPrev.setLocation(Editor.getProperties().getImgOffset());
+				imgOffsetPrev.setLocation(Properties.getInstance().getImgOffset());
 			}
 		}
 		if (e.getButton() == MouseEvent.BUTTON1)
@@ -939,7 +939,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			}
 			else
 			{
-			    EditorPoint offset = Editor.getProperties().getImgOffset();
+			    EditorPoint offset = Properties.getInstance().getImgOffset();
 				Point2D.Double tmp = new Point2D.Double(0, 0);
 				screenToReal(e, tmp);
 
@@ -952,7 +952,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					editorFrame.documentIsModified = true;
 				}
 				offset.setLocation(x, y);
-				Editor.getProperties().setImgOffset(offset);
+				Properties.getInstance().setImgOffset(offset);
 
 				revalidate();
 				invalidate();
@@ -1758,7 +1758,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				Segment firstObj = editorFrame.getTrackData().getSegments().get(0);
 				Point2D.Double p1 = new Point2D.Double(0, 0);
 				p1.setLocation(firstObj.points[0]);
-				p1.setLocation(p1.getX() + Editor.getProperties().getImgOffset().getX(), p1.getY() + Editor.getProperties().getImgOffset().getY());
+				p1.setLocation(p1.getX() + Properties.getInstance().getImgOffset().getX(), p1.getY() + Properties.getInstance().getImgOffset().getY());
 				Point2D.Double p2 = new Point2D.Double(backgroundRectangle.getWidth(), backgroundRectangle.getHeight());
 				p2.setLocation(p2.getX(), p2.getY());
 
@@ -2029,7 +2029,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			try
 			{
 				Path imagePath = Paths.get(fileName);
-				Path trackPath = Paths.get(Editor.getProperties().getPath());
+				Path trackPath = Paths.get(Properties.getInstance().getPath());
 
 				// add path to track to image file name if none present
 				if (imagePath.getParent() == null)
@@ -2056,7 +2056,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				backgroundImg = image;
 				int width = backgroundImg.getIconWidth();
 				int height = backgroundImg.getIconHeight();
-				double scale = Editor.getProperties().getImageScale();
+				double scale = Properties.getInstance().getImageScale();
 				if (!(scale > 0))
 					scale = 1;
 				backgroundRectangle.setFrame(0, 0, width*scale, height*scale);
@@ -2084,9 +2084,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	public void setShowBackground(boolean showBackground)
 	{
 		this.showBackground = showBackground;
-		if(showBackground && Editor.getProperties().getImage() != null)
+		if(showBackground && Properties.getInstance().getImage() != null)
 		{
-			setBackgroundImage(Editor.getProperties().getImage());
+			setBackgroundImage(Properties.getInstance().getImage());
 		}
 	}
 
@@ -2278,9 +2278,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		
 		int size = track.size();
 		
-		Editor.getProperties().setCurrentA(0);
-		Editor.getProperties().setCurrentY(0);
-		Editor.getProperties().setCurrentX(0);
+		Properties.getInstance().setCurrentA(0);
+		Properties.getInstance().setCurrentY(0);
+		Properties.getInstance().setCurrentX(0);
 		
 		for(int i=0; i<size; i++)
 		{
@@ -3409,7 +3409,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 		boolean write = true;
 
-		Path filename = Paths.get(Editor.getProperties().getPath() + sep + "object-map1.png");
+		Path filename = Paths.get(Properties.getInstance().getPath() + sep + "object-map1.png");
 
 		if (filename.toFile().exists())
 		{

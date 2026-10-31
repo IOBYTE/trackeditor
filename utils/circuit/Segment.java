@@ -30,7 +30,7 @@ import java.io.PrintStream;
 import java.util.Vector;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableDouble;
 
 /**
@@ -1930,7 +1930,7 @@ public class Segment implements Cloneable
 		Point3D rayVector = new Point3D(0.0, 0.0, 1.0);
 		Point3D intersectionPoint = new Point3D();
 
-		int stride = 4 * (7 + (Editor.getProperties().getShowArrows() > 0.0 ? 1 : 0));
+		int stride = 4 * (7 + (Properties.getInstance().getShowArrows() > 0.0 ? 1 : 0));
 
 		for (int i = 0; i < points.length; i += stride)
 		{

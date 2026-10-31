@@ -1,7 +1,7 @@
 package utils.undo;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Segment;
 
@@ -19,7 +19,7 @@ public class UndoSplitSegment implements UndoInterface
 	private int			addedPos;
 
 	/**
-	 * 
+	 *
 	 */
 	public UndoSplitSegment(EditorFrame editorFrame, Segment changed, Segment original, Segment added)
 	{
@@ -49,13 +49,13 @@ public class UndoSplitSegment implements UndoInterface
 
 		if ("str".equals(added.getType()))
 		{
-			int count = Editor.getProperties().getStraightNameCount() - 1;
-			Editor.getProperties().setStraightNameCount(count);
+			int count = Properties.getInstance().getStraightNameCount() - 1;
+			Properties.getInstance().setStraightNameCount(count);
 		}
 		else
 		{
-			int count = Editor.getProperties().getCurveNameCount() - 1;
-			Editor.getProperties().setCurveNameCount(count);			
+			int count = Properties.getInstance().getCurveNameCount() - 1;
+			Properties.getInstance().setCurveNameCount(count);
 		}
 		data.remove(addedPos);
 		redo = added;
@@ -81,14 +81,14 @@ public class UndoSplitSegment implements UndoInterface
 
 		if ("str".equals(redo.getType()))
 		{
-			int count = Editor.getProperties().getStraightNameCount() + 1;
-			Editor.getProperties().setStraightNameCount(count);
+			int count = Properties.getInstance().getStraightNameCount() + 1;
+			Properties.getInstance().setStraightNameCount(count);
 		}
 		else
 		{
-			int count = Editor.getProperties().getCurveNameCount() + 1;
-			Editor.getProperties().setCurveNameCount(count);			
-		}		
+			int count = Properties.getInstance().getCurveNameCount() + 1;
+			Properties.getInstance().setCurveNameCount(count);
+		}
 		data.insertElementAt(redo, addedPos);
 		added = redo;
 		redo = null;

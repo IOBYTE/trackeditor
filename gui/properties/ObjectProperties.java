@@ -46,7 +46,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableDouble;
 import utils.MutableInteger;
 import utils.MutableString;
@@ -640,7 +640,7 @@ public class ObjectProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("AC models", "ac");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -649,7 +649,7 @@ public class ObjectProperties extends PropertyPanel
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
 				String pathToObjects = getEditorFrame().getDataDirectory() + sep + "data" + sep + "objects";
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				else if (pathToFile.equals(pathToObjects))
 					fileName = fileName.substring(pathToObjects.length() + 1);

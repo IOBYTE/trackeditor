@@ -28,7 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableString;
 
 /**
@@ -250,7 +250,7 @@ public class GeneralProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 
 		// the path is something/category/track
-		String tmpPath = Editor.getProperties().getPath();
+		String tmpPath = Properties.getInstance().getPath();
 
 		if (isDifferent(nameTextField.getText(), getEditorFrame().getTrackData().getHeader().getName(), stringResult))
 		{

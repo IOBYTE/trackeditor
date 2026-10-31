@@ -61,7 +61,7 @@ public class SurfaceComboBox extends JComboBox<String>
 						Vector<Surface>	surfaces = editorFrame.getTrackData().getSurfaces();
 
 						// look for texture in track directory first
-						tooltipText = getTextureName(surfaceName, surfaces, Editor.getProperties().getPath());
+						tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
 
 						if (tooltipText == null && editorFrame.getDataDirectory() != null)
 						{
@@ -193,7 +193,7 @@ public class SurfaceComboBox extends JComboBox<String>
 			}
 			if (tooltipText == null)
 			{
-				tooltipText = getTextureName(surfaceName, surfaces, Editor.getProperties().getPath());
+				tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
 			}
 			tooltips.add(tooltipText);
 		}

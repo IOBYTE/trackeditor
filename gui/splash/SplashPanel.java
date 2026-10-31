@@ -30,7 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 
-import utils.Editor;
+import utils.Properties;
 import utils.TrackEditor;
 
 /**
@@ -46,7 +46,7 @@ public class SplashPanel extends JPanel
 	JLabel splash = new JLabel();
 	JLabel headerLabel = new JLabel();
 	private String header = TrackEditor.getAppName();
-	private String version = Editor.getProperties().version;
+	private String version = Properties.getInstance().version;
 	private StatusBar status = new StatusBar();
 
 	/**

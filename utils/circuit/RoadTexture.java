@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
 
@@ -136,7 +136,7 @@ public class RoadTexture
 	/** @return the texture in the track's folder or the game's textures folder, or null */
 	public static File findTextureFile(EditorFrame editorFrame, String texture)
 	{
-		File file = new File(Editor.getProperties().getPath(), texture);
+		File file = new File(Properties.getInstance().getPath(), texture);
 		if (file.isFile())
 			return file;
 		String data = editorFrame.getDataDirectory();

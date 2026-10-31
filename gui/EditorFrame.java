@@ -82,7 +82,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import plugin.torcs.XmlReader;
 import plugin.torcs.XmlWriter;
 import utils.CustomFileFilter;
-import utils.Editor;
 import utils.EditorPoint;
 import utils.Project;
 import utils.Properties;
@@ -139,7 +138,7 @@ public class EditorFrame extends JFrame
 	MoveAction					moveAction							= null;
 	SubdivideAction 			subdivideAction						= null;
 	DumpTextAction 				dumpTextAction						= null;
-	DumpAC3DAction 				dumpAC3DAction						= null;	
+	DumpAC3DAction 				dumpAC3DAction						= null;
 	HelpAction					helpAction							= null;
 	ImportAction				importAction						= null;
 	ExportAction				exportAction						= null;
@@ -215,9 +214,9 @@ public class EditorFrame extends JFrame
 	private JMenuItem			addLeftMenuItem						= null;
 	private JMenuItem			moveMenuItem						= null;
 	private JMenuItem			deleteMenuItem						= null;
-	private JMenuItem 			subdivideMenuItem					= null;	
+	private JMenuItem 			subdivideMenuItem					= null;
 	private JMenuItem 			dumpTextMenuItem					= null;
-	private JMenuItem 			dumpAC3DMenuItem					= null;	
+	private JMenuItem 			dumpAC3DMenuItem					= null;
 	private JMenuItem			showArrowsMenuItem					= null;
 	private JMenuItem			showBackgroundMenuItem				= null;
 	private JMenuItem			showObjectsMenuItem					= null;
@@ -269,7 +268,7 @@ public class EditorFrame extends JFrame
 
 	private JButton 			calculateDeltaButton				= null;
 	private JButton				view3DButton						= null;
-	
+
 	private Preferences			preferences							= Preferences.userNodeForPackage(EditorFrame.class);
 	private List<String>		recentFiles							= new ArrayList<String>();
 	private final static String	RECENT_FILES_STRING					= "recent.files.";
@@ -500,7 +499,7 @@ public class EditorFrame extends JFrame
 	private final static String	GAME_TYPE							= "GameType";
 	// the preference before there were more than two games: true for CSR
 	private final static String	CARS_SPORTS_RACING					= "CarsSportsRacing";
-	
+
 	private TrackData			trackData							= null;
 	private Vector<Surface>		defaultSurfaces						= new Vector<Surface>();
 	private Vector<TrackObject>	defaultObjects						= new Vector<TrackObject>();
@@ -516,7 +515,7 @@ public class EditorFrame extends JFrame
 
 	private DefaultSurfacesDialog	defaultSurfacesDialog			= null;
 	private DefaultObjectsDialog	defaultObjectsDialog			= null;
-	
+
 	private String				originalTitle						= null;
 
 	private boolean				pasteObject							= false;
@@ -525,7 +524,7 @@ public class EditorFrame extends JFrame
 	private boolean				currentObjectGraphic				= false;
 
 	private GraphicObjectProperties	graphicObjectProperties			= null;
-	
+
 	public GraphicObjectProperties getGraphicObjectProperties() {
 		return graphicObjectProperties;
 	}
@@ -582,17 +581,17 @@ public class EditorFrame extends JFrame
 		public String	copyright;
 		public String	description;
 	}
-	
+
 	public Rectangle2D.Double getBoundingRectangle()
 	{
 		return view.getBoundingRectangle();
 	}
-	
+
 	public TrackData getTrackData()
 	{
 		return trackData;
 	}
-	
+
 	public void setTrackData(TrackData trackData)
 	{
 		this.trackData = trackData;
@@ -620,7 +619,7 @@ public class EditorFrame extends JFrame
 			{
 				view = new CircuitView(this);
 				splashProgress(20);
-				Editor.getProperties().addPropertiesListener(new ActionListener()
+				Properties.getInstance().addPropertiesListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
 					{
@@ -673,10 +672,10 @@ public class EditorFrame extends JFrame
 
 		readDefaultSurfaces();
 		readDefaultObjects();
-		
+
 		originalTitle = getTitle();
 	}
-	
+
 	private void readDefaultSurfaces()
 	{
 		// read again when the directory or game changes: don't keep the old ones
@@ -811,7 +810,7 @@ public class EditorFrame extends JFrame
 		List<String> args = new ArrayList<String>();
 		if (gameType != GameType.TORCS)
 		{
-			String path = Editor.getProperties().getPath();
+			String path = Properties.getInstance().getPath();
 			args.add("-i");
 			args.add(path);
 			args.add("-o");
@@ -863,7 +862,7 @@ public class EditorFrame extends JFrame
 			return "Set the TORCS data directory (the folder TORCS is installed in) in Preferences:\n" +
 				"TORCS trackgen runs there and reads the track from its tracks folder.";
 
-		String path = Editor.getProperties().getPath();
+		String path = Properties.getInstance().getPath();
 		String name = path.substring(path.lastIndexOf(sep) + 1);
 		File expected = new File(data + sep + "tracks" + sep + trackData.getHeader().getCategory() + sep + name);
 		try
@@ -912,7 +911,7 @@ public class EditorFrame extends JFrame
 	{
 		return recentFilesMax;
 	}
-	
+
 	/**
 	 * The saved maximum, or 10 if it isn't a number from 0 to RECENT_FILES_LIMIT
 	 * (a bad value must not stop the editor from starting).
@@ -934,7 +933,7 @@ public class EditorFrame extends JFrame
 	public void setRecentFilesMax(int recentFilesMax)
 	{
 		this.recentFilesMax = Math.max(0, Math.min(RECENT_FILES_LIMIT, recentFilesMax));
-		
+
 		while (recentFiles.size() > this.recentFilesMax)
 		{
 			int index = recentFiles.size() - 1;
@@ -1086,12 +1085,12 @@ public class EditorFrame extends JFrame
 		if (filename.endsWith(".prj.xml"))
 			recentFiles.remove(filename.substring(0, filename.length() - ".prj.xml".length()) + ".xml");
 		recentFiles.add(0, filename);
-		
+
 		if (recentFiles.size() > recentFilesMax)
 		{
 			recentFiles.remove(recentFiles.size() - 1);
 		}
-    
+
 		for (int i = 0; i < recentFilesMax; i++)
 		{
 			if (i < recentFiles.size())
@@ -1103,7 +1102,7 @@ public class EditorFrame extends JFrame
 				preferences.remove(RECENT_FILES_STRING+i);
 			}
 		}
-		
+
 		for (int i = 0; i < recentFiles.size(); i++)
 		{
 			if (i < (recentFilesMenu.getItemCount() - 2))
@@ -1153,8 +1152,8 @@ public class EditorFrame extends JFrame
 		if (!canClose())
 			return;
 
-		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-		UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+		Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+		UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 		JFileChooser fc = new JFileChooser();
 		fc.setSelectedFiles(null);
 		fc.setSelectedFile(null);
@@ -1178,20 +1177,18 @@ public class EditorFrame extends JFrame
 			openProject(fc.getSelectedFile().toString());
 		}
 	}
-	
+
 	private void openProject(String projectFileName)
 	{
 		//System.out.println("openProject reading : " + projectFileName);
-		
+
 		// read the project into a local first, so a failed open leaves the
 		// current track and its project settings untouched
 		Properties properties;
-		try
+		try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(projectFileName)))
 		{
-			XMLDecoder decoder = new XMLDecoder(new FileInputStream(projectFileName));
 			properties = (Properties)decoder.readObject();
-			decoder.close();
-			
+
 			// update path from project file location
 			properties.setPath(projectFileName.substring(0, projectFileName.lastIndexOf(sep)));
 		}
@@ -1200,7 +1197,7 @@ public class EditorFrame extends JFrame
 			JOptionPane.showMessageDialog(this, "Opening project file : " + projectFileName + "\n\n" + ex.getLocalizedMessage(), "Project Open", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		
+
 		// not replaceAll: its pattern is a regular expression
 		String trackFileName = projectFileName.endsWith(".prj.xml")
 			? projectFileName.substring(0, projectFileName.length() - ".prj.xml".length()) + ".xml"
@@ -1208,21 +1205,21 @@ public class EditorFrame extends JFrame
 		File file = new File(trackFileName);
 		if (!file.exists())
 		{
-			JOptionPane.showMessageDialog(this, "File not found : " + trackFileName, "Project Open", JOptionPane.ERROR_MESSAGE);				
+			JOptionPane.showMessageDialog(this, "File not found : " + trackFileName, "Project Open", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Properties oldProperties = Editor.getProperties();
-		Editor.setProperties(properties);
+		Properties oldProperties = Properties.getInstance();
+		Properties.setInstance(properties);
 		if (!readFile(file))
 		{
 			// the current track is still open, so keep its project settings
-			Editor.setProperties(oldProperties);
+			Properties.setInstance(oldProperties);
 			return;
 		}
 		updateRecentFiles(projectFileName);
 		showBackgroundImage();
 		restoreView();
-		
+
 		setTitle(originalTitle + " - Project: " + projectFileName);
 	}
 
@@ -1232,14 +1229,14 @@ public class EditorFrame extends JFrame
 	 */
 	private void storeView()
 	{
-		Editor.getProperties().setView3D(current3DView());
+		Properties.getInstance().setView3D(current3DView());
 		view3D = null;
 		Point2D.Double center = view.getVisibleCenter();
 		if (center == null)
 			return;
-		Editor.getProperties().setViewZoom(view.getZoomFactor());
-		Editor.getProperties().setViewCenterX(center.getX());
-		Editor.getProperties().setViewCenterY(center.getY());
+		Properties.getInstance().setViewZoom(view.getZoomFactor());
+		Properties.getInstance().setViewCenterX(center.getX());
+		Properties.getInstance().setViewCenterY(center.getY());
 	}
 
 	/**
@@ -1248,14 +1245,14 @@ public class EditorFrame extends JFrame
 	 */
 	private void restoreView()
 	{
-		final double zoom = Editor.getProperties().getViewZoom();
+		final double zoom = Properties.getInstance().getViewZoom();
 		if (!(zoom > 0) || Double.isInfinite(zoom))
 		{
 			fitView();
 			return;
 		}
-		final Point2D.Double center = new Point2D.Double(Editor.getProperties().getViewCenterX(),
-			Editor.getProperties().getViewCenterY());
+		final Point2D.Double center = new Point2D.Double(Properties.getInstance().getViewCenterX(),
+			Properties.getInstance().getViewCenterY());
 		view.showAt(zoom, center);
 		SwingUtilities.invokeLater(() ->
 		{
@@ -1296,7 +1293,7 @@ public class EditorFrame extends JFrame
 		if (center == null)
 			return;
 		double zoom = view.getZoomFactor();
-		Properties properties = Editor.getProperties();
+		Properties properties = Properties.getInstance();
 		String view3DNow = current3DView();
 		if (Math.abs(zoom - properties.getViewZoom()) < 1e-9 &&
 			Math.abs(center.getX() - properties.getViewCenterX()) < 0.01 &&
@@ -1373,7 +1370,7 @@ public class EditorFrame extends JFrame
 	private void showBackgroundImage()
 	{
 		if (view.isShowBackground())
-			view.setBackgroundImage(Editor.getProperties().getImage());
+			view.setBackgroundImage(Properties.getInstance().getImage());
 	}
 
 	/**
@@ -1382,9 +1379,9 @@ public class EditorFrame extends JFrame
 	 */
 	private void clearBackgroundImage()
 	{
-		Editor.getProperties().setImage("");
-		Editor.getProperties().setImageScale(1);
-		Editor.getProperties().setImgOffset(new EditorPoint());
+		Properties.getInstance().setImage("");
+		Properties.getInstance().setImageScale(1);
+		Properties.getInstance().setImgOffset(new EditorPoint());
 	}
 
 	/**
@@ -1408,7 +1405,7 @@ public class EditorFrame extends JFrame
 		if (!confirmWriteVersion())
 			return false;
 
-		String filename = Editor.getProperties().getPath();
+		String filename = Properties.getInstance().getPath();
 		String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 		filename = filename + sep + trackname + ".prj.xml";
 
@@ -1433,7 +1430,7 @@ public class EditorFrame extends JFrame
 				}
 			});
 			storeView();
-			encoder.writeObject(Editor.getProperties());
+			encoder.writeObject(Properties.getInstance());
 			encoder.close();
 
 			if (encoderError[0] != null)
@@ -1512,7 +1509,7 @@ public class EditorFrame extends JFrame
 			return;
 
 		NewProjectInfo	newProjectInfo = new NewProjectInfo();
-		
+
 		NewProjectDialog newProject = new NewProjectDialog(this, newProjectInfo);
 		newProject.setVisible(true);
 		if (NewProjectDialog.APPROVE)
@@ -1521,7 +1518,7 @@ public class EditorFrame extends JFrame
 			try
 			{
 				createNewCircuit(newProjectInfo);
-				String filename = Editor.getProperties().getPath();
+				String filename = Properties.getInstance().getPath();
 				String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 				filename = filename + sep + trackname + ".prj.xml";
 				setTitle(originalTitle + " - Project: " + filename);
@@ -1579,16 +1576,16 @@ public class EditorFrame extends JFrame
         trackData = new TrackData();
         // a new track: the 3D view shows all of it
         view3D = null;
-        Editor.getProperties().setView3D(null);
+        Properties.getInstance().setView3D(null);
         Undo.clear();
         closeTrackWindows();
         clearBackgroundImage();
-        
+
         trackData.getHeader().setName(newProjectInfo.name);
         trackData.getHeader().setCategory(newProjectInfo.category);
         trackData.getHeader().setSubcategory(newProjectInfo.subcategory);
         trackData.getHeader().setVersion(newProjectInfo.version);
-        Editor.getProperties().setPath(newProjectInfo.path);
+        Properties.getInstance().setPath(newProjectInfo.path);
         trackData.getHeader().setAuthor(newProjectInfo.author);
         trackData.getHeader().setEmail(newProjectInfo.email);
         trackData.getHeader().setCopyright(newProjectInfo.copyright);
@@ -1601,7 +1598,7 @@ public class EditorFrame extends JFrame
         trackData.getMainTrack().getRight().setNewTrackDefaults();
 
         trackData.setSegments(track);
-        
+
 		documentIsModified = true;
    }
 
@@ -1677,7 +1674,7 @@ public class EditorFrame extends JFrame
 
 	private void initialize() throws Exception
 	{
-		String title = TrackEditor.getAppName() + " " + Editor.getProperties().version;
+		String title = TrackEditor.getAppName() + " " + Properties.getInstance().version;
 		this.setTitle(title);
 		Image image = new ImageIcon(getClass().getResource("/icon.png")).getImage();
 		this.setIconImage(image);
@@ -1689,7 +1686,7 @@ public class EditorFrame extends JFrame
 		}
 		else
 		{
-			setLocation(point);		
+			setLocation(point);
 		}
 		menuFile.setText("File");
 		itemCloseCircuit.setText("Exit");
@@ -1764,7 +1761,7 @@ public class EditorFrame extends JFrame
 		viewMenu.add(getDefaultObjectsMenuItem());
 		splashProgress(20);
 		this.setVisible(true);
-		
+
 		getProject().setSegmentEditorX(preferences.getInt("SegmentEditorX", 0));
 		getProject().setSegmentEditorY(preferences.getInt("SegmentEditorY", 0));
 		getProject().setPropertiesEditorX(preferences.getInt("PropertiesEditorX", 0));
@@ -1784,7 +1781,7 @@ public class EditorFrame extends JFrame
 		getProject().setPreferencesDialogX(preferences.getInt("PreferencesDialogX", 0));
 		getProject().setPreferencesDialogY(preferences.getInt("PreferencesDialogY", 0));
 		getProject().setNewProjectDialogX(preferences.getInt("NewProjectDialogX", 0));
-		getProject().setNewProjectDialogY(preferences.getInt("NewProjectDialogY", 0));		
+		getProject().setNewProjectDialogY(preferences.getInt("NewProjectDialogY", 0));
 		getProject().setCheckDialogX(preferences.getInt("CheckDialogX", 0));
 		getProject().setCheckDialogY(preferences.getInt("CheckDialogY", 0));
 		getProject().setCheckDialogWidth(preferences.getInt("CheckDialogWidth", 500));
@@ -2274,7 +2271,7 @@ public class EditorFrame extends JFrame
 	 */
 	public String get3DView()
 	{
-		return view3D != null ? view3D : Editor.getProperties().getView3D();
+		return view3D != null ? view3D : Properties.getInstance().getView3D();
 	}
 
 	/** Keeps the camera and raceline layer of the 3D window that closes, for the next one. */
@@ -2317,7 +2314,7 @@ public class EditorFrame extends JFrame
 		}
 		return defaultSurfacesItem;
 	}
-		
+
 	private void defaultSurfacesDialog()
 	{
 		if (defaultSurfacesDialog == null)
@@ -2326,7 +2323,7 @@ public class EditorFrame extends JFrame
 			defaultSurfacesDialog.setVisible(true);
 		}
 	}
-	
+
 	private JMenuItem getDefaultObjectsMenuItem()
 	{
 		if (defaultObjectsItem == null)
@@ -2342,7 +2339,7 @@ public class EditorFrame extends JFrame
 		}
 		return defaultObjectsItem;
 	}
-		
+
 	private void defaultObjectsDialog()
 	{
 		if (defaultObjectsDialog == null)
@@ -2351,7 +2348,7 @@ public class EditorFrame extends JFrame
 			defaultObjectsDialog.setVisible(true);
 		}
 	}
-	
+
 	/**
 	 * This method initializes editMenu
 	 *
@@ -2378,7 +2375,7 @@ public class EditorFrame extends JFrame
 		}
 		return editMenu;
 	}
-	
+
 	private void newPreferencesDialog()
 	{
 		PreferencesDialog preferencesDialog = new PreferencesDialog(this);
@@ -2435,7 +2432,7 @@ public class EditorFrame extends JFrame
 	/** @return the open track's xml file */
 	private File currentTrackFile()
 	{
-		String path = Editor.getProperties().getPath();
+		String path = Properties.getInstance().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
 		return new File(path + sep + trackName + ".xml");
 	}
@@ -2462,7 +2459,7 @@ public class EditorFrame extends JFrame
 			return saveProject();
 		return choice == 1 && options.length == 3;
 	}
-	
+
 	/**
 	 * This method initializes undoMenuItem
 	 *
@@ -2512,7 +2509,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes importMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	public JMenuItem getImportMenuItem()
@@ -2557,7 +2554,7 @@ public class EditorFrame extends JFrame
 	}
 	/**
 	 * This method initializes exportMenuItem
-	 * 
+	 *
 	 * @return javax.swing.JMenuItem
 	 */
 	public JMenuItem getExportMenuItem()
@@ -2690,7 +2687,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3E0MenuItem;
 	}
-	
+
 	/**
 	 * This method initializes exportAC3E1MenuItem
 	 *
@@ -2706,7 +2703,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3E1MenuItem;
 	}
-	
+
 	/**
 	 * This method initializes exportAC3E2MenuItem
 	 *
@@ -2722,7 +2719,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3E2MenuItem;
 	}
-	
+
 	/**
 	 * This method initializes exportAC3E3MenuItem
 	 *
@@ -2738,7 +2735,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3E3MenuItem;
 	}
-	
+
 	/**
 	 * This method initializes exportAC3E4MenuItem
 	 *
@@ -2754,7 +2751,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3E4MenuItem;
 	}
-	
+
 	/**
 	 * This method initializes exportAC3RacelineMenuItem
 	 *
@@ -2770,7 +2767,7 @@ public class EditorFrame extends JFrame
 		}
 		return exportAC3RacelineMenuItem;
 	}
-	
+
 	/**
 	 * This method initializes propertiesMenuItem
 	 *
@@ -3357,7 +3354,7 @@ public class EditorFrame extends JFrame
     		return;
     	}
 
-    	String fileName = Editor.getProperties().getPath();
+		String fileName = Properties.getInstance().getPath();
     	String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
     	fileName = fileName + sep + trackName + "-track.txt";
     	try
@@ -3406,13 +3403,13 @@ public class EditorFrame extends JFrame
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
 		fc.addChoosableFileFilter(filter);
-		fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+		fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 		int result = fc.showOpenDialog(this);
 		UIManager.put("FileChooser.readOnly", old);
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			Path selectedFile = Paths.get(fc.getSelectedFile().toString());
-			Path trackPath = Paths.get(Editor.getProperties().getPath());
+			Path trackPath = Paths.get(Properties.getInstance().getPath());
 
 			// remove directory if same as track directory
 			if (selectedFile.getParent().toString().equals(trackPath.toString()))
@@ -3421,9 +3418,9 @@ public class EditorFrame extends JFrame
 			}
 			// saved with the project, like the image in Properties > Image
 			String image = selectedFile.toString();
-			if (!image.equals(Editor.getProperties().getImage()))
+			if (!image.equals(Properties.getInstance().getImage()))
 			{
-				Editor.getProperties().setImage(image);
+				Properties.getInstance().setImage(image);
 				documentIsModified = true;
 			}
 			view.setBackgroundImage(image);
@@ -3531,7 +3528,7 @@ public class EditorFrame extends JFrame
 		if (description == null)
 		{
 			// the writer uses <track name>.ac when there is no description
-			String path = Editor.getProperties().getPath();
+			String path = Properties.getInstance().getPath();
 			description = path.substring(path.lastIndexOf(sep) + 1) + ".ac";
 		}
 		String newDescription = null;
@@ -3615,7 +3612,7 @@ public class EditorFrame extends JFrame
 	 */
 	private List<List<String>> getAcccSteps(String args)
 	{
-		String path = Editor.getProperties().getPath();
+		String path = Properties.getInstance().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
 		String category = getTrackData().getHeader().getCategory();
 
@@ -4095,7 +4092,7 @@ public class EditorFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
 		{
 		    int type = JOptionPane.PLAIN_MESSAGE;
-		    String msg = TrackEditor.getAppName() + " " + Editor.getProperties().version + "\n\n"
+		    String msg = TrackEditor.getAppName() + " " + Properties.getInstance().version + "\n\n"
                 + "Copyright Charalampos Alexopoulos\n"
                 + "Copyright (2022-2026) Robert Reif\n";
 		    JOptionPane.showMessageDialog(null,msg,"About",type);
@@ -4121,7 +4118,7 @@ public class EditorFrame extends JFrame
 			message("No track", "Nothing to check");
 			return;
 		}
-		
+
 		CheckDialog checkDialog = new CheckDialog(this);
 		checkDialog.setModal(true);
 		checkDialog.setVisible(true);
@@ -4254,14 +4251,14 @@ public class EditorFrame extends JFrame
 		if (askVersion && !confirmWriteVersion())
 			return false;
 
-		String fileName = Editor.getProperties().getPath();
+		String fileName = Properties.getInstance().getPath();
 		String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
 		fileName = fileName + sep + trackName + ".xml";
-		
+
 		//System.out.println("exportTrack writing : " + fileName);
-	
+
 		XmlWriter xmlWriter = new XmlWriter(this);
-		
+
 		try
 		{
 			xmlWriter.writeXml(fileName, trackName);
@@ -4296,7 +4293,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			if (exportTrack())
 				exportAc3d(null, false);
 		}
@@ -4353,7 +4350,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(null, false);
 		}
 	}
@@ -4408,7 +4405,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -E 0", false);
 		}
 	}
@@ -4426,7 +4423,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -E 1", false);
 		}
 	}
@@ -4444,7 +4441,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -E 2", false);
 		}
 	}
@@ -4462,7 +4459,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -E 3", false);
 		}
 	}
@@ -4480,7 +4477,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -E 4", false);
 		}
 	}
@@ -4498,7 +4495,7 @@ public class EditorFrame extends JFrame
 			{
 				message("No track", "Nothing to export");
 				return;
-			}			
+			}
 			exportAc3d(" -r", false);
 		}
 	}
@@ -4571,9 +4568,9 @@ public class EditorFrame extends JFrame
 		// cancel keeps the current track
 		if (trackData != null && !canClose())
 			return;
-		
-		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
-		UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
+
+		Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+		UIManager.put("FileChooser.readOnly", Boolean.TRUE);
 		JFileChooser fc = new JFileChooser();
 		fc.setSelectedFiles(null);
 		fc.setSelectedFile(null);
@@ -4587,7 +4584,7 @@ public class EditorFrame extends JFrame
 			trackDir = System.getProperty("user.dir");
 		fc.setCurrentDirectory(new File(trackDir + sep + "tracks"));
 		CustomFileFilter filter = new CustomFileFilter();
-		
+
 		filter.addValid(".xml");
 		filter.addInvalid(".prj.xml");
 		filter.setDescription("*.xml");
@@ -4606,24 +4603,24 @@ public class EditorFrame extends JFrame
 	private void importTrackFile(String xmlFileName)
 	{
 		String path = xmlFileName.substring(0, xmlFileName.lastIndexOf(sep));
-		String oldPath = Editor.getProperties().getPath();
-		Editor.getProperties().setPath(path);
+		String oldPath = Properties.getInstance().getPath();
+		Properties.getInstance().setPath(path);
 		File file = new File(xmlFileName);
 		if (!readFile(file))
 		{
 			// the current track is still open
-			Editor.getProperties().setPath(oldPath);
+			Properties.getInstance().setPath(oldPath);
 		}
 		else
 		{
 			clearBackgroundImage();
 			// no project, so no saved view: show all of it
 			fitView();
-			Editor.getProperties().setView3D(null);
+			Properties.getInstance().setView3D(null);
 			updateRecentFiles(xmlFileName);
 		}
 	}
-	
+
 	/**
 	 * Reads a track into a new TrackData. If anything goes wrong the track that
 	 * was open before stays open, so a half-read track can't be saved over the file.
@@ -4739,7 +4736,7 @@ public class EditorFrame extends JFrame
 	public boolean readFile(File file)
 	{
 		//System.out.println("readFile : " + file.getAbsolutePath());
-		
+
 		TrackData previous = trackData;
 		trackData = new TrackData();
 		List<String> numberWarnings = null;
@@ -4747,10 +4744,10 @@ public class EditorFrame extends JFrame
 		try
 		{
 			XmlReader xmlReader = new XmlReader(this);
-			
+
 			xmlReader.readXml(file.getAbsolutePath());
 			numberWarnings = xmlReader.getWarnings();
-			
+
 			Vector<ObjectMap> objectMaps = trackData.getObjectMaps();
 			for (int i = 0; i < objectMaps.size(); i++)
 		 	{
@@ -4760,7 +4757,7 @@ public class EditorFrame extends JFrame
 				{
 					objects.get(j).setName(getObjectColorName(objects.get(j).getRGB()));
 				}
-		 	}			
+			}
 
 			// TORCS has no version 5 loader, so a version 5 track has to become version 4
 			boolean convertToVersion4 = false;
@@ -4817,7 +4814,7 @@ public class EditorFrame extends JFrame
 			return false;
 		}
 		refresh();
-		
+
 		setTitle(originalTitle + " - Project: " + file.getAbsolutePath());
 
 		showNumberWarnings(file, numberWarnings);
@@ -4873,9 +4870,9 @@ public class EditorFrame extends JFrame
 			message("No track", "Can't write track.");
 			return;
 		}
-		String filePath = Editor.getProperties().getPath();
+		String filePath = Properties.getInstance().getPath();
 		String trackName = filePath.substring(filePath.lastIndexOf(sep) + 1);
-		String filename = Editor.getProperties().getPath() + sep + trackName + "-track.ac";
+		String filename = Properties.getInstance().getPath() + sep + trackName + "-track.ac";
 
 		Ac3d track = new Ac3d();
 		Ac3dMaterial material = new Ac3dMaterial("");
@@ -5018,17 +5015,17 @@ public class EditorFrame extends JFrame
 			getProject().setDefaultSurfacesDialogY(defaultSurfacesDialog.getY());
 			defaultSurfacesDialog.setVisible(false);
 		}
-		
+
 		if (defaultObjectsDialog != null)
 		{
 			getProject().setDefaultObjectsDialogX(defaultObjectsDialog.getX());
 			getProject().setDefaultObjectsDialogY(defaultObjectsDialog.getY());
 			defaultObjectsDialog.setVisible(false);
 		}
-		
+
 		getProject().setFrameX(this.getX());
 		getProject().setFrameY(this.getY());
-		
+
 		preferences.putInt("X", this.getX());
 		preferences.putInt("Y", this.getY());
 		preferences.putInt("Width", this.getWidth());
@@ -5054,12 +5051,12 @@ public class EditorFrame extends JFrame
 		preferences.putInt("PreferencesDialogX", getProject().getPreferencesDialogX());
 		preferences.putInt("PreferencesDialogY", getProject().getPreferencesDialogY());
 		preferences.putInt("NewProjectDialogX", getProject().getNewProjectDialogX());
-		preferences.putInt("NewProjectDialogY", getProject().getNewProjectDialogY());		
+		preferences.putInt("NewProjectDialogY", getProject().getNewProjectDialogY());
 		preferences.putInt("CheckDialogX", getProject().getCheckDialogX());
 		preferences.putInt("CheckDialogY", getProject().getCheckDialogY());
 		preferences.putInt("CheckDialogWidth", getProject().getCheckDialogWidth());
 		preferences.putInt("CheckDialogHeight", getProject().getCheckDialogHeight());
-		
+
 		System.exit(0);
 	}
 
@@ -5135,7 +5132,7 @@ public class EditorFrame extends JFrame
 		}
 		return calculateDeltaButton;
 	}
-	
+
 	public void clearDefaultSurfacesDialog()
 	{
 		defaultSurfacesDialog = null;
@@ -5214,17 +5211,17 @@ public class EditorFrame extends JFrame
 	{
 		return trackData.getSegments().getSegment(name);
 	}
-	
+
 	public TerrainGeneration getTerrainGeneration()
 	{
 		return trackData.getTerrainGeneration();
 	}
-	
+
 	public Vector<ObjectMap> getObjectMaps()
 	{
 		return trackData.getObjectMaps();
 	}
-	
+
 	public Vector<GraphicObject> getGraphicObjects()
 	{
 		return trackData.getGraphicObjects();
@@ -5234,7 +5231,7 @@ public class EditorFrame extends JFrame
 	{
 		return trackData.getReliefs();
 	}
-	
+
 	public Pits getPits()
 	{
 		return trackData.getMainTrack().getPits();

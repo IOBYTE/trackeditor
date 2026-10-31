@@ -22,6 +22,10 @@ package utils;
 
 import java.awt.Toolkit;
 import java.io.File;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -36,14 +40,12 @@ import miscel.TCPopupEventQueue;
 
 /**
  * @author babis
- * 
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
+ *
  */
 public class TrackEditor
 {
 	private static EditorFrame gui;
-	
+
 	public static String executableName = null;
 
 	/**
@@ -55,16 +57,65 @@ public class TrackEditor
 		if ("csr-trackeditor".equals(executableName))
 			return "csr-trackeditor";
 
-		return Editor.getProperties().title;
+		return Properties.getInstance().title;
+	}
+
+	/**
+	 * Relaunches the JVM with UTF-8 encoding if the current encoding would
+	 * cause Swing's JFileChooser to crash on non-ASCII filenames (e.g. a
+	 * home directory named "Música" on a non-UTF-8 locale).
+	 *
+	 * @param jarPath the jar file the editor was run from
+	 */
+	private static void relaunchForUtf8(String jarPath, String[] args)
+	{
+		if ("UTF-8".equals(Charset.defaultCharset().name())
+			&& "UTF-8".equals(System.getProperty("sun.jnu.encoding")))
+			return;
+
+		// already relaunched and it didn't help: don't loop
+		if ("true".equals(System.getProperty("trackeditor.utf8.relaunched")))
+			return;
+
+		try
+		{
+			String java = System.getProperty("java.home") + File.separator
+				+ "bin" + File.separator + "java";
+
+			List<String> cmd = new ArrayList<String>();
+			cmd.add(java);
+			cmd.add("-Dfile.encoding=UTF-8");
+			cmd.add("-Dsun.jnu.encoding=UTF-8");
+			cmd.add("-Dtrackeditor.utf8.relaunched=true");
+			cmd.add("-jar");
+			cmd.add(jarPath);
+			cmd.addAll(Arrays.asList(args));
+
+			Process p = new ProcessBuilder(cmd)
+				.inheritIO()
+				.start();
+			System.exit(p.waitFor());
+		}
+		catch (Exception e)
+		{
+			// can't relaunch (e.g. no jar, or security manager): continue
+			// with the current encoding and hope for the best
+			System.err.println("Could not relaunch for UTF-8: " + e);
+		}
 	}
 
 	public static void main(String[] args)
 	{
-		executableName = new File(TrackEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName();
+		File jarFile = new File(TrackEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+		executableName = jarFile.getName();
 		// ignore the extension (csr-trackeditor.jar -> csr-trackeditor)
 		int dot = executableName.lastIndexOf('.');
 		if (dot > 0)
 			executableName = executableName.substring(0, dot);
+
+		// only relaunch when running from a jar (not from a class directory)
+		if (jarFile.isFile())
+			relaunchForUtf8(jarFile.getPath(), args);
 
 		Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TCPopupEventQueue());
 		

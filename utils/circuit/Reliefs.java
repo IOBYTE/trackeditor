@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Vector;
 
-import utils.Editor;
+import utils.Properties;
 import utils.ac3d.Ac3d;
 import utils.ac3d.Ac3dException;
 import utils.ac3d.Ac3dObject;
@@ -105,7 +105,7 @@ public class Reliefs
 		if (filename.getParent() == null)
 		{
 			// use track directory
-			filename = Paths.get(Editor.getProperties().getPath(), filename.toString());
+			filename = Paths.get(Properties.getInstance().getPath(), filename.toString());
 		}
 		return filename;
 	}

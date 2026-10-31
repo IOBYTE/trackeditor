@@ -51,6 +51,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import gui.EditorFrame;
+import utils.Properties;
 import utils.TrackData;
 
 /**
@@ -717,7 +718,7 @@ public class Track3DWindow extends JFrame
 	{
 		if (editorFrame.getTrackData() == null)
 			return null;
-		String path = utils.Editor.getProperties().getPath();
+		String path = Properties.getInstance().getPath();
 		if (path == null)
 			return null;
 		int sep = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));

@@ -93,7 +93,6 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/AtomicFile.java
          utils/CustomFileFilter.java
          utils/DoubleValue.java
-         utils/Editor.java
          utils/EditorPoint.java
          utils/GroupButtonLayout.java
          utils/MutableDouble.java
@@ -228,7 +227,13 @@ IF(Java_Development_FOUND AND Java_FOUND)
    #message(STATUS "_ICONS = ${_ICONS}")
    # ========= Debug
 
-   #SET(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+   # Target Java 8: --release catches accidental use of post-8 APIs at
+   # compile time; -source/-target is the fallback when building with JDK 8
+   IF(Java_VERSION_MAJOR VERSION_GREATER_EQUAL "9")
+      SET(CMAKE_JAVA_COMPILE_FLAGS "--release" "8")
+   ELSE()
+      SET(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+   ENDIF()
 
    SET(_TGT_DIR "${CMAKE_BINARY_DIR}/${CSR_BINDIR}")
 
@@ -250,6 +255,119 @@ IF(Java_Development_FOUND AND Java_FOUND)
                               VERBATIM)
       ENDFOREACH()
 
+
+   # ========= Fat JAR: single self-contained jar with all dependencies
+   # Run with: java -jar <name>-fat.jar
+
+   get_target_property(_MAIN_JAR ${_TARGET_NAME} JAR_FILE)
+   SET(_FAT_JAR_NAME "${_TARGET_NAME}-fat.jar")
+   SET(_FAT_JAR "${_TGT_DIR}/${_FAT_JAR_NAME}")
+   SET(_FAT_STAGING "${CMAKE_BINARY_DIR}/fat-jar-staging")
+
+   # Fat jar manifest: same as the main jar but without Class-Path
+   SET(_FAT_MANIFEST "${CMAKE_BINARY_DIR}/fat-jar-MANIFEST.MF")
+   FILE(WRITE "${_FAT_MANIFEST}"
+"Manifest-Version: 1.0
+Main-Class: utils.TrackEditor
+Enable-Native-Access: ALL-UNNAMED
+Add-Opens: java.desktop/sun.awt java.desktop/sun.awt.win
+ dows java.desktop/sun.java2d
+")
+
+   # Write the list of dependency jars for the assembly script
+   SET(_FAT_JARS_LIST "${CMAKE_BINARY_DIR}/fat-jar-deps.txt")
+   SET(_FAT_JARS_CONTENT "")
+   FOREACH(_JAR ${JAVA_JARS} ${_JOGL_NATIVE_JARS})
+      SET(_FAT_JARS_CONTENT "${_FAT_JARS_CONTENT}${CMAKE_CURRENT_LIST_DIR}/${_JAR}\n")
+   ENDFOREACH()
+   FILE(WRITE "${_FAT_JARS_LIST}" "${_FAT_JARS_CONTENT}")
+
+   # Write all paths into a config file read by the assembly script,
+   # avoiding command-line quoting issues with MSBuild on Windows
+   SET(_FAT_CONFIG "${CMAKE_BINARY_DIR}/fat-jar-config.cmake")
+   FILE(WRITE "${_FAT_CONFIG}"
+"set(JAR_EXE \"${Java_JAR_EXECUTABLE}\")
+set(STAGING \"${_FAT_STAGING}\")
+set(MAIN_JAR \"${_MAIN_JAR}\")
+set(DEP_LIST \"${_FAT_JARS_LIST}\")
+set(FAT_JAR \"${_FAT_JAR}\")
+set(MANIFEST \"${_FAT_MANIFEST}\")
+")
+
+   # Assembly script: extracts all jars, cleans signatures, repackages
+   SET(_FAT_SCRIPT "${CMAKE_BINARY_DIR}/assemble-fat-jar.cmake")
+   FILE(WRITE "${_FAT_SCRIPT}"
+"include(\${CMAKE_CURRENT_LIST_DIR}/fat-jar-config.cmake)
+
+# Clean and create staging area
+file(REMOVE_RECURSE \"\${STAGING}\")
+file(MAKE_DIRECTORY \"\${STAGING}\")
+
+# Read the dependency jar list
+file(STRINGS \"\${DEP_LIST}\" _JARS)
+
+# Extract each dependency jar
+foreach(_JAR \${_JARS})
+   execute_process(COMMAND \"\${JAR_EXE}\" xf \"\${_JAR}\"
+                   WORKING_DIRECTORY \"\${STAGING}\"
+                   RESULT_VARIABLE _RC)
+   if(_RC)
+      message(FATAL_ERROR \"Failed to extract \${_JAR}\")
+   endif()
+endforeach()
+
+# Extract main jar last so its classes and resources take priority
+execute_process(COMMAND \"\${JAR_EXE}\" xf \"\${MAIN_JAR}\"
+                WORKING_DIRECTORY \"\${STAGING}\"
+                RESULT_VARIABLE _RC)
+if(_RC)
+   message(FATAL_ERROR \"Failed to extract \${MAIN_JAR}\")
+endif()
+
+# Remove signature files from dependencies (invalid after repackaging)
+file(GLOB _SIG_FILES \"\${STAGING}/META-INF/*.SF\"
+                     \"\${STAGING}/META-INF/*.DSA\"
+                     \"\${STAGING}/META-INF/*.RSA\"
+                     \"\${STAGING}/META-INF/*.EC\")
+if(_SIG_FILES)
+   file(REMOVE \${_SIG_FILES})
+endif()
+
+# Package the fat jar
+execute_process(COMMAND \"\${JAR_EXE}\" cfm \"\${FAT_JAR}\" \"\${MANIFEST}\" .
+                WORKING_DIRECTORY \"\${STAGING}\"
+                RESULT_VARIABLE _RC)
+if(_RC)
+   message(FATAL_ERROR \"Failed to create \${FAT_JAR}\")
+endif()
+")
+
+   ADD_CUSTOM_COMMAND(
+      OUTPUT "${_FAT_JAR}"
+      DEPENDS ${_TARGET_NAME}
+      COMMAND "${CMAKE_COMMAND}" -P "${_FAT_SCRIPT}"
+      COMMENT "Packaging ${_FAT_JAR_NAME}"
+   )
+
+   ADD_CUSTOM_TARGET(${_TARGET_NAME}-fat ALL DEPENDS "${_FAT_JAR}")
+
+   INSTALL(PROGRAMS "${_FAT_JAR}" DESTINATION ${CSR_BINDIR})
+
+   # Warn about missing JOGL native jars: the fat jar's 3D view will fail
+   # at runtime on any platform whose native jars were not present at build time
+   SET(_JOGL_ALL_PLATFORMS windows-amd64 linux-amd64 linux-aarch64 macosx-universal)
+   FOREACH(_PLATFORM ${_JOGL_ALL_PLATFORMS})
+      SET(_MISSING)
+      FOREACH(_JAR gluegen-rt-natives-${_PLATFORM}.jar jogl-all-natives-${_PLATFORM}.jar)
+         IF(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/${_JAR}")
+            LIST(APPEND _MISSING ${_JAR})
+         ENDIF()
+      ENDFOREACH()
+      IF(_MISSING)
+         MESSAGE(WARNING "Fat jar will have no 3D view on ${_PLATFORM}: missing ${_MISSING}")
+      ENDIF()
+   ENDFOREACH()
+   # ========= end Fat JAR
 
    INSTALL_JAR(${_TARGET_NAME} DESTINATION ${CSR_BINDIR})
 

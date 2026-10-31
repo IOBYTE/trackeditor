@@ -3,7 +3,7 @@ package gui.view;
 import java.awt.geom.Point2D;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
@@ -185,14 +185,14 @@ class SegmentSplitter
 
 		if (isCurve)
 		{
-			int count = Editor.getProperties().getCurveNameCount() + 1;
-			Editor.getProperties().setCurveNameCount(count);
+			int count = Properties.getInstance().getCurveNameCount() + 1;
+			Properties.getInstance().setCurveNameCount(count);
 			piece2.setName("curve " + count);
 		}
 		else
 		{
-			int count = Editor.getProperties().getStraightNameCount() + 1;
-			Editor.getProperties().setStraightNameCount(count);
+			int count = Properties.getInstance().getStraightNameCount() + 1;
+			Properties.getInstance().setStraightNameCount(count);
 			piece2.setName("straight " + count);
 		}
 

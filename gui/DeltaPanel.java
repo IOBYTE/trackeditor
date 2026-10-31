@@ -35,7 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
@@ -141,7 +141,7 @@ public class DeltaPanel extends JDialog
 				label.setText(null);
 			waitLabel.setText("Calculating track data. Please wait...");
 
-			String path = Editor.getProperties().getPath();
+			String path = Properties.getInstance().getPath();
 			trackName[0] = path.substring(path.lastIndexOf(sep) + 1);
 			trackgen[0] = editorFrame.getTrackgenPath();
 			category[0] = editorFrame.getTrackData().getHeader().getCategory();

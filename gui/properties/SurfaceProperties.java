@@ -36,7 +36,7 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableDouble;
 import utils.MutableString;
 import utils.circuit.Surface;
@@ -528,7 +528,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -536,7 +536,7 @@ public class SurfaceProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				textureNameTextField.setText(fileName);
 			}
@@ -580,7 +580,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -588,7 +588,7 @@ public class SurfaceProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				bumpNameTextField.setText(fileName);
 			}
@@ -632,7 +632,7 @@ public class SurfaceProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -640,7 +640,7 @@ public class SurfaceProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				racelineNameTextField.setText(fileName);
 			}

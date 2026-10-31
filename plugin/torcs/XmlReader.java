@@ -45,7 +45,7 @@ import org.xml.sax.InputSource;
 
 import gui.EditorFrame;
 import utils.DoubleValue;
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.ac3d.Ac3dException;
 import utils.circuit.Camera;
@@ -380,8 +380,8 @@ public class XmlReader
 
     private Document readFromFile(String fname) throws JDOMException, IOException
     {
-        String text = Files.readString(
-                Paths.get(fname),
+        String text = new String(
+                Files.readAllBytes(Paths.get(fname)),
                 StandardCharsets.UTF_8
             );
 
@@ -1330,9 +1330,9 @@ public class XmlReader
             {
                 Integer tmpInt = Integer.parseInt(tmp);
                 int i = tmpInt.intValue();
-                if (i > Editor.getProperties().getCurveNameCount())
+                if (i > Properties.getInstance().getCurveNameCount())
                 {
-                    Editor.getProperties().setCurveNameCount(i);
+                    Properties.getInstance().setCurveNameCount(i);
                 }
             } catch (NumberFormatException e)
             {
@@ -1347,9 +1347,9 @@ public class XmlReader
             {
                 Integer tmpInt = Integer.parseInt(tmp);
                 int i = tmpInt.intValue();
-                if (i > Editor.getProperties().getStraightNameCount())
+                if (i > Properties.getInstance().getStraightNameCount())
                 {
-                    Editor.getProperties().setStraightNameCount(i);
+                    Properties.getInstance().setStraightNameCount(i);
                 }
             } catch (NumberFormatException e)
             {

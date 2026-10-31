@@ -15,7 +15,7 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 
 import utils.AtomicFile;
-import utils.Editor;
+import utils.Properties;
 
 public class ObjectMap
 {
@@ -141,7 +141,7 @@ public class ObjectMap
 		imageHeight = 0;
 
 		Path filename = Paths.get(objectMap);
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		Path trackPath = Paths.get(Properties.getInstance().getPath());
 
 		// check for parent directory
 		if (filename.getParent() == null)
@@ -198,7 +198,7 @@ public class ObjectMap
 		graphic.dispose();
 
 		Path filename = Paths.get(objectMap);
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		Path trackPath = Paths.get(Properties.getInstance().getPath());
 
 		// check for parent directory
 		if (filename.getParent() == null)

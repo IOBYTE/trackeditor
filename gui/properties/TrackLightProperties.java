@@ -34,7 +34,7 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableDouble;
 import utils.MutableInteger;
 import utils.MutableString;
@@ -308,7 +308,7 @@ public class TrackLightProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -316,7 +316,7 @@ public class TrackLightProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				textureOnTextField.setText(fileName);
 			}
@@ -337,7 +337,7 @@ public class TrackLightProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -345,7 +345,7 @@ public class TrackLightProperties extends PropertyPanel
 				String fileName = fc.getSelectedFile().toString();
 				int index = fileName.lastIndexOf(sep);
 				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = fileName.substring(index + 1);
 				textureOffTextField.setText(fileName);
 			}

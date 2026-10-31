@@ -35,7 +35,7 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import gui.EditorFrame;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableDouble;
 import utils.MutableString;
 
@@ -83,10 +83,10 @@ public class ImageProperties extends PropertyPanel
 		addLabel(this, 2, imageOffsetXLabel, "Image Offset X", 80);
 		addLabel(this, 3, imageOffsetYLabel, "Image Offset Y", 80);
 
-		addTextField(this, 0, pathTextField, Editor.getProperties().getImage(), 100, 335);
-		addTextField(this, 1, imageScaleTextField, Editor.getProperties().getImageScale(), 100, 125);
-		addTextField(this, 2, imageOffsetXTextField, Editor.getProperties().getImgOffset().getX(), 100, 125);
-		addTextField(this, 3, imageOffsetYTextField, Editor.getProperties().getImgOffset().getY(), 100, 125);
+		addTextField(this, 0, pathTextField, Properties.getInstance().getImage(), 100, 335);
+		addTextField(this, 1, imageScaleTextField, Properties.getInstance().getImageScale(), 100, 125);
+		addTextField(this, 2, imageOffsetXTextField, Properties.getInstance().getImgOffset().getX(), 100, 125);
+		addTextField(this, 3, imageOffsetYTextField, Properties.getInstance().getImgOffset().getY(), 100, 125);
 
 		this.add(getPathButton(), null);
 	}
@@ -119,7 +119,7 @@ public class ImageProperties extends PropertyPanel
 	 */
 	protected void selectPath()
 	{
-		Path trackPath = Paths.get(Editor.getProperties().getPath());
+		Path trackPath = Paths.get(Properties.getInstance().getPath());
 		Path filename;
 		try
 		{
@@ -214,37 +214,37 @@ public class ImageProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 		boolean reload = false;
 
-		if (isDifferent(pathTextField.getText(), Editor.getProperties().getImage(), stringResult))
+		if (isDifferent(pathTextField.getText(), Properties.getInstance().getImage(), stringResult))
 		{
-			Editor.getProperties().setImage(stringResult.getValue());
+			Properties.getInstance().setImage(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 			reload = true;
 		}
 
 		if (isDifferent(orDefault(imageScaleTextField.getText(), DEFAULT_SCALE),
-			Editor.getProperties().getImageScale(), doubleResult))
+			Properties.getInstance().getImageScale(), doubleResult))
 		{
-			Editor.getProperties().setImageScale(doubleResult.getValue());
+			Properties.getInstance().setImageScale(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 			reload = true;
 		}
 
 		if (isDifferent(orDefault(imageOffsetXTextField.getText(), DEFAULT_OFFSET),
-			Editor.getProperties().getImgOffset().getX(), doubleResult))
+			Properties.getInstance().getImgOffset().getX(), doubleResult))
 		{
-			Editor.getProperties().getImgOffset().setX(doubleResult.getValue());
+			Properties.getInstance().getImgOffset().setX(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
 		if (isDifferent(orDefault(imageOffsetYTextField.getText(), DEFAULT_OFFSET),
-			Editor.getProperties().getImgOffset().getY(), doubleResult))
+			Properties.getInstance().getImgOffset().getY(), doubleResult))
 		{
-			Editor.getProperties().getImgOffset().setY(doubleResult.getValue());
+			Properties.getInstance().getImgOffset().setY(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
 		// the view loads the image and works out its size from the scale
 		if (reload)
-			getEditorFrame().getCircuitView().setBackgroundImage(Editor.getProperties().getImage());
+			getEditorFrame().getCircuitView().setBackgroundImage(Properties.getInstance().getImage());
 	}
 }  //  @jve:decl-index=0:visual-constraint="10,10"

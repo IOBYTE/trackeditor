@@ -46,7 +46,7 @@ import javax.swing.table.TableColumn;
 
 import gui.EditorFrame;
 import gui.TrackObjectDialog;
-import utils.Editor;
+import utils.Properties;
 import utils.MutableString;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjectData;
@@ -219,7 +219,7 @@ public class ObjectMapProperties extends PropertyPanel
 					// update table with new data
 					try
 					{
-						getDataFromImage(Editor.getProperties().getPath() + sep + objectMapTextField.getText());
+						getDataFromImage(Properties.getInstance().getPath() + sep + objectMapTextField.getText());
 						objectTablePanel.dataChanged();
 					}
 					catch (IOException ex)
@@ -264,7 +264,7 @@ public class ObjectMapProperties extends PropertyPanel
 		{
 			int index = tabbedPane.getSelectedIndex() + 1;
 
-			Path filename = Paths.get(Editor.getProperties().getPath() + sep + "object-map" + index + ".png");
+			Path filename = Paths.get(Properties.getInstance().getPath() + sep + "object-map" + index + ".png");
 
 			if (filename.toFile().exists())
 			{
@@ -339,7 +339,7 @@ public class ObjectMapProperties extends PropertyPanel
 			fc.setAcceptAllFileFilterUsed(false);
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
 			fc.addChoosableFileFilter(filter);
-			fc.setCurrentDirectory(new File(Editor.getProperties().getPath()));
+			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
@@ -348,7 +348,7 @@ public class ObjectMapProperties extends PropertyPanel
 				String fileName = selectedFile;
 				int index = selectedFile.lastIndexOf(sep);
 				String pathToFile = selectedFile.substring(0, index);
-				if (pathToFile.equals(Editor.getProperties().getPath()))
+				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = selectedFile.substring(index + 1);
 				objectMapTextField.setText(fileName);
 

@@ -25,7 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
 
-import utils.Editor;
+import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
 import utils.ac3d.Ac3d;
@@ -704,7 +704,7 @@ public class CheckDialog extends JDialog
 
 		if (elevationFile != null && !elevationFile.isEmpty())
 		{
-			File file = new File(Editor.getProperties().getPath() + sep + elevationFile);
+			File file = new File(Properties.getInstance().getPath() + sep + elevationFile);
 
 			if (!file.exists())
 			{
@@ -735,7 +735,7 @@ public class CheckDialog extends JDialog
 			else
 			{
 				Path filename = Paths.get(objectMapFile);
-				Path trackPath = Paths.get(Editor.getProperties().getPath());
+				Path trackPath = Paths.get(Properties.getInstance().getPath());
 
 				// check for parent directory
 				if (filename.getParent() == null)
@@ -956,7 +956,7 @@ public class CheckDialog extends JDialog
 		}
 
 		// try in track directory
-		File file = new File(Editor.getProperties().getPath() + sep + object);
+		File file = new File(Properties.getInstance().getPath() + sep + object);
 
 		if (!file.exists())
 		{
@@ -1016,10 +1016,9 @@ public class CheckDialog extends JDialog
 			return;
 		}
 
-		try
+		try (BufferedReader br = new BufferedReader(new FileReader(file)))
 		{
-			BufferedReader br = new BufferedReader(new FileReader(file));
-		    String line = "";
+		    String line;
 
 		    while ((line = br.readLine()) != null)
 		    {
@@ -1029,7 +1028,6 @@ public class CheckDialog extends JDialog
 		        	checkTexture(type + " object " + trackObject.getName() + " model " + object, texture);
 		        }
 		    }
-		    br.close();
 		}
 		catch (Exception e)
 		{
@@ -1311,7 +1309,7 @@ public class CheckDialog extends JDialog
 	}
 	private File findTextureFile(String texture)
 	{
-		File file = new File(Editor.getProperties().getPath() + sep + texture);
+		File file = new File(Properties.getInstance().getPath() + sep + texture);
 
 		if (!file.exists())
 		{
