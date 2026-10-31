@@ -1313,11 +1313,9 @@ public class EditorFrame extends JFrame
 		try
 		{
 			Properties project;
-			try (FileInputStream in = new FileInputStream(target.toFile()))
+			try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(target.toFile())))
 			{
-				XMLDecoder decoder = new XMLDecoder(in);
 				project = (Properties) decoder.readObject();
-				decoder.close();
 			}
 			project.setViewZoom(zoom);
 			project.setViewCenterX(center.getX());
@@ -1531,78 +1529,78 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-     *
-     */
-    private void createNewCircuit(NewProjectInfo newProjectInfo)
-    {
-        Segment shape;
-        SegmentVector track = new SegmentVector();
+	 *
+	 */
+	private void createNewCircuit(NewProjectInfo newProjectInfo)
+	{
+		Segment shape;
+		SegmentVector track = new SegmentVector();
 
-        shape = new Straight();
-        shape.setLength(100);
-        shape.setHeightStart(0);
-        shape.setSurface(MainTrack.DEFAULT_SURFACE);
-        shape.getLeft().setNewTrackDefaults();
-        shape.getRight().setNewTrackDefaults();
-        track.add(shape);
+		shape = new Straight();
+		shape.setLength(100);
+		shape.setHeightStart(0);
+		shape.setSurface(MainTrack.DEFAULT_SURFACE);
+		shape.getLeft().setNewTrackDefaults();
+		shape.getRight().setNewTrackDefaults();
+		track.add(shape);
 
-        shape = new Curve();
-        ((Curve)shape).setRadiusStart(100);
-        ((Curve)shape).setRadiusEnd(100);
-        ((Curve)shape).setArcDeg(180);
-        shape.setSurface(MainTrack.DEFAULT_SURFACE);
-        shape.getLeft().setNewTrackDefaults();
-        shape.getRight().setNewTrackDefaults();
-        track.add(shape);
+		shape = new Curve();
+		((Curve)shape).setRadiusStart(100);
+		((Curve)shape).setRadiusEnd(100);
+		((Curve)shape).setArcDeg(180);
+		shape.setSurface(MainTrack.DEFAULT_SURFACE);
+		shape.getLeft().setNewTrackDefaults();
+		shape.getRight().setNewTrackDefaults();
+		track.add(shape);
 
-        shape = new Straight();
-        shape.setLength(100);
-        shape.setSurface(MainTrack.DEFAULT_SURFACE);
-        shape.getLeft().setNewTrackDefaults();
-        shape.getRight().setNewTrackDefaults();
-        track.add(shape);
+		shape = new Straight();
+		shape.setLength(100);
+		shape.setSurface(MainTrack.DEFAULT_SURFACE);
+		shape.getLeft().setNewTrackDefaults();
+		shape.getRight().setNewTrackDefaults();
+		track.add(shape);
 
-        shape = new Curve();
-        ((Curve)shape).setRadiusStart(100);
-        ((Curve)shape).setRadiusEnd(100);
-        ((Curve)shape).setArcDeg(180);
-        shape.setHeightEnd(0);
-        shape.setSurface(MainTrack.DEFAULT_SURFACE);
-        shape.getLeft().setNewTrackDefaults();
-        shape.getRight().setNewTrackDefaults();
-        track.add(shape);
+		shape = new Curve();
+		((Curve)shape).setRadiusStart(100);
+		((Curve)shape).setRadiusEnd(100);
+		((Curve)shape).setArcDeg(180);
+		shape.setHeightEnd(0);
+		shape.setSurface(MainTrack.DEFAULT_SURFACE);
+		shape.getLeft().setNewTrackDefaults();
+		shape.getRight().setNewTrackDefaults();
+		track.add(shape);
 
-        trackData = null;
-        trackData = new TrackData();
-        // a new track: the 3D view shows all of it
-        view3D = null;
-        Properties.getInstance().setView3D(null);
-        Undo.clear();
-        closeTrackWindows();
-        clearBackgroundImage();
+		trackData = null;
+		trackData = new TrackData();
+		// a new track: the 3D view shows all of it
+		view3D = null;
+		Properties.getInstance().setView3D(null);
+		Undo.clear();
+		closeTrackWindows();
+		clearBackgroundImage();
 
-        trackData.getHeader().setName(newProjectInfo.name);
-        trackData.getHeader().setCategory(newProjectInfo.category);
-        trackData.getHeader().setSubcategory(newProjectInfo.subcategory);
-        trackData.getHeader().setVersion(newProjectInfo.version);
-        Properties.getInstance().setPath(newProjectInfo.path);
-        trackData.getHeader().setAuthor(newProjectInfo.author);
-        trackData.getHeader().setEmail(newProjectInfo.email);
-        trackData.getHeader().setCopyright(newProjectInfo.copyright);
-        trackData.getHeader().setDescription(newProjectInfo.description);
+		trackData.getHeader().setName(newProjectInfo.name);
+		trackData.getHeader().setCategory(newProjectInfo.category);
+		trackData.getHeader().setSubcategory(newProjectInfo.subcategory);
+		trackData.getHeader().setVersion(newProjectInfo.version);
+		Properties.getInstance().setPath(newProjectInfo.path);
+		trackData.getHeader().setAuthor(newProjectInfo.author);
+		trackData.getHeader().setEmail(newProjectInfo.email);
+		trackData.getHeader().setCopyright(newProjectInfo.copyright);
+		trackData.getHeader().setDescription(newProjectInfo.description);
 
-        trackData.getMainTrack().setProfilStepsLength(MainTrack.DEFAULT_PROFIL_STEPS_LENGTH);
-        trackData.getMainTrack().setWidth(MainTrack.DEFAULT_WIDTH);
-        trackData.getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
-        trackData.getMainTrack().getLeft().setNewTrackDefaults();
-        trackData.getMainTrack().getRight().setNewTrackDefaults();
+		trackData.getMainTrack().setProfilStepsLength(MainTrack.DEFAULT_PROFIL_STEPS_LENGTH);
+		trackData.getMainTrack().setWidth(MainTrack.DEFAULT_WIDTH);
+		trackData.getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
+		trackData.getMainTrack().getLeft().setNewTrackDefaults();
+		trackData.getMainTrack().getRight().setNewTrackDefaults();
 
-        trackData.setSegments(track);
+		trackData.setSegments(track);
 
 		documentIsModified = true;
    }
 
-    /**
+	/**
 	 * @return Returns the prj.
 	 */
 	public Project getProject()
@@ -2068,49 +2066,49 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return javax.swing.JMenuItem
 	 */
-    private JMenuItem getSubdivideMenuItem()
-    {
-        if (subdivideMenuItem == null)
-        {
-            subdivideMenuItem = new JMenuItem();
-            subdivideMenuItem.setAction(subdivideAction);
-            subdivideMenuItem.setIcon(null);
-        }
-        return subdivideMenuItem;
-    }
+	private JMenuItem getSubdivideMenuItem()
+	{
+		if (subdivideMenuItem == null)
+		{
+			subdivideMenuItem = new JMenuItem();
+			subdivideMenuItem.setAction(subdivideAction);
+			subdivideMenuItem.setIcon(null);
+		}
+		return subdivideMenuItem;
+	}
 
-    /**
-     * This method initializes dumpTextMenuItem
-     *
-     * @return javax.swing.JMenuItem
-     */
-    private JMenuItem getDumpTextMenuItem()
-    {
-    	if (dumpTextMenuItem == null)
-    	{
-    		dumpTextMenuItem = new JMenuItem();
-    		dumpTextMenuItem.setAction(dumpTextAction);
-    		dumpTextMenuItem.setIcon(null);
-    	}
-    	return dumpTextMenuItem;
-    }
-    /**
-     * This method initializes dumpAC3DMenuItem
-     *
-     * @return javax.swing.JMenuItem
-     */
-    private JMenuItem getDumpAC3DMenuItem()
-    {
-    	if (dumpAC3DMenuItem == null)
-    	{
-    		dumpAC3DMenuItem = new JMenuItem();
-    		dumpAC3DMenuItem.setAction(dumpAC3DAction);
-    		dumpAC3DMenuItem.setIcon(null);
-    	}
-    	return dumpAC3DMenuItem;
-    }
+	/**
+	 * This method initializes dumpTextMenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	private JMenuItem getDumpTextMenuItem()
+	{
+		if (dumpTextMenuItem == null)
+		{
+			dumpTextMenuItem = new JMenuItem();
+			dumpTextMenuItem.setAction(dumpTextAction);
+			dumpTextMenuItem.setIcon(null);
+		}
+		return dumpTextMenuItem;
+	}
+	/**
+	 * This method initializes dumpAC3DMenuItem
+	 *
+	 * @return javax.swing.JMenuItem
+	 */
+	private JMenuItem getDumpAC3DMenuItem()
+	{
+		if (dumpAC3DMenuItem == null)
+		{
+			dumpAC3DMenuItem = new JMenuItem();
+			dumpAC3DMenuItem.setAction(dumpAC3DAction);
+			dumpAC3DMenuItem.setIcon(null);
+		}
+		return dumpAC3DMenuItem;
+	}
 
-    /**
+	/**
 	 * This method initializes deleteMenuItem
 	 *
 	 * @return javax.swing.JMenuItem
@@ -2846,19 +2844,19 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return javax.swing.JToggleButton
 	 */
-    private JToggleButton getToggleButtonSubdivide()
-    {
-        if (toggleButtonSubdivide == null)
-        {
-            toggleButtonSubdivide = new JToggleButton();
-            toggleButtonSubdivide.setAction(subdivideAction);
-            if (toggleButtonSubdivide.getIcon() != null)
-            {
-                toggleButtonSubdivide.setText("");
-            }
-        }
-        return toggleButtonSubdivide;
-    }
+	private JToggleButton getToggleButtonSubdivide()
+	{
+		if (toggleButtonSubdivide == null)
+		{
+			toggleButtonSubdivide = new JToggleButton();
+			toggleButtonSubdivide.setAction(subdivideAction);
+			if (toggleButtonSubdivide.getIcon() != null)
+			{
+				toggleButtonSubdivide.setText("");
+			}
+		}
+		return toggleButtonSubdivide;
+	}
 
 	/**
 	 * This method initializes buttonZoomPlus
@@ -3341,24 +3339,24 @@ public class EditorFrame extends JFrame
 			getReliefs().setChanged(true);
 	}
 
-    void toggleButtonSubdivide_actionPerformed(ActionEvent e)
-    {
-        checkButtons(toggleButtonSubdivide, CircuitView.STATE_SUBDIVIDE);
-    }
+	void toggleButtonSubdivide_actionPerformed(ActionEvent e)
+	{
+		checkButtons(toggleButtonSubdivide, CircuitView.STATE_SUBDIVIDE);
+	}
 
-    void dumpText_actionPerformed(ActionEvent e)
-    {
-    	if (trackData == null)
-    	{
-    		message("No track", "Nothing to dump.");
-    		return;
-    	}
+	void dumpText_actionPerformed(ActionEvent e)
+	{
+		if (trackData == null)
+		{
+			message("No track", "Nothing to dump.");
+			return;
+		}
 
 		String fileName = Properties.getInstance().getPath();
-    	String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
-    	fileName = fileName + sep + trackName + "-track.txt";
-    	try
-    	{
+		String trackName = fileName.substring(fileName.lastIndexOf(sep) + 1);
+		fileName = fileName + sep + trackName + "-track.txt";
+		try
+		{
 			// written through a temporary file, and closed so Windows doesn't keep it locked
 			utils.AtomicFile.write(Paths.get(fileName), file -> {
 				try (PrintStream printStream = new PrintStream(new FileOutputStream(file)))
@@ -3368,21 +3366,21 @@ public class EditorFrame extends JFrame
 						throw new IOException("write error");
 				}
 			});
-    	}
-    	catch (Exception ex)
-    	{
-    		JOptionPane.showMessageDialog(this,
-    				"Couldn't write : " + fileName + "\n\n" + ex.getLocalizedMessage(),
-    				"Dump Segment Text", JOptionPane.ERROR_MESSAGE);
-    	}
-    }
+		}
+		catch (Exception ex)
+		{
+			JOptionPane.showMessageDialog(this,
+					"Couldn't write : " + fileName + "\n\n" + ex.getLocalizedMessage(),
+					"Dump Segment Text", JOptionPane.ERROR_MESSAGE);
+		}
+	}
 
-    void dumpAC3D_actionPerformed(ActionEvent e)
-    {
-    	writeTrack();
-    }
+	void dumpAC3D_actionPerformed(ActionEvent e)
+	{
+		writeTrack();
+	}
 
-    void menuItemAddBackground_actionPerformed(ActionEvent e)
+	void menuItemAddBackground_actionPerformed(ActionEvent e)
 	{
 		if (trackData == null)
 		{
@@ -3819,48 +3817,48 @@ public class EditorFrame extends JFrame
 			toggleButtonDelete_actionPerformed(e);
 		}
 	}
-    public class SubdivideAction extends AbstractAction
-    {
-        public SubdivideAction(String text, ImageIcon icon, String desc, Integer mnemonic)
-        {
-            super(text, icon);
-            putValue(SHORT_DESCRIPTION, desc);
-            putValue(MNEMONIC_KEY, mnemonic);
-        }
+	public class SubdivideAction extends AbstractAction
+	{
+		public SubdivideAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
 
-        public void actionPerformed(final ActionEvent e) {
-            toggleButtonSubdivide_actionPerformed(e);
-        }
-    }
+		public void actionPerformed(final ActionEvent e) {
+			toggleButtonSubdivide_actionPerformed(e);
+		}
+	}
 
-    public class DumpTextAction extends AbstractAction
-    {
-    	public DumpTextAction(String text, ImageIcon icon, String desc, Integer mnemonic)
-    	{
-    		super(text, icon);
-    		putValue(SHORT_DESCRIPTION, desc);
-    		putValue(MNEMONIC_KEY, mnemonic);
-    	}
+	public class DumpTextAction extends AbstractAction
+	{
+		public DumpTextAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
 
-    	public void actionPerformed(final ActionEvent e) {
-    		dumpText_actionPerformed(e);
-    	}
-    }
-    public class DumpAC3DAction extends AbstractAction
-    {
-    	public DumpAC3DAction(String text, ImageIcon icon, String desc, Integer mnemonic)
-    	{
-    		super(text, icon);
-    		putValue(SHORT_DESCRIPTION, desc);
-    		putValue(MNEMONIC_KEY, mnemonic);
-    	}
+		public void actionPerformed(final ActionEvent e) {
+			dumpText_actionPerformed(e);
+		}
+	}
+	public class DumpAC3DAction extends AbstractAction
+	{
+		public DumpAC3DAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
 
-    	public void actionPerformed(final ActionEvent e) {
-    		dumpAC3D_actionPerformed(e);
-    	}
-    }
+		public void actionPerformed(final ActionEvent e) {
+			dumpAC3D_actionPerformed(e);
+		}
+	}
 
-    public class ZoomPlusAction extends AbstractAction
+	public class ZoomPlusAction extends AbstractAction
 	{
 		public ZoomPlusAction(String text, ImageIcon icon, String desc, Integer mnemonic)
 		{
@@ -4091,11 +4089,11 @@ public class EditorFrame extends JFrame
 		}
 		public void actionPerformed(ActionEvent e)
 		{
-		    int type = JOptionPane.PLAIN_MESSAGE;
-		    String msg = TrackEditor.getAppName() + " " + Properties.getInstance().version + "\n\n"
-                + "Copyright Charalampos Alexopoulos\n"
-                + "Copyright (2022-2026) Robert Reif\n";
-		    JOptionPane.showMessageDialog(null,msg,"About",type);
+			int type = JOptionPane.PLAIN_MESSAGE;
+			String msg = TrackEditor.getAppName() + " " + Properties.getInstance().version + "\n\n"
+				+ "Copyright Charalampos Alexopoulos\n"
+				+ "Copyright (2022-2026) Robert Reif\n";
+			JOptionPane.showMessageDialog(null,msg,"About",type);
 		}
 	}
 	public class CheckAction extends AbstractAction
@@ -4522,7 +4520,7 @@ public class EditorFrame extends JFrame
 		}
 		public void actionPerformed(ActionEvent e)
 		{
-		    calculateDeltas();
+			calculateDeltas();
 		}
 	}
 
@@ -4750,7 +4748,7 @@ public class EditorFrame extends JFrame
 
 			Vector<ObjectMap> objectMaps = trackData.getObjectMaps();
 			for (int i = 0; i < objectMaps.size(); i++)
-		 	{
+			{
 				Vector<ObjShapeObject> objects = objectMaps.get(i).getObjects();
 
 				for (int j = 0; j < objects.size(); j++)
@@ -4840,11 +4838,11 @@ public class EditorFrame extends JFrame
 		JOptionPane.showMessageDialog(this, text.toString(), "Read Track", JOptionPane.WARNING_MESSAGE);
 	}
 
-    /**
-     *
-     */
-    private void calculateDeltas()
-    {
+	/**
+	 *
+	 */
+	private void calculateDeltas()
+	{
 		if (trackData == null)
 		{
 			message("No track", "Can't calculate deltas.");
@@ -4853,7 +4851,7 @@ public class EditorFrame extends JFrame
 		DeltaPanel tg = new DeltaPanel(this, "", false);
 		//tg.setModal(false);
 		tg.setVisible(true);
-    }
+	}
 
 
 	public void refresh()
@@ -4950,7 +4948,7 @@ public class EditorFrame extends JFrame
 					surface.setMat(0);
 
 					int[] refs = j == 0 ? new int[] { (i * 2) + 0, (i * 2) + 1, (i * 2) + 2 }
-									   : new int[] { (i * 2) + 2, (i * 2) + 1, (i * 2) + 3 };
+										: new int[] { (i * 2) + 2, (i * 2) + 1, (i * 2) + 3 };
 					for (int ref : refs)
 					{
 						surface.addRef(ref, uv.get(ref)[0], uv.get(ref)[1]);
@@ -5127,7 +5125,7 @@ public class EditorFrame extends JFrame
 			calculateDeltaButton.setAction(calcDeltaAction);
 			if (calculateDeltaButton.getIcon() != null)
 			{
-			    calculateDeltaButton.setText("");
+				calculateDeltaButton.setText("");
 			}
 		}
 		return calculateDeltaButton;
