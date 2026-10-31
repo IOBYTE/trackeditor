@@ -63,7 +63,7 @@ public class Segment implements Cloneable
 	public Point2D.Double	startTrackCenter		= new Point2D.Double();
 	public Point2D.Double	endTrackCenter			= new Point2D.Double();
 	public double			distFromCircuitStart;
-	public int				nbSteps					= 0;
+	public int				nbSteps					= 1;
 	public double			stepLength;
 
 	// All datas
@@ -1062,10 +1062,9 @@ public class Segment implements Cloneable
 			s.dy = dy;
 		} catch (CloneNotSupportedException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new AssertionError("Segment implements Cloneable", e);
 		}
-		return s; // return the clone
+		return s;
 	}
     /**
      * @return Returns the points.

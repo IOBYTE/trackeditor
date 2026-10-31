@@ -4906,6 +4906,8 @@ public class EditorFrame extends JFrame
 
 			// the steps the segment was drawn with
 			int steps = segment.nbSteps;
+			if (segment.points == null || steps <= 0)
+				continue;
 
 			int stride = segment.points.length / steps;
 

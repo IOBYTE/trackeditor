@@ -1064,8 +1064,10 @@ public class PitProperties extends PropertyPanel
 		double borderWidth = 0;
 		double sideWidth = 0;
 		Segment nextSegment = pitExit.getNextShape();
-		if (nextSegment == null)
+		if (nextSegment == null && !data.isEmpty())
 			nextSegment = data.get(0);
+		if (nextSegment == null)
+			return;
 		if (pits.getSide().equals("left"))
 		{
 			nextSegment.getLeft().setBorderWidth(nextSegment.getValidLeftBorderWidth(getEditorFrame()));

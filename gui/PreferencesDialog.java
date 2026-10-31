@@ -540,7 +540,14 @@ public class PreferencesDialog extends JDialog
 
 	public int getRecentFilesMax()
 	{
-		return Integer.parseInt(getRecentFilesMaxTextField().getText().trim());
+		try
+		{
+			return Integer.parseInt(getRecentFilesMaxTextField().getText().trim());
+		}
+		catch (NumberFormatException e)
+		{
+			return -1;
+		}
 	}
 
 	public boolean getInteractiveFixes()

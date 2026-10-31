@@ -478,7 +478,7 @@ public class XmlReader
 	    return text.replaceFirst("^\\s*<\\?xml[^>]*\\?>", "");
 	}
 
-    private synchronized void setTrackData(Element root)
+    private void setTrackData(Element root)
     {
         setTrackLights(root);
         setHeader(root);
@@ -514,7 +514,7 @@ public class XmlReader
 		editorFrame.getTrackData().setGeoreference(data);
 	}
 
-    private synchronized void setMainTrack(Element root)
+    private void setMainTrack(Element root)
     {
         Element mainTrack = getChildWithName(root, "Main Track");
 
@@ -1222,7 +1222,7 @@ public class XmlReader
 		}
 	}
 
-    private synchronized void setSegments(Element mainTrack)
+    private void setSegments(Element mainTrack)
     {
 		Element segmentsSection;
 
@@ -1295,7 +1295,7 @@ public class XmlReader
         }
     }
 
-    private synchronized Segment setSegment(Element seg, Segment shape,
+    private Segment setSegment(Element seg, Segment shape,
             Segment prev)
     {
         SegmentSide left = shape.getLeft();
@@ -1403,7 +1403,7 @@ public class XmlReader
      * @param left
      * @param string
      */
-    private synchronized void setSide(Element seg, SegmentSide part,
+    private void setSide(Element seg, SegmentSide part,
 			String sPart, boolean mainTrack)
     {
         Element el = getChildWithName(seg, sPart + " Side");
@@ -1467,7 +1467,7 @@ public class XmlReader
         }
     }
 
-    private synchronized Element getChildWithName(Element element,
+    private Element getChildWithName(Element element,
             String name)
     {
 		// the games' parameter parser keeps every value of a duplicate name, but finds the
@@ -1490,7 +1490,7 @@ public class XmlReader
 		return out;
     }
 
-    public synchronized String getSegmentName(Element element)
+    public String getSegmentName(Element element)
     {
         String out = null;
 
@@ -1511,7 +1511,7 @@ public class XmlReader
         return out;
     }
 
-    public synchronized String getAttrStrValue(Element element,
+    public String getAttrStrValue(Element element,
             String name)
     {
         String out = null;
@@ -1596,7 +1596,7 @@ public class XmlReader
     /**
      * @return the value in SI, or NaN when there is no such attnum
      */
-    public synchronized double getAttrNumValue(Element element, String name)
+    public double getAttrNumValue(Element element, String name)
     {
         return getAttrNumValue(element, name, null);
     }
@@ -1604,7 +1604,7 @@ public class XmlReader
     /**
      * @return the value and the file's unit, without converting it, or null when there is no such attnum
      */
-    public synchronized DoubleValue getAttrNumUnitsValue(Element element, String name)
+    public DoubleValue getAttrNumUnitsValue(Element element, String name)
     {
         Element e = getChildWithName(element, name);
         if (isType(e, "attnum"))
@@ -1623,7 +1623,7 @@ public class XmlReader
     /**
      * @return the value converted to expectedUnit (SI when null), or NaN when there is no such attnum
      */
-    public synchronized double getAttrNumValue(Element element, String name, String expectedUnit)
+    public double getAttrNumValue(Element element, String name, String expectedUnit)
     {
         double out = Double.NaN;
         Element e = getChildWithName(element, name);
@@ -1639,7 +1639,7 @@ public class XmlReader
         return out;
     }
 
-    public synchronized int getAttrIntValue(Element element, String name)
+    public int getAttrIntValue(Element element, String name)
     {
     	int out = Integer.MAX_VALUE;
     	Element e = getChildWithName(element, name);

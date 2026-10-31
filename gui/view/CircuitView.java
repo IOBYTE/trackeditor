@@ -1753,7 +1753,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 			// Paints background image
 
-			if (showBackground && backgroundImg != null)
+			if (showBackground && backgroundImg != null && !editorFrame.getTrackData().getSegments().isEmpty())
 			{
 				Segment firstObj = editorFrame.getTrackData().getSegments().get(0);
 				Point2D.Double p1 = new Point2D.Double(0, 0);
