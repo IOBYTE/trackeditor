@@ -2,6 +2,7 @@ package utils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -124,19 +125,38 @@ public class SurfaceComboBox extends JComboBox<String>
 								tooltipText = tooltipMap.get(url.toString());
 							}
 							else
-							{							
+							{
+								URL imgUrl = url;
 								int width = 256;
 								int height = 256;
 
 								try
 								{
-									InputStream stream = url.openStream();
-									ImageInputStream input = ImageIO.createImageInputStream(stream);
-									ImageReader reader = ImageIO.getImageReaders(input).next();
-									reader.setInput(input);
-									width = reader.getWidth(0);
-									height = reader.getHeight(0);
-									reader.dispose();
+									BufferedImage image;
+									if (SgiReader.isSgiFile(file.getName()))
+									{
+										image = SgiReader.read(file);
+									}
+									else
+									{
+										image = ImageIO.read(file);
+									}
+									if (image != null)
+									{
+										width = image.getWidth();
+										height = image.getHeight();
+
+										if (SgiReader.isSgiFile(file.getName()))
+										{
+											// Swing's HTML renderer can't display SGI files,
+											// so write a cached PNG for the tooltip
+											File pngFile = new File(file.getParentFile(),
+												file.getName() + ".preview.png");
+											if (!pngFile.exists())
+												ImageIO.write(image, "png", pngFile);
+											imgUrl = pngFile.toURI().toURL();
+										}
+									}
 									if (width > 256 || height > 256)
 									{
 										if (width == height)
@@ -150,19 +170,13 @@ public class SurfaceComboBox extends JComboBox<String>
 											width = 256;
 										}
 									}
-									input.close();
-									stream.close();
-								}
-								catch (NoSuchElementException e)
-								{
-									// sgi rgb files are not supported
 								}
 								catch (Exception e)
 								{
-									e.printStackTrace();
+									// can't read image dimensions or convert
 								}
 
-								tooltipText = "<html><img src=\"" + url.toString() + "\" width=\"" + width + "\" height=\"" + height + "\" ><br>" + textureName + "</html>";
+								tooltipText = "<html><img src=\"" + imgUrl.toString() + "\" width=\"" + width + "\" height=\"" + height + "\" ><br>" + textureName + "</html>";
 								tooltipMap.put(url.toString(), tooltipText);
 							}
 						}
