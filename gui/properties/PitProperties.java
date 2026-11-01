@@ -143,19 +143,16 @@ public class PitProperties extends PropertyPanel
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		int row = 0;
 
-		if (showType())
-		{
-			addLabel(this, row, styleLabel, "Type", 110);
-			add(getStyleComboBox(), null);
-			getStyleComboBox().setBounds(120, rowY(row++), 125, 23);
-		}
+		addLabel(this, row, styleLabel, "Type", 110);
+		add(getStyleComboBox(), null);
+		getStyleComboBox().setBounds(120, rowY(row++), 125, 23);
 		addLabel(this, row, sideLabel, "Side", 110);
 		add(getSideComboBox(), null);
 		getSideComboBox().setBounds(120, rowY(row++), 125, 23);
 		addLabel(this, row, entryLabel, "Entry", 110);
-		addTextField(this, row++, entryTextField, pits.getEntry(), 120, 125);
+		addTextField(this, row++, entryTextField, pits.getEntry(), 120, 200);
 		addLabel(this, row, startLabel, "Start", 110);
-		addTextField(this, row++, startTextField, pits.getStart(), 120, 125);
+		addTextField(this, row++, startTextField, pits.getStart(), 120, 200);
 		if (options)
 		{
 			addLabel(this, row, startBuildingsLabel, "Start Buildings", 110);
@@ -169,9 +166,9 @@ public class PitProperties extends PropertyPanel
 			addTextField(this, row++, maxPitsTextField, pits.getMaxPits(), 120, 125);
 		}
 		addLabel(this, row, endLabel, "End", 110);
-		addTextField(this, row++, endTextField, pits.getEnd(), 120, 125);
+		addTextField(this, row++, endTextField, pits.getEnd(), 120, 200);
 		addLabel(this, row, exitLabel, "Exit", 110);
-		addTextField(this, row++, exitTextField, pits.getExit(), 120, 125);
+		addTextField(this, row++, exitTextField, pits.getExit(), 120, 200);
 		addLabel(this, row, widthLabel, "Width", 110);
 		addTextField(this, row++, widthTextField, pits.getWidth(), 120, 125);
 		widthTextField.setToolTipText("Width of each pit (empty = 5 m)");
@@ -206,11 +203,6 @@ public class PitProperties extends PropertyPanel
 	}
 
 	/** The pit type: TORCS version 4 has none, but its version 3 tracks do */
-	private boolean showType()
-	{
-		return getEditorFrame().getGameType().hasPitOptions() || isVersion3();
-	}
-
 	/** The version 3 loaders don't read max pits or an indicator */
 	private boolean showMaxPitsAndIndicator()
 	{
@@ -275,6 +267,12 @@ public class PitProperties extends PropertyPanel
 				}
 				styleComboBox = new JComboBox<String>(items);
 				styleComboBox.setToolTipText("Version 3 tracks only get track side pits.");
+			}
+			else if (!getEditorFrame().getGameType().hasPitOptions())
+			{
+				// TORCS doesn't support buildings, so hide "no building"
+				items = java.util.Arrays.copyOf(STYLE_ITEMS, STYLE_ITEMS.length - 1);
+				styleComboBox = new JComboBox<String>(items);
 			}
 			else
 			{
@@ -820,12 +818,12 @@ public class PitProperties extends PropertyPanel
 
 	public void exit()
 	{
-		// the TORCS settings that aren't shown are left as they are
+		// TORCS doesn't support buildings, max pits or indicator
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		// the item, not its position: a version 3 track has fewer choices
 		int index = java.util.Arrays.asList(STYLE_ITEMS).indexOf(getStyleComboBox().getSelectedItem());
 		int style = getEditorFrame().getPits().getStyle();
-		if (showType() && index >= 0)
+		if (index >= 0)
 		{
 			if (index == 0)
 			{

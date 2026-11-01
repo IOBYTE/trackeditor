@@ -303,13 +303,8 @@ public class XmlWriter
 		Element pits = new Element("section");
 		pits.setAttribute(new Attribute("name", "Pits"));
 
-		// TORCS only has track side pits, without buildings, max pits or an indicator
 		boolean options = editorFrame.getGameType().hasPitOptions();
-		if (options)
-			addContent(pits, "pit style", null, editorFrame.getPits().getStyle());
-		else if (editorFrame.getPits().getStyle() == 1)
-			// TORCS track files name the pit type, though the game doesn't read it
-			addContent(pits, "type", "track side");
+		addContent(pits, "pit style", null, editorFrame.getPits().getStyle());
 		addContent(pits, "side", editorFrame.getPits().getSide());
 		addContent(pits, "entry", editorFrame.getPits().getEntry());
 		addContent(pits, "start", editorFrame.getPits().getStart());
@@ -345,7 +340,7 @@ public class XmlWriter
 		}
 		else if (editorFrame.getPits().getStyle() == 2)
 		{
-			addContent(pits, "pit type", "seperate path");
+			addContent(pits, "pit type", "separate path");
 		}
 
 		addContent(pits, "pit side", editorFrame.getPits().getSide());
