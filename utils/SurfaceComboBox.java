@@ -69,6 +69,10 @@ public class SurfaceComboBox extends JComboBox<String>
 							// look for texture in default textures directory if available
 							tooltipText = getTextureName(surfaceName, defaultSurfaces, editorFrame.getDataDirectory() + sep + "data" + sep + "textures");
 						}
+						if (tooltipText == null)
+						{
+							tooltipText = textureNotFound(surfaceName, surfaces, defaultSurfaces);
+						}
 						setToolTipText(tooltipText);
 					}
 				}
@@ -114,12 +118,16 @@ public class SurfaceComboBox extends JComboBox<String>
 				{
 					String fileName = path + sep + textureName;
 					File file = new File(fileName);
-					if (file.canRead())
+					if (!file.canRead())
+					{
+						// return null so the caller can try another directory
+					}
+					else
 					{
 						try
 						{
 							URL url = file.toURI().toURL();
-							
+
 							if (tooltipMap.containsKey(url.toString()))
 							{
 								tooltipText = tooltipMap.get(url.toString());
@@ -182,7 +190,6 @@ public class SurfaceComboBox extends JComboBox<String>
 						}
 						catch (MalformedURLException e)
 						{
-							System.out.println("tooltipText " + tooltipText);
 						}
 					}
 				}
@@ -190,6 +197,25 @@ public class SurfaceComboBox extends JComboBox<String>
 			}
 		}
 		return tooltipText;
+	}
+
+	private String textureNotFound(String surfaceName, Vector<Surface> surfaces, Vector<Surface> defaultSurfaces)
+	{
+		// find the texture name from either surface list
+		for (Vector<Surface> list : new Vector[] { surfaces, defaultSurfaces })
+		{
+			for (int i = 0; i < list.size(); i++)
+			{
+				Surface surface = (Surface) list.get(i);
+				if (surface.getName().equals(surfaceName))
+				{
+					String textureName = surface.getTextureName();
+					if (textureName != null && !textureName.isEmpty())
+						return "Texture not found: " + textureName;
+				}
+			}
+		}
+		return null;
 	}
 
 	private List<String> getSurfaceImages()
@@ -208,6 +234,10 @@ public class SurfaceComboBox extends JComboBox<String>
 			if (tooltipText == null)
 			{
 				tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
+			}
+			if (tooltipText == null)
+			{
+				tooltipText = textureNotFound(surfaceName, surfaces, defaultSurfaces);
 			}
 			tooltips.add(tooltipText);
 		}
