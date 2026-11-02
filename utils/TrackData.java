@@ -421,14 +421,7 @@ public final class TrackData
 			else
 			{
 				Curve curve = (Curve) segment;
-				double radiusEnd;
-
-				if (curve.hasRadiusEnd())
-					radiusEnd = curve.getRadiusEnd();
-				else
-					radiusEnd = curve.getRadiusStart();
-
-	            length = ((curve.getRadiusStart() + radiusEnd) / 2.0 * curve.getArcRad());
+	            length = ((curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2.0 * curve.getArcRad());
 			}
 
 			if (segment.hasHeightStartLeft())

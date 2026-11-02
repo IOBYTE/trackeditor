@@ -165,6 +165,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/undo/UndoInterface.java
          utils/undo/UndoMoveAllGraphicObjects.java
          utils/undo/UndoMoveGraphicObject.java
+         utils/undo/UndoPitGeneration.java
          utils/undo/UndoSegmentChange.java
          utils/undo/UndoSplitSegment.java)
 

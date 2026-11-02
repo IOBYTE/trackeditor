@@ -93,6 +93,15 @@ public class PropertiesDialog extends JDialog
 		this.setLocation(p);
 		this.setModal(true);
 		this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+		// closing the window is a cancel: pit generation has already changed the track
+		this.addWindowListener(new java.awt.event.WindowAdapter()
+		{
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent e)
+			{
+				cancel();
+			}
+		});
 		this.setResizable(false);
 		this.setTitle("Properties");
 	}
@@ -519,6 +528,10 @@ public class PropertiesDialog extends JDialog
 	 */
 	protected void cancel()
 	{
+		// the Pit panel changes the track as soon as Apply is pressed, so it has
+		// to put it back. On Ok this does nothing: exit() has already accepted
+		// the changes by clearing the state cancel restores.
+		this.pitProperties.cancel();
 		editorFrame.setGraphicObjectProperties(null);
 		editorFrame.getProject().setPropertiesEditorX(this.getX());
 		editorFrame.getProject().setPropertiesEditorY(this.getY());

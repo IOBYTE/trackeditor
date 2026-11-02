@@ -109,7 +109,7 @@ public class RoadTexture
 		if (segment instanceof Curve)
 		{
 			Curve curve = (Curve) segment;
-			double end = curve.hasRadiusEnd() ? curve.getRadiusEnd() : curve.getRadiusStart();
+			double end = curve.getValidRadiusEnd();
 			length = curve.getArcRad() * (curve.getRadiusStart() + end) / 2;
 		}
 		else

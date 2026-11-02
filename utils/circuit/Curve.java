@@ -39,7 +39,8 @@ public class Curve extends Segment
 {
 	protected double		arcDeg;
 	protected double		radiusStart;
-	protected double 		radiusEnd;
+	// NaN when the curve has no end radius: its radius is then constant
+	protected double 		radiusEnd	= Double.NaN;
 
 	public Point2D.Double	center = new Point2D.Double();
 	// rotation center of each step, for the bounds
@@ -176,7 +177,8 @@ public class Curve extends Segment
 
 		// calc turn length
 		double arc = getArcRad();
-		length = arc * (radiusStart + radiusEnd) / 2;
+		double endRadius = getValidRadiusEnd();
+		length = arc * (radiusStart + endRadius) / 2;
 		// same step count as the game's track loader
 		nbSteps = getValidSteps(editorFrame, length);
 
@@ -185,11 +187,11 @@ public class Curve extends Segment
 
 		double deltaRadiusStep;
 
-		if (radiusEnd != radiusStart)
+		if (endRadius != radiusStart)
 		{
 			if (nbSteps != 1)
 			{
-				deltaRadiusStep = (radiusEnd - radiusStart) / (nbSteps - 1);
+				deltaRadiusStep = (endRadius - radiusStart) / (nbSteps - 1);
 				double tmpAngle = 0;
 				double tmpRadius = radiusStart;
 				for (int curStep = 0; curStep < nbSteps; curStep++)
@@ -201,7 +203,7 @@ public class Curve extends Segment
 			}
 			else
 			{
-				deltaRadiusStep = (radiusEnd - radiusStart) / nbSteps;
+				deltaRadiusStep = (endRadius - radiusStart) / nbSteps;
 			}
 		}
 		else
@@ -538,6 +540,15 @@ public class Curve extends Segment
 	public boolean hasRadiusEnd()
 	{
 		return !Double.isNaN(radiusEnd);
+	}
+
+	/**
+	 * The end radius the game uses: a curve without one has a constant radius,
+	 * so it ends at the radius it starts at. This is not inherited.
+	 */
+	public double getValidRadiusEnd()
+	{
+		return hasRadiusEnd() ? radiusEnd : radiusStart;
 	}
 
 	/**

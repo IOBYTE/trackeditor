@@ -166,9 +166,9 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n");
 				}
-				if (endWidth > curve.getRadiusEnd())
+				if (endWidth > curve.getValidRadiusEnd())
 				{
-					textArea.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getRadiusEnd() + "\n");
+					textArea.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n");
 				}
 			}
 		}

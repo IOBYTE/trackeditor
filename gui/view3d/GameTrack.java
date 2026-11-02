@@ -200,7 +200,7 @@ public class GameTrack
 					// the step's radius and turn, as the game and Curve.calcShape work them out
 					Curve curve = (Curve) segment;
 					double rs = curve.getRadiusStart();
-					double re = curve.hasRadiusEnd() ? curve.getRadiusEnd() : rs;
+					double re = curve.getValidRadiusEnd();
 					double dradius = re == rs ? 0 : steps != 1 ? (re - rs) / (steps - 1) : re - rs;
 					double radius = rs + step * dradius;
 					double arc = stepLength / radius;

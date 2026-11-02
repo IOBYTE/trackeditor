@@ -25,17 +25,31 @@ import utils.undo.UndoSplitSegment;
  * Heights, slopes, banking and side widths at the split point are taken from
  * the original segment, before anything is changed, using the same spline the
  * game uses for the profile.
+ *
+ * split() splits where the user clicked and adds an undo step for it.
+ * splitAtFraction() splits at a given fraction of the length and adds no undo
+ * step, so a caller that makes several splits (the pit generator) can undo
+ * them all as one step.
  */
-class SegmentSplitter
+public class SegmentSplitter
 {
+	/** pieces shorter than this (m) aren't made by splitAtFraction() */
+	private static final double	MINIMUM_PIECE	= 0.001;
+
 	private final EditorFrame	editorFrame;
 
-	SegmentSplitter(EditorFrame editorFrame)
+	/** why the last splitAtFraction() returned null */
+	private String				problem			= null;
+
+	public SegmentSplitter(EditorFrame editorFrame)
 	{
 		this.editorFrame = editorFrame;
 	}
 
 	/**
+	 * Splits a segment at the point on it nearest the click, and adds an undo
+	 * step for the split.
+	 *
 	 * @return null if the segment was split, otherwise why it wasn't
 	 */
 	String split(Segment shape, Point2D.Double point)
@@ -45,7 +59,6 @@ class SegmentSplitter
 		if (pos < 0)
 			return "Segment not found";
 
-		boolean isCurve = shape instanceof Curve;
 		double length = formulaLength(shape);
 		if (!(length > 0))
 			return "The segment has no length";
@@ -62,13 +75,11 @@ class SegmentSplitter
 			a0 = previous.endTrackAlpha;
 		}
 
-		// spline parameter (0..1) of the split, and the curve geometry of the pieces
+		// fraction (0..1) of the length nearest the click
 		double t;
-		double arc1 = 0, arc2 = 0, radiusEnd1 = 0, radiusStart2 = 0;
-		int steps1 = 0, steps2 = 0;
 		boolean spiral = false;
 
-		if (!isCurve)
+		if (!(shape instanceof Curve))
 		{
 			double dx = Math.cos(a0), dy = Math.sin(a0);
 			t = ((point.x - x0) * dx + (point.y - y0) * dy) / length;
@@ -77,25 +88,16 @@ class SegmentSplitter
 		{
 			Curve curve = (Curve) shape;
 			double rs = curve.getRadiusStart();
-			double re = curve.hasRadiusEnd() ? curve.getRadiusEnd() : rs;
+			double re = curve.getValidRadiusEnd();
 			double arc = curve.getArcRad();
 			double sign = curve.getType().equals("rgt") ? -1 : 1;
 			spiral = re != rs;
 
 			if (spiral && steps < 2)
-				return "The game builds this spiral as a single step, so it can't be split.\n" +
-					   "A linear profile is always one step; for a spline give it a profil steps length or profil steps.";
+				return SINGLE_STEP_SPIRAL;
 
-			// the game's steps: equal length, radius changing by a fixed amount each step
 			double dr = spiral ? (re - rs) / (steps - 1) : 0;
-			double stepLength = length / steps;
-			if (spiral)
-			{
-				double angle = 0;
-				for (int i = 0; i < steps; i++)
-					angle += stepLength / (rs + i * dr);
-				stepLength *= arc / angle;
-			}
+			double stepLength = stepLength(rs, dr, arc, length, steps, spiral);
 
 			// find the distance along the center line closest to the click
 			double best = Double.MAX_VALUE, bestDist = 0;
@@ -122,10 +124,92 @@ class SegmentSplitter
 				dist += stepLength;
 			}
 
+			// the steps are equal in length, so this is also the fraction of the steps
+			t = bestDist / dist;
 			if (spiral)
 			{
+				// the step boundary nearest the click, but not either end
+				int steps1 = Math.max(1, Math.min(steps - 1, (int) Math.round(t * steps)));
+				t = (double) steps1 / steps;
+			}
+		}
+
+		// don't make pieces shorter than a step (or a quarter of the segment);
+		// a spiral is split on the step boundary nearest the click
+		double minimum = Math.min(length / Math.max(steps, 1), length / 4);
+		if (!spiral && (t * length < minimum || (1 - t) * length < minimum))
+			return "Too close to the end of the segment to split it";
+
+		Segment original = (Segment) shape.clone();
+		Segment piece2 = splitAtFraction(shape, t);
+		if (piece2 == null)
+			return problem;
+
+		Undo.add(new UndoSplitSegment(editorFrame, shape, original, piece2));
+
+		return null;
+	}
+
+	private static final String	SINGLE_STEP_SPIRAL	=
+		"The game builds this spiral as a single step, so it can't be split.\n" +
+		"A linear profile is always one step; for a spline give it a profil steps length or profil steps.";
+
+	/**
+	 * Splits a segment at a fraction t (0 < t < 1) of its length, as given by
+	 * formulaLength(). The first piece stays in the segment list where the
+	 * segment was; the second piece is inserted after it with a new name.
+	 *
+	 * A spiral is split on the step boundary nearest t; formulaLength() of the
+	 * first piece then gives where the split actually is.
+	 *
+	 * No undo step is added: the caller does that.
+	 *
+	 * @return the new second piece, already inserted into the segment list,
+	 *         or null if the split couldn't be done (getProblem() says why)
+	 */
+	public Segment splitAtFraction(Segment shape, double t)
+	{
+		problem = null;
+
+		SegmentVector data = editorFrame.getTrackData().getSegments();
+		int pos = data.indexOf(shape);
+		if (pos < 0)
+			return fail("Segment not found");
+
+		boolean isCurve = shape instanceof Curve;
+		double length = formulaLength(shape);
+		if (!(length > 0))
+			return fail("The segment has no length");
+
+		if (!(t > 0 && t < 1) || t * length < MINIMUM_PIECE || (1 - t) * length < MINIMUM_PIECE)
+			return fail("Too close to the end of the segment to split it");
+
+		int steps = steps(shape, length);
+
+		// the curve geometry of the pieces
+		double arc1 = 0, arc2 = 0, radiusEnd1 = 0, radiusStart2 = 0;
+		int steps1 = 0, steps2 = 0;
+		boolean spiral = false;
+
+		if (isCurve)
+		{
+			Curve curve = (Curve) shape;
+			double rs = curve.getRadiusStart();
+			double re = curve.getValidRadiusEnd();
+			double arc = curve.getArcRad();
+			spiral = re != rs;
+
+			if (spiral && steps < 2)
+				return fail(SINGLE_STEP_SPIRAL);
+
+			if (spiral)
+			{
+				// the game's steps: equal length, radius changing by a fixed amount each step
+				double dr = (re - rs) / (steps - 1);
+				double stepLength = stepLength(rs, dr, arc, length, steps, true);
+
 				// split on a step boundary
-				steps1 = (int) Math.round(bestDist / stepLength);
+				steps1 = (int) Math.round(t * steps);
 				steps1 = Math.max(1, Math.min(steps - 1, steps1));
 				steps2 = steps - steps1;
 				t = (double) steps1 / steps;
@@ -137,17 +221,11 @@ class SegmentSplitter
 			}
 			else
 			{
-				t = bestDist / dist;
 				arc1 = arc * t;
 				arc2 = arc - arc1;
 				radiusEnd1 = radiusStart2 = rs;
 			}
 		}
-
-		// don't make pieces shorter than a step (or a quarter of the segment)
-		double minimum = Math.min(length / Math.max(steps, 1), length / 4);
-		if (!spiral && (t * length < minimum || (1 - t) * length < minimum))
-			return "Too close to the end of the segment to split it";
 
 		Segment original = (Segment) shape.clone();
 		Segment piece2;
@@ -156,7 +234,7 @@ class SegmentSplitter
 		{
 			Curve curve = (Curve) shape;
 			Curve newCurve = new Curve(curve.getType(), curve);
-			double re = curve.hasRadiusEnd() ? curve.getRadiusEnd() : curve.getRadiusStart();
+			double re = curve.getValidRadiusEnd();
 
 			curve.setArcDeg(Math.toDegrees(arc1));
 			newCurve.setArcDeg(Math.toDegrees(arc2));
@@ -205,22 +283,50 @@ class SegmentSplitter
 		fixHeight(piece2.getCalculatedHeightEnd(), original.getCalculatedHeightEnd(), () -> piece2.setHeightEnd(original.getCalculatedHeightEnd()));
 		editorFrame.getTrackData().calculateSegmentValues();
 
-		Undo.add(new UndoSplitSegment(editorFrame, shape, original, piece2));
+		return piece2;
+	}
 
+	/**
+	 * @return why the last splitAtFraction() returned null, or null if it split
+	 */
+	public String getProblem()
+	{
+		return problem;
+	}
+
+	private Segment fail(String problem)
+	{
+		this.problem = problem;
 		return null;
+	}
+
+	/**
+	 * Length of each of the game's steps along the center line. A spiral's
+	 * steps are scaled so that their angles add up to the arc.
+	 */
+	private static double stepLength(double rs, double dr, double arc, double length, int steps, boolean spiral)
+	{
+		double stepLength = length / steps;
+		if (spiral)
+		{
+			double angle = 0;
+			for (int i = 0; i < steps; i++)
+				angle += stepLength / (rs + i * dr);
+			stepLength *= arc / angle;
+		}
+		return stepLength;
 	}
 
 	/**
 	 * Length the game uses for the profile (for a spiral this is not the
 	 * length actually driven).
 	 */
-	static double formulaLength(Segment segment)
+	public static double formulaLength(Segment segment)
 	{
 		if (segment instanceof Curve)
 		{
 			Curve curve = (Curve) segment;
-			double re = curve.hasRadiusEnd() ? curve.getRadiusEnd() : curve.getRadiusStart();
-			return (curve.getRadiusStart() + re) / 2 * curve.getArcRad();
+			return (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2 * curve.getArcRad();
 		}
 		return segment.getLength();
 	}

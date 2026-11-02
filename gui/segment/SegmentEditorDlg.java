@@ -1523,7 +1523,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 					if (!shape.getType().equals("str"))
 					{
 						Curve curve = (Curve) shape;
-						length = curve.getArcRad() * (curve.getRadiusStart() + curve.getRadiusEnd()) / 2;
+						length = curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
 					}
 					else
 					{
@@ -1552,7 +1552,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				if (!shape.getType().equals("str"))
 				{
 					Curve curve = (Curve) shape;
-					length = curve.getArcRad() * (curve.getRadiusStart() + curve.getRadiusEnd()) / 2;
+					length = curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
 				}
 				else
 				{

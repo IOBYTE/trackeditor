@@ -125,6 +125,25 @@ public class SegmentVector extends Vector<Segment>
     	super.removeElementAt(index);
     }
 
+	/**
+	 * Replaces the entire segment list and rebuilds the linked list pointers.
+	 * Used by undo/redo to restore a previous state, including when the
+	 * segment count has changed (e.g. after splits).
+	 */
+	public void replaceAll(Vector<Segment> segments)
+	{
+		super.clear();
+		for (Segment s : segments)
+			super.add(s);
+
+		// rebuild the linked list: first and last have null at their ends
+		for (int i = 0; i < size(); i++)
+		{
+			get(i).previousShape = i > 0 ? get(i - 1) : null;
+			get(i).nextShape = i < size() - 1 ? get(i + 1) : null;
+		}
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "Track Segments");

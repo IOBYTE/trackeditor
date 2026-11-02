@@ -112,4 +112,13 @@ public class Undo
 			undoSegments.remove(last);
 		}
 	}
+
+	/** Removes the most recent redo step without redoing it. */
+	public static void popRedo()
+	{
+		if (redoSegments.size() > 0)
+		{
+			redoSegments.remove(redoSegments.size() - 1);
+		}
+	}
 }
