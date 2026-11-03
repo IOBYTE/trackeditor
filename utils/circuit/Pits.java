@@ -350,6 +350,9 @@ public class Pits {
 		private GeneratorPart	entry	= null;
 		private GeneratorPart	pits	= null;
 		private GeneratorPart	exit	= null;
+		// a key of the pit segments as the generator left them, to tell when
+		// they were changed since; null when not known
+		private Integer			segmentsKey	= null;
 
 		public Generator()
 		{
@@ -370,8 +373,19 @@ public class Pits {
 
 		public Generator copy()
 		{
-			return new Generator(entry == null ? null : entry.copy(),
+			Generator copy = new Generator(entry == null ? null : entry.copy(),
 				pits == null ? null : pits.copy(), exit == null ? null : exit.copy());
+			copy.segmentsKey = segmentsKey;
+			return copy;
+		}
+
+		public Integer getSegmentsKey()
+		{
+			return segmentsKey;
+		}
+		public void setSegmentsKey(Integer segmentsKey)
+		{
+			this.segmentsKey = segmentsKey;
 		}
 
 		public GeneratorPart getEntry()

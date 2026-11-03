@@ -629,6 +629,8 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = wasModified;
 			return;
 		}
+		// so a later change to the pit segments shows their settings, not these
+		getEditorFrame().getPits().getGenerator().setSegmentsKey(pitSegmentsKey());
 		undo.captureAfter();
 		Undo.add(undo);
 		generateCount++;
@@ -740,7 +742,9 @@ public class PitProperties extends PropertyPanel
 			Pits.Generator generator = pits.getGenerator();
 			if (generator == null)
 				generator = utils.Properties.getInstance().getPitGenerator();
-			if (generator != null && generator.isComplete())
+			// not when the pit segments were changed after it made them
+			if (generator != null && generator.isComplete()
+				&& (generator.getSegmentsKey() == null || generator.getSegmentsKey() == pitSegmentsKey()))
 			{
 				fromPart(generator.getEntry(), entryPitInfo);
 				fromPart(generator.getPits(), pitsPitInfo);
@@ -901,6 +905,37 @@ public class PitProperties extends PropertyPanel
 				exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
 			}
 		}
+	}
+
+	/**
+	 * @return a key of the pit side of the segments the generator changes, from
+	 *         the one before the pit entry to the one after the pit exit
+	 */
+	private int pitSegmentsKey()
+	{
+		Pits pits = getEditorFrame().getPits();
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		Segment entry = data.getSegmentFromName(pits.getEntry());
+		Segment exit = data.getSegmentFromName(pits.getExit());
+		if (entry == null || exit == null || data.isEmpty())
+			return 0;
+		boolean left = "left".equals(pits.getSide());
+		int n = data.size();
+		int from = (data.indexOf(entry) - 1 + n) % n, to = (data.indexOf(exit) + 1) % n;
+		StringBuilder key = new StringBuilder();
+		for (int i = from, count = 0; count < n; i = (i + 1) % n, count++)
+		{
+			Segment segment = data.get(i);
+			SegmentSide side = left ? segment.getLeft() : segment.getRight();
+			key.append(segment.getName()).append('|').append(side.getSideSurface()).append('|')
+				.append(side.getSideStartWidth()).append('|').append(side.getSideEndWidth()).append('|')
+				.append(side.getBorderStyle()).append('|').append(side.getBorderSurface()).append('|')
+				.append(side.getBorderWidth()).append('|').append(side.getBorderHeight()).append('|')
+				.append(side.getBarrierHeight()).append('|').append(side.getBarrierWidth()).append('\n');
+			if (i == to)
+				break;
+		}
+		return key.toString().hashCode();
 	}
 
 	private static void fromPart(Pits.GeneratorPart part, PitInfo info)

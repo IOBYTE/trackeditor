@@ -374,6 +374,90 @@ public class CheckDialog extends JDialog
 			else if (style != 3)
 				textArea.append("Pit indicator is set, but the game only shows it when the pit type is \"no building\"\n");
 		}
+
+		if (!noSegments)
+		{
+			checkPitsOnCurves();
+			checkNoBuildingPitLane(pits);
+		}
+	}
+
+	/**
+	 * The games measure a pit's place along its segment in meters, but read it as
+	 * an angle in a curve, so what they draw for a pit in a curve (its building,
+	 * door, low wall or indicator) is in the wrong place. Pit stops still work.
+	 */
+	private void checkPitsOnCurves()
+	{
+		gui.view3d.GameTrack.PitLayout layout;
+		try
+		{
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			layout = track == null ? null : track.pitPlaces();
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (layout == null)
+			return;
+		// the pits in each curve, in order
+		Map<String, java.util.List<Integer>> curves = new java.util.LinkedHashMap<String, java.util.List<Integer>>();
+		for (int i = 0; i < layout.pits.size(); i++)
+		{
+			gui.view3d.GameTrack.Seg seg = layout.pits.get(i).seg;
+			if (seg.type != gui.view3d.GameTrack.TR_STR)
+				curves.computeIfAbsent(seg.name, k -> new java.util.ArrayList<Integer>()).add(i + 1);
+		}
+		if (curves.isEmpty())
+			return;
+		StringBuilder list = new StringBuilder();
+		for (Map.Entry<String, java.util.List<Integer>> curve : curves.entrySet())
+		{
+			if (list.length() > 0)
+				list.append("; ");
+			java.util.List<Integer> numbers = curve.getValue();
+			int first = numbers.get(0), last = numbers.get(numbers.size() - 1);
+			list.append(curve.getKey()).append(first == last ? ": pit " + first : ": pits " + first + "-" + last);
+		}
+		textArea.append("Pits on a curve (" + list + "): the game reads a pit's place along a curve as an angle, so it draws "
+			+ "their buildings, doors, low wall or indicators in the wrong place (pit stops still work)\n");
+	}
+
+	/**
+	 * Speed Dreams and CSR don't count driving inside a curve's edge as cutting
+	 * in the pit lane, from the pit entry to the pit exit, but only with track
+	 * side pits: with "no building", a pit lane on the inside of a curve gets
+	 * cutting penalties (from the Amateur skill level).
+	 */
+	private void checkNoBuildingPitLane(Pits pits)
+	{
+		if (!editorFrame.getGameType().hasPitOptions() || trackData.getHeader().getVersion() == 3 || pits.getStyle() != 3)
+			return;
+		SegmentVector segments = trackData.getSegments();
+		Segment entry = segments.getSegmentFromName(pits.getEntry());
+		Segment exit = segments.getSegmentFromName(pits.getExit());
+		if (entry == null || exit == null)
+			return;
+		// the side the pits are on: any side but "right" is left
+		String inside = "right".equals(pits.getSide()) ? "rgt" : "lft";
+		int from = segments.indexOf(entry), to = segments.indexOf(exit);
+		StringBuilder list = new StringBuilder();
+		for (int i = from; ; i = (i + 1) % segments.size())
+		{
+			Segment segment = segments.get(i);
+			if (inside.equals(segment.getType()))
+			{
+				if (list.length() > 0)
+					list.append(", ");
+				list.append(segment.getName());
+			}
+			if (i == to)
+				break;
+		}
+		if (list.length() > 0)
+			textArea.append("Pit lane on the inside of curves (" + list + "): with the pit type \"no building\" the game doesn't "
+				+ "exempt the pit lane from the cutting rule, so cars using the pits there can be penalized for cutting\n");
 	}
 
 	private void checkTrackHeight()

@@ -402,7 +402,7 @@ public class Track3DRenderer implements GLEventListener
 				{
 					File file = mesh.textureFiles[i];
 					String error = file == null ? null : textureErrors.get(textureKey(file));
-					missing.add(mesh.textureNames[i] + (file == null ? ": not found" : ": " + error));
+					missing.add(TrackScene.textureDisplayName(mesh.textureNames[i]) + (file == null ? ": not found" : ": " + error));
 				}
 			}
 		}

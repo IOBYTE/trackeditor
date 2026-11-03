@@ -866,6 +866,9 @@ public abstract class TrackScene
 		curDoubleSided = true;
 		curClamp = true;
 		List<IndicatorPart> indicator = pitIndicator();
+		// the game only looks for the wall's texture in data/textures
+		String data = editorFrame.getDataDirectory();
+		String wall = foundTexture("pit wall/", "tr-wall-gr.png", data == null ? null : data + File.separator + "data" + File.separator + "textures");
 		int uid = 1;
 		for (GameTrack.LocalPos p : pits.pits)
 		{
@@ -883,9 +886,9 @@ public abstract class TrackScene
 				q[k] = new float[] { x, y, track.heightG(p.seg, x, y) };
 			}
 			int id = p.seg.id;
-			lowWallPart("tr-wall-gr.png", "PW" + uid + "a", id, q[0], q[1], 0.25f);
+			lowWallPart(wall, "PW" + uid + "a", id, q[0], q[1], 0.25f);
 			lowWallPart(pitNumberTexture(uid, 1), "PW" + uid + "b", id, q[1], q[2], 1);
-			lowWallPart("tr-wall-gr.png", "PW" + uid + "c", id, q[2], q[3], 0.25f);
+			lowWallPart(wall, "PW" + uid + "c", id, q[2], q[3], 0.25f);
 			if (indicator != null)
 				addPitIndicator(indicator, q[2], uid);
 			uid++;
@@ -1070,10 +1073,22 @@ public abstract class TrackScene
 	 */
 	private static String indicatorTexture(String texture, String dataPath)
 	{
-		String name = "pit indicator/" + texture;
-		File file = findFile(texture, Properties.getInstance().getPath(),
+		return foundTexture("pit indicator/", texture, Properties.getInstance().getPath(),
 			dataPath == null ? null : dataPath + "objects", dataPath == null ? null : dataPath + "textures",
 			dataPath == null ? null : dataPath + "img");
+	}
+
+	/**
+	 * A texture found in the folders the game looks in, not where the track's
+	 * textures are found. Its name has a prefix, so the track's own textures with
+	 * the same name aren't affected.
+	 *
+	 * @return its texture name
+	 */
+	private static String foundTexture(String prefix, String texture, String... folders)
+	{
+		String name = prefix + texture;
+		File file = findFile(texture, folders);
 		synchronized (generatedTextures)
 		{
 			if (file != null)
@@ -1081,6 +1096,14 @@ public abstract class TrackScene
 			else
 				generatedTextures.remove(name);
 		}
+		return name;
+	}
+
+	/** @return a texture's name as the game knows it, without the prefix of one found here */
+	public static String textureDisplayName(String name)
+	{
+		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/")))
+			return name.substring(name.indexOf('/') + 1);
 		return name;
 	}
 

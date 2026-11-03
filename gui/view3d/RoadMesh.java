@@ -55,7 +55,9 @@ public class RoadMesh
 					{
 						names.add(texture);
 						File generated = TrackScene.generatedTexture(texture);
-						files.add(generated != null ? generated : RoadTexture.findTextureFile(editorFrame, texture));
+						// one found here that isn't there isn't looked for with the track's textures
+						boolean found = !TrackScene.textureDisplayName(texture).equals(texture);
+						files.add(generated != null ? generated : found ? null : RoadTexture.findTextureFile(editorFrame, texture));
 					}
 				}
 				for (int i = 0; i < strip.size(); i++)
