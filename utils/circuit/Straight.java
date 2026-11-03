@@ -356,6 +356,8 @@ public class Straight extends Segment
 		}
 
 		endTrackCenter.setLocation(currentX, currentY);
+		// a straight keeps the heading it starts with (splitting the next segment needs it)
+		startTrackAlpha = currentA;
 		endTrackAlpha = startTrackAlpha;
 
 		setBounds();
