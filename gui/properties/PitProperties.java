@@ -106,6 +106,7 @@ public class PitProperties extends PropertyPanel
 	private JButton				applyButton			= null;
 	private JButton				undoButton			= null;
 	private JButton				redoButton			= null;
+	private JButton				fitButton			= null;
 	// a "pit indicator" value the choices don't have, kept as it is
 	private int					otherIndicator		= Integer.MAX_VALUE;
 	private int					generateCount		= 0;
@@ -172,6 +173,8 @@ public class PitProperties extends PropertyPanel
 			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 125);
 			addLabel(this, row, stopBuildingsLabel, "Stop Buildings", 110);
 			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 125);
+			add(getFitButton(), null);
+			getFitButton().setBounds(255, rowY(row - 1), 115, 23);
 		}
 		if (showMaxPitsAndIndicator())
 		{
@@ -180,6 +183,12 @@ public class PitProperties extends PropertyPanel
 		}
 		addLabel(this, row, endLabel, "End", 110);
 		addTextField(this, row++, endTextField, pits.getEnd(), 120, 200);
+		if (!options)
+		{
+			// TORCS: the buildings end with the pit end
+			add(getFitButton(), null);
+			getFitButton().setBounds(330, rowY(row - 1), 115, 23);
+		}
 		addLabel(this, row, exitLabel, "Exit", 110);
 		addTextField(this, row++, exitTextField, pits.getExit(), 120, 200);
 		addLabel(this, row, widthLabel, "Width", 110);
@@ -223,6 +232,7 @@ public class PitProperties extends PropertyPanel
 		getRedoButton().setBounds(startX + buttonWidth * 2 + 20, buttonY, buttonWidth, 25);
 
 		setButtonsVisible(false);
+		updateFitButton();
 	}
 
 	private boolean isVersion3()
@@ -517,6 +527,209 @@ public class PitProperties extends PropertyPanel
 		return applyButton;
 	}
 
+	private JButton getFitButton()
+	{
+		if (fitButton == null)
+		{
+			fitButton = new JButton("Fit Segments");
+			fitButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					fitSegments();
+				}
+			});
+			// its tooltip can be long: keep it up for 30 seconds while the mouse is on it
+			fitButton.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				private int dismissDelay;
+
+				public void mouseEntered(java.awt.event.MouseEvent e)
+				{
+					dismissDelay = javax.swing.ToolTipManager.sharedInstance().getDismissDelay();
+					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(30000);
+				}
+
+				public void mouseExited(java.awt.event.MouseEvent e)
+				{
+					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(dismissDelay);
+				}
+			});
+		}
+		return fitButton;
+	}
+
+	/** @return where the game places the pits, or null */
+	private gui.view3d.GameTrack.PitLayout pitLayout()
+	{
+		try
+		{
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(getEditorFrame());
+			return track == null ? null : track.pitPlaces();
+		}
+		catch (RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	/** The stop buildings segment (the pit end in TORCS): its name as the dialog calls it */
+	private String stopLabel()
+	{
+		return getEditorFrame().getGameType().hasPitOptions() ? "Stop Buildings" : "End";
+	}
+
+	/**
+	 * Shows on the Fit Segments button whether the last pit ends at the end of
+	 * the stop buildings segment (the pit end in TORCS), as the track's pits are.
+	 */
+	private void updateFitButton()
+	{
+		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		String problem = layout == null ? null : layout.endProblem();
+		if (problem != null)
+		{
+			getFitButton().setForeground(new java.awt.Color(190, 70, 0));
+			getFitButton().setToolTipText("<html>" + problem + ".<br>" + (getEditorFrame().getGameType().hasPitOptions()
+				? "Fit Segments splits the segment where the last pit ends, makes the segment after the pits<br>"
+					+ "the stop buildings segment and sets max pits, so the pits keep their number."
+				: "Fit Segments splits the segment where the last pit ends and makes its first piece the pit end.") + "</html>");
+		}
+		else
+		{
+			getFitButton().setForeground(javax.swing.UIManager.getColor("Button.foreground"));
+			getFitButton().setToolTipText(layout == null ? "No pits to fit" : "The last pit ends at a segment's end, and the "
+				+ stopLabel() + " segment fits the pits");
+		}
+	}
+
+	/**
+	 * Makes the pits fill whole segments: splits the segment the last pit ends
+	 * in, there. In TORCS the first piece becomes the pit end. In Speed Dreams and
+	 * CSR the segment after the pits becomes the stop buildings segment and max
+	 * pits is set to the number of pits: the game leaves the stop buildings
+	 * segment out of the pits' stretch, where it replaces the barrier with an
+	 * invisible one, so the segments the pits stand on all have to come before
+	 * it. The game places the pits from the start of the start buildings
+	 * segment, so they always start at a segment's start.
+	 */
+	private void fitSegments()
+	{
+		boolean wasModified = getEditorFrame().documentIsModified;
+		saveInitialState();
+		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
+		// fit the pits as they are in the dialog
+		applyFields();
+		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		if (layout == null || layout.endName == null)
+		{
+			undo.undo();
+			getEditorFrame().documentIsModified = wasModified;
+			JOptionPane.showMessageDialog(this, "There are no pits to fit: the pits need an entry, start, end, exit and side.",
+				"Fit Segments", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+		if (layout.endsOnStop())
+		{
+			JOptionPane.showMessageDialog(this, "The pits already fit: the last pit ends at the end of " + layout.endName
+				+ ", and the " + stopLabel() + " segment is " + layout.stopName + ".", "Fit Segments", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+		Pits pits = getEditorFrame().getPits();
+		boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		Segment segment = data.getSegmentFromName(layout.endName);
+		// before it is split
+		boolean spiral = segment instanceof utils.circuit.Curve
+			&& ((utils.circuit.Curve) segment).getValidRadiusEnd() != ((utils.circuit.Curve) segment).getRadiusStart();
+		String message = "";
+		String next = layout.nextName;
+		if (Math.abs(layout.endInto - layout.endLength) >= 0.005f)
+		{
+			gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+			Segment piece2 = segment == null ? null : splitter.splitAtFraction(segment, layout.endInto / layout.endLength);
+			if (piece2 == null)
+			{
+				undo.undo();
+				getEditorFrame().documentIsModified = wasModified;
+				JOptionPane.showMessageDialog(this, layout.endName + " couldn't be split: "
+					+ (segment == null ? "it wasn't found" : splitter.getProblem()), "Fit Segments", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			// the pit lane keeps its end and exit: the end of the second piece; but
+			// when the pits went on past the pit end, the first piece becomes the
+			// pit end below, so the pit lane reaches the last pit
+			if (!torcs && layout.endName.equals(pits.getEnd()) && !layout.pastPitEnd)
+				pits.setEnd(piece2.getName());
+			if (layout.endName.equals(pits.getExit()))
+				pits.setExit(piece2.getName());
+			next = piece2.getName();
+			message = String.format("%s was split %.2f m from its start, and %s is its second piece.%n", layout.endName,
+				layout.endInto, piece2.getName());
+		}
+		int count = layout.pits.size();
+		if (torcs)
+		{
+			pits.setEnd(layout.endName);
+			message += "The pit end is now " + layout.endName + ", where the last pit ends.";
+		}
+		else
+		{
+			pits.setStopBuildings(next);
+			pits.setMaxPits(count);
+			message += String.format("The stop buildings segment is now %s, the one after the pits, and max pits is %d.%n"
+				+ "So %s is part of the pits: the game doesn't draw its barrier through them, but cars still hit it.",
+				next, count, layout.endName);
+			// the pit lane goes on to the end of the last pit
+			if (layout.pastPitEnd)
+			{
+				pits.setEnd(layout.endName);
+				message += String.format("%nThe pits went past the pit end %s, so the pit end is now %s and the pit lane reaches the last pit.",
+					layout.pitEndName, layout.endName);
+				int exit = data.indexOf(data.getSegmentFromName(pits.getExit()));
+				int start = data.indexOf(data.getSegmentFromName(pits.getStart()));
+				int newEnd = data.indexOf(data.getSegmentFromName(layout.endName));
+				int n = data.size();
+				if (exit >= 0 && start >= 0 && newEnd >= 0 && (exit - start + n) % n <= (newEnd - start + n) % n)
+					message += String.format("%nThe pit exit %s is now at or before the pit end: it has to come after it.", pits.getExit());
+			}
+		}
+
+		// a spiral is only split where one of the game's steps ends: not good enough
+		// (the pieces' shapes are worked out when the track is drawn)
+		refreshView();
+		gui.view3d.GameTrack.PitLayout after = pitLayout();
+		String problem = after == null ? "the pits are gone" : after.endProblem();
+		if (problem != null)
+		{
+			double at = segment == null ? 0 : gui.view.SegmentSplitter.formulaLength(segment);
+			undo.undo();
+			getEditorFrame().documentIsModified = wasModified;
+			refillFields();
+			refreshView();
+			JOptionPane.showMessageDialog(this, spiral
+				? String.format("The last pit ends %.2f m into %s, a spiral the game builds in steps.%n"
+					+ "It can only be split where a step ends, and the nearest is %.2f m from its start, so nothing was changed.%n"
+					+ "Change the pit length or max pits, or the segment, so the last pit ends elsewhere.",
+					layout.endInto, layout.endName, at)
+				: "The pits still wouldn't fit (" + problem + "), so nothing was changed.",
+				"Fit Segments", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		refillFields();
+
+		undo.captureAfter();
+		Undo.add(undo);
+		generateCount++;
+		undoCount = 0;
+		updateGenerateButtons();
+		refreshView();
+		getEditorFrame().documentIsModified = true;
+		updateFitButton();
+		JOptionPane.showMessageDialog(this, message, "Fit Segments", JOptionPane.INFORMATION_MESSAGE);
+	}
+
 	private JButton getUndoButton()
 	{
 		if (undoButton == null)
@@ -638,6 +851,7 @@ public class PitProperties extends PropertyPanel
 		updateGenerateButtons();
 		refreshView();
 		getEditorFrame().documentIsModified = true;
+		updateFitButton();
 	}
 
 	private void doUndoGenerate()
@@ -650,6 +864,7 @@ public class PitProperties extends PropertyPanel
 			undoCount++;
 			updateGenerateButtons();
 			refreshView();
+			updateFitButton();
 		}
 	}
 
@@ -663,6 +878,7 @@ public class PitProperties extends PropertyPanel
 			undoCount--;
 			updateGenerateButtons();
 			refreshView();
+			updateFitButton();
 		}
 	}
 

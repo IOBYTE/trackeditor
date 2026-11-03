@@ -379,7 +379,26 @@ public class CheckDialog extends JDialog
 		{
 			checkPitsOnCurves();
 			checkNoBuildingPitLane(pits);
+			checkPitsEnd();
 		}
+	}
+
+	/** The last pit should end at the end of the stop buildings segment (the pit end in TORCS). */
+	private void checkPitsEnd()
+	{
+		String problem;
+		try
+		{
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
+			problem = layout == null ? null : layout.endProblem();
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (problem != null)
+			textArea.append(problem + ": Fit Segments in the Pit properties fits the segments to the pits\n");
 	}
 
 	/**

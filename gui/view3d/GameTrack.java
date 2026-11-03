@@ -663,6 +663,52 @@ public class GameTrack
 		public boolean				noBuilding;
 		/** each pit's start, on its main segment: toStart is a length, also in a curve, as trackgen has it */
 		public final List<LocalPos>	pits	= new ArrayList<LocalPos>();
+		/**
+		 * where the last pit ends: the segment (its name, as all its steps have),
+		 * how far into it and how long it is, as the game measures them; null
+		 * when not all the pits were placed
+		 */
+		public String				endName;
+		public float				endInto, endLength;
+		/** the segment after the one the last pit ends in */
+		public String				nextName;
+		/** "stop buildings" (or the pit end); the pit end in TORCS */
+		public String				stopName;
+		public boolean				torcs;
+		/** Speed Dreams and CSR: the pits go on past the end of the pit end segment, where there's no pit lane */
+		public boolean				pastPitEnd;
+		public String				pitEndName;
+
+		/**
+		 * @return whether the pits fill whole segments: the last pit ends at a
+		 *         segment's end, and that segment is the pit end in TORCS, which
+		 *         is part of the pits' stretch; in Speed Dreams and CSR the stop
+		 *         buildings segment isn't, so it is the next one
+		 */
+		public boolean endsOnStop()
+		{
+			if (endName == null)
+				return true;
+			if (Math.abs(endInto - endLength) >= 0.005f || pastPitEnd)
+				return false;
+			return torcs ? endName.equals(stopName) : nextName != null && nextName.equals(stopName);
+		}
+
+		/** @return what's wrong with where the last pit ends, or null */
+		public String endProblem()
+		{
+			if (endsOnStop())
+				return null;
+			String past = pastPitEnd ? String.format(", past the end of the pit end %s, so the pit lane doesn't reach the last pits", pitEndName) : "";
+			if (Math.abs(endInto - endLength) >= 0.005f)
+				return String.format("The last pit ends %.2f m into %s (%.2f m long), not at the end of a segment", endInto, endName, endLength) + past;
+			if (pastPitEnd)
+				return String.format("The last pit ends at the end of %s", endName) + past;
+			if (torcs)
+				return String.format("The last pit ends at the end of %s, not of the pit end %s", endName, stopName);
+			return String.format("The last pit ends at the end of %s, so the stop buildings segment should be %s, the next one, "
+				+ "not %s: the game draws the stop buildings segment's barrier, through its pits", endName, nextName, stopName);
+		}
 	}
 
 	/**
@@ -695,6 +741,7 @@ public class GameTrack
 		if (entry == null || exit == null || start == null || end == null)
 			return null;
 		PitLayout layout = new PitLayout();
+		layout.torcs = game == EditorFrame.GameType.TORCS;
 		layout.side = "left".equals(pits.getSide()) ? TR_LFT : TR_RGT;
 		layout.len = (float) (Double.isNaN(pits.getLength()) ? 15.0 : pits.getLength());
 		if (!(layout.len > 0))
@@ -708,6 +755,7 @@ public class GameTrack
 			// as many as fit from the pit start to the pit end
 			first = start;
 			count = pitCount(start, end, layout.len, trackLength);
+			layout.stopName = end.name;
 		}
 		else
 		{
@@ -727,6 +775,13 @@ public class GameTrack
 			int nMaxPits = Math.min(nPitSeg, pits.getMaxPits() == Integer.MAX_VALUE ? nPitSeg : pits.getMaxPits());
 			first = buildingsStart;
 			count = Math.min(nPitSeg, nMaxPits);
+			layout.stopName = buildingsEnd.name;
+			// whether the last pit ends past the pit lane, measured from the pit start
+			// by adding up the segments' lengths, as the pits are placed
+			double offset = distance(start, buildingsStart);
+			double lane = distance(start, end) + end.length;
+			layout.pastPitEnd = offset + (double) count * layout.len > lane + 0.01;
+			layout.pitEndName = end.name;
 		}
 
 		// initPits: one after the other from the start, "to start" a length even in a curve
@@ -773,7 +828,53 @@ public class GameTrack
 			}
 			i++;
 		}
+		if (i == count && count > 0)
+			pitsEnd(layout, curMainSeg, toStart, changeSeg);
 		return layout.pits.isEmpty() ? null : layout;
+	}
+
+	/** @return the length of the segments from one up to (not including) another, going on */
+	private static double distance(Seg from, Seg to)
+	{
+		double length = 0;
+		Seg s = from;
+		for (int guard = 0; s != to && guard < 1000000; guard++, s = s.next)
+			length += s.length;
+		return length;
+	}
+
+	/** Where the last pit ends, from where the next one would start */
+	private static void pitsEnd(PitLayout layout, Seg seg, float toStart, boolean changeSeg)
+	{
+		if (changeSeg)
+			seg = seg.next;
+		for (int guard = 0; toStart > seg.length && guard < 100000; guard++)
+		{
+			toStart -= seg.length;
+			seg = seg.next;
+		}
+		// at the start of a segment is at the end of the one before
+		if (toStart < 0.001f)
+		{
+			seg = seg.prev;
+			toStart = seg.length;
+		}
+		// in the segment, whose steps all have its name
+		float before = 0, after = 0;
+		Seg s = seg.prev;
+		for (int guard = 0; s != seg && seg.name != null && seg.name.equals(s.name) && guard < 100000; guard++, s = s.prev)
+			before += s.length;
+		s = seg.next;
+		for (int guard = 0; s != seg && seg.name != null && seg.name.equals(s.name) && guard < 100000; guard++, s = s.next)
+			after += s.length;
+		layout.endName = seg.name;
+		layout.endInto = before + toStart;
+		layout.endLength = before + seg.length + after;
+		// the segment after its last step
+		s = seg;
+		for (int guard = 0; s.next != seg && seg.name != null && seg.name.equals(s.next.name) && guard < 100000; guard++)
+			s = s.next;
+		layout.nextName = s.next.name;
 	}
 
 	/** @return how many pits of length len fit from the start of one segment to the end of another */
