@@ -362,6 +362,18 @@ public class CheckDialog extends JDialog
 			else if (!(pits.getSide().equals("left") || pits.getSide().equals("right")))
 				textArea.append("Invalid pit side: " + pits.getSide() + " (the game uses left)\n");
 		}
+
+		// the games only show a pit indicator with the pit type "no building"
+		int indicator = pits.getIndicator();
+		if (editorFrame.getGameType().hasPitOptions() && trackData.getHeader().getVersion() != 3
+			&& indicator != Integer.MAX_VALUE)
+		{
+			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
+			if (indicator < 1)
+				textArea.append("Pit indicator " + indicator + ": the game only shows one for 1 (pit_indicator.ac) or more (normal_pit_indicator.ac)\n");
+			else if (style != 3)
+				textArea.append("Pit indicator is set, but the game only shows it when the pit type is \"no building\"\n");
+		}
 	}
 
 	private void checkTrackHeight()

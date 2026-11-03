@@ -659,6 +659,8 @@ public class GameTrack
 		/** TR_RGT or TR_LFT */
 		public int					side;
 		public float				len;
+		/** Speed Dreams' "no building" pits, with a low wall instead of buildings */
+		public boolean				noBuilding;
 		/** each pit's start, on its main segment: toStart is a length, also in a curve, as trackgen has it */
 		public final List<LocalPos>	pits	= new ArrayList<LocalPos>();
 	}
@@ -668,6 +670,21 @@ public class GameTrack
 	 * count the game's track loader works out; null when there are none.
 	 */
 	public PitLayout pitBuildings()
+	{
+		return pitLayout(false);
+	}
+
+	/**
+	 * The pits the game draws doors or low walls for, as its track loader places
+	 * them: those with buildings, and Speed Dreams' "no building" pits; null when
+	 * there are none.
+	 */
+	public PitLayout pitPlaces()
+	{
+		return pitLayout(true);
+	}
+
+	private PitLayout pitLayout(boolean noBuilding)
 	{
 		Pits pits = editorFrame.getTrackData().getMainTrack().getPits();
 		if (pits == null)
@@ -696,7 +713,9 @@ public class GameTrack
 		{
 			// only the pit style with buildings; as many as fit along the buildings, at most "max pits"
 			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
-			if (style != 1)
+			// TR_PIT_ON_TRACK_SIDE, or TR_PIT_NO_BUILDING, which places them the same way
+			layout.noBuilding = style == 3;
+			if (style != 1 && !(noBuilding && layout.noBuilding))
 				return null;
 			Seg buildingsStart = pits.getStartBuildings() == null ? null : first(pits.getStartBuildings());
 			if (buildingsStart == null)

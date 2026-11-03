@@ -1128,7 +1128,8 @@ public class XmlReader
 				{
                     editorFrame.getPits().setStyle(1);
 				}
-				else if (pitStyle.equals("separate path"))
+				// the games spell it "seperate path"; also read the correct spelling
+				else if (pitStyle.equals("seperate path") || pitStyle.equals("separate path"))
 				{
 					editorFrame.getPits().setStyle(2);
 				}
@@ -1166,7 +1167,8 @@ public class XmlReader
 			{
 				editorFrame.getPits().setStyle(1);
 			}
-			else if (pitStyle.equals("separate path"))
+			// the games spell it "seperate path"; also read the correct spelling
+			else if (pitStyle.equals("seperate path") || pitStyle.equals("separate path"))
 			{
 				editorFrame.getPits().setStyle(2);
 			}

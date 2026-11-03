@@ -22,7 +22,7 @@ package utils;
 
 import java.awt.Toolkit;
 import java.io.File;
-import java.nio.charset.Charset;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,16 +61,22 @@ public class TrackEditor
 	}
 
 	/**
-	 * Relaunches the JVM with UTF-8 encoding if the current encoding would
-	 * cause Swing's JFileChooser to crash on non-ASCII filenames (e.g. a
-	 * home directory named "Música" on a non-UTF-8 locale).
+	 * Relaunches the JVM with a UTF-8 locale if file names are in a non-UTF-8
+	 * encoding, which makes Swing's JFileChooser crash on non-ASCII file names
+	 * (e.g. a home folder named "Música" on Linux with the C or POSIX locale).
+	 * Only Linux and other Unix systems need this: Windows file names don't
+	 * go through that encoding, and macOS always uses UTF-8.
 	 *
 	 * @param jarPath the jar file the editor was run from
 	 */
 	private static void relaunchForUtf8(String jarPath, String[] args)
 	{
-		if ("UTF-8".equals(Charset.defaultCharset().name())
-			&& "UTF-8".equals(System.getProperty("sun.jnu.encoding")))
+		String os = System.getProperty("os.name", "").toLowerCase();
+		if (os.startsWith("windows") || os.startsWith("mac"))
+			return;
+
+		String encoding = System.getProperty("sun.jnu.encoding", "");
+		if (encoding.equalsIgnoreCase("UTF-8") || encoding.equalsIgnoreCase("UTF8"))
 			return;
 
 		// already relaunched and it didn't help: don't loop
@@ -84,6 +90,8 @@ public class TrackEditor
 
 			List<String> cmd = new ArrayList<String>();
 			cmd.add(java);
+			// keep the options this JVM was started with (memory, -D settings...)
+			cmd.addAll(ManagementFactory.getRuntimeMXBean().getInputArguments());
 			cmd.add("-Dfile.encoding=UTF-8");
 			cmd.add("-Dsun.jnu.encoding=UTF-8");
 			cmd.add("-Dtrackeditor.utf8.relaunched=true");
@@ -91,9 +99,11 @@ public class TrackEditor
 			cmd.add(jarPath);
 			cmd.addAll(Arrays.asList(args));
 
-			Process p = new ProcessBuilder(cmd)
-				.inheritIO()
-				.start();
+			ProcessBuilder builder = new ProcessBuilder(cmd).inheritIO();
+			// the file name encoding comes from the locale; the -D settings
+			// above don't change it on newer Java versions
+			builder.environment().put("LC_ALL", "C.UTF-8");
+			Process p = builder.start();
 			System.exit(p.waitFor());
 		}
 		catch (Exception e)

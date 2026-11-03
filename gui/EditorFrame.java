@@ -1240,6 +1240,20 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
+	 * Keeps the pit generator's settings in the project. Pits without them (not
+	 * generated since the project was opened, or undone) leave the project's as
+	 * they are.
+	 */
+	private void storePitGenerator()
+	{
+		if (trackData == null)
+			return;
+		Pits.Generator generator = getPits().getGenerator();
+		if (generator != null)
+			Properties.getInstance().setPitGenerator(generator.copy());
+	}
+
+	/**
 	 * Shows the track with the zoom and center saved in its project, if it has them.
 	 * Once more after the view has its new size, as scrolling is limited to its size.
 	 */
@@ -1428,6 +1442,7 @@ public class EditorFrame extends JFrame
 				}
 			});
 			storeView();
+			storePitGenerator();
 			encoder.writeObject(Properties.getInstance());
 			encoder.close();
 
@@ -1575,6 +1590,7 @@ public class EditorFrame extends JFrame
 		// a new track: the 3D view shows all of it
 		view3D = null;
 		Properties.getInstance().setView3D(null);
+		Properties.getInstance().setPitGenerator(null);
 		Undo.clear();
 		closeTrackWindows();
 		clearBackgroundImage();

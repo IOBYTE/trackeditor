@@ -51,10 +51,11 @@ public class RoadMesh
 				triangles += strip.triangles().length / 3;
 				for (String texture : new String[] { strip.texture, strip.racelineTexture })
 				{
-					if (texture != null && !names.contains(texture))
+					if (texture != null && !texture.isEmpty() && !names.contains(texture))
 					{
 						names.add(texture);
-						files.add(RoadTexture.findTextureFile(editorFrame, texture));
+						File generated = TrackScene.generatedTexture(texture);
+						files.add(generated != null ? generated : RoadTexture.findTextureFile(editorFrame, texture));
 					}
 				}
 				for (int i = 0; i < strip.size(); i++)

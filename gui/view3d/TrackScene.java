@@ -8,12 +8,27 @@
  */
 package gui.view3d;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
 import gui.EditorFrame;
+import utils.Properties;
+import utils.ac3d.Ac3d;
+import utils.ac3d.Ac3dMaterial;
+import utils.ac3d.Ac3dObject;
+import utils.ac3d.Ac3dSurface;
 import utils.circuit.MainTrack;
 import utils.circuit.RoadTexture;
 import utils.circuit.Surface;
@@ -43,6 +58,10 @@ public abstract class TrackScene
 		 * faces: only the one facing the viewer is drawn, as in the game
 		 */
 		public boolean		backToBack;
+		/** the texture doesn't repeat: its edges stretch past it, as on the game's pit doors */
+		public boolean		clamp;
+		/** the material's color of an object without a texture, or null */
+		public float[]		color;
 		/** what the strip is part of: the road, a border, a side or a barrier */
 		public Part			part;
 		/** x, y, z for each point */
@@ -148,7 +167,7 @@ public abstract class TrackScene
 		}
 	}
 
-	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, CROSSING };
+	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, PIT_DOOR, CROSSING };
 
 	/** the strips in the order trackgen makes them; empty ones are left out */
 	public final List<Strip>	strips	= new ArrayList<Strip>();
@@ -171,6 +190,8 @@ public abstract class TrackScene
 	protected boolean			curDoubleSided, prevDoubleSided;
 	// making a fence's two faces
 	protected boolean			curBackToBack;
+	// a texture that doesn't repeat
+	protected boolean			curClamp;
 	protected boolean			startNeeded;
 	protected int				curTexType;
 	protected boolean			curTexLink;
@@ -327,6 +348,7 @@ public abstract class TrackScene
 			current.surface = curSurface;
 			current.racelineTexture = racelineLayer && part == Part.ROAD ? curRaceline : null;
 			current.doubleSided = curDoubleSided;
+			current.clamp = curClamp;
 			current.part = part;
 			return;
 		}
@@ -336,6 +358,7 @@ public abstract class TrackScene
 		current.surface = curSurface;
 		current.racelineTexture = racelineLayer && part == Part.ROAD ? curRaceline : null;
 		current.doubleSided = curDoubleSided;
+		current.clamp = curClamp;
 		current.part = part;
 		strips.add(current);
 	}
@@ -467,6 +490,7 @@ public abstract class TrackScene
 		curBackToBack = false;
 		startBridge();
 		pitBuildings();
+		pitDoors();
 	}
 
 	/**
@@ -757,6 +781,386 @@ public abstract class TrackScene
 			pitCapCCW(x, y, z2, n);
 		else
 			pitCapCW(x, y, z2, n);
+	}
+
+	/**
+	 * The pit doors: not trackgen's, the game adds them when a race starts, each
+	 * pit's team logo on a 4.8 m high, two-sided rectangle across the front of its
+	 * building. Here each door shows its pit's number instead, counting from the
+	 * pit start.
+	 */
+	private void pitDoors()
+	{
+		GameTrack.PitLayout pits = track.pitPlaces();
+		if (pits == null)
+			return;
+		if (pits.noBuilding)
+		{
+			lowPitWall(pits);
+			return;
+		}
+		part = Part.PIT_DOOR;
+		boolean right = pits.side == GameTrack.TR_RGT;
+		double validWidth = editorFrame.getTrackData().getMainTrack().getPits().getValidWidth();
+		float width = (float) validWidth;
+		float half = pits.len / 2;
+		// the number fills the door, read from the track
+		float u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+		curDoubleSided = true;
+		curClamp = true;
+		int uid = 1;
+		for (GameTrack.LocalPos p : pits.pits)
+		{
+			// the game's pit position: the middle of the pit, half its width in from
+			// the building; "to start" a length even in a curve, as for the buildings
+			float toRight = right ? p.toRight + width / 2 : p.toRight - width / 2;
+			float[] xy = GameTrack.local2Global(p.seg, p.toStart + half, toRight);
+			float[] n = GameTrack.sideNormal(p.seg, xy[0], xy[1], pits.side);
+			startNeeded = true;
+			String texture = pitNumberTexture(uid, 0);
+			String name = "PD" + uid++;
+			checkDispList3(texture, name, p.seg.id);
+			// each door is its own object in the game, also when the texture doesn't change
+			if (current.size() > 0)
+				newDispList(true, name, p.seg.id);
+			float x2 = xy[0] - width / 2 * n[0] + half * n[1];
+			float y2 = xy[1] - width / 2 * n[1] - half * n[0];
+			float z2 = track.heightG(p.seg, x2, y2);
+			setPoint(u0, v0, x2, y2, z2);
+			setPoint(u0, v1, x2, y2, z2 + 4.8f);
+			x2 = xy[0] - width / 2 * n[0] - half * n[1];
+			y2 = xy[1] - width / 2 * n[1] + half * n[0];
+			z2 = track.heightG(p.seg, x2, y2);
+			setPoint(u1, v0, x2, y2, z2);
+			setPoint(u1, v1, x2, y2, z2 + 4.8f);
+		}
+		curClamp = false;
+	}
+
+	// the textures made here, not found in the track or game data: by name
+	private static final Map<String, File>	generatedTextures	= new HashMap<String, File>();
+
+	/** @return the file of a texture made here, or null when it isn't one */
+	public static File generatedTexture(String name)
+	{
+		synchronized (generatedTextures)
+		{
+			return generatedTextures.get(name);
+		}
+	}
+
+	/**
+	 * Speed Dreams' low wall for "no building" pits: for each pit, 0.9 m high, a
+	 * piece of wall, the team's logo and more wall. Here the logo is the pit's
+	 * number. The wall is where the game puts it: it moves only the x of each
+	 * pit's middle to the start of the wall, so it is a little off from the pits
+	 * on tracks that don't run along y. With a pit indicator, each pit has one at
+	 * the end of its logo, as a pit with a car has in the game.
+	 */
+	private void lowPitWall(GameTrack.PitLayout pits)
+	{
+		part = Part.PIT_DOOR;
+		boolean right = pits.side == GameTrack.TR_RGT;
+		float width = (float) editorFrame.getTrackData().getMainTrack().getPits().getValidWidth();
+		float half = pits.len / 2, quarter = pits.len / 4;
+		curDoubleSided = true;
+		curClamp = true;
+		List<IndicatorPart> indicator = pitIndicator();
+		int uid = 1;
+		for (GameTrack.LocalPos p : pits.pits)
+		{
+			float toRight = right ? p.toRight + width / 2 : p.toRight - width / 2;
+			float[] xy = GameTrack.local2Global(p.seg, p.toStart + half, toRight);
+			float[] n = GameTrack.sideNormal(p.seg, xy[0], xy[1], pits.side);
+			// as the game has it: only x is moved
+			float x0 = xy[0] - width / 2 * n[0] - quarter * n[1], y0 = xy[1];
+			float[] along = { half, quarter, -quarter, -half };
+			float[][] q = new float[4][];
+			for (int k = 0; k < 4; k++)
+			{
+				float x = x0 - width / 2 * n[0] + along[k] * n[1];
+				float y = y0 - width / 2 * n[1] - along[k] * n[0];
+				q[k] = new float[] { x, y, track.heightG(p.seg, x, y) };
+			}
+			int id = p.seg.id;
+			lowWallPart("tr-wall-gr.png", "PW" + uid + "a", id, q[0], q[1], 0.25f);
+			lowWallPart(pitNumberTexture(uid, 1), "PW" + uid + "b", id, q[1], q[2], 1);
+			lowWallPart("tr-wall-gr.png", "PW" + uid + "c", id, q[2], q[3], 0.25f);
+			if (indicator != null)
+				addPitIndicator(indicator, q[2], uid);
+			uid++;
+		}
+		curClamp = false;
+	}
+
+	/** A part of the pit indicator model: an object's polygons with one texture, sidedness and color */
+	private static final class IndicatorPart
+	{
+		String			texture;
+		boolean			logo, doubleSided;
+		float[]			color;
+		final List<float[]>	points		= new ArrayList<float[]>();
+		final List<Integer>	triangles	= new ArrayList<Integer>();
+	}
+
+	/**
+	 * The pit indicator the track's "pit indicator" asks for, as the game reads
+	 * it: pit_indicator.ac for 1, normal_pit_indicator.ac above 1, from the
+	 * track's folder or data/objects, in the game's axes.
+	 *
+	 * @return its parts, or null when there is none or it can't be read
+	 */
+	private List<IndicatorPart> pitIndicator()
+	{
+		int value = editorFrame.getTrackData().getMainTrack().getPits().getIndicator();
+		if (value == Integer.MAX_VALUE || value < 1)
+			return null;
+		String name = value == 1 ? "pit_indicator.ac" : "normal_pit_indicator.ac";
+		String data = editorFrame.getDataDirectory();
+		File file = findFile(name, Properties.getInstance().getPath(), data == null ? null : data + File.separator + "data" + File.separator + "objects");
+		if (file == null)
+			return null;
+		Ac3d ac3d = new Ac3d();
+		try
+		{
+			ac3d.read(file);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+		List<IndicatorPart> parts = new ArrayList<IndicatorPart>();
+		double[][] identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
+		indicatorParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
+		return parts;
+	}
+
+	/** @return the first of the folders that has the file, or null */
+	private static File findFile(String name, String... folders)
+	{
+		for (String folder : folders)
+		{
+			if (folder == null || folder.isEmpty())
+				continue;
+			File file = new File(folder, name);
+			if (file.isFile())
+				return file;
+		}
+		return null;
+	}
+
+	/** An object's polygons and its kids', placed by their loc and rot as the game's loader places them */
+	private void indicatorParts(Ac3dObject object, double[][] parent, java.util.Vector<Ac3dMaterial> materials, List<IndicatorPart> parts)
+	{
+		if (object == null)
+			return;
+		// the object's rot and loc, then its parent's: a point is a row times the matrix
+		double[][] local = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
+		double[] rot = object.getRot();
+		if (rot != null && rot.length == 9)
+			for (int r = 0; r < 3; r++)
+				for (int c = 0; c < 3; c++)
+					local[r][c] = rot[r * 3 + c];
+		double[] loc = object.getLoc();
+		if (loc != null && loc.length == 3)
+			local[3] = loc.clone();
+		double[][] matrix = new double[4][3];
+		for (int r = 0; r < 4; r++)
+			for (int c = 0; c < 3; c++)
+			{
+				double v = r == 3 ? parent[3][c] : 0;
+				for (int k = 0; k < 3; k++)
+					v += local[r][k] * parent[k][c];
+				matrix[r][c] = v;
+			}
+
+		String texture = object.getTexture();
+		Map<String, IndicatorPart> byKind = new HashMap<String, IndicatorPart>();
+		java.util.Vector<double[]> vertices = object.getVertices();
+		for (Ac3dSurface surface : object.getSurfaces())
+		{
+			if (!surface.isPolygon() || surface.getRefs().size() < 3)
+				continue;
+			boolean doubleSided = surface.isDoubleSided();
+			int mat = surface.getMat();
+			String key = doubleSided + " " + mat;
+			IndicatorPart part = byKind.get(key);
+			if (part == null)
+			{
+				part = new IndicatorPart();
+				part.texture = texture;
+				part.logo = texture != null && texture.toLowerCase().startsWith("logo");
+				part.doubleSided = doubleSided;
+				if ((texture == null || texture.isEmpty()) && mat >= 0 && mat < materials.size())
+				{
+					double[] rgb = materials.get(mat).getRgb();
+					if (rgb != null)
+						part.color = new float[] { (float) rgb[0], (float) rgb[1], (float) rgb[2] };
+				}
+				byKind.put(key, part);
+				parts.add(part);
+			}
+			int first = part.points.size();
+			for (Ac3dSurface.Ref ref : surface.getRefs())
+			{
+				double[] v = vertices.get(ref.index);
+				double[] w = new double[3];
+				for (int c = 0; c < 3; c++)
+					w[c] = v[0] * matrix[0][c] + v[1] * matrix[1][c] + v[2] * matrix[2][c] + matrix[3][c];
+				// AC3D's y is up: the game's x, y, z are its x, -z, y
+				part.points.add(new float[] { (float) w[0], (float) -w[2], (float) w[1], (float) ref.coord[0], (float) ref.coord[1] });
+			}
+			// a fan, as the game's loader makes polygons into triangles
+			for (int k = 1; k + 1 < surface.getRefs().size(); k++)
+			{
+				part.triangles.add(first);
+				part.triangles.add(first + k);
+				part.triangles.add(first + k + 1);
+			}
+		}
+		for (Ac3dObject kid : object.getKids())
+			indicatorParts(kid, matrix, materials, parts);
+	}
+
+	/**
+	 * A pit's indicator at a point, not turned, as the game puts it; its logo
+	 * is the pit's number.
+	 */
+	private void addPitIndicator(List<IndicatorPart> parts, float[] at, int number)
+	{
+		String data = editorFrame.getDataDirectory();
+		String dataPath = data == null ? null : data + File.separator + "data" + File.separator;
+		int k = 0;
+		for (IndicatorPart part : parts)
+		{
+			if (part.triangles.isEmpty())
+				continue;
+			Strip strip = new Strip();
+			strip.name = "PI" + number + "-" + k++;
+			strip.part = Part.PIT_DOOR;
+			strip.doubleSided = part.doubleSided;
+			strip.color = part.color;
+			// the logo's band (v 0 to 0.33) gets the pit's number
+			float vScale = 1;
+			if (part.logo)
+			{
+				strip.texture = pitNumberTexture(number, 2);
+				strip.clamp = true;
+				vScale = 1 / 0.33f;
+			}
+			else if (part.texture != null && !part.texture.isEmpty())
+				strip.texture = indicatorTexture(part.texture, dataPath);
+			else
+				strip.texture = "";
+			for (float[] p : part.points)
+				strip.add(p[3], p[4] * vScale, at[0] + p[0], at[1] + p[1], at[2] + p[2]);
+			int[] triangles = new int[part.triangles.size()];
+			for (int i = 0; i < triangles.length; i++)
+				triangles[i] = part.triangles.get(i);
+			strip.triangleList = triangles;
+			strips.add(strip);
+		}
+	}
+
+	/**
+	 * A texture of the pit indicator, where the game looks for it: the track's
+	 * folder, data/objects, data/textures, data/img.
+	 *
+	 * @return its texture name
+	 */
+	private static String indicatorTexture(String texture, String dataPath)
+	{
+		String name = "pit indicator/" + texture;
+		File file = findFile(texture, Properties.getInstance().getPath(),
+			dataPath == null ? null : dataPath + "objects", dataPath == null ? null : dataPath + "textures",
+			dataPath == null ? null : dataPath + "img");
+		synchronized (generatedTextures)
+		{
+			if (file != null)
+				generatedTextures.put(name, file);
+			else
+				generatedTextures.remove(name);
+		}
+		return name;
+	}
+
+	/** A piece of the low pit wall from a to b, its texture up to vTop */
+	private void lowWallPart(String texture, String name, int id, float[] a, float[] b, float vTop)
+	{
+		startNeeded = true;
+		checkDispList3(texture, name, id);
+		// each piece is its own object in the game
+		if (current.size() > 0)
+			newDispList(true, name, id);
+		setPoint(0, 0, a[0], a[1], a[2]);
+		setPoint(0, vTop, a[0], a[1], a[2] + 0.9f);
+		setPoint(1, 0, b[0], b[1], b[2]);
+		setPoint(1, vTop, b[0], b[1], b[2] + 0.9f);
+	}
+
+	/**
+	 * A pit's number, for its door (kind 0), its part of the low pit wall (1) or
+	 * its pit indicator's sign (2), made once for each number and kept in the
+	 * temp folder until the editor exits.
+	 *
+	 * @return its texture name
+	 */
+	private static String pitNumberTexture(int number, int kind)
+	{
+		boolean door = kind == 0;
+		String name = (door ? "pit door " : kind == 1 ? "pit wall " : "pit sign ") + number + ".png";
+		synchronized (generatedTextures)
+		{
+			File file = generatedTextures.get(name);
+			if (file != null && file.isFile())
+				return name;
+			try
+			{
+				// about a door's shape, 15 m by 4.8 m, the wall's logo, 7.5 m by 0.9 m,
+				// or the indicator's sign, 0.8 m by 0.26 m
+				int w = door ? 320 : kind == 1 ? 400 : 240, h = door ? 104 : kind == 1 ? 48 : 80;
+				BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+				Graphics2D g = image.createGraphics();
+				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				if (door)
+				{
+					// a light roller door: its slats, and a frame
+					g.setColor(new Color(214, 216, 218));
+					g.fillRect(0, 0, w, h);
+					g.setColor(new Color(188, 191, 194));
+					for (int y = 8; y < h; y += 8)
+						g.drawLine(0, y, w, y);
+					g.setColor(new Color(70, 74, 80));
+					g.setStroke(new BasicStroke(6));
+					g.drawRect(3, 3, w - 6, h - 6);
+				}
+				else
+				{
+					// a white wall
+					g.setColor(new Color(238, 238, 234));
+					g.fillRect(0, 0, w, h);
+				}
+				// the number
+				String text = Integer.toString(number);
+				g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, door ? 72 : kind == 1 ? 38 : 60));
+				FontMetrics metrics = g.getFontMetrics();
+				int x = (w - metrics.stringWidth(text)) / 2;
+				int y = (h - metrics.getHeight()) / 2 + metrics.getAscent();
+				g.setColor(new Color(30, 60, 140));
+				g.drawString(text, x, y);
+				g.dispose();
+				file = File.createTempFile("trackeditor-pit-door-", ".png");
+				file.deleteOnExit();
+				ImageIO.write(image, "png", file);
+				generatedTextures.put(name, file);
+			}
+			catch (Exception e)
+			{
+				// the door shows a plain color
+			}
+		}
+		return name;
 	}
 
 	/** pitCapCCW: a pit building's end, counterclockwise */

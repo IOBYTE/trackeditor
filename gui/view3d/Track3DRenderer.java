@@ -72,6 +72,8 @@ public class Track3DRenderer implements GLEventListener
 	private final Map<String, Texture>	textures	= new HashMap<String, Texture>();
 	// the textures with parts that can be seen through, such as a fence's gaps
 	private final java.util.Set<Texture>	translucent	= new HashSet<Texture>();
+	// the textures that don't repeat (the pit doors' logo)
+	private final java.util.Set<Texture>	clamped		= new HashSet<Texture>();
 	private final Map<String, String>	textureErrors	= new HashMap<String, String>();
 	private float					anisotropy		= 0;
 	private int						width = 1, height = 1;
@@ -416,6 +418,7 @@ public class Track3DRenderer implements GLEventListener
 		runTextures.clear();
 		runRacelines.clear();
 		seeThrough.clear();
+		clamped.clear();
 		float scale = (float) heightScale;
 		double heightRange = Math.max(1e-6, mesh.maxZ - mesh.minZ);
 		int tri = 0;
@@ -423,6 +426,8 @@ public class Track3DRenderer implements GLEventListener
 		{
 			Texture texture = textured ? stripTextures.get(strip.texture) : null;
 			Texture layer = textured && strip.racelineTexture != null ? stripTextures.get(strip.racelineTexture) : null;
+			if (strip.clamp && texture != null)
+				clamped.add(texture);
 			int[] order = strip.triangles();
 			int last = runs.size() - 1;
 			if (runs.isEmpty() || runTextures.get(last) != texture || runRacelines.get(last) != layer || runs.get(last)[2] != faces(strip))
@@ -437,7 +442,9 @@ public class Track3DRenderer implements GLEventListener
 			boolean flip = texture != null && texture.getMustFlipVertically();
 			boolean flipLayer = layer != null && layer.getMustFlipVertically();
 			// a texture is lit as it is; a missing one shows the surface's color
-			float[] plain = texture != null ? new float[] { 1, 1, 1 } : coloring == Coloring.PLAIN ? partColor(strip.part) : surfaceColor(strip.surface != null ? strip.surface : strip.texture);
+			// an object's material color when it has no texture
+			float[] plain = texture != null ? new float[] { 1, 1, 1 } : coloring == Coloring.PLAIN ? partColor(strip.part) :
+				strip.color != null ? strip.color : surfaceColor(strip.surface != null ? strip.surface : strip.texture);
 			for (int k = 0; k < order.length; k += 3, tri++)
 			{
 				int a = order[k], b = order[k + 1], d = order[k + 2];
@@ -540,8 +547,9 @@ public class Track3DRenderer implements GLEventListener
 		{
 			texture.enable(gl);
 			texture.bind(gl);
-			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
-			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
+			int wrap = clamped.contains(texture) ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT;
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, wrap);
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrap);
 		}
 		else
 			gl.glDisable(GL.GL_TEXTURE_2D);
@@ -580,6 +588,8 @@ public class Track3DRenderer implements GLEventListener
 			return new float[] { 0.62f, 0.5f, 0.72f };
 		case PIT_BUILDING:
 			return new float[] { 0.82f, 0.8f, 0.72f };
+		case PIT_DOOR:
+			return new float[] { 0.44f, 0.52f, 0.66f };
 		case CROSSING:
 			return new float[] { 0.7f, 0.66f, 0.6f };
 		default:

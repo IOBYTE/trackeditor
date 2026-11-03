@@ -277,6 +277,153 @@ public class Pits {
 		this.speedLimit.units = units;
 	}
 
+	/**
+	 * The pit generator's settings for one part: the entry, the pits or the exit.
+	 */
+	public static class GeneratorPart
+	{
+		private String	surface			= null;
+		private String	borderType		= null;
+		private String	borderSurface	= null;
+		private double	borderWidth		= Double.NaN;
+		private double	borderHeight	= Double.NaN;
+
+		public GeneratorPart copy()
+		{
+			GeneratorPart part = new GeneratorPart();
+			part.surface = surface;
+			part.borderType = borderType;
+			part.borderSurface = borderSurface;
+			part.borderWidth = borderWidth;
+			part.borderHeight = borderHeight;
+			return part;
+		}
+
+		public String getSurface()
+		{
+			return surface;
+		}
+		public void setSurface(String surface)
+		{
+			this.surface = surface;
+		}
+		public String getBorderType()
+		{
+			return borderType;
+		}
+		public void setBorderType(String borderType)
+		{
+			this.borderType = borderType;
+		}
+		public String getBorderSurface()
+		{
+			return borderSurface;
+		}
+		public void setBorderSurface(String borderSurface)
+		{
+			this.borderSurface = borderSurface;
+		}
+		public double getBorderWidth()
+		{
+			return borderWidth;
+		}
+		public void setBorderWidth(double borderWidth)
+		{
+			this.borderWidth = borderWidth;
+		}
+		public double getBorderHeight()
+		{
+			return borderHeight;
+		}
+		public void setBorderHeight(double borderHeight)
+		{
+			this.borderHeight = borderHeight;
+		}
+	}
+
+	/**
+	 * The pit generator's settings: one part each for the entry, the pits and
+	 * the exit. A bean, so the project file keeps them in a section of their own.
+	 */
+	public static class Generator
+	{
+		private GeneratorPart	entry	= null;
+		private GeneratorPart	pits	= null;
+		private GeneratorPart	exit	= null;
+
+		public Generator()
+		{
+		}
+
+		public Generator(GeneratorPart entry, GeneratorPart pits, GeneratorPart exit)
+		{
+			this.entry = entry;
+			this.pits = pits;
+			this.exit = exit;
+		}
+
+		/** @return true when it has all three parts */
+		public boolean isComplete()
+		{
+			return entry != null && pits != null && exit != null;
+		}
+
+		public Generator copy()
+		{
+			return new Generator(entry == null ? null : entry.copy(),
+				pits == null ? null : pits.copy(), exit == null ? null : exit.copy());
+		}
+
+		public GeneratorPart getEntry()
+		{
+			return entry;
+		}
+		public void setEntry(GeneratorPart entry)
+		{
+			this.entry = entry;
+		}
+		public GeneratorPart getPits()
+		{
+			return pits;
+		}
+		public void setPits(GeneratorPart pits)
+		{
+			this.pits = pits;
+		}
+		public GeneratorPart getExit()
+		{
+			return exit;
+		}
+		public void setExit(GeneratorPart exit)
+		{
+			this.exit = exit;
+		}
+	}
+
+	// the pit generator's settings, kept with the pits so undo and redo bring
+	// them back; the games don't read them, so they aren't written to the track
+	// file, but the project file keeps them
+	private Generator			generator			= null;
+
+	/**
+	 * @return the pit generator's last settings, or null
+	 */
+	public Generator getGenerator()
+	{
+		return generator;
+	}
+
+	public void setGenerator(Generator generator)
+	{
+		this.generator = generator;
+	}
+
+	/** Copies the pit generator's settings from other pits */
+	public void copyGeneratorFrom(Pits other)
+	{
+		generator = other.generator == null ? null : other.generator.copy();
+	}
+
 	public void dump(String indent)
     {
 		System.out.println(indent + "Pits");

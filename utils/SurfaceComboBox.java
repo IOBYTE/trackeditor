@@ -152,12 +152,12 @@ public class SurfaceComboBox extends JComboBox<String>
 
 										if (SgiReader.isSgiFile(file.getName()))
 										{
-											// Swing's HTML renderer can't display SGI files,
-											// so write a cached PNG for the tooltip
-											File pngFile = new File(file.getParentFile(),
-												file.getName() + ".preview.png");
-											if (!pngFile.exists())
-												ImageIO.write(image, "png", pngFile);
+											// Swing's HTML renderer can't display SGI files, so
+											// write a PNG for the tooltip; it goes in the temp
+											// folder, not beside the texture, and is deleted on exit
+											File pngFile = File.createTempFile("trackeditor-preview-", ".png");
+											pngFile.deleteOnExit();
+											ImageIO.write(image, "png", pngFile);
 											imgUrl = pngFile.toURI().toURL();
 										}
 									}

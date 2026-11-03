@@ -111,6 +111,7 @@ public class UndoPitGeneration implements UndoInterface
 		copy.setIndicator(original.getIndicator());
 		copy.setSpeedLimitValue(original.getSpeedLimitValue());
 		copy.setSpeedLimitUnits(original.getSpeedLimitUnits());
+		copy.copyGeneratorFrom(original);
 		return copy;
 	}
 }

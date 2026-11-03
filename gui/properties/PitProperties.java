@@ -106,6 +106,8 @@ public class PitProperties extends PropertyPanel
 	private JButton				applyButton			= null;
 	private JButton				undoButton			= null;
 	private JButton				redoButton			= null;
+	// a "pit indicator" value the choices don't have, kept as it is
+	private int					otherIndicator		= Integer.MAX_VALUE;
 	private int					generateCount		= 0;
 	private int					undoCount			= 0;
 	private Vector<Segment>		initialSegments		= null;
@@ -305,10 +307,17 @@ public class PitProperties extends PropertyPanel
 				styleComboBox = new JComboBox<String>(items);
 			}
 			styleComboBox.setBounds(120, 10, 125, 23);
-			if (index >= 0 && index < STYLE_ITEMS.length)
-				styleComboBox.setSelectedItem(STYLE_ITEMS[index]);
+			selectStyle();
 		}
 		return styleComboBox;
+	}
+
+	private void selectStyle()
+	{
+		int style = getEditorFrame().getPits().getStyle();
+		int index = style == Integer.MAX_VALUE ? 0 : style + 1;
+		if (index >= 0 && index < STYLE_ITEMS.length)
+			styleComboBox.setSelectedItem(STYLE_ITEMS[index]);
 	}
 
 	/**
@@ -323,12 +332,17 @@ public class PitProperties extends PropertyPanel
 			String[] items = {"none", "right", "left"};
 			sideComboBox = new JComboBox<String>(items);
 			sideComboBox.setBounds(120, 37, 125, 23);
-			String side = getEditorFrame().getPits().getSide();
-			if (side == null || side.isEmpty())
-				side = "none";
-			selectItem(sideComboBox, side);
+			selectSide();
 		}
 		return sideComboBox;
+	}
+
+	private void selectSide()
+	{
+		String side = getEditorFrame().getPits().getSide();
+		if (side == null || side.isEmpty())
+			side = "none";
+		selectItem(sideComboBox, side);
 	}
 
 	/**
@@ -340,17 +354,39 @@ public class PitProperties extends PropertyPanel
 	{
 		if (indicatorComboBox == null)
 		{
-			String[] items = {"none", "0  normal_pit_indicator.ac", "1  pit_indicator.ac"};
-			indicatorComboBox = new JComboBox<String>(items);
+			indicatorComboBox = new JComboBox<String>();
 			indicatorComboBox.setBounds(120, 307, 175, 23);
-			int indicator = getEditorFrame().getPits().getIndicator();
-			if (indicator == Integer.MAX_VALUE)
-				indicator = 0;
-			else
-				indicator++;
-			indicatorComboBox.setSelectedIndex(indicator);
+			indicatorComboBox.setToolTipText("<html>The game only shows it when the pit type is \"no building\",<br>"
+				+ "for pits with a car: 1 is pit_indicator.ac, 2 or more normal_pit_indicator.ac</html>");
+			selectIndicator();
 		}
 		return indicatorComboBox;
+	}
+
+	/**
+	 * The choices: none (no attribute), 1 (pit_indicator.ac) and 2
+	 * (normal_pit_indicator.ac, which the game shows for any value above 1), and
+	 * any other value the track has, kept as it is.
+	 */
+	private void selectIndicator()
+	{
+		int indicator = getEditorFrame().getPits().getIndicator();
+		javax.swing.DefaultComboBoxModel<String> model = new javax.swing.DefaultComboBoxModel<String>(
+			new String[] {"none", "1  pit_indicator.ac", "2  normal_pit_indicator.ac"});
+		otherIndicator = Integer.MAX_VALUE;
+		int index;
+		if (indicator == Integer.MAX_VALUE)
+			index = 0;
+		else if (indicator == 1 || indicator == 2)
+			index = indicator;
+		else
+		{
+			otherIndicator = indicator;
+			model.addElement(indicator + (indicator > 1 ? "  normal_pit_indicator.ac" : "  none in the game"));
+			index = 3;
+		}
+		indicatorComboBox.setModel(model);
+		indicatorComboBox.setSelectedIndex(index);
 	}
 
 	/**
@@ -379,18 +415,7 @@ public class PitProperties extends PropertyPanel
 			// TORCS track files use km/h
 			speedLimitUnitsComboBox = new JComboBox<String>(items);
 			speedLimitUnitsComboBox.setBounds(300, 334, 140, 23);
-			DoubleValue speedLimit = getEditorFrame().getPits().getSpeedLimit();
-			int indicator = -1;
-
-			if (speedLimit == null || speedLimit.units == null || Double.isNaN(speedLimit.value))
-				indicator = 0;
-			else if (speedLimit.units.equals("m") || speedLimit.units.equalsIgnoreCase("mps"))
-				indicator = 1;
-			else if (isKilometersPerHour(speedLimit.units))
-				indicator = 2;
-			else if (speedLimit.units.equalsIgnoreCase("mph"))
-				indicator = 3;
-			speedLimitUnitsComboBox.setSelectedIndex(indicator);
+			selectSpeedLimitUnits();
 			speedLimitUnitsComboBox.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -400,6 +425,54 @@ public class PitProperties extends PropertyPanel
 			});
 		}
 		return speedLimitUnitsComboBox;
+	}
+
+	private void selectSpeedLimitUnits()
+	{
+		DoubleValue speedLimit = getEditorFrame().getPits().getSpeedLimit();
+		int index = -1;
+
+		if (speedLimit == null || speedLimit.units == null || Double.isNaN(speedLimit.value))
+			index = 0;
+		else if (speedLimit.units.equals("m") || speedLimit.units.equalsIgnoreCase("mps"))
+			index = 1;
+		else if (isKilometersPerHour(speedLimit.units))
+			index = 2;
+		else if (speedLimit.units.equalsIgnoreCase("mph"))
+			index = 3;
+		speedLimitUnitsComboBox.setSelectedIndex(index);
+	}
+
+	/**
+	 * Shows the track's pit settings in the dialog's fields and generator
+	 * tabs, after an undo or redo of a generation has put back other settings.
+	 */
+	private void refillFields()
+	{
+		Pits pits = getEditorFrame().getPits();
+		boolean options = getEditorFrame().getGameType().hasPitOptions();
+
+		selectStyle();
+		selectSide();
+		setTextField(entryTextField, pits.getEntry());
+		setTextField(startTextField, pits.getStart());
+		if (options)
+		{
+			setTextField(startBuildingsTextField, pits.getStartBuildings());
+			setTextField(stopBuildingsTextField, pits.getStopBuildings());
+		}
+		if (showMaxPitsAndIndicator())
+		{
+			setTextField(maxPitsTextField, pits.getMaxPits());
+			selectIndicator();
+		}
+		setTextField(endTextField, pits.getEnd());
+		setTextField(exitTextField, pits.getExit());
+		setTextField(widthTextField, pits.getWidth());
+		setTextField(lengthTextField, pits.getLength());
+		setTextField(speedLimitTextField, pits.getSpeedLimitValue());
+		selectSpeedLimitUnits();
+		refillTabs();
 	}
 
 	private JCheckBox getAddPitsCheckBox()
@@ -517,14 +590,45 @@ public class PitProperties extends PropertyPanel
 		copy.setIndicator(original.getIndicator());
 		copy.setSpeedLimitValue(original.getSpeedLimitValue());
 		copy.setSpeedLimitUnits(original.getSpeedLimitUnits());
+		copy.copyGeneratorFrom(original);
 		return copy;
 	}
 
 	private void doGenerate()
 	{
+		// check the tabs first, so nothing is changed when something is missing
+		String problem = generateProblem();
+		if (problem != null)
+		{
+			JOptionPane.showMessageDialog(this, problem, "Add Pits", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		boolean wasModified = getEditorFrame().documentIsModified;
 		saveInitialState();
 		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
-		createPits();
+		// generate from what's in the dialog, not the last accepted values
+		applyFields();
+		storeTabs();
+		boolean done;
+		try
+		{
+			done = createPits();
+		}
+		catch (RuntimeException e)
+		{
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "The pits couldn't be added: " + e, "Add Pits", JOptionPane.ERROR_MESSAGE);
+			done = false;
+		}
+		if (!done)
+		{
+			// put back the track as it was: no undo step, and not modified
+			// if it wasn't; the dialog keeps what was typed so it can be fixed
+			undo.undo();
+			getEditorFrame().documentIsModified = wasModified;
+			return;
+		}
 		undo.captureAfter();
 		Undo.add(undo);
 		generateCount++;
@@ -539,6 +643,7 @@ public class PitProperties extends PropertyPanel
 		if (generateCount > 0)
 		{
 			Undo.undo();
+			refillFields();
 			generateCount--;
 			undoCount++;
 			updateGenerateButtons();
@@ -551,6 +656,7 @@ public class PitProperties extends PropertyPanel
 		if (undoCount > 0)
 		{
 			Undo.redo();
+			refillFields();
 			generateCount++;
 			undoCount--;
 			updateGenerateButtons();
@@ -616,8 +722,31 @@ public class PitProperties extends PropertyPanel
 		if (getTabbedPane().getTabCount() > 0)
 			return;
 
+		readPitInfos();
+		tabbedPane.addTab(entryPitInfo.name, null, new PitPanel(entryPitInfo, false), null);
+		tabbedPane.addTab(pitsPitInfo.name, null, new PitPanel(pitsPitInfo, true), null);
+		tabbedPane.addTab(exitPitInfo.name, null, new PitPanel(exitPitInfo, false), null);
+	}
+
+	/**
+	 * Fills the generator tabs' settings: the generator's last settings when the
+	 * track's pits or its project have them, otherwise what the pit segments
+	 * have, or defaults.
+	 */
+	private void readPitInfos()
+	{
 		{
 			Pits pits = getEditorFrame().getPits();
+			Pits.Generator generator = pits.getGenerator();
+			if (generator == null)
+				generator = utils.Properties.getInstance().getPitGenerator();
+			if (generator != null && generator.isComplete())
+			{
+				fromPart(generator.getEntry(), entryPitInfo);
+				fromPart(generator.getPits(), pitsPitInfo);
+				fromPart(generator.getExit(), exitPitInfo);
+				return;
+			}
 			SegmentVector data = getEditorFrame().getTrackData().getSegments();
 			Segment pitEntry = null;
 			Segment pitStart = null;
@@ -691,8 +820,6 @@ public class PitProperties extends PropertyPanel
 				entryPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_HEIGHT;
 				entryPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_WIDTH;
 			}
-			PitPanel entryPitPanel = new PitPanel(entryPitInfo, false);
-			tabbedPane.addTab(entryPitInfo.name, null, entryPitPanel, null);
 
 			if (pitStart != null)
 			{
@@ -729,8 +856,6 @@ public class PitProperties extends PropertyPanel
 				pitsPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT;
 				pitsPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH;
 			}
-			PitPanel pitsPitPanel = new PitPanel(pitsPitInfo, true);
-			tabbedPane.addTab(pitsPitInfo.name, null, pitsPitPanel, null);
 
 			if (pitExit != null)
 			{
@@ -775,10 +900,62 @@ public class PitProperties extends PropertyPanel
 				exitPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_EXIT_BORDER_HEIGHT;
 				exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
 			}
-
-			PitPanel exitPitPanel = new PitPanel(exitPitInfo, false);
-			tabbedPane.addTab(exitPitInfo.name, null, exitPitPanel, null);
 		}
+	}
+
+	private static void fromPart(Pits.GeneratorPart part, PitInfo info)
+	{
+		info.surface = part.getSurface();
+		info.borderType = part.getBorderType();
+		info.borderSurface = part.getBorderSurface();
+		info.borderWidth = part.getBorderWidth();
+		info.borderHeight = part.getBorderHeight();
+	}
+
+	/** The settings in a generator tab */
+	private Pits.GeneratorPart toPart(PitPanel panel)
+	{
+		Pits.GeneratorPart part = new Pits.GeneratorPart();
+		Object surface = panel.getSurfaceComboBox().getSelectedItem();
+		part.setSurface(surface == null ? null : surface.toString());
+		Object borderSurface = panel.getBorderSurfaceComboBox().getSelectedItem();
+		part.setBorderSurface(borderSurface == null ? null : borderSurface.toString());
+		part.setBorderWidth(getDouble(panel.getBorderWidthTextField().getText()));
+		if (panel.isPitZone)
+		{
+			Object type = panel.getBorderTypeComboBox().getSelectedItem();
+			part.setBorderType(type == null ? null : type.toString());
+			part.setBorderHeight(getDouble(panel.getBorderHeightTextField().getText()));
+		}
+		else
+		{
+			// entry/exit: always "plan" with height 0 (driveable surface)
+			part.setBorderType("plan");
+			part.setBorderHeight(0);
+		}
+		return part;
+	}
+
+	/** Keeps the generator tabs' settings with the track's pits */
+	private void storeTabs()
+	{
+		if (tabbedPane == null || tabbedPane.getTabCount() < 3)
+			return;
+		getEditorFrame().getPits().setGenerator(new Pits.Generator(
+			toPart((PitPanel) tabbedPane.getComponentAt(0)),
+			toPart((PitPanel) tabbedPane.getComponentAt(1)),
+			toPart((PitPanel) tabbedPane.getComponentAt(2))));
+	}
+
+	/** Shows the generator settings the track's pits have, or those of its pit segments */
+	private void refillTabs()
+	{
+		if (tabbedPane == null || tabbedPane.getTabCount() < 3)
+			return;
+		readPitInfos();
+		PitInfo[] infos = {entryPitInfo, pitsPitInfo, exitPitInfo};
+		for (int i = 0; i < 3; i++)
+			((PitPanel) tabbedPane.getComponentAt(i)).refill(infos[i]);
 	}
 
 	/**
@@ -876,6 +1053,17 @@ public class PitProperties extends PropertyPanel
 				pitInfo.borderHeight = 0;
 			}
 
+			setPitInfo(pitInfo);
+		}
+
+		/** Shows other settings, after an undo or redo */
+		private void refill(PitInfo pitInfo)
+		{
+			if (!isPitZone)
+			{
+				pitInfo.borderType = "plan";
+				pitInfo.borderHeight = 0;
+			}
 			setPitInfo(pitInfo);
 		}
 
@@ -1100,6 +1288,19 @@ public class PitProperties extends PropertyPanel
 
 	public void exit()
 	{
+		applyFields();
+
+		// generation is done via the Generate button, not on OK
+		// clear the initial state so cancel doesn't undo accepted changes
+		initialSegments = null;
+		initialPits = null;
+	}
+
+	/**
+	 * Copies the dialog's fields onto the track's pits.
+	 */
+	private void applyFields()
+	{
 		// TORCS doesn't support buildings, max pits or indicator
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		// the item, not its position: a version 3 track has fewer choices
@@ -1198,19 +1399,12 @@ public class PitProperties extends PropertyPanel
 
 		index = getIndicatorComboBox().getSelectedIndex();
 		int indicator = getEditorFrame().getPits().getIndicator();
-		if (showMaxPitsAndIndicator())
+		if (showMaxPitsAndIndicator() && index >= 0)
 		{
-			if (index == 0)
+			int value = index == 0 ? Integer.MAX_VALUE : index == 3 ? otherIndicator : index;
+			if (value != indicator)
 			{
-				if (indicator != Integer.MAX_VALUE)
-				{
-					getEditorFrame().getPits().setIndicator(Integer.MAX_VALUE);
-					getEditorFrame().documentIsModified = true;
-				}
-			}
-			else if (indicator == Integer.MAX_VALUE || indicator != index - 1)
-			{
-				getEditorFrame().getPits().setIndicator(index - 1);
+				getEditorFrame().getPits().setIndicator(value);
 				getEditorFrame().documentIsModified = true;
 			}
 		}
@@ -1239,17 +1433,12 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().getPits().setSpeedLimitUnits(items[index]);
 			getEditorFrame().documentIsModified = true;
 		}
-
-		// generation is done via the Generate button, not on OK
-		// clear the initial state so cancel doesn't undo accepted changes
-		initialSegments = null;
-		initialPits = null;
 	}
 
 	/**
 	 *
 	 */
-	private void createPits()
+	private boolean createPits()
 	{
 		Pits pits = getEditorFrame().getPits();
 		SegmentVector data = getEditorFrame().getTrackData().getSegments();
@@ -1284,7 +1473,7 @@ public class PitProperties extends PropertyPanel
 		if (pits.getSide() == null)
 		{
 			JOptionPane.showMessageDialog(this, "No pit side specified", "Pit Side", JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
 
 		if (pitEntry == null)
@@ -1297,7 +1486,7 @@ public class PitProperties extends PropertyPanel
 			{
 				JOptionPane.showMessageDialog(this, "Pit entry " + pits.getEntry() + " not found.", "Pit Entry", JOptionPane.ERROR_MESSAGE);
 			}
-			return;
+			return false;
 		}
 
 		if (pitStart == null)
@@ -1310,7 +1499,7 @@ public class PitProperties extends PropertyPanel
 			{
 				JOptionPane.showMessageDialog(this, "Pit start " + pits.getStart() + " not found.", "Pit Start", JOptionPane.WARNING_MESSAGE);
 			}
-			return;
+			return false;
 		}
 
 		if (pitEnd == null)
@@ -1323,7 +1512,7 @@ public class PitProperties extends PropertyPanel
 			{
 				JOptionPane.showMessageDialog(this, "Pit end " + pits.getEnd() + " not found.", "Pit End", JOptionPane.WARNING_MESSAGE);
 			}
-			return;
+			return false;
 		}
 
 		if (pitExit == null)
@@ -1336,7 +1525,7 @@ public class PitProperties extends PropertyPanel
 			{
 				JOptionPane.showMessageDialog(this, "Pit exit " + pits.getExit() + " not found.", "Pit Exit", JOptionPane.ERROR_MESSAGE);
 			}
-			return;
+			return false;
 		}
 
 		SegmentSide side = null;
@@ -1346,7 +1535,7 @@ public class PitProperties extends PropertyPanel
 		if (nextSegment == null && !data.isEmpty())
 			nextSegment = data.get(0);
 		if (nextSegment == null)
-			return;
+			return false;
 		if (pits.getSide().equals("left"))
 		{
 			nextSegment.getLeft().setBorderWidth(nextSegment.getValidLeftBorderWidth(getEditorFrame()));
@@ -1551,5 +1740,6 @@ public class PitProperties extends PropertyPanel
 			side.setBarrierHeight(1);
 			side.setBarrierWidth(0.1);
 		}
+		return true;
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

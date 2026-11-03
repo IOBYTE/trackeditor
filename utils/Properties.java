@@ -23,6 +23,8 @@ package utils;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import utils.circuit.Pits;
+
 /**
  * @author babis
  * 
@@ -47,6 +49,8 @@ public  class Properties
 	private double				viewCenterY				= 0;
 	// the 3D view's camera and raceline layer (see Track3DWindow), null when not saved
 	private String				view3D					= null;
+	// the pit generator's last settings, null when not saved
+	private Pits.Generator		pitGenerator			= null;
 	private double				inity;
 
 	private double				currentX				= 0;
@@ -204,6 +208,19 @@ public  class Properties
 	public void setView3D(String view3D)
 	{
 		this.view3D = view3D;
+	}
+
+	/**
+	 * @return the pit generator's settings when the project was saved, null
+	 *         when they weren't
+	 */
+	public Pits.Generator getPitGenerator()
+	{
+		return pitGenerator;
+	}
+	public void setPitGenerator(Pits.Generator pitGenerator)
+	{
+		this.pitGenerator = pitGenerator;
 	}
 
 	public synchronized void removePropertiesListener(ActionListener l)
