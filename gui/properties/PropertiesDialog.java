@@ -43,6 +43,9 @@ public class PropertiesDialog extends JDialog
 {
 	private EditorFrame				editorFrame;
 	public static boolean			APPROVE					= false;
+	// Ok or Cancel is closing the dialog, or the pit segments are being checked
+	private boolean					closing					= false;
+	private boolean					checkingPits			= false;
 	private JTabbedPane				tabbedPane				= null;
 	private GeneralProperties		generalProperties		= null;
 	private JPanel					pane					= null;
@@ -135,6 +138,30 @@ public class PropertiesDialog extends JDialog
 			addTab("Sectors", extensions ? getSectorProperties() : null);
 			addTab("Image", getImageProperties());
 			addTab("Georeference", editorFrame.getGameType() == EditorFrame.GameType.TORCS ? getGeoreferenceProperties() : null);
+			// leaving the Pit tab: its segments have to exist
+			tabbedPane.addChangeListener(new javax.swing.event.ChangeListener()
+			{
+				private java.awt.Component previous = null;
+
+				public void stateChanged(javax.swing.event.ChangeEvent e)
+				{
+					java.awt.Component selected = tabbedPane.getSelectedComponent();
+					if (!closing && !checkingPits && previous == pitProperties && selected != pitProperties)
+					{
+						checkingPits = true;
+						try
+						{
+							if (!pitProperties.checkSegmentNames(PropertiesDialog.this))
+								tabbedPane.setSelectedComponent(pitProperties);
+						}
+						finally
+						{
+							checkingPits = false;
+						}
+					}
+					previous = tabbedPane.getSelectedComponent();
+				}
+			});
 			SwingUtilities.invokeLater( new Runnable()
 			{
 				public void run()
@@ -474,6 +501,27 @@ public class PropertiesDialog extends JDialog
 	 */
 	protected void exit()
 	{
+		// the pit segments have to exist, and the pits should end where they should
+		if (!this.pitProperties.checkSegmentNames(this) || !this.pitProperties.checkOrder(this)
+			|| !this.pitProperties.checkBuildingsEnd(this))
+		{
+			getTabbedPane().setSelectedComponent(this.pitProperties);
+			return;
+		}
+		// the checks below can show other tabs
+		closing = true;
+		try
+		{
+			exitChecked();
+		}
+		finally
+		{
+			closing = false;
+		}
+	}
+
+	private void exitChecked()
+	{
 		// a value that isn't a number would be lost, so don't apply anything until it's fixed
 		if (!PropertyPanel.checkNumbers(this, getTabbedPane()))
 			return;
@@ -528,6 +576,7 @@ public class PropertiesDialog extends JDialog
 	 */
 	protected void cancel()
 	{
+		closing = true;
 		// the Pit panel changes the track as soon as Apply is pressed, so it has
 		// to put it back. On Ok this does nothing: exit() has already accepted
 		// the changes by clearing the state cancel restores.

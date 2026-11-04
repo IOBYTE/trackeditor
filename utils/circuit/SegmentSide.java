@@ -55,10 +55,10 @@ public class SegmentSide implements Cloneable
 	public static final String	DEFAULT_BORDER_STYLE				= "curb";
 	
 	public static final String	DEFAULT_PIT_ENTRY_SURFACE			= "asphalt";
-	public static final String	DEFAULT_PIT_ENTRY_BORDER_STYLE		= null;
-	public static final String	DEFAULT_PIT_ENTRY_BORDER_SURFACE	= null;
+	public static final String	DEFAULT_PIT_ENTRY_BORDER_STYLE		= "plan";
+	public static final String	DEFAULT_PIT_ENTRY_BORDER_SURFACE	= "b-asphalt-l1p";
 	public static final double	DEFAULT_PIT_ENTRY_BORDER_HEIGHT		= 0.0;
-	public static final double	DEFAULT_PIT_ENTRY_BORDER_WIDTH		= 0.0;
+	public static final double	DEFAULT_PIT_ENTRY_BORDER_WIDTH		= 1.0;
 	
 	public static final String	DEFAULT_PIT_PITS_SURFACE			= "asphalt-pits";
 	public static final double	DEFAULT_PIT_PITS_BORDER_WIDTH		= 0.5;
@@ -67,10 +67,10 @@ public class SegmentSide implements Cloneable
 	public static final String	DEFAULT_PIT_PITS_BORDER_STYLE		= "wall";
 	
 	public static final String	DEFAULT_PIT_EXIT_SURFACE			= "asphalt";
-	public static final String	DEFAULT_PIT_EXIT_BORDER_STYLE		= null;
-	public static final String	DEFAULT_PIT_EXIT_BORDER_SURFACE		= null;
+	public static final String	DEFAULT_PIT_EXIT_BORDER_STYLE		= "plan";
+	public static final String	DEFAULT_PIT_EXIT_BORDER_SURFACE		= "b-asphalt-l1p";
 	public static final double	DEFAULT_PIT_EXIT_BORDER_HEIGHT		= 0.0;
-	public static final double	DEFAULT_PIT_EXIT_BORDER_WIDTH		= 0.0;
+	public static final double	DEFAULT_PIT_EXIT_BORDER_WIDTH		= 1.0;
 
 	//	Side
 	private boolean				hasSide						= false;

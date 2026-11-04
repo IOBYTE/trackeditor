@@ -701,6 +701,42 @@ public class EditorFrame extends JFrame
 		return defaultSurfaces;
 	}
 
+	/**
+	 * The surfaces the open track can use: the games look a surface up only in
+	 * the track's Surfaces section, so the default ones only when it includes
+	 * them (&default-surfaces;), then its own.
+	 *
+	 * @param fallback the default surfaces' names, for when the game's surfaces
+	 *        file wasn't found
+	 * @return their names
+	 */
+	public Vector<String> getUsableSurfaceNames(String[] fallback)
+	{
+		Vector<String> names = new Vector<String>();
+		if (trackData == null)
+			return names;
+		if (trackData.getHasSurfacesReference())
+		{
+			if (defaultSurfaces.isEmpty())
+			{
+				if (fallback != null)
+					names.addAll(java.util.Arrays.asList(fallback));
+			}
+			else
+			{
+				for (Surface surface : defaultSurfaces)
+					names.add(surface.getName());
+			}
+		}
+		for (Surface surface : trackData.getSurfaces())
+		{
+			String name = surface.getName();
+			if (name != null && !names.contains(name))
+				names.add(name);
+		}
+		return names;
+	}
+
 	private void readDefaultObjects()
 	{
 		defaultObjects.clear();
@@ -1610,6 +1646,12 @@ public class EditorFrame extends JFrame
 		trackData.getMainTrack().setSurface(MainTrack.DEFAULT_SURFACE);
 		trackData.getMainTrack().getLeft().setNewTrackDefaults();
 		trackData.getMainTrack().getRight().setNewTrackDefaults();
+
+		// the game's surfaces and objects: the new track's surfaces are among them
+		trackData.setHasSurfacesEntity(true);
+		trackData.setHasSurfacesReference(true);
+		trackData.setHasObjectsEntity(true);
+		trackData.setHasObjectsReference(true);
 
 		trackData.setSegments(track);
 

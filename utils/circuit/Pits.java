@@ -3,6 +3,52 @@ package utils.circuit;
 import utils.DoubleValue;
 
 public class Pits {
+	/**
+	 * The pit segments have to come in order going round the track from the
+	 * entry: start, start buildings, stop buildings, end and exit; otherwise the
+	 * pit lane goes the long way round, from the start to the end.
+	 *
+	 * @param buildings whether the game reads the start and stop buildings (Speed
+	 *        Dreams and CSR)
+	 * @return what's out of order, or null; names that are empty or aren't
+	 *         segments are left out (they're reported on their own)
+	 */
+	public static String orderProblem(utils.SegmentVector segments, String entry, String start, String startBuildings,
+		String stopBuildings, String end, String exit, boolean buildings)
+	{
+		int n = segments.size();
+		int from = indexOf(segments, entry);
+		if (n == 0 || from < 0)
+			return null;
+		String[] labels = { "Start", "Start Buildings", "Stop Buildings", "End", "Exit" };
+		String[] names = { start, buildings ? startBuildings : null, buildings ? stopBuildings : null, end, exit };
+		String previousLabel = "Entry", previousName = entry;
+		int previous = 0;
+		for (int i = 0; i < names.length; i++)
+		{
+			int index = indexOf(segments, names[i]);
+			if (index < 0)
+				continue;
+			int along = (index - from + n) % n;
+			if (along < previous)
+				return String.format("The pit segments are out of order: going round the track from the entry %s, %s %s comes before %s %s. "
+					+ "They have to come in this order: Entry, Start, %sEnd, Exit",
+					entry, labels[i], names[i], previousLabel, previousName, buildings ? "Start Buildings, Stop Buildings, " : "");
+			previous = along;
+			previousLabel = labels[i];
+			previousName = names[i];
+		}
+		return null;
+	}
+
+	private static int indexOf(utils.SegmentVector segments, String name)
+	{
+		if (name == null || name.trim().isEmpty())
+			return -1;
+		Segment segment = segments.getSegmentFromName(name.trim());
+		return segment == null ? -1 : segments.indexOf(segment);
+	}
+
 	private String				side				= null;
 	private String				entry				= null;
 	private String				start				= null;

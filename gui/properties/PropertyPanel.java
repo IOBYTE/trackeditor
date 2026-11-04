@@ -58,6 +58,35 @@ public class PropertyPanel extends JPanel
 		markNumber(field, Integer.class);
 	}
 
+	/**
+	 * @return a text field that shows a hint in gray while it's empty, such as the
+	 *         value the game uses then; the hint is only shown, never written
+	 */
+	public static JTextField hintTextField(final String hint)
+	{
+		return new JTextField()
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				super.paintComponent(g);
+				if (hint == null || !getText().isEmpty())
+					return;
+				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+				g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2.setColor(Color.GRAY);
+				g2.setFont(getFont());
+				java.awt.Insets insets = getInsets();
+				java.awt.FontMetrics metrics = g2.getFontMetrics();
+				int y = insets.top + (getHeight() - insets.top - insets.bottom - metrics.getHeight()) / 2 + metrics.getAscent();
+				g2.drawString(hint, insets.left + 2, y);
+				g2.dispose();
+			}
+		};
+	}
+
 	public void setTextField(JTextField field, double value)
 	{
 		if (!Double.isNaN(value))
@@ -383,10 +412,11 @@ public class PropertyPanel extends JPanel
 		NameChecked checked = findNameChecked(container);
 		if (checked != null)
 		{
-			String where = showComponent(container, (Component) checked);
 			String message = checked.checkNames();
 			if (message != null)
 			{
+				// only show the tab when there's something wrong in it
+				String where = showComponent(container, (Component) checked);
 				JOptionPane.showMessageDialog(parent, where + message + ".", "Properties", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}

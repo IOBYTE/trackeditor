@@ -37,6 +37,7 @@ public class UndoSegmentChange implements UndoInterface
 	private Segment 		original;
 	private Segment 		clone;
 	private int 			pos;
+	private long			uid;
 
 	/**
 	 * 
@@ -48,6 +49,7 @@ public class UndoSegmentChange implements UndoInterface
 		clone = (Segment) segment.clone();
 		original = segment;
 		pos = data.indexOf(original);
+		uid = segment.getUid();
 
 		if (!data.validateLinks())
 		{
@@ -61,6 +63,7 @@ public class UndoSegmentChange implements UndoInterface
 	 */
 	public void undo()
 	{
+		pos = position();
 		original = (Segment) data.get(pos).clone();
 		// a rename in the dialog also renamed the pit and camera references
 		trackData.renameSegmentReferences(original.getName(), clone.getName());
@@ -78,6 +81,7 @@ public class UndoSegmentChange implements UndoInterface
 	 */
 	public void redo()
 	{
+		pos = position();
 		trackData.renameSegmentReferences(data.get(pos).getName(), original.getName());
 		data.set(pos,original);
 
@@ -86,5 +90,20 @@ public class UndoSegmentChange implements UndoInterface
 			System.out.println("UndoSegmentChange.redo");
 			data.dumpLinks();
 		}
+	}
+
+	/**
+	 * @return where the segment is now: segments inserted or removed before it
+	 *         since (a split, pit generation) move it, so it's found by what it
+	 *         is, and only by where it was when it isn't found
+	 */
+	private int position()
+	{
+		for (int i = 0; i < data.size(); i++)
+		{
+			if (data.get(i).getUid() == uid)
+				return i;
+		}
+		return pos;
 	}
 }

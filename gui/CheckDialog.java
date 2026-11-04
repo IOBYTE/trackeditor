@@ -135,6 +135,8 @@ public class CheckDialog extends JDialog
 	{
 		SegmentVector segments = trackData.getSegments();
 
+		checkTrackCloses(segments);
+
 		for (int i = 0; i < segments.size(); i++)
 		{
 			Segment segment = segments.get(i);
@@ -186,6 +188,42 @@ public class CheckDialog extends JDialog
 			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
 			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
 		}
+	}
+
+	/**
+	 * The games build each segment on from the end of the one before and don't
+	 * join the last one to the first, so a track whose end isn't where it starts,
+	 * in the same direction, overlaps itself or leaves a gap at the start line.
+	 */
+	private void checkTrackCloses(SegmentVector segments)
+	{
+		if (segments == null || segments.size() < 2)
+			return;
+		Segment first = segments.get(0);
+		Segment last = segments.get(segments.size() - 1);
+		if (last.endTrackCenter == null || first.startTrackCenter == null)
+			return;
+		double dx = last.endTrackCenter.x - first.startTrackCenter.x;
+		double dy = last.endTrackCenter.y - first.startTrackCenter.y;
+		double gap = Math.hypot(dx, dy);
+		double turn = Math.toDegrees(Math.IEEEremainder(last.endTrackAlpha - first.startTrackAlpha, 2 * Math.PI));
+		if (gap < 0.01 && Math.abs(turn) < 0.01)
+			return;
+
+		// how far the end is ahead of the start, along the start's direction, and to its left
+		double along = dx * Math.cos(first.startTrackAlpha) + dy * Math.sin(first.startTrackAlpha);
+		double across = -dx * Math.sin(first.startTrackAlpha) + dy * Math.cos(first.startTrackAlpha);
+		String message = "Track doesn't close: segment " + last.getName() + " ends " + String.format("%.2f", gap)
+			+ " m from the start of segment " + first.getName();
+		if (gap >= 0.01)
+		{
+			String ahead = Math.abs(along) >= 0.005 ? String.format("%.2f m %s", Math.abs(along), along >= 0 ? "ahead" : "behind") : null;
+			String side = Math.abs(across) >= 0.005 ? String.format("%.2f m to the %s", Math.abs(across), across >= 0 ? "left" : "right") : null;
+			message += " (" + (ahead == null ? side : side == null ? ahead : ahead + ", " + side) + ")";
+		}
+		if (Math.abs(turn) >= 0.01)
+			message += String.format(", heading %.2f degrees to the %s of it", Math.abs(turn), turn >= 0 ? "left" : "right");
+		textArea.append(message + "\n");
 	}
 
 	/**
@@ -356,6 +394,20 @@ public class CheckDialog extends JDialog
 			else if (segments.getSegmentFromName(pits.getExit()) == null)
 				textArea.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
 
+			String order = Pits.orderProblem(segments, pits.getEntry(), pits.getStart(), pits.getStartBuildings(),
+				pits.getStopBuildings(), pits.getEnd(), pits.getExit(), editorFrame.getGameType().hasPitOptions());
+			if (order != null)
+				textArea.append(order + "\n");
+
+			// Speed Dreams and CSR: a buildings segment that isn't found is the pit start or end
+			if (editorFrame.getGameType().hasPitOptions())
+			{
+				if (hasText(pits.getStartBuildings()) && segments.getSegmentFromName(pits.getStartBuildings()) == null)
+					textArea.append("Invalid pit start buildings: " + pits.getStartBuildings() + " isn't a segment, so the game uses the pit start\n");
+				if (hasText(pits.getStopBuildings()) && segments.getSegmentFromName(pits.getStopBuildings()) == null)
+					textArea.append("Invalid pit stop buildings: " + pits.getStopBuildings() + " isn't a segment, so the game uses the pit end\n");
+			}
+
 			// the games read any side but "right" as left
 			if (!hasText(pits.getSide()))
 				textArea.append("Missing pit side: the game uses right\n");
@@ -380,8 +432,32 @@ public class CheckDialog extends JDialog
 			checkPitsOnCurves();
 			checkNoBuildingPitLane(pits);
 			checkPitsEnd();
+			checkPitsAtFinishLine();
 		}
 	}
+
+	/**
+	 * Trackgen starts the side textures anew at the finish line, so when the pits
+	 * go across it the pit boxes' markings after the line only line up with the
+	 * pits when the line is a whole number of pits from where they start.
+	 */
+	private void checkPitsAtFinishLine()
+	{
+		String problem;
+		try
+		{
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
+			problem = layout == null ? null : layout.lineProblem();
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (problem != null)
+			textArea.append(problem + ": Fit Segments in the Pit properties moves the start of the pits\n");
+	}
+
 
 	/** The last pit should end at the end of the stop buildings segment (the pit end in TORCS). */
 	private void checkPitsEnd()
@@ -459,7 +535,7 @@ public class CheckDialog extends JDialog
 		if (entry == null || exit == null)
 			return;
 		// the side the pits are on: any side but "right" is left
-		String inside = "right".equals(pits.getSide()) ? "rgt" : "lft";
+		String inside = pits.getSide() == null || "right".equals(pits.getSide()) ? "rgt" : "lft";
 		int from = segments.indexOf(entry), to = segments.indexOf(exit);
 		StringBuilder list = new StringBuilder();
 		for (int i = from; ; i = (i + 1) % segments.size())
@@ -1262,6 +1338,8 @@ public class CheckDialog extends JDialog
 				types.add(surface.getSurf());
 				mats.add(surface.getMat());
 				
+				// a double sided surface is only needed where the texture is see-through:
+				// an opaque one (.rgb, or a .png without alpha) is reported
 				if (surface.isDoubleSided() && objectTexture != null)
 				{
 					File textureFile = findTextureFile(objectTexture);
@@ -1282,7 +1360,7 @@ public class CheckDialog extends JDialog
 								imageHasAlpha.put(textureFile.getAbsolutePath(), image.getColorModel().hasAlpha());
 							}
 
-							if (imageHasAlpha.get(textureFile.getAbsolutePath()))
+							if (!imageHasAlpha.get(textureFile.getAbsolutePath()))
 							{
 								doubleSided = true;
 							}
@@ -1409,18 +1487,42 @@ public class CheckDialog extends JDialog
 			}
 		}
 
+		// the models only of the objects the track places: trackgen only loads those
+		Set<Integer> used = usedObjectColors();
 		for (int i = 0; i < trackData.getObjects().size(); i++)
 		{
-			checkTrackObject(trackData.getObjects().get(i), "Track");
+			if (isUsed(trackData.getObjects().get(i), used))
+				checkTrackObject(trackData.getObjects().get(i), "Track");
 		}
 
 		if (editorFrame.getCheckDefaultObjects())
 		{
 			for (int i = 0; i < defaultObjects.size(); i++)
 			{
-				checkTrackObject(defaultObjects.get(i), "Default");
+				if (isUsed(defaultObjects.get(i), used))
+					checkTrackObject(defaultObjects.get(i), "Default");
 			}
 		}
+	}
+
+	/** @return the colors of the objects the track places: in its object maps, and the ones placed in the editor */
+	private Set<Integer> usedObjectColors()
+	{
+		Set<Integer> used = new HashSet<Integer>();
+		for (ObjectMap objectMap : trackData.getObjectMaps())
+		{
+			for (int color : objectMap.getColors())
+				used.add(color & 0xFFFFFF);
+		}
+		for (utils.circuit.GraphicObject object : trackData.getGraphicObjects())
+			used.add(object.getColor() & 0xFFFFFF);
+		return used;
+	}
+
+	private static boolean isUsed(TrackObject object, Set<Integer> used)
+	{
+		int color = object.getColor();
+		return color != Integer.MAX_VALUE && used.contains(color & 0xFFFFFF);
 	}
 	private File findTextureFile(String texture)
 	{

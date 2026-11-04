@@ -162,6 +162,20 @@ public class Segment implements Cloneable
 	protected static final int	ARROW_END_RIGHT				= 30;
 	protected static final int	ARROW_START_RIGHT			= 31;
 
+	/**
+	 * Which segment this is, kept by its copies (clone()), so an undo step can find
+	 * it after segments were inserted or removed before it, or the list was
+	 * replaced by copies (pit generation); a new segment, also a split's second
+	 * piece, gets its own
+	 */
+	private static long	nextUid	= 1;
+	private long		uid		= nextUid++;
+
+	public long getUid()
+	{
+		return uid;
+	}
+
 	public Segment()
 	{
 		this(null);

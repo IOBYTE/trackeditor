@@ -92,13 +92,14 @@ public class PitProperties extends PropertyPanel
 	private JLabel				exitLabel				= new JLabel();
 	private JTextField			exitTextField			= new JTextField();
 	private JLabel				widthLabel				= new JLabel();
-	private JTextField			widthTextField			= new JTextField();
+	// empty: the game's defaults, shown in gray
+	private JTextField			widthTextField			= hintTextField("5.0 (default)");
 	private JLabel				lengthLabel				= new JLabel();
-	private JTextField			lengthTextField			= new JTextField();
+	private JTextField			lengthTextField			= hintTextField("15.0 (default)");
 	private JLabel				indicatorLabel			= new JLabel();
 	private JComboBox<String>	indicatorComboBox		= null;
 	private JLabel				speedLimitLabel			= new JLabel();
-	private JTextField			speedLimitTextField		= new JTextField();
+	private JTextField			speedLimitTextField		= hintTextField("25.0 m/s (default)");
 	private JLabel				speedLimitUnitsLabel	= new JLabel();
 	private JComboBox<String>	speedLimitUnitsComboBox	= null;
 	private JCheckBox			addPitsCheckBox		= null;
@@ -170,11 +171,11 @@ public class PitProperties extends PropertyPanel
 		if (options)
 		{
 			addLabel(this, row, startBuildingsLabel, "Start Buildings", 110);
-			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 125);
+			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 200);
 			addLabel(this, row, stopBuildingsLabel, "Stop Buildings", 110);
-			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 125);
+			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 200);
 			add(getFitButton(), null);
-			getFitButton().setBounds(255, rowY(row - 1), 115, 23);
+			getFitButton().setBounds(330, rowY(row - 1), 115, 23);
 		}
 		if (showMaxPitsAndIndicator())
 		{
@@ -250,34 +251,38 @@ public class PitProperties extends PropertyPanel
 	// the pit type choices, in pit style order ("none" is no pit style)
 	private static final String[] STYLE_ITEMS = {"none", "no pits", "on track side", "on separate path", "no building"};
 
+	/**
+	 * The pit type choices, "none" saying what the game does without one: track
+	 * side pits, but no pits for a version 3 track
+	 */
+	private String[] styleItems()
+	{
+		String[] items = STYLE_ITEMS.clone();
+		items[0] = isVersion3() ? "none (no pits)" : "none (track side)";
+		return items;
+	}
+
+	/** @return whether the pits are on the left: the games take any side but "right" as left, and right when there's none */
+	private static boolean onLeft(Pits pits)
+	{
+		return pits.getSide() != null && !pits.getSide().equals("right");
+	}
+
 	private static int rowY(int row)
 	{
 		return 10 + row * 27;
 	}
 
+	/**
+	 * The surfaces the track can use: the default ones (the names it starts with,
+	 * when the game's surfaces file wasn't found) only when it includes them, and
+	 * its own
+	 */
 	private void addDefaultSurfaces(Vector<String> surfaceVector)
 	{
-		Vector<Surface> surfaces = getEditorFrame().getTrackData().getSurfaces();
-		for (int i = 0; i < surfaces.size(); i++)
-		{
-			String surface = surfaces.elementAt(i).getName();
-			if (surface != null)
-			{
-				boolean found = false;
-				for (int j = 0; j < surfaceVector.size(); j++)
-				{
-					if (surfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
-					{
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					surfaceVector.add(surface);
-				}
-			}
-		}
+		String[] fallback = surfaceVector.toArray(new String[0]);
+		surfaceVector.clear();
+		surfaceVector.addAll(getEditorFrame().getUsableSurfaceNames(fallback));
 		Collections.sort(surfaceVector);
 	}
 
@@ -292,12 +297,12 @@ public class PitProperties extends PropertyPanel
 		{
 			int style = getEditorFrame().getPits().getStyle();
 			int index = style == Integer.MAX_VALUE ? 0 : style + 1;
-			String[] items = STYLE_ITEMS;
+			String[] items = styleItems();
 			if (isVersion3())
 			{
 				// the version 3 loaders only build track side pits; another type the
 				// track already has stays listed, so looking doesn't change it
-				items = java.util.Arrays.copyOf(STYLE_ITEMS, 3);
+				items = java.util.Arrays.copyOf(styleItems(), 3);
 				if (index >= 3 && index < STYLE_ITEMS.length)
 				{
 					items = java.util.Arrays.copyOf(items, 4);
@@ -309,7 +314,7 @@ public class PitProperties extends PropertyPanel
 			else if (!getEditorFrame().getGameType().hasPitOptions())
 			{
 				// TORCS doesn't support buildings, so hide "no building"
-				items = java.util.Arrays.copyOf(STYLE_ITEMS, STYLE_ITEMS.length - 1);
+				items = java.util.Arrays.copyOf(styleItems(), STYLE_ITEMS.length - 1);
 				styleComboBox = new JComboBox<String>(items);
 			}
 			else
@@ -327,7 +332,7 @@ public class PitProperties extends PropertyPanel
 		int style = getEditorFrame().getPits().getStyle();
 		int index = style == Integer.MAX_VALUE ? 0 : style + 1;
 		if (index >= 0 && index < STYLE_ITEMS.length)
-			styleComboBox.setSelectedItem(STYLE_ITEMS[index]);
+			styleComboBox.setSelectedItem(styleItems()[index]);
 	}
 
 	/**
@@ -339,7 +344,8 @@ public class PitProperties extends PropertyPanel
 	{
 		if (sideComboBox == null)
 		{
-			String[] items = {"none", "right", "left"};
+			// the games use right when there's no side
+			String[] items = {"none (right)", "right", "left"};
 			sideComboBox = new JComboBox<String>(items);
 			sideComboBox.setBounds(120, 37, 125, 23);
 			selectSide();
@@ -351,8 +357,9 @@ public class PitProperties extends PropertyPanel
 	{
 		String side = getEditorFrame().getPits().getSide();
 		if (side == null || side.isEmpty())
-			side = "none";
-		selectItem(sideComboBox, side);
+			sideComboBox.setSelectedIndex(0);
+		else
+			selectItem(sideComboBox, side);
 	}
 
 	/**
@@ -421,7 +428,8 @@ public class PitProperties extends PropertyPanel
 	{
 		if (speedLimitUnitsComboBox == null)
 		{
-			String[] items = {"none", "meters per second", "kilometers per hour", "miles per hour"};
+			// a speed limit without units is in meters per second
+			String[] items = {"none (m/s)", "meters per second", "kilometers per hour", "miles per hour"};
 			// TORCS track files use km/h
 			speedLimitUnitsComboBox = new JComboBox<String>(items);
 			speedLimitUnitsComboBox.setBounds(300, 334, 140, 23);
@@ -494,6 +502,13 @@ public class PitProperties extends PropertyPanel
 			{
 				public void actionPerformed(ActionEvent e)
 				{
+					// adding pits needs pit segments that exist
+					if (addPitsCheckBox.isSelected() && (!checkSegmentNames(PitProperties.this) || !checkOrder(PitProperties.this)
+						|| !checkBuildingsEnd(PitProperties.this)))
+					{
+						addPitsCheckBox.setSelected(false);
+						return;
+					}
 					if (addPitsCheckBox.isSelected())
 						addTabs();
 					setButtonsVisible(addPitsCheckBox.isSelected());
@@ -539,7 +554,7 @@ public class PitProperties extends PropertyPanel
 					fitSegments();
 				}
 			});
-			// its tooltip can be long: keep it up for 30 seconds while the mouse is on it
+			// its tooltip can be long: keep it up for 5 minutes while the mouse is on it
 			fitButton.addMouseListener(new java.awt.event.MouseAdapter()
 			{
 				private int dismissDelay;
@@ -547,7 +562,7 @@ public class PitProperties extends PropertyPanel
 				public void mouseEntered(java.awt.event.MouseEvent e)
 				{
 					dismissDelay = javax.swing.ToolTipManager.sharedInstance().getDismissDelay();
-					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(30000);
+					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(5 * 60 * 1000);
 				}
 
 				public void mouseExited(java.awt.event.MouseEvent e)
@@ -583,17 +598,276 @@ public class PitProperties extends PropertyPanel
 	 * Shows on the Fit Segments button whether the last pit ends at the end of
 	 * the stop buildings segment (the pit end in TORCS), as the track's pits are.
 	 */
+	/**
+	 * Checks that the pit segments typed in the dialog are segments of the track
+	 * (the game finds them by their exact name), and if some aren't, asks for the
+	 * right ones: for each, a list of the track's segments, the closest name
+	 * picked, or none.
+	 *
+	 * @return true when they all exist or were fixed, false when the user cancelled
+	 */
+	public boolean checkSegmentNames(java.awt.Component parent)
+	{
+		boolean options = getEditorFrame().getGameType().hasPitOptions();
+		JTextField[] fields = options
+			? new JTextField[] { entryTextField, startTextField, startBuildingsTextField, stopBuildingsTextField, endTextField, exitTextField }
+			: new JTextField[] { entryTextField, startTextField, endTextField, exitTextField };
+		String[] labels = options
+			? new String[] { "Entry", "Start", "Start Buildings", "Stop Buildings", "End", "Exit" }
+			: new String[] { "Entry", "Start", "End", "Exit" };
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		String[] names = new String[data.size()];
+		for (int i = 0; i < names.length; i++)
+			names[i] = data.get(i).getName();
+
+		JPanel panel = new JPanel(new java.awt.GridBagLayout());
+		java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+		c.insets = new java.awt.Insets(3, 3, 3, 3);
+		c.anchor = java.awt.GridBagConstraints.WEST;
+		java.util.List<JTextField> bad = new java.util.ArrayList<JTextField>();
+		java.util.List<JComboBox<String>> choices = new java.util.ArrayList<JComboBox<String>>();
+		for (int i = 0; i < fields.length; i++)
+		{
+			String name = fields[i].getText().trim();
+			if (name.isEmpty() || data.getSegmentFromName(name) != null)
+				continue;
+			JComboBox<String> choice = new JComboBox<String>();
+			choice.addItem("(none)");
+			for (String segment : names)
+				choice.addItem(segment);
+			choice.setSelectedItem(closestName(name, names));
+			c.gridy = bad.size();
+			c.gridx = 0;
+			panel.add(new JLabel(labels[i] + ": \"" + name + "\" isn't a segment"), c);
+			c.gridx = 1;
+			panel.add(choice, c);
+			bad.add(fields[i]);
+			choices.add(choice);
+		}
+		if (bad.isEmpty())
+			return true;
+
+		c.gridy = bad.size();
+		c.gridx = 0;
+		c.gridwidth = 2;
+		panel.add(new JLabel("Pick the segments to use instead:"), c);
+		int answer = JOptionPane.showConfirmDialog(parent, panel, "Pit Segments", JOptionPane.OK_CANCEL_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if (answer != JOptionPane.OK_OPTION)
+			return false;
+		for (int i = 0; i < bad.size(); i++)
+		{
+			Object picked = choices.get(i).getSelectedItem();
+			bad.get(i).setText(picked == null || "(none)".equals(picked) ? "" : picked.toString());
+		}
+		return true;
+	}
+
+	/** @return whether the pit segments typed in the dialog are in order round the track; says what isn't */
+	public boolean checkOrder(java.awt.Component parent)
+	{
+		String problem = Pits.orderProblem(getEditorFrame().getTrackData().getSegments(), entryTextField.getText(),
+			startTextField.getText(), startBuildingsTextField.getText(), stopBuildingsTextField.getText(),
+			endTextField.getText(), exitTextField.getText(), getEditorFrame().getGameType().hasPitOptions());
+		if (problem == null)
+			return true;
+		JOptionPane.showMessageDialog(parent, "<html><body style='width: 400px'>" + problem + ".</body></html>", "Pit Segments",
+			JOptionPane.ERROR_MESSAGE);
+		return false;
+	}
+
+	/**
+	 * Tapers the pit side of segments evenly along their length: the outer edge
+	 * (border and side) goes from one width at the start of the first segment to
+	 * another at the end of the last, so the side is that less the border.
+	 */
+	private static void taper(java.util.List<Segment> segments, boolean left, double from, double to, double border)
+	{
+		if (Double.isNaN(border))
+			border = 0;
+		double total = 0;
+		for (Segment segment : segments)
+			total += gui.view.SegmentSplitter.formulaLength(segment);
+		if (!(total > 0))
+			return;
+		double along = 0;
+		for (Segment segment : segments)
+		{
+			SegmentSide side = left ? segment.getLeft() : segment.getRight();
+			double startWidth = from + (to - from) * along / total - border;
+			along += gui.view.SegmentSplitter.formulaLength(segment);
+			double endWidth = from + (to - from) * along / total - border;
+			side.setSideStartWidth(Math.max(0, startWidth));
+			side.setSideEndWidth(Math.max(0, endWidth));
+		}
+	}
+
+	/**
+	 * @return where the game places the pits with the values typed in the dialog,
+	 *         without changing the track: the dialog's values are tried on a copy
+	 *         of the pits
+	 */
+	private gui.view3d.GameTrack.PitLayout pitLayoutOfDialog()
+	{
+		utils.circuit.MainTrack mainTrack = getEditorFrame().getTrackData().getMainTrack();
+		Pits pits = mainTrack.getPits();
+		boolean modified = getEditorFrame().documentIsModified;
+		try
+		{
+			mainTrack.setPits(clonePits(pits));
+			applyFields();
+			return pitLayout();
+		}
+		finally
+		{
+			mainTrack.setPits(pits);
+			getEditorFrame().documentIsModified = modified;
+		}
+	}
+
+	/**
+	 * Warns when the last pit doesn't end where it should (see Fit Segments),
+	 * with the values typed in the dialog, and offers to fit the segments.
+	 *
+	 * @return true to go on (fitted, or ignored), false when the user cancelled
+	 *         or the fit didn't work
+	 */
+	public boolean checkBuildingsEnd(java.awt.Component parent)
+	{
+		gui.view3d.GameTrack.PitLayout layout = pitLayoutOfDialog();
+		String problem = layout == null ? null : layout.problem();
+		if (problem == null)
+			return true;
+		String[] options = { "Fit Segments", "Ignore", "Cancel" };
+		int answer = JOptionPane.showOptionDialog(parent, "<html><body style='width: 400px'>" + problem
+			+ ".<br><br>Fit Segments fits the segments to the pits; Ignore leaves them as they are.</body></html>",
+			"Pit Buildings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		if (answer == 1)
+			return true;
+		if (answer != 0)
+			return false;
+		fitSegments();
+		// it may not have worked (a spiral), and says why
+		layout = pitLayoutOfDialog();
+		return layout == null || layout.problem() == null;
+	}
+
+	/** @return the segment name most like the name: the fewest letters to change, ignoring case */
+	private static String closestName(String name, String[] names)
+	{
+		String best = "(none)";
+		int bestDistance = Integer.MAX_VALUE;
+		String a = name.toLowerCase();
+		for (String candidate : names)
+		{
+			if (candidate == null)
+				continue;
+			String b = candidate.toLowerCase();
+			int[] previous = new int[b.length() + 1], current = new int[b.length() + 1];
+			for (int j = 0; j <= b.length(); j++)
+				previous[j] = j;
+			for (int i = 1; i <= a.length(); i++)
+			{
+				current[0] = i;
+				for (int j = 1; j <= b.length(); j++)
+					current[j] = Math.min(Math.min(current[j - 1] + 1, previous[j] + 1),
+						previous[j - 1] + (a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1));
+				int[] swap = previous;
+				previous = current;
+				current = swap;
+			}
+			int distance = previous[b.length()];
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				best = candidate;
+			}
+		}
+		// nothing like it: leave it to the user
+		return bestDistance <= Math.max(2, name.length() / 2) ? best : "(none)";
+	}
+
+	/**
+	 * Moves where the pits start, so the finish line is a whole number of pits
+	 * from it: splits the segment there, and makes its second piece the start
+	 * buildings segment (the pit start in TORCS). The pits start earlier when
+	 * there's room in the pit lane, otherwise later.
+	 *
+	 * @return what was done, and what went wrong or null
+	 */
+	private String[] fitStart(gui.view3d.GameTrack.PitLayout layout, boolean torcs)
+	{
+		Pits pits = getEditorFrame().getPits();
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		int n = data.size();
+		double[] pos = new double[n + 1];
+		for (int i = 0; i < n; i++)
+			pos[i + 1] = pos[i] + gui.view.SegmentSplitter.formulaLength(data.get(i));
+		double trackLength = pos[n];
+		Segment first = data.getSegmentFromName(layout.firstName);
+		if (first == null)
+			return new String[] { null, "The segment the pits start in, " + layout.firstName + ", wasn't found" };
+		double len = layout.len;
+		double from = pos[data.indexOf(first)];
+		double toLine = trackLength - from;
+		double rest = toLine % len;
+		// the earliest the pits can start: the start of the pit start segment, or
+		// in TORCS, where the pit start is, the segment after the pit entry
+		Segment lowest = torcs ? data.getSegmentFromName(pits.getEntry()) : data.getSegmentFromName(pits.getStart());
+		double room = 0;
+		if (lowest != null)
+		{
+			int i = data.indexOf(lowest);
+			double low = torcs ? pos[i + 1] : pos[i];
+			room = ((from - low) % trackLength + trackLength) % trackLength;
+		}
+		double at = room >= len - rest - 0.005 ? from - (len - rest) : from + rest;
+		if (at < 0)
+			at += trackLength;
+		if (at >= trackLength - 0.005)
+			at = 0;
+
+		int i = 0;
+		while (i < n - 1 && pos[i + 1] <= at + 0.005)
+			i++;
+		Segment segment = data.get(i);
+		Segment start;
+		String message = "";
+		if (Math.abs(at - pos[i]) < 0.005)
+			start = segment;
+		else
+		{
+			gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+			String name = segment.getName();
+			start = splitter.splitAtFraction(segment, (at - pos[i]) / (pos[i + 1] - pos[i]));
+			if (start == null)
+				return new String[] { null, name + " couldn't be split where the pits should start: " + splitter.getProblem() };
+			message = String.format("%s was split %.2f m from its start, and %s is its second piece.%n", name, at - pos[i], start.getName());
+		}
+		if (torcs)
+			pits.setStart(start.getName());
+		else
+			pits.setStartBuildings(start.getName());
+		double before = (trackLength - at) % trackLength;
+		message += String.format("The pits now start at %s, %.2f m (%d pits) before the finish line, so the pit boxes line up across it.%n",
+			start.getName(), before, Math.round(before / len));
+		return new String[] { message, null };
+	}
+
 	private void updateFitButton()
 	{
 		gui.view3d.GameTrack.PitLayout layout = pitLayout();
-		String problem = layout == null ? null : layout.endProblem();
+		String problem = layout == null ? null : layout.problem();
 		if (problem != null)
 		{
+			boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
 			getFitButton().setForeground(new java.awt.Color(190, 70, 0));
-			getFitButton().setToolTipText("<html>" + problem + ".<br>" + (getEditorFrame().getGameType().hasPitOptions()
-				? "Fit Segments splits the segment where the last pit ends, makes the segment after the pits<br>"
-					+ "the stop buildings segment and sets max pits, so the pits keep their number."
-				: "Fit Segments splits the segment where the last pit ends and makes its first piece the pit end.") + "</html>");
+			getFitButton().setToolTipText("<html>" + problem + ".<br>"
+				+ (layout.lineProblem() == null ? "" : "Fit Segments splits a segment where the pits should start, a whole number of pits<br>"
+					+ "before the finish line, and makes its second piece the " + (torcs ? "pit start" : "start buildings segment") + ".<br>")
+				+ (torcs ? "Fit Segments splits the segment where the last pit ends and makes its first piece the pit end."
+					: "Fit Segments splits the segment where the last pit ends, makes the segment after the pits<br>"
+					+ "the stop buildings segment and sets max pits, so the pits keep their number.") + "</html>");
 		}
 		else
 		{
@@ -615,6 +889,9 @@ public class PitProperties extends PropertyPanel
 	 */
 	private void fitSegments()
 	{
+		// the pit segments have to exist, in order
+		if (!checkSegmentNames(this) || !checkOrder(this))
+			return;
 		boolean wasModified = getEditorFrame().documentIsModified;
 		saveInitialState();
 		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
@@ -629,7 +906,7 @@ public class PitProperties extends PropertyPanel
 				"Fit Segments", JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		if (layout.endsOnStop())
+		if (layout.endsOnStop() && layout.lineProblem() == null)
 		{
 			JOptionPane.showMessageDialog(this, "The pits already fit: the last pit ends at the end of " + layout.endName
 				+ ", and the " + stopLabel() + " segment is " + layout.stopName + ".", "Fit Segments", JOptionPane.INFORMATION_MESSAGE);
@@ -639,60 +916,128 @@ public class PitProperties extends PropertyPanel
 		Pits pits = getEditorFrame().getPits();
 		boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
 		SegmentVector data = getEditorFrame().getTrackData().getSegments();
-		Segment segment = data.getSegmentFromName(layout.endName);
-		// before it is split
-		boolean spiral = segment instanceof utils.circuit.Curve
-			&& ((utils.circuit.Curve) segment).getValidRadiusEnd() != ((utils.circuit.Curve) segment).getRadiusStart();
 		String message = "";
-		String next = layout.nextName;
-		if (Math.abs(layout.endInto - layout.endLength) >= 0.005f)
+
+		// first where the pits start, which moves where they end
+		if (layout.lineProblem() != null)
 		{
-			gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
-			Segment piece2 = segment == null ? null : splitter.splitAtFraction(segment, layout.endInto / layout.endLength);
-			if (piece2 == null)
+			String[] result = fitStart(layout, torcs);
+			if (result[1] != null)
 			{
 				undo.undo();
 				getEditorFrame().documentIsModified = wasModified;
-				JOptionPane.showMessageDialog(this, layout.endName + " couldn't be split: "
-					+ (segment == null ? "it wasn't found" : splitter.getProblem()), "Fit Segments", JOptionPane.ERROR_MESSAGE);
+				refillFields();
+				refreshView();
+				JOptionPane.showMessageDialog(this, result[1] + ", so nothing was changed.", "Fit Segments", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-			// the pit lane keeps its end and exit: the end of the second piece; but
-			// when the pits went on past the pit end, the first piece becomes the
-			// pit end below, so the pit lane reaches the last pit
-			if (!torcs && layout.endName.equals(pits.getEnd()) && !layout.pastPitEnd)
-				pits.setEnd(piece2.getName());
-			if (layout.endName.equals(pits.getExit()))
-				pits.setExit(piece2.getName());
-			next = piece2.getName();
-			message = String.format("%s was split %.2f m from its start, and %s is its second piece.%n", layout.endName,
-				layout.endInto, piece2.getName());
+			message = result[0];
+			refreshView();
+			layout = pitLayout();
+			if (layout == null || layout.endName == null)
+			{
+				undo.undo();
+				getEditorFrame().documentIsModified = wasModified;
+				refillFields();
+				refreshView();
+				JOptionPane.showMessageDialog(this, "Moving the start of the pits left no pits to fit, so nothing was changed.",
+					"Fit Segments", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 		}
-		int count = layout.pits.size();
-		if (torcs)
+
+		Segment segment = null;
+		boolean spiral = false;
+		if (!layout.endsOnStopSegment())
 		{
-			pits.setEnd(layout.endName);
-			message += "The pit end is now " + layout.endName + ", where the last pit ends.";
-		}
-		else
-		{
-			pits.setStopBuildings(next);
-			pits.setMaxPits(count);
-			message += String.format("The stop buildings segment is now %s, the one after the pits, and max pits is %d.%n"
-				+ "So %s is part of the pits: the game doesn't draw its barrier through them, but cars still hit it.",
-				next, count, layout.endName);
-			// the pit lane goes on to the end of the last pit
-			if (layout.pastPitEnd)
+			segment = data.getSegmentFromName(layout.endName);
+			// before it is split
+			spiral = segment instanceof utils.circuit.Curve
+				&& ((utils.circuit.Curve) segment).getValidRadiusEnd() != ((utils.circuit.Curve) segment).getRadiusStart();
+			String next = layout.nextName;
+			if (Math.abs(layout.endInto - layout.endLength) >= 0.005f)
+			{
+				gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+				Segment piece2 = segment == null ? null : splitter.splitAtFraction(segment, layout.endInto / layout.endLength);
+				if (piece2 == null)
+				{
+					undo.undo();
+					getEditorFrame().documentIsModified = wasModified;
+					JOptionPane.showMessageDialog(this, layout.endName + " couldn't be split: "
+						+ (segment == null ? "it wasn't found" : splitter.getProblem()), "Fit Segments", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				// the pit lane keeps its end and exit: the end of the second piece; but
+				// when the pits went on past the pit end, the first piece becomes the
+				// pit end below, so the pit lane reaches the last pit
+				if (!torcs && layout.endName.equals(pits.getEnd()) && !layout.pastPitEnd)
+					pits.setEnd(piece2.getName());
+				if (layout.endName.equals(pits.getExit()))
+					pits.setExit(piece2.getName());
+				next = piece2.getName();
+				message += String.format("%s was split %.2f m from its start, and %s is its second piece.%n", layout.endName,
+					layout.endInto, piece2.getName());
+			}
+			int count = layout.pits.size();
+			if (torcs)
 			{
 				pits.setEnd(layout.endName);
-				message += String.format("%nThe pits went past the pit end %s, so the pit end is now %s and the pit lane reaches the last pit.",
-					layout.pitEndName, layout.endName);
-				int exit = data.indexOf(data.getSegmentFromName(pits.getExit()));
-				int start = data.indexOf(data.getSegmentFromName(pits.getStart()));
-				int newEnd = data.indexOf(data.getSegmentFromName(layout.endName));
-				int n = data.size();
-				if (exit >= 0 && start >= 0 && newEnd >= 0 && (exit - start + n) % n <= (newEnd - start + n) % n)
-					message += String.format("%nThe pit exit %s is now at or before the pit end: it has to come after it.", pits.getExit());
+				message += "The pit end is now " + layout.endName + ", where the last pit ends.";
+			}
+			else
+			{
+				pits.setStopBuildings(next);
+				pits.setMaxPits(count);
+				message += String.format("The stop buildings segment is now %s, the one after the pits, and max pits is %d.%n"
+					+ "So %s is part of the pits: the game doesn't draw its barrier through them, but cars still hit it.",
+					next, count, layout.endName);
+				// the pit lane goes on to the end of the last pit
+				if (layout.pastPitEnd)
+				{
+					pits.setEnd(layout.endName);
+					message += String.format("%nThe pits went past the pit end %s, so the pit end is now %s and the pit lane reaches the last pit.",
+						layout.pitEndName, layout.endName);
+					int exit = data.indexOf(data.getSegmentFromName(pits.getExit()));
+					int start = data.indexOf(data.getSegmentFromName(pits.getStart()));
+					int newEnd = data.indexOf(data.getSegmentFromName(layout.endName));
+					int n = data.size();
+					if (exit >= 0 && start >= 0 && newEnd >= 0 && (exit - start + n) % n <= (newEnd - start + n) % n)
+						message += String.format("%nThe pit exit %s is now at or before the pit end: it has to come after it.", pits.getExit());
+				}
+			}
+		}
+
+		// Speed Dreams and CSR leave out the barrier along all but the last step of
+		// the stop buildings segment: make it one step long, where the pits end
+		if (!torcs)
+		{
+			refreshView();
+			gui.view3d.GameTrack.PitLayout now = pitLayout();
+			if (now != null && now.endsOnStopSegment() && now.stopSteps > 1)
+			{
+				Segment stop = data.getSegmentFromName(now.stopName);
+				double length = stop == null ? 0 : gui.view.SegmentSplitter.formulaLength(stop);
+				gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+				Segment piece2 = stop == null || !(length > 0) ? null : splitter.splitAtFraction(stop, now.stopStepLength / length);
+				if (piece2 == null)
+				{
+					undo.undo();
+					getEditorFrame().documentIsModified = wasModified;
+					refillFields();
+					refreshView();
+					JOptionPane.showMessageDialog(this, now.stopName + " couldn't be split to make the stop buildings segment one step long: "
+						+ (stop == null ? "it wasn't found" : splitter.getProblem()) + ", so nothing was changed.",
+						"Fit Segments", JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				// the pit lane and its exit keep their end
+				if (now.stopName.equals(pits.getEnd()))
+					pits.setEnd(piece2.getName());
+				if (now.stopName.equals(pits.getExit()))
+					pits.setExit(piece2.getName());
+				message += String.format((message.isEmpty() ? "" : "%n") + "%s was split %.2f m from its start, and %s is its second piece: the stop buildings segment "
+					+ "is one step long, as the game leaves out the barrier along all but its last step.", now.stopName,
+					now.stopStepLength, piece2.getName());
 			}
 		}
 
@@ -700,7 +1045,7 @@ public class PitProperties extends PropertyPanel
 		// (the pieces' shapes are worked out when the track is drawn)
 		refreshView();
 		gui.view3d.GameTrack.PitLayout after = pitLayout();
-		String problem = after == null ? "the pits are gone" : after.endProblem();
+		String problem = after == null ? "the pits are gone" : after.endProblem() != null ? after.endProblem() : after.lineProblem();
 		if (problem != null)
 		{
 			double at = segment == null ? 0 : gui.view.SegmentSplitter.formulaLength(segment);
@@ -708,7 +1053,7 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = wasModified;
 			refillFields();
 			refreshView();
-			JOptionPane.showMessageDialog(this, spiral
+			JOptionPane.showMessageDialog(this, spiral && after != null && after.endProblem() != null
 				? String.format("The last pit ends %.2f m into %s, a spiral the game builds in steps.%n"
 					+ "It can only be split where a step ends, and the nearest is %.2f m from its start, so nothing was changed.%n"
 					+ "Change the pit length or max pits, or the segment, so the last pit ends elsewhere.",
@@ -809,6 +1154,9 @@ public class PitProperties extends PropertyPanel
 
 	private void doGenerate()
 	{
+		// the pit segments have to exist, be in order, and should fit the pits
+		if (!checkSegmentNames(this) || !checkOrder(this) || !checkBuildingsEnd(this))
+			return;
 		// check the tabs first, so nothing is changed when something is missing
 		String problem = generateProblem();
 		if (problem != null)
@@ -965,6 +1313,7 @@ public class PitProperties extends PropertyPanel
 				fromPart(generator.getEntry(), entryPitInfo);
 				fromPart(generator.getPits(), pitsPitInfo);
 				fromPart(generator.getExit(), exitPitInfo);
+				pavePitInfos();
 				return;
 			}
 			SegmentVector data = getEditorFrame().getTrackData().getSegments();
@@ -1002,7 +1351,7 @@ public class PitProperties extends PropertyPanel
 				SegmentSide side = null;
 				SegmentSide nextSide = null;
 				Segment next = pitEntry.getNextShape();
-				if ("left".equals(pits.getSide()))
+				if (onLeft(pits))
 				{
 					side = pitEntry.getLeft();
 					if (next == null)
@@ -1029,7 +1378,7 @@ public class PitProperties extends PropertyPanel
 					entryPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_WIDTH;
 				}
 				// the surface the game uses there: often it is inherited, not set on the segment
-				entryPitInfo.surface = "left".equals(pits.getSide()) ? pitEntry.getValidLeftSideSurface(getEditorFrame()) : pitEntry.getValidRightSideSurface(getEditorFrame());
+				entryPitInfo.surface = onLeft(pits) ? pitEntry.getValidLeftSideSurface(getEditorFrame()) : pitEntry.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -1044,7 +1393,7 @@ public class PitProperties extends PropertyPanel
 			if (pitStart != null)
 			{
 				SegmentSide side = null;
-				if ("left".equals(pits.getSide()))
+				if (onLeft(pits))
 				{
 					side = pitStart.getLeft();
 				}
@@ -1065,7 +1414,7 @@ public class PitProperties extends PropertyPanel
 					pitsPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH;
 				}
 				// the surface the game uses there: often it is inherited, not set on the segment
-				pitsPitInfo.surface = "left".equals(pits.getSide()) ? pitStart.getValidLeftSideSurface(getEditorFrame()) : pitStart.getValidRightSideSurface(getEditorFrame());
+				pitsPitInfo.surface = onLeft(pits) ? pitStart.getValidLeftSideSurface(getEditorFrame()) : pitStart.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -1083,7 +1432,7 @@ public class PitProperties extends PropertyPanel
 				SegmentSide side = null;
 				SegmentSide previousSide = null;
 				Segment previous = pitExit.getPreviousShape();
-				if ("left".equals(pits.getSide()))
+				if (onLeft(pits))
 				{
 					side = pitExit.getLeft();
 					if (previous == null)
@@ -1110,7 +1459,7 @@ public class PitProperties extends PropertyPanel
 					exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
 				}
 				// the surface the game uses there: often it is inherited, not set on the segment
-				exitPitInfo.surface = "left".equals(pits.getSide()) ? pitExit.getValidLeftSideSurface(getEditorFrame()) : pitExit.getValidRightSideSurface(getEditorFrame());
+				exitPitInfo.surface = onLeft(pits) ? pitExit.getValidLeftSideSurface(getEditorFrame()) : pitExit.getValidRightSideSurface(getEditorFrame());
 			}
 			else
 			{
@@ -1120,7 +1469,121 @@ public class PitProperties extends PropertyPanel
 				exitPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_EXIT_BORDER_HEIGHT;
 				exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
 			}
+
+			// the pit segments often only have the sides of the track around them,
+			// which aren't a pit lane's
+			pavePitInfos();
+			if (pitEntry != null)
+			{
+				Segment outside = pitEntry.getPreviousShape();
+				if (outside == null)
+					outside = data.elementAt(data.size() - 1);
+				notTrackBorders(outside, onLeft(pits));
+			}
 		}
+	}
+
+	/**
+	 * @return the names of the segments the pits are in, as the game places them,
+	 *         or null when it places none (a separate pit path, or no pits)
+	 */
+	private java.util.Set<String> pitBoxSegments()
+	{
+		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		if (layout == null)
+			return null;
+		java.util.Set<String> names = new java.util.HashSet<String>();
+		for (gui.view3d.GameTrack.LocalPos pit : layout.pits)
+			names.add(pit.seg.name);
+		if (layout.endName != null)
+			names.add(layout.endName);
+		return names;
+	}
+
+	/**
+	 * @return the pit lane's surface where there are no pits: the pit surface
+	 *         without its pit box markings ("asphalt" for "asphalt-pits"), or else
+	 *         the entry's surface
+	 */
+	private String laneSurface(String boxSurface, String entrySurface)
+	{
+		if (boxSurface != null && boxSurface.endsWith("-pits"))
+		{
+			String plain = boxSurface.substring(0, boxSurface.length() - "-pits".length());
+			if (utils.circuit.RoadTexture.findSurface(getEditorFrame(), plain) != null)
+				return plain;
+		}
+		return entrySurface;
+	}
+
+	/** A pit lane is paved: the default surfaces in place of grass, sand, gravel or dirt */
+	private void pavePitInfos()
+	{
+		if (!roadSurface(entryPitInfo.surface))
+			entryPitInfo.surface = SegmentSide.DEFAULT_PIT_ENTRY_SURFACE;
+		if (!roadSurface(pitsPitInfo.surface))
+			pitsPitInfo.surface = SegmentSide.DEFAULT_PIT_PITS_SURFACE;
+		if (!roadSurface(exitPitInfo.surface))
+			exitPitInfo.surface = SegmentSide.DEFAULT_PIT_EXIT_SURFACE;
+	}
+
+	/**
+	 * @return whether cars can drive on a surface: it grips and rolls like
+	 *         asphalt, concrete or a curb, not like grass (little grip), or sand,
+	 *         gravel or dirt (much rolling resistance); the games' own surfaces
+	 *         differ (TORCS' grass rolls as easily as Speed Dreams' asphalt), so
+	 *         both count; a surface that isn't known is kept
+	 */
+	private boolean roadSurface(String name)
+	{
+		if (name == null || name.isEmpty())
+			return false;
+		Surface surface = utils.circuit.RoadTexture.findSurface(getEditorFrame(), name);
+		if (surface == null)
+			return true;
+		// the games' defaults for a surface without them
+		double friction = Double.isNaN(surface.getFriction()) ? 0.8 : surface.getFriction();
+		double rollingResistance = Double.isNaN(surface.getRollingResistance()) ? 0.001 : surface.getRollingResistance();
+		return friction >= 0.7 && rollingResistance <= 0.06;
+	}
+
+	/**
+	 * The default pit borders in place of the track's own, which the pit segments
+	 * only inherit: the curbs or walls along the track aren't the pit lane's
+	 * driveable entry and exit edge, or the pit wall between the track and the pits.
+	 * The entry and exit get the default pit lane edge, a flat border with a line,
+	 * as do ones that have no width: the side is narrowed by the border's width,
+	 * so the barrier goes on where it was.
+	 *
+	 * @param outside the segment before the pit entry
+	 */
+	private void notTrackBorders(Segment outside, boolean left)
+	{
+		String style = left ? outside.getValidLeftBorderStyle(getEditorFrame()) : outside.getValidRightBorderStyle(getEditorFrame());
+		String surface = left ? outside.getValidLeftBorderSurface(getEditorFrame()) : outside.getValidRightBorderSurface(getEditorFrame());
+		double width = left ? outside.getValidLeftBorderWidth(getEditorFrame()) : outside.getValidRightBorderWidth(getEditorFrame());
+		if (sameBorder(entryPitInfo.borderSurface, entryPitInfo.borderWidth, surface, width) || !(entryPitInfo.borderWidth > 0))
+		{
+			entryPitInfo.borderSurface = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_SURFACE;
+			entryPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_ENTRY_BORDER_WIDTH;
+		}
+		if (sameBorder(exitPitInfo.borderSurface, exitPitInfo.borderWidth, surface, width) || !(exitPitInfo.borderWidth > 0))
+		{
+			exitPitInfo.borderSurface = SegmentSide.DEFAULT_PIT_EXIT_BORDER_SURFACE;
+			exitPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_EXIT_BORDER_WIDTH;
+		}
+		if (style != null && style.equals(pitsPitInfo.borderType) && sameBorder(pitsPitInfo.borderSurface, pitsPitInfo.borderWidth, surface, width))
+		{
+			pitsPitInfo.borderType = SegmentSide.DEFAULT_PIT_PITS_BORDER_STYLE;
+			pitsPitInfo.borderSurface = SegmentSide.DEFAULT_PIT_PITS_BORDER_SURFACE;
+			pitsPitInfo.borderHeight = SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT;
+			pitsPitInfo.borderWidth = SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH;
+		}
+	}
+
+	private static boolean sameBorder(String surface, double width, String trackSurface, double trackWidth)
+	{
+		return surface != null && surface.equals(trackSurface) && !Double.isNaN(width) && Math.abs(width - trackWidth) < 0.001;
 	}
 
 	/**
@@ -1135,7 +1598,7 @@ public class PitProperties extends PropertyPanel
 		Segment exit = data.getSegmentFromName(pits.getExit());
 		if (entry == null || exit == null || data.isEmpty())
 			return 0;
-		boolean left = "left".equals(pits.getSide());
+		boolean left = onLeft(pits);
 		int n = data.size();
 		int from = (data.indexOf(entry) - 1 + n) % n, to = (data.indexOf(exit) + 1) % n;
 		StringBuilder key = new StringBuilder();
@@ -1471,7 +1934,9 @@ public class PitProperties extends PropertyPanel
 		{
 			PitPanel panel = (PitPanel) tabbedPane.getComponentAt(i);
 			String problem = null;
-			if (panel.getSurfaceComboBox().getSelectedItem() == null)
+			if (panel.getSurfaceComboBox().getItemCount() == 0)
+				problem = "the track needs surfaces: tick Default Surfaces on the Surfaces tab, or add some there, then reopen the properties";
+			else if (panel.getSurfaceComboBox().getSelectedItem() == null)
 				problem = "choose a surface";
 			else if (panel.isPitZone)
 			{
@@ -1555,7 +2020,7 @@ public class PitProperties extends PropertyPanel
 		// TORCS doesn't support buildings, max pits or indicator
 		boolean options = getEditorFrame().getGameType().hasPitOptions();
 		// the item, not its position: a version 3 track has fewer choices
-		int index = java.util.Arrays.asList(STYLE_ITEMS).indexOf(getStyleComboBox().getSelectedItem());
+		int index = java.util.Arrays.asList(styleItems()).indexOf(getStyleComboBox().getSelectedItem());
 		int style = getEditorFrame().getPits().getStyle();
 		if (index >= 0)
 		{
@@ -1578,8 +2043,9 @@ public class PitProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();
 
-		if (isDifferent((String) getSideComboBox().getSelectedItem(),
-			getEditorFrame().getPits().getSide(), stringResult))
+		// the first choice is no side
+		String side = getSideComboBox().getSelectedIndex() <= 0 ? null : (String) getSideComboBox().getSelectedItem();
+		if (isDifferent(side, getEditorFrame().getPits().getSide(), stringResult))
 		{
 			getEditorFrame().getPits().setSide(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
@@ -1721,11 +2187,7 @@ public class PitProperties extends PropertyPanel
 			}
 		}
 
-		if (pits.getSide() == null)
-		{
-			JOptionPane.showMessageDialog(this, "No pit side specified", "Pit Side", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
+		// no side is right, as in the games
 
 		if (pitEntry == null)
 		{
@@ -1779,6 +2241,10 @@ public class PitProperties extends PropertyPanel
 			return false;
 		}
 
+		// where the game puts the pits, from the segments as they are: the generator
+		// only changes their sides
+		java.util.Set<String> boxSegments = pitBoxSegments();
+
 		SegmentSide side = null;
 		double borderWidth = 0;
 		double sideWidth = 0;
@@ -1787,7 +2253,7 @@ public class PitProperties extends PropertyPanel
 			nextSegment = data.get(0);
 		if (nextSegment == null)
 			return false;
-		if (pits.getSide().equals("left"))
+		if (onLeft(pits))
 		{
 			nextSegment.getLeft().setBorderWidth(nextSegment.getValidLeftBorderWidth(getEditorFrame()));
 			nextSegment.getLeft().setBorderHeight(nextSegment.getValidLeftBorderHeight(getEditorFrame()));
@@ -1827,6 +2293,11 @@ public class PitProperties extends PropertyPanel
 		}
 
 		PitPanel exitPanel = (PitPanel) tabbedPane.getComponentAt(2);
+		// the exit's barrier is the one after it, so it goes on unchanged: the
+		// segments only get a barrier from the one before them, the pit end
+		SegmentSide after = onLeft(pits) ? nextSegment.getLeft() : nextSegment.getRight();
+		double barrierWidthAfter = after.getBarrierWidth();
+		double barrierHeightAfter = after.getBarrierHeight();
 		int start = data.indexOf(pitExit);
 		int end = data.indexOf(pitEnd);
 		int count;
@@ -1839,7 +2310,7 @@ public class PitProperties extends PropertyPanel
 		{
 			// the exit can be after the start line and the end before it
 			int index = Math.floorMod(start - i, data.size());
-			if (pits.getSide().equals("left"))
+			if (onLeft(pits))
 			{
 				side = data.get(index).getLeft();
 			}
@@ -1849,29 +2320,27 @@ public class PitProperties extends PropertyPanel
 			}
 			// exit border is always "plan" with height 0 (driveable surface)
 			side.setBorderStyle("plan");
-			side.setBorderSurface(exitPanel.getBorderSurfaceComboBox().getSelectedItem().toString());
+			Object exitBorderSurface = exitPanel.getBorderSurfaceComboBox().getSelectedItem();
+			side.setBorderSurface(exitBorderSurface == null ? null : exitBorderSurface.toString());
 			side.setBorderHeight(0);
 			side.setBorderWidth(getDouble(exitPanel.getBorderWidthTextField().getText()));
-			if (i == 0)
-			{
-				side.setSideStartWidth(pits.getValidWidth() * 3);
-				side.setSideEndWidth(borderWidth + sideWidth);
-			}
-			else
-			{
-				side.setSideStartWidth((pits.getValidWidth() * 3) - side.getBorderWidth());
-				side.setSideEndWidth(side.getSideStartWidth());
-			}
 			side.setSideSurface(exitPanel.getSurfaceComboBox().getSelectedItem().toString());
-			side.setBarrierHeight(1);
-			side.setBarrierWidth(0.1);
+			side.setBarrierHeight(barrierHeightAfter);
+			side.setBarrierWidth(barrierWidthAfter);
 		}
+		// from the pit lane's width at the pit end down to the side after the exit,
+		// evenly over all the exit's segments
+		java.util.List<Segment> exitSegments = new java.util.ArrayList<Segment>();
+		for (int i = count - 1; i >= 0; i--)
+			exitSegments.add(data.get(Math.floorMod(start - i, data.size())));
+		taper(exitSegments, onLeft(pits), pits.getValidWidth() * 3, borderWidth + sideWidth,
+			getDouble(exitPanel.getBorderWidthTextField().getText()));
 
 		Segment previousSegment = pitEntry.getPreviousShape();
 		if (previousSegment == null)
 			previousSegment = data.get(data.size() - 1);
 
-		if (pits.getSide().equals("left"))
+		if (onLeft(pits))
 		{
 			previousSegment.getLeft().setBorderWidth(previousSegment.getValidLeftBorderWidth(getEditorFrame()));
 			previousSegment.getLeft().setBorderHeight(previousSegment.getValidLeftBorderHeight(getEditorFrame()));
@@ -1888,7 +2357,7 @@ public class PitProperties extends PropertyPanel
 
 			side = pitEntry.getLeft();
 			borderWidth = previousSegment.getLeft().getBorderWidth();
-			sideWidth = previousSegment.getLeft().getSideStartWidth();
+			sideWidth = previousSegment.getValidLeftSideEndWidth(getEditorFrame());
 		}
 		else
 		{
@@ -1907,7 +2376,7 @@ public class PitProperties extends PropertyPanel
 
 			side = pitEntry.getRight();
 			borderWidth = previousSegment.getRight().getBorderWidth();
-			sideWidth = previousSegment.getRight().getSideStartWidth();
+			sideWidth = previousSegment.getValidRightSideEndWidth(getEditorFrame());
 		}
 
 		PitPanel entryPanel = (PitPanel) tabbedPane.getComponentAt(0);
@@ -1921,7 +2390,7 @@ public class PitProperties extends PropertyPanel
 		for (int i = 0; i < count; i++)
 		{
 			int index = (start + i) % data.size();
-			if (pits.getSide().equals("left"))
+			if (onLeft(pits))
 			{
 				side = data.get(index).getLeft();
 			}
@@ -1931,25 +2400,26 @@ public class PitProperties extends PropertyPanel
 			}
 			// entry border is always "plan" with height 0 (driveable surface)
 			side.setBorderStyle("plan");
-			side.setBorderSurface(entryPanel.getBorderSurfaceComboBox().getSelectedItem().toString());
+			Object entryBorderSurface = entryPanel.getBorderSurfaceComboBox().getSelectedItem();
+			side.setBorderSurface(entryBorderSurface == null ? null : entryBorderSurface.toString());
 			side.setBorderHeight(0);
 			side.setBorderWidth(getDouble(entryPanel.getBorderWidthTextField().getText()));
-			if (i == 0)
-			{
-				side.setSideStartWidth(borderWidth + sideWidth);
-				side.setSideEndWidth(pits.getValidWidth() * 3);
-			}
-			else
-			{
-				side.setSideStartWidth((pits.getValidWidth() * 3) - side.getBorderWidth());
-				side.setSideEndWidth(side.getSideStartWidth());
-			}
 			side.setSideSurface(entryPanel.getSurfaceComboBox().getSelectedItem().toString());
-			side.setBarrierHeight(1);
-			side.setBarrierWidth(0.1);
+			// the barrier goes on from the segment before the entry
+			side.setBarrierHeight(Double.NaN);
+			side.setBarrierWidth(Double.NaN);
 		}
+		// from the side before the entry up to the pit lane's width at the pit start,
+		// evenly over all the entry's segments
+		java.util.List<Segment> entrySegments = new java.util.ArrayList<Segment>();
+		for (int i = 0; i < count; i++)
+			entrySegments.add(data.get((start + i) % data.size()));
+		taper(entrySegments, onLeft(pits), borderWidth + sideWidth, pits.getValidWidth() * 3,
+			getDouble(entryPanel.getBorderWidthTextField().getText()));
 
 		PitPanel pitPanel = (PitPanel) tabbedPane.getComponentAt(1);
+		String boxSurface = pitPanel.getSurfaceComboBox().getSelectedItem().toString();
+		String laneSurface = laneSurface(boxSurface, entryPanel.getSurfaceComboBox().getSelectedItem().toString());
 		start = data.indexOf(pitStart);
 		end = data.indexOf(pitEnd);
 		if (start > end)
@@ -1960,7 +2430,7 @@ public class PitProperties extends PropertyPanel
 		for (int i = 0; i < count; i++)
 		{
 			int index = (start + i) % data.size();
-			if (pits.getSide().equals("left"))
+			if (onLeft(pits))
 			{
 				side = data.get(index).getLeft();
 			}
@@ -1987,9 +2457,13 @@ public class PitProperties extends PropertyPanel
 			}
 			side.setSideStartWidth(width);
 			side.setSideEndWidth(width);
-			side.setSideSurface(pitPanel.getSurfaceComboBox().getSelectedItem().toString());
-			side.setBarrierHeight(1);
-			side.setBarrierWidth(0.1);
+			// the pit boxes' markings only where there are pits
+			Segment segment = data.get(index);
+			side.setSideSurface(boxSegments == null || boxSegments.contains(segment.getName()) ? boxSurface : laneSurface);
+			// the barrier goes on from the track: the game doesn't draw it along the
+			// pit buildings, but cars still hit it there
+			side.setBarrierHeight(Double.NaN);
+			side.setBarrierWidth(Double.NaN);
 		}
 		return true;
 	}

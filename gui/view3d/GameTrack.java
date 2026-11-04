@@ -406,7 +406,8 @@ public class GameTrack
 		Pits pits = editorFrame.getTrackData().getMainTrack().getPits();
 		if (pits == null)
 			return;
-		boolean right = !"left".equals(pits.getSide());
+		// the games take any side but "right" as left, and right when there's none
+		boolean right = pits.getSide() == null || "right".equals(pits.getSide());
 		int side = right ? TR_SIDE_RGT : TR_SIDE_LFT;
 		Seg entry = first(pits.getEntry()), exit = last(pits.getExit());
 		Seg start = first(pits.getStart()), end = last(pits.getEnd());
@@ -678,6 +679,42 @@ public class GameTrack
 		/** Speed Dreams and CSR: the pits go on past the end of the pit end segment, where there's no pit lane */
 		public boolean				pastPitEnd;
 		public String				pitEndName;
+		/**
+		 * Speed Dreams and CSR: how many steps the stop buildings segment has, and
+		 * how long its first is; the game leaves out the barrier along all but the
+		 * last
+		 */
+		public int					stopSteps	= 1;
+		public float				stopStepLength;
+		/** the segment the first pit starts in, at its start */
+		public String				firstName;
+		/** how far the finish line is from the start of the first pit, when the pits go across it; NaN when they don't */
+		public float				toLine	= Float.NaN;
+
+		/**
+		 * @return what's wrong with where the pits start, or null: trackgen starts the
+		 *         pit side's texture again at the finish line, so when the pits go
+		 *         across it, the pit boxes after it only line up with the pits when
+		 *         the line is a whole number of pits from where they start
+		 */
+		public String lineProblem()
+		{
+			if (Float.isNaN(toLine))
+				return null;
+			double rest = toLine % len;
+			if (rest < 0.01 || len - rest < 0.01)
+				return null;
+			return String.format("The finish line is %.2f m from the start of the pits in %s, not a multiple of the pit length (%.2f m): "
+				+ "trackgen starts the pit side's texture again at the line, so the pit boxes after it don't line up with the pits "
+				+ "(start the pits %.2f m earlier or %.2f m later)", toLine, firstName, len, len - rest, rest);
+		}
+
+		/** @return what's wrong with where the pits start and end, or null */
+		public String problem()
+		{
+			String line = lineProblem(), end = endProblem();
+			return line == null ? end : end == null ? line : line + ".<br>" + end;
+		}
 
 		/**
 		 * @return whether the pits fill whole segments: the last pit ends at a
@@ -686,6 +723,12 @@ public class GameTrack
 		 *         buildings segment isn't, so it is the next one
 		 */
 		public boolean endsOnStop()
+		{
+			return endsOnStopSegment() && (torcs || stopSteps <= 1);
+		}
+
+		/** @return whether the last pit ends at the end of the segment before the stop buildings one (the pit end in TORCS) */
+		public boolean endsOnStopSegment()
 		{
 			if (endName == null)
 				return true;
@@ -704,10 +747,19 @@ public class GameTrack
 				return String.format("The last pit ends %.2f m into %s (%.2f m long), not at the end of a segment", endInto, endName, endLength) + past;
 			if (pastPitEnd)
 				return String.format("The last pit ends at the end of %s", endName) + past;
+			if (endsOnStopSegment())
+				return String.format("The stop buildings segment %s has %d steps: the game leaves out the barrier along all but its last, "
+					+ "so it's missing for %.2f m after the pits", stopName, stopSteps, (stopSteps - 1) * stopStepLength);
 			if (torcs)
 				return String.format("The last pit ends at the end of %s, not of the pit end %s", endName, stopName);
-			return String.format("The last pit ends at the end of %s, so the stop buildings segment should be %s, the next one, "
-				+ "not %s: the game draws the stop buildings segment's barrier, through its pits", endName, nextName, stopName);
+			// the game draws the barrier along the last step of the stop buildings segment
+			if (endName.equals(stopName))
+				return String.format("The last pit ends at the end of the stop buildings segment %s, so the game draws %s's barrier %s, "
+					+ "inside the last pit building: the stop buildings segment should be %s, the next one, cut to one step",
+					stopName, stopName, stopSteps > 1 ? String.format("along its last step (%.2f m)", stopStepLength) : "all along it, through its pits",
+					nextName);
+			return String.format("The last pit ends at the end of %s, so the stop buildings segment should be %s, the next one, cut to one step, "
+				+ "not %s: the game leaves out the barrier up to the last step of the stop buildings segment, after the pits", endName, nextName, stopName);
 		}
 	}
 
@@ -742,7 +794,7 @@ public class GameTrack
 			return null;
 		PitLayout layout = new PitLayout();
 		layout.torcs = game == EditorFrame.GameType.TORCS;
-		layout.side = "left".equals(pits.getSide()) ? TR_LFT : TR_RGT;
+		layout.side = pits.getSide() == null || "right".equals(pits.getSide()) ? TR_RGT : TR_LFT;
 		layout.len = (float) (Double.isNaN(pits.getLength()) ? 15.0 : pits.getLength());
 		if (!(layout.len > 0))
 			return null;
@@ -776,6 +828,15 @@ public class GameTrack
 			first = buildingsStart;
 			count = Math.min(nPitSeg, nMaxPits);
 			layout.stopName = buildingsEnd.name;
+			// its steps: the game's buildingsEnd is the last
+			Seg firstStep = buildingsEnd;
+			for (int guard = 0; firstStep.prev != buildingsEnd && buildingsEnd.name != null
+				&& buildingsEnd.name.equals(firstStep.prev.name) && guard < 100000; guard++)
+			{
+				firstStep = firstStep.prev;
+				layout.stopSteps++;
+			}
+			layout.stopStepLength = firstStep.length;
 			// whether the last pit ends past the pit lane, measured from the pit start
 			// by adding up the segments' lengths, as the pits are placed
 			double offset = distance(start, buildingsStart);
@@ -830,6 +891,15 @@ public class GameTrack
 		}
 		if (i == count && count > 0)
 			pitsEnd(layout, curMainSeg, toStart, changeSeg);
+		if (!layout.pits.isEmpty())
+		{
+			LocalPos firstPit = layout.pits.get(0);
+			layout.firstName = firstPit.seg.name;
+			float toLine = trackLength - (firstPit.seg.lgfromstart + firstPit.toStart);
+			// only when the pits start before the line and end after it
+			if (toLine >= 0.01f && toLine <= trackLength - 0.01f && toLine <= layout.pits.size() * layout.len - 0.01f)
+				layout.toLine = toLine;
+		}
 		return layout.pits.isEmpty() ? null : layout;
 	}
 

@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -121,6 +122,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	/** pits shape */
 	XmlObjPits					pits;
+	/** the pit buildings' outlines, in track coordinates, and what they were worked out from */
+	private PitOutlines			pitOutlines;
+	private String				pitOutlinesKey;
 	/** terrain shape */
 	ObjShapeTerrain				terrain;
 
@@ -1787,6 +1791,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			//			if (pits != null)
 			//				pits.draw(g, affineTransform);
 
+			drawPitBuildings(g);
+
 			if (terrain != null && terrainBorderMustBeShown)
 			{
 				terrain.calcShape(editorFrame, boundingRectangle);
@@ -2257,6 +2263,139 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			l.run();
 	}
 
+	/** The pit buildings' footprints, or Speed Dreams' low wall, with the pits' numbers */
+	private static final class PitOutlines
+	{
+		boolean					noBuilding;
+		/** each pit's corners: x, y of the front's start and end, then of the back's end and start */
+		final List<double[]>	pits	= new ArrayList<double[]>();
+	}
+
+	/** how deep trackgen makes the pit buildings */
+	private static final double	PIT_DEEP	= 10.0;
+
+	/** @return where the game puts the pit buildings, as the 3D view draws them; null when there are none */
+	private PitOutlines pitOutlines()
+	{
+		gui.view3d.GameTrack.PitLayout layout;
+		try
+		{
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			layout = track == null ? null : track.pitPlaces();
+		}
+		catch (RuntimeException e)
+		{
+			return null;
+		}
+		if (layout == null)
+			return null;
+		PitOutlines outlines = new PitOutlines();
+		outlines.noBuilding = layout.noBuilding;
+		boolean right = layout.side == gui.view3d.GameTrack.TR_RGT;
+		for (gui.view3d.GameTrack.LocalPos p : layout.pits)
+		{
+			float[] xy = gui.view3d.GameTrack.local2Global(p.seg, p.toStart, p.toRight);
+			float[] n = gui.view3d.GameTrack.sideNormal(p.seg, xy[0], xy[1], layout.side);
+			double x2 = xy[0], y2 = xy[1];
+			double x3 = right ? x2 + layout.len * n[1] : x2 - layout.len * n[1];
+			double y3 = right ? y2 - layout.len * n[0] : y2 + layout.len * n[0];
+			double dx = -PIT_DEEP * n[0], dy = -PIT_DEEP * n[1];
+			outlines.pits.add(new double[] { x2, y2, x3, y3, x3 + dx, y3 + dy, x2 + dx, y2 + dy });
+		}
+		return outlines;
+	}
+
+	/** @return what the pit buildings are worked out from, besides the segments */
+	private String pitOutlinesKey()
+	{
+		utils.circuit.Pits p = editorFrame.getTrackData().getMainTrack().getPits();
+		if (p == null)
+			return "none";
+		return editorFrame.getGameType() + "|" + p.getSide() + "|" + p.getLength() + "|" + p.getStyle() + "|" + p.getMaxPits()
+			+ "|" + p.getEntry() + "|" + p.getStart() + "|" + p.getStartBuildings() + "|" + p.getStopBuildings()
+			+ "|" + p.getEnd() + "|" + p.getExit();
+	}
+
+	/**
+	 * Outline the pit buildings, as the game places them: each pit's front on the
+	 * pit lane and its back behind it, or the low wall of Speed Dreams' "no
+	 * building" pits, with each pit's number when there's room for it.
+	 */
+	private void drawPitBuildings(Graphics g)
+	{
+		if (editorFrame.getTrackData().getMainTrack() == null)
+			return;
+		String key = pitOutlinesKey();
+		if (!key.equals(pitOutlinesKey))
+		{
+			pitOutlinesKey = key;
+			pitOutlines = pitOutlines();
+		}
+		if (pitOutlines == null)
+			return;
+
+		Graphics2D g2 = (Graphics2D) g;
+		Color oldColor = g2.getColor();
+		java.awt.Stroke oldStroke = g2.getStroke();
+		java.awt.Font oldFont = g2.getFont();
+		Color line = new Color(230, 120, 0);
+		Color fill = new Color(230, 120, 0, 50);
+		g2.setStroke(new BasicStroke(pitOutlines.noBuilding ? 2 : 1));
+		g2.setFont(oldFont.deriveFont(java.awt.Font.PLAIN, 10f));
+		java.awt.FontMetrics metrics = g2.getFontMetrics();
+		Point2D.Double p = new Point2D.Double();
+		int number = 1;
+		for (double[] c : pitOutlines.pits)
+		{
+			int[] x = new int[4], y = new int[4];
+			for (int i = 0; i < 4; i++)
+			{
+				p.setLocation(c[2 * i], c[2 * i + 1]);
+				affineTransform.transform(p, p);
+				x[i] = (int) Math.round(p.getX());
+				y[i] = (int) Math.round(p.getY());
+			}
+			if (pitOutlines.noBuilding)
+			{
+				// only the wall, along the pit's front
+				g2.setColor(line);
+				g2.drawLine(x[0], y[0], x[1], y[1]);
+			}
+			else
+			{
+				g2.setColor(fill);
+				g2.fillPolygon(x, y, 4);
+				g2.setColor(line);
+				g2.drawPolygon(x, y, 4);
+			}
+			// the number in the middle of the building, or just behind the wall
+			String text = Integer.toString(number++);
+			double front = Math.hypot(x[1] - x[0], y[1] - y[0]);
+			if (front >= metrics.stringWidth(text) + 4 && front >= metrics.getAscent() + 2)
+			{
+				double cx, cy;
+				if (pitOutlines.noBuilding)
+				{
+					double depth = Math.hypot(x[3] - x[0], y[3] - y[0]);
+					double k = depth > 0 ? (metrics.getAscent() + 2) / depth : 0;
+					cx = (x[0] + x[1]) / 2.0 + k * (x[3] - x[0]);
+					cy = (y[0] + y[1]) / 2.0 + k * (y[3] - y[0]);
+				}
+				else
+				{
+					cx = (x[0] + x[1] + x[2] + x[3]) / 4.0;
+					cy = (y[0] + y[1] + y[2] + y[3]) / 4.0;
+				}
+				g2.setColor(line.darker());
+				g2.drawString(text, (int) Math.round(cx - metrics.stringWidth(text) / 2.0),
+					(int) Math.round(cy + metrics.getAscent() / 2.0 - 1));
+			}
+		}
+		g2.setColor(oldColor);
+		g2.setStroke(oldStroke);
+		g2.setFont(oldFont);
+	}
+
 	public void redrawCircuit()
 	{
 		if (editorFrame.getTrackData() == null)
@@ -2276,6 +2415,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 		editorFrame.getTrackData().calculateSegmentValues();
 		
+		// the segments change, so the pit buildings may move
+		pitOutlinesKey = null;
+
 		int size = track.size();
 		
 		Properties.getInstance().setCurrentA(0);

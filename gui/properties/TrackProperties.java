@@ -180,29 +180,16 @@ public class TrackProperties extends PropertyPanel
 		this.add(getTabbedPane(), null);
 	}
 
+	/**
+	 * The surfaces the track can use: the default ones (the names it starts with,
+	 * when the game's surfaces file wasn't found) only when it includes them, and
+	 * its own
+	 */
 	private void addDefaultSurfaces(Vector<String> surfaceVector)
 	{
-        Vector<Surface> surfaces = getEditorFrame().getTrackData().getSurfaces();
-        for (int i = 0; i < surfaces.size(); i++)
-        {
-			String surface = surfaces.elementAt(i).getName();
-			if (surface != null)
-			{
-				boolean found = false;
-				for (int j = 0; j < surfaceVector.size(); j++)
-				{
-					if (surfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
-					{
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					surfaceVector.add(surface);
-				}
-			}
-        }
+		String[] fallback = surfaceVector.toArray(new String[0]);
+		surfaceVector.clear();
+		surfaceVector.addAll(getEditorFrame().getUsableSurfaceNames(fallback));
 		Collections.sort(surfaceVector);
 	}
 

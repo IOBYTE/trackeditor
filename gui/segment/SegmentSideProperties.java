@@ -173,47 +173,10 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		panel.add(getBarrierSurfaceComboBox(), null);
 	}
 
+	/** the surfaces the track can use: the default ones only when it includes them */
 	private void addDefaultSurfaces(Vector<String> surfaceVector, String[] fallback)
 	{
-		// use the default surfaces if available
-		Vector<Surface> defaultSurfaces = parent.editorFrame.getDefaultSurfaces();
-
-		if (defaultSurfaces.isEmpty())
-		{
-			// add the ones found
-			surfaceVector.addAll(Arrays.asList(fallback));
-		}
-		else
-		{
-			// add the ones that should be there
-	        for (int i = 0; i < defaultSurfaces.size(); i++)
-	        {
-	        	surfaceVector.add(defaultSurfaces.get(i).getName());
-	        }
-		}
-
-        Vector<Surface> surfaces = parent.editorFrame.getTrackData().getSurfaces();
-        for (int i = 0; i < surfaces.size(); i++)
-        {
-			String surface = surfaces.elementAt(i).getName();
-			if (surface != null)
-			{
-				boolean found = false;
-				for (int j = 0; j < surfaceVector.size(); j++)
-				{
-					if (surfaceVector.elementAt(i).equals(surfaces.elementAt(i).getName()))
-					{
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					surfaceVector.add(surface);
-				}
-			}
-        }
-		Collections.sort(surfaceVector);
+		surfaceVector.addAll(parent.editorFrame.getUsableSurfaceNames(fallback));
 	}
 
 	/**
