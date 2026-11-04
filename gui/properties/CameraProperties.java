@@ -298,6 +298,21 @@ public class CameraProperties extends PropertyPanel
 	}
 
 	/**
+	 * Shows the cameras as they are now, after they were changed outside this tab
+	 * (the Pit tab renames segments they use, or undoes it). What was typed here
+	 * and not yet accepted is lost.
+	 */
+	public void reload()
+	{
+		int selected = tabbedPane.getSelectedIndex();
+		tabbedPane.removeAll();
+		for (Camera camera : getEditorFrame().getTrackData().getCameras())
+			tabbedPane.addTab(camera.getName(), null, new CameraPanel(camera), null);
+		if (selected >= 0 && selected < tabbedPane.getTabCount())
+			tabbedPane.setSelectedIndex(selected);
+	}
+
+	/**
 	 * @return what's wrong with the segments a camera refers to: the game finds
 	 *         them by name, stops loading the track when one isn't set, and uses
 	 *         the first segment for a name no segment has

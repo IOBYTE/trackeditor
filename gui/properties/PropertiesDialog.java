@@ -134,6 +134,8 @@ public class PropertiesDialog extends JDialog
 			addTab("Surfaces", getSurfaceProperties());
 			addTab("Objects", getObjectProperties());
 			addTab("Cameras", getCameraProperties());
+			// the Pit tab renames segments, and the cameras that use them follow
+			getPitProperties().setCamerasChanged(() -> getCameraProperties().reload());
 			addTab("Lights", extensions ? getTrackLightProperties() : null);
 			addTab("Sectors", extensions ? getSectorProperties() : null);
 			addTab("Image", getImageProperties());

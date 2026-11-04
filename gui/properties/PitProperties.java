@@ -138,6 +138,8 @@ public class PitProperties extends PropertyPanel
 	private Pits				initialPits			= null;
 	private boolean				initialModified		= false;
 	private JTabbedPane			tabbedPane				= null;
+	// told when the cameras change: renaming segments changes the cameras that use them
+	private Runnable			camerasChanged			= null;
 
 	private PitInfo				entryPitInfo			= new PitInfo("Entry");
 	private PitInfo				pitsPitInfo				= new PitInfo("Pit");
@@ -1611,6 +1613,7 @@ public class PitProperties extends PropertyPanel
 				applyFields();
 			}
 		}
+		renamePitSegments(torcs, done);
 
 		refreshView();
 		gui.view3d.GameTrack.PitLayout layout = pitLayout();
@@ -1621,6 +1624,108 @@ public class PitProperties extends PropertyPanel
 		if (!torcs && layout.pits.size() != lengths.count)
 			return new String[] { done.toString(), String.format("The game would place %d pits, not %d", layout.pits.size(), lengths.count) };
 		return new String[] { done.toString(), null };
+	}
+
+	/** The names the pit segments get, in the order of the dialog's fields */
+	private static final String[]	PIT_SEGMENT_NAMES	= { "pit entry", "pit start", "start buildings", "stop buildings", "pit end",
+		"pit exit" };
+
+	/**
+	 * Names the pit segments the dialog's fields name after what they are (pit
+	 * entry, pit start...); a segment that is two of them keeps the first name.
+	 * Another segment with one of these names gets a new one, and the pits and
+	 * cameras that use a renamed segment follow it.
+	 */
+	private void renamePitSegments(boolean torcs, StringBuilder done)
+	{
+		JTextField[] fields = { entryTextField, startTextField, startBuildingsTextField, stopBuildingsTextField, endTextField,
+			exitTextField };
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		Segment[] segments = new Segment[fields.length];
+		java.util.List<Segment> renamed = new java.util.ArrayList<Segment>();
+		java.util.List<String> wanted = new java.util.ArrayList<String>();
+		for (int i = 0; i < fields.length; i++)
+		{
+			if (torcs && (i == 2 || i == 3))
+				continue;
+			segments[i] = data.getSegmentFromName(fields[i].getText().trim());
+			if (segments[i] != null && !renamed.contains(segments[i]))
+			{
+				renamed.add(segments[i]);
+				wanted.add(PIT_SEGMENT_NAMES[i]);
+			}
+		}
+
+		// the other segments with these names make way
+		for (int i = 0; i < data.size(); i++)
+		{
+			Segment other = data.get(i);
+			if (renamed.contains(other) || !wanted.contains(other.getName()))
+				continue;
+			String old = other.getName();
+			renameSegment(other, newSegmentName(other));
+			done.append(String.format("%s is now called %s, so a pit segment can have its name.%n", old, other.getName()));
+		}
+
+		// through names no segment has, so two pit segments can swap theirs
+		String[] old = new String[renamed.size()];
+		for (int i = 0; i < renamed.size(); i++)
+		{
+			old[i] = renamed.get(i).getName();
+			if (!old[i].equals(wanted.get(i)))
+				renameSegment(renamed.get(i), unusedName("pit segment " + (i + 1)));
+		}
+		for (int i = 0; i < renamed.size(); i++)
+		{
+			if (old[i].equals(wanted.get(i)))
+				continue;
+			renameSegment(renamed.get(i), wanted.get(i));
+			done.append(String.format("%s is now called %s.%n", old[i], wanted.get(i)));
+		}
+
+		for (int i = 0; i < fields.length; i++)
+			if (segments[i] != null)
+				fields[i].setText(segments[i].getName());
+		applyFields();
+	}
+
+	/** Renames a segment, and the pits and cameras that use it follow. */
+	private void renameSegment(Segment segment, String name)
+	{
+		getEditorFrame().getTrackData().renameSegmentReferences(segment.getName(), name);
+		segment.setName(name);
+	}
+
+	/** @return a new name for a segment, as a new straight or curve gets */
+	private String newSegmentName(Segment segment)
+	{
+		utils.Properties properties = utils.Properties.getInstance();
+		while (true)
+		{
+			String name;
+			if (segment instanceof utils.circuit.Curve)
+			{
+				properties.setCurveNameCount(properties.getCurveNameCount() + 1);
+				name = "curve " + properties.getCurveNameCount();
+			}
+			else
+			{
+				properties.setStraightNameCount(properties.getStraightNameCount() + 1);
+				name = "straight " + properties.getStraightNameCount();
+			}
+			if (getEditorFrame().getTrackData().getSegments().getSegmentFromName(name) == null)
+				return name;
+		}
+	}
+
+	/** @return the name, or it with a number after it, that no segment has */
+	private String unusedName(String name)
+	{
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		String unused = name;
+		for (int n = 2; data.getSegmentFromName(unused) != null; n++)
+			unused = name + " " + n;
+		return unused;
 	}
 
 	/**
@@ -1656,6 +1761,7 @@ public class PitProperties extends PropertyPanel
 		boolean wasModified = getEditorFrame().documentIsModified;
 		saveInitialState();
 		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
+		utils.undo.UndoCameras cameras = new utils.undo.UndoCameras(getEditorFrame().getTrackData());
 		String[] result;
 		try
 		{
@@ -1695,15 +1801,32 @@ public class PitProperties extends PropertyPanel
 		updateGenerateButtons();
 		refreshView();
 		getEditorFrame().documentIsModified = true;
+		camerasChanged(cameras);
 		if (!result[0].isEmpty())
 			JOptionPane.showMessageDialog(this, result[0].trim(), "Add Pits", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/** What to do when the cameras change: the Cameras tab shows them again */
+	public void setCamerasChanged(Runnable camerasChanged)
+	{
+		this.camerasChanged = camerasChanged;
+	}
+
+	/** Tells when the cameras aren't as they were */
+	private void camerasChanged(utils.undo.UndoCameras before)
+	{
+		before.captureAfter();
+		if (before.changed() && camerasChanged != null)
+			camerasChanged.run();
 	}
 
 	private void doUndoGenerate()
 	{
 		if (generateCount > 0)
 		{
+			utils.undo.UndoCameras cameras = new utils.undo.UndoCameras(getEditorFrame().getTrackData());
 			Undo.undo();
+			camerasChanged(cameras);
 			refillFields();
 			generateCount--;
 			undoCount++;
@@ -1716,7 +1839,9 @@ public class PitProperties extends PropertyPanel
 	{
 		if (undoCount > 0)
 		{
+			utils.undo.UndoCameras cameras = new utils.undo.UndoCameras(getEditorFrame().getTrackData());
 			Undo.redo();
+			camerasChanged(cameras);
 			refillFields();
 			generateCount++;
 			undoCount--;

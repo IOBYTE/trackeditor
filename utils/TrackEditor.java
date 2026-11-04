@@ -71,12 +71,7 @@ public class TrackEditor
 	 */
 	private static void relaunchForUtf8(String jarPath, String[] args)
 	{
-		String os = System.getProperty("os.name", "").toLowerCase();
-		if (os.startsWith("windows") || os.startsWith("mac"))
-			return;
-
-		String encoding = System.getProperty("sun.jnu.encoding", "");
-		if (encoding.equalsIgnoreCase("UTF-8") || encoding.equalsIgnoreCase("UTF8"))
+		if (utf8FileNames())
 			return;
 
 		// already relaunched and it didn't help: don't loop
@@ -114,9 +109,49 @@ public class TrackEditor
 		}
 	}
 
+	/**
+	 * @return the jar (or class folder) the editor runs from. The jar as it was
+	 *         given to java when it can be found that way: it works even when the
+	 *         file name encoding can't hold the folders' names. Otherwise the code
+	 *         source's location, decoded (a space in it is %20).
+	 */
+	private static File codeSource()
+	{
+		String classPath = System.getProperty("java.class.path", "");
+		File given = new File(classPath);
+		if (!classPath.isEmpty() && !classPath.contains(File.pathSeparator) && given.isFile())
+			return given;
+		java.net.URL location = TrackEditor.class.getProtectionDomain().getCodeSource().getLocation();
+		try
+		{
+			return new File(location.toURI());
+		}
+		catch (Exception e)
+		{
+			try
+			{
+				return new File(java.net.URLDecoder.decode(location.getPath(), "UTF-8"));
+			}
+			catch (Exception e2)
+			{
+				return new File(location.getPath());
+			}
+		}
+	}
+
+	/** @return whether file names are in UTF-8, or don't need to be (Windows, macOS) */
+	private static boolean utf8FileNames()
+	{
+		String os = System.getProperty("os.name", "").toLowerCase();
+		if (os.startsWith("windows") || os.startsWith("mac"))
+			return true;
+		String encoding = System.getProperty("sun.jnu.encoding", "");
+		return encoding.equalsIgnoreCase("UTF-8") || encoding.equalsIgnoreCase("UTF8");
+	}
+
 	public static void main(String[] args)
 	{
-		File jarFile = new File(TrackEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+		File jarFile = codeSource();
 		executableName = jarFile.getName();
 		// ignore the extension (csr-trackeditor.jar -> csr-trackeditor)
 		int dot = executableName.lastIndexOf('.');
@@ -136,10 +171,16 @@ public class TrackEditor
 		} catch (Exception e)
 		{
 		}
+		System.out.println("Track editor    : "+Properties.getInstance().version);
 		System.out.println("Java version    : "+System.getProperty("java.version"));
 		System.out.println("OS              : "+System.getProperty("os.name"));
 		System.out.println("OS architecture : "+System.getProperty("os.arch"));
 		System.out.println("OS version      : "+System.getProperty("os.version"));
+		// relaunching didn't help (no C.UTF-8 locale) or wasn't possible
+		if (!utf8FileNames())
+			System.err.println("File names are in " + System.getProperty("sun.jnu.encoding") + ", not UTF-8, so files and folders"
+				+ " with accented letters in their names can't be opened. Start the editor with a UTF-8 locale,"
+				+ " such as: LC_ALL=C.UTF-8 java -jar trackeditor.jar");
 		// Swing windows must be made and used on the event dispatch thread
 		SwingUtilities.invokeLater(new Runnable()
 		{
