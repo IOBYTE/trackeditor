@@ -455,7 +455,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			textArea.append(problem + ": Fit Segments in the Pit properties moves the start of the pits\n");
+			textArea.append(problem + ": Apply or Ok in the Pit properties offers to move the start of the pits\n");
 	}
 
 
@@ -474,7 +474,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			textArea.append(problem + ": Fit Segments in the Pit properties fits the segments to the pits\n");
+			textArea.append(problem + ": Apply or Ok in the Pit properties offers to fit the segments to the pits\n");
 	}
 
 	/**

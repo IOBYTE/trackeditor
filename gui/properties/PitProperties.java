@@ -107,7 +107,6 @@ public class PitProperties extends PropertyPanel
 	private JButton				applyButton			= null;
 	private JButton				undoButton			= null;
 	private JButton				redoButton			= null;
-	private JButton				fitButton			= null;
 	// a "pit indicator" value the choices don't have, kept as it is
 	private int					otherIndicator		= Integer.MAX_VALUE;
 	private int					generateCount		= 0;
@@ -174,8 +173,6 @@ public class PitProperties extends PropertyPanel
 			addTextField(this, row++, startBuildingsTextField, pits.getStartBuildings(), 120, 200);
 			addLabel(this, row, stopBuildingsLabel, "Stop Buildings", 110);
 			addTextField(this, row++, stopBuildingsTextField, pits.getStopBuildings(), 120, 200);
-			add(getFitButton(), null);
-			getFitButton().setBounds(330, rowY(row - 1), 115, 23);
 		}
 		if (showMaxPitsAndIndicator())
 		{
@@ -184,12 +181,6 @@ public class PitProperties extends PropertyPanel
 		}
 		addLabel(this, row, endLabel, "End", 110);
 		addTextField(this, row++, endTextField, pits.getEnd(), 120, 200);
-		if (!options)
-		{
-			// TORCS: the buildings end with the pit end
-			add(getFitButton(), null);
-			getFitButton().setBounds(330, rowY(row - 1), 115, 23);
-		}
 		addLabel(this, row, exitLabel, "Exit", 110);
 		addTextField(this, row++, exitTextField, pits.getExit(), 120, 200);
 		addLabel(this, row, widthLabel, "Width", 110);
@@ -233,7 +224,6 @@ public class PitProperties extends PropertyPanel
 		getRedoButton().setBounds(startX + buttonWidth * 2 + 20, buttonY, buttonWidth, 25);
 
 		setButtonsVisible(false);
-		updateFitButton();
 	}
 
 	private boolean isVersion3()
@@ -503,8 +493,8 @@ public class PitProperties extends PropertyPanel
 				public void actionPerformed(ActionEvent e)
 				{
 					// adding pits needs pit segments that exist
-					if (addPitsCheckBox.isSelected() && (!checkSegmentNames(PitProperties.this) || !checkOrder(PitProperties.this)
-						|| !checkBuildingsEnd(PitProperties.this)))
+					// whether the pits fit their segments is checked on Apply and Ok
+					if (addPitsCheckBox.isSelected() && (!checkSegmentNames(PitProperties.this) || !checkOrder(PitProperties.this)))
 					{
 						addPitsCheckBox.setSelected(false);
 						return;
@@ -542,38 +532,6 @@ public class PitProperties extends PropertyPanel
 		return applyButton;
 	}
 
-	private JButton getFitButton()
-	{
-		if (fitButton == null)
-		{
-			fitButton = new JButton("Fit Segments");
-			fitButton.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-					fitSegments();
-				}
-			});
-			// its tooltip can be long: keep it up for 5 minutes while the mouse is on it
-			fitButton.addMouseListener(new java.awt.event.MouseAdapter()
-			{
-				private int dismissDelay;
-
-				public void mouseEntered(java.awt.event.MouseEvent e)
-				{
-					dismissDelay = javax.swing.ToolTipManager.sharedInstance().getDismissDelay();
-					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(5 * 60 * 1000);
-				}
-
-				public void mouseExited(java.awt.event.MouseEvent e)
-				{
-					javax.swing.ToolTipManager.sharedInstance().setDismissDelay(dismissDelay);
-				}
-			});
-		}
-		return fitButton;
-	}
-
 	/** @return where the game places the pits, or null */
 	private gui.view3d.GameTrack.PitLayout pitLayout()
 	{
@@ -594,10 +552,6 @@ public class PitProperties extends PropertyPanel
 		return getEditorFrame().getGameType().hasPitOptions() ? "Stop Buildings" : "End";
 	}
 
-	/**
-	 * Shows on the Fit Segments button whether the last pit ends at the end of
-	 * the stop buildings segment (the pit end in TORCS), as the track's pits are.
-	 */
 	/**
 	 * Checks that the pit segments typed in the dialog are segments of the track
 	 * (the game finds them by their exact name), and if some aren't, asks for the
@@ -726,7 +680,7 @@ public class PitProperties extends PropertyPanel
 	}
 
 	/**
-	 * Warns when the last pit doesn't end where it should (see Fit Segments),
+	 * Warns when the last pit doesn't end where it should (see fitSegments),
 	 * with the values typed in the dialog, and offers to fit the segments.
 	 *
 	 * @return true to go on (fitted, or ignored), false when the user cancelled
@@ -852,29 +806,6 @@ public class PitProperties extends PropertyPanel
 		message += String.format("The pits now start at %s, %.2f m (%d pits) before the finish line, so the pit boxes line up across it.%n",
 			start.getName(), before, Math.round(before / len));
 		return new String[] { message, null };
-	}
-
-	private void updateFitButton()
-	{
-		gui.view3d.GameTrack.PitLayout layout = pitLayout();
-		String problem = layout == null ? null : layout.problem();
-		if (problem != null)
-		{
-			boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
-			getFitButton().setForeground(new java.awt.Color(190, 70, 0));
-			getFitButton().setToolTipText("<html>" + problem + ".<br>"
-				+ (layout.lineProblem() == null ? "" : "Fit Segments splits a segment where the pits should start, a whole number of pits<br>"
-					+ "before the finish line, and makes its second piece the " + (torcs ? "pit start" : "start buildings segment") + ".<br>")
-				+ (torcs ? "Fit Segments splits the segment where the last pit ends and makes its first piece the pit end."
-					: "Fit Segments splits the segment where the last pit ends, makes the segment after the pits<br>"
-					+ "the stop buildings segment and sets max pits, so the pits keep their number.") + "</html>");
-		}
-		else
-		{
-			getFitButton().setForeground(javax.swing.UIManager.getColor("Button.foreground"));
-			getFitButton().setToolTipText(layout == null ? "No pits to fit" : "The last pit ends at a segment's end, and the "
-				+ stopLabel() + " segment fits the pits");
-		}
 	}
 
 	/**
@@ -1071,7 +1002,6 @@ public class PitProperties extends PropertyPanel
 		updateGenerateButtons();
 		refreshView();
 		getEditorFrame().documentIsModified = true;
-		updateFitButton();
 		JOptionPane.showMessageDialog(this, message, "Fit Segments", JOptionPane.INFORMATION_MESSAGE);
 	}
 
@@ -1199,7 +1129,6 @@ public class PitProperties extends PropertyPanel
 		updateGenerateButtons();
 		refreshView();
 		getEditorFrame().documentIsModified = true;
-		updateFitButton();
 	}
 
 	private void doUndoGenerate()
@@ -1212,7 +1141,6 @@ public class PitProperties extends PropertyPanel
 			undoCount++;
 			updateGenerateButtons();
 			refreshView();
-			updateFitButton();
 		}
 	}
 
@@ -1226,7 +1154,6 @@ public class PitProperties extends PropertyPanel
 			undoCount--;
 			updateGenerateButtons();
 			refreshView();
-			updateFitButton();
 		}
 	}
 
