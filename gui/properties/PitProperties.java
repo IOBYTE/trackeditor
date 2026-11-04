@@ -636,9 +636,9 @@ public class PitProperties extends PropertyPanel
 
 	/**
 	 * Checks that the pit segments typed in the dialog are segments of the track
-	 * (the game finds them by their exact name), and if some aren't, asks for the
-	 * right ones: for each, a list of the track's segments, the closest name
-	 * picked, or none.
+	 * (the game finds them by their exact name), and that the entry, start, end
+	 * and exit are all set when one is, and if not, asks for the right ones: for
+	 * each, a list of the track's segments, the closest name picked, or none.
 	 *
 	 * @return true when they all exist or were fixed, false when the user cancelled
 	 */
@@ -651,51 +651,48 @@ public class PitProperties extends PropertyPanel
 		String[] labels = options
 			? new String[] { "Entry", "Start", "Start Buildings", "Stop Buildings", "End", "Exit" }
 			: new String[] { "Entry", "Start", "End", "Exit" };
+		// entry, start, end and exit: the game has no pits without all four
+		boolean[] needed = options ? new boolean[] { true, true, false, false, true, true } : new boolean[] { true, true, true, true };
 		SegmentVector data = getEditorFrame().getTrackData().getSegments();
-		String[] names = new String[data.size()];
-		for (int i = 0; i < names.length; i++)
-			names[i] = data.get(i).getName();
+		boolean anySet = false;
+		for (int i = 0; i < fields.length; i++)
+			anySet |= needed[i] && !fields[i].getText().trim().isEmpty();
 
-		JPanel panel = new JPanel(new java.awt.GridBagLayout());
-		java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-		c.insets = new java.awt.Insets(3, 3, 3, 3);
-		c.anchor = java.awt.GridBagConstraints.WEST;
 		java.util.List<JTextField> bad = new java.util.ArrayList<JTextField>();
-		java.util.List<JComboBox<String>> choices = new java.util.ArrayList<JComboBox<String>>();
+		java.util.List<String> problems = new java.util.ArrayList<String>();
+		java.util.List<String> guesses = new java.util.ArrayList<String>();
 		for (int i = 0; i < fields.length; i++)
 		{
 			String name = fields[i].getText().trim();
-			if (name.isEmpty() || data.getSegmentFromName(name) != null)
+			if (name.isEmpty())
+			{
+				if (!needed[i] || !anySet)
+					continue;
+				problems.add(labels[i] + ": missing, the game has no pits without it");
+				// a segment named for it
+				String guess = null;
+				for (int j = 0; j < data.size(); j++)
+					if (("pit " + labels[i]).equalsIgnoreCase(data.get(j).getName()))
+						guess = data.get(j).getName();
+				guesses.add(guess);
+			}
+			else if (data.getSegmentFromName(name) == null)
+			{
+				problems.add(labels[i] + ": \"" + name + "\" isn't a segment");
+				guesses.add(closestSegmentName(name, data));
+			}
+			else
 				continue;
-			JComboBox<String> choice = new JComboBox<String>();
-			choice.addItem("(none)");
-			for (String segment : names)
-				choice.addItem(segment);
-			choice.setSelectedItem(closestName(name, names));
-			c.gridy = bad.size();
-			c.gridx = 0;
-			panel.add(new JLabel(labels[i] + ": \"" + name + "\" isn't a segment"), c);
-			c.gridx = 1;
-			panel.add(choice, c);
 			bad.add(fields[i]);
-			choices.add(choice);
 		}
 		if (bad.isEmpty())
 			return true;
 
-		c.gridy = bad.size();
-		c.gridx = 0;
-		c.gridwidth = 2;
-		panel.add(new JLabel("Pick the segments to use instead:"), c);
-		int answer = JOptionPane.showConfirmDialog(parent, panel, "Pit Segments", JOptionPane.OK_CANCEL_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-		if (answer != JOptionPane.OK_OPTION)
+		String[] picks = pickSegments(parent, "Pit Segments", problems, guesses, data, false);
+		if (picks == null)
 			return false;
-		for (int i = 0; i < bad.size(); i++)
-		{
-			Object picked = choices.get(i).getSelectedItem();
-			bad.get(i).setText(picked == null || "(none)".equals(picked) ? "" : picked.toString());
-		}
+		for (int i = 0; i < picks.length; i++)
+			bad.get(i).setText(picks[i]);
 		return true;
 	}
 
@@ -786,41 +783,6 @@ public class PitProperties extends PropertyPanel
 		// it may not have worked (a spiral), and says why
 		layout = pitLayoutOfDialog();
 		return layout == null || layout.problem() == null;
-	}
-
-	/** @return the segment name most like the name: the fewest letters to change, ignoring case */
-	private static String closestName(String name, String[] names)
-	{
-		String best = "(none)";
-		int bestDistance = Integer.MAX_VALUE;
-		String a = name.toLowerCase();
-		for (String candidate : names)
-		{
-			if (candidate == null)
-				continue;
-			String b = candidate.toLowerCase();
-			int[] previous = new int[b.length() + 1], current = new int[b.length() + 1];
-			for (int j = 0; j <= b.length(); j++)
-				previous[j] = j;
-			for (int i = 1; i <= a.length(); i++)
-			{
-				current[0] = i;
-				for (int j = 1; j <= b.length(); j++)
-					current[j] = Math.min(Math.min(current[j - 1] + 1, previous[j] + 1),
-						previous[j - 1] + (a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1));
-				int[] swap = previous;
-				previous = current;
-				current = swap;
-			}
-			int distance = previous[b.length()];
-			if (distance < bestDistance)
-			{
-				bestDistance = distance;
-				best = candidate;
-			}
-		}
-		// nothing like it: leave it to the user
-		return bestDistance <= Math.max(2, name.length() / 2) ? best : "(none)";
 	}
 
 	/**

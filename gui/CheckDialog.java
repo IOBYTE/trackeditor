@@ -121,6 +121,7 @@ public class CheckDialog extends JDialog
 					checkTrackLights();
 	    		checkGraphic();
 	    		checkPits();
+				checkCameras();
 	    		checkTrack();
 	    		checkHeader();
 				checkUnusedKeys();
@@ -351,6 +352,14 @@ public class CheckDialog extends JDialog
 				textArea.append("Subcategory " + trackData.getHeader().getSubcategory() + " should only be used with the speedway category\n");
 			}
 		}
+	}
+
+	private void checkCameras()
+	{
+		for (utils.circuit.Camera camera : trackData.getCameras())
+			for (String problem : gui.properties.CameraProperties.segmentProblems(trackData.getSegments(), camera.getName(),
+				camera.getSegment(), camera.getFovStart(), camera.getFovEnd()))
+				textArea.append(problem + "\n");
 	}
 
 	private void checkPits()

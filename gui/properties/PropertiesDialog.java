@@ -537,6 +537,9 @@ public class PropertiesDialog extends JDialog
 		}
 		if (!this.imageProperties.checkScale(this, getTabbedPane()))
 			return;
+		// cameras on segments that aren't there
+		if (!this.cameraProperties.checkSegments(this, getTabbedPane()))
+			return;
 		String georeferenceProblem = this.georeferenceProperties == null ? null : this.georeferenceProperties.problem();
 		if (georeferenceProblem != null)
 		{

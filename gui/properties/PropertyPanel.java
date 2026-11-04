@@ -754,4 +754,96 @@ public class PropertyPanel extends JPanel
 		setTextField(textField, value);
 		panel.add(textField);
 	}
+
+	/**
+	 * Asks which segments to use for references to segments that are missing or
+	 * aren't segments (the game finds segments by name): for each, a list of the
+	 * track's segments with a guess picked, or none.
+	 *
+	 * @param problems what's wrong with each reference
+	 * @param guesses the segment to pick for each, or null for none
+	 * @return the segment picked for each ("" for none), an empty array when
+	 *         ignored, or null when cancelled
+	 */
+	public static String[] pickSegments(Component parent, String title, java.util.List<String> problems,
+		java.util.List<String> guesses, utils.SegmentVector segments, boolean canIgnore)
+	{
+		JPanel panel = new JPanel(new java.awt.GridBagLayout());
+		java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+		c.insets = new java.awt.Insets(3, 3, 3, 3);
+		c.anchor = java.awt.GridBagConstraints.WEST;
+		c.gridwidth = 2;
+		panel.add(new JLabel("Pick the segments to use:"), c);
+		c.gridwidth = 1;
+		java.util.List<javax.swing.JComboBox<String>> choices = new java.util.ArrayList<javax.swing.JComboBox<String>>();
+		for (int i = 0; i < problems.size(); i++)
+		{
+			javax.swing.JComboBox<String> choice = new javax.swing.JComboBox<String>();
+			choice.addItem(NO_SEGMENT);
+			for (int j = 0; j < segments.size(); j++)
+				choice.addItem(segments.get(j).getName());
+			choice.setSelectedItem(guesses.get(i) == null ? NO_SEGMENT : guesses.get(i));
+			c.gridy = i + 1;
+			c.gridx = 0;
+			panel.add(new JLabel(problems.get(i)), c);
+			c.gridx = 1;
+			panel.add(choice, c);
+			choices.add(choice);
+		}
+		String[] options = canIgnore ? new String[] { "Ok", "Ignore", "Cancel" } : new String[] { "Ok", "Cancel" };
+		int answer = JOptionPane.showOptionDialog(parent, panel, title, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+			null, options, options[0]);
+		if (answer < 0 || options[answer].equals("Cancel"))
+			return null;
+		if (options[answer].equals("Ignore"))
+			return new String[0];
+		String[] picks = new String[choices.size()];
+		for (int i = 0; i < picks.length; i++)
+		{
+			Object picked = choices.get(i).getSelectedItem();
+			picks[i] = picked == null || NO_SEGMENT.equals(picked) ? "" : picked.toString();
+		}
+		return picks;
+	}
+
+	private static final String	NO_SEGMENT	= "(none)";
+
+	/**
+	 * @return the segment name most like the name: the fewest letters to change,
+	 *         ignoring case; null when none is like it
+	 */
+	public static String closestSegmentName(String name, utils.SegmentVector segments)
+	{
+		String best = null;
+		int bestDistance = Integer.MAX_VALUE;
+		String a = name.toLowerCase();
+		for (int k = 0; k < segments.size(); k++)
+		{
+			String candidate = segments.get(k).getName();
+			if (candidate == null)
+				continue;
+			String b = candidate.toLowerCase();
+			int[] previous = new int[b.length() + 1], current = new int[b.length() + 1];
+			for (int j = 0; j <= b.length(); j++)
+				previous[j] = j;
+			for (int i = 1; i <= a.length(); i++)
+			{
+				current[0] = i;
+				for (int j = 1; j <= b.length(); j++)
+					current[j] = Math.min(Math.min(current[j - 1] + 1, previous[j] + 1),
+						previous[j - 1] + (a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1));
+				int[] swap = previous;
+				previous = current;
+				current = swap;
+			}
+			int distance = previous[b.length()];
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				best = candidate;
+			}
+		}
+		// nothing like it: leave it to the user
+		return bestDistance <= Math.max(2, name.length() / 2) ? best : null;
+	}
 }
