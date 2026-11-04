@@ -267,8 +267,10 @@ public final class TrackData
 	}
 
 	/**
-	 * Makes the pits and cameras that refer to segment oldName refer to newName,
-	 * so renaming a segment doesn't leave them pointing at a name no segment has.
+	 * Makes the pits and cameras (their segment and the segments they're used
+	 * from and to) that refer to segment oldName refer to newName, so renaming a
+	 * segment doesn't leave them pointing at a name no segment has: the game
+	 * would put such a camera on the first segment.
 	 */
 	public void renameSegmentReferences(String oldName, String newName)
 	{
@@ -293,6 +295,10 @@ public final class TrackData
 		{
 			if (oldName.equals(camera.getSegment()))
 				camera.setSegment(newName);
+			if (oldName.equals(camera.getFovStart()))
+				camera.setFovStart(newName);
+			if (oldName.equals(camera.getFovEnd()))
+				camera.setFovEnd(newName);
 		}
 	}
     /**

@@ -104,6 +104,29 @@ public class PitProperties extends PropertyPanel
 	private JComboBox<String>	speedLimitUnitsComboBox	= null;
 	private JCheckBox			addPitsCheckBox		= null;
 	private JLabel				addPitsLabel		= new JLabel();
+	// adding pits using lengths: the segments are split or resized to fit them
+	private JCheckBox			lengthsCheckBox		= null;
+	private JLabel				entryLengthLabel	= new JLabel();
+	private JTextField			entryLengthTextField	= new JTextField();
+	private JLabel				entryLengthUnitsLabel	= new JLabel();
+	private JLabel				pitsOffsetLabel		= new JLabel();
+	private JComboBox<String>	pitsOffsetComboBox	= null;
+	private JTextField			pitsOffsetTextField	= new JTextField();
+	private JLabel				pitsOffsetUnitsLabel	= new JLabel();
+	private JLabel				pitsLengthLabel		= new JLabel();
+	private JTextField			pitsLengthTextField	= new JTextField();
+	private JLabel				pitsLengthUnitsLabel	= new JLabel();
+	private JLabel				buildingsOffsetLabel	= new JLabel();
+	private JTextField			buildingsOffsetTextField	= new JTextField();
+	private JLabel				buildingsOffsetUnitsLabel	= new JLabel();
+	private JLabel				pitCountLabel		= new JLabel();
+	private JTextField			pitCountTextField	= new JTextField();
+	private JLabel				pitCountUnitsLabel	= new JLabel();
+	private JLabel				exitLengthLabel		= new JLabel();
+	private JTextField			exitLengthTextField	= new JTextField();
+	private JLabel				exitLengthUnitsLabel	= new JLabel();
+	private static final String	CENTER_ON_LINE		= "center on start line";
+	private static final String	OFFSET_FROM_LINE	= "offset from start line";
 	private JButton				applyButton			= null;
 	private JButton				undoButton			= null;
 	private JButton				redoButton			= null;
@@ -206,8 +229,63 @@ public class PitProperties extends PropertyPanel
 
 		addLabel(this, row, addPitsLabel, "Add Pits", 110);
 		add(getAddPitsCheckBox(), null);
-		getAddPitsCheckBox().setBounds(120, rowY(row) + 2, 20, 20);
+		getAddPitsCheckBox().setBounds(116, rowY(row) + 2, 185, 20);
+		add(getLengthsCheckBox(), null);
+		getLengthsCheckBox().setBounds(305, rowY(row) + 2, 150, 20);
 		row++;
+		// the lengths, in the order of the zones: entry, pits, buildings, exit
+		addLabel(this, row, entryLengthLabel, "Entry Length", 110);
+		addTextField(this, row, entryLengthTextField, "", 120, 125);
+		addLabel(this, row++, entryLengthUnitsLabel, "m", 250, 30);
+		entryLengthTextField.setToolTipText("Length of the pit entry, before the pits");
+		addLabel(this, row, pitsOffsetLabel, "Pits Offset", 110);
+		add(getPitsOffsetComboBox(), null);
+		getPitsOffsetComboBox().setBounds(120, rowY(row), 175, 23);
+		addTextField(this, row, pitsOffsetTextField, "", 300, 80);
+		addLabel(this, row++, pitsOffsetUnitsLabel, "m", 385, 30);
+		pitsOffsetTextField.setToolTipText("Where the pits start from the start line: less than 0 is before it");
+		addLabel(this, row, pitsLengthLabel, "Pits Length", 110);
+		addTextField(this, row, pitsLengthTextField, "", 120, 125);
+		addLabel(this, row++, pitsLengthUnitsLabel, "m", 250, 200);
+		pitsLengthTextField.setToolTipText("Length of the pits, from the pit start to the pit end");
+		if (options)
+		{
+			addLabel(this, row, buildingsOffsetLabel, "Buildings Offset", 110);
+			addTextField(this, row, buildingsOffsetTextField, "", 120, 125);
+			addLabel(this, row++, buildingsOffsetUnitsLabel, "m from pit start", 250, 150);
+			buildingsOffsetTextField.setToolTipText("Where the pit buildings start, from the pit start");
+			addLabel(this, row, pitCountLabel, "Number of Pits", 110);
+			addTextField(this, row, pitCountTextField, "", 120, 125);
+			addLabel(this, row++, pitCountUnitsLabel, "", 250, 200);
+			pitCountTextField.setToolTipText("How many pits: the buildings are this many pit lengths long");
+		}
+		addLabel(this, row, exitLengthLabel, "Exit Length", 110);
+		addTextField(this, row, exitLengthTextField, "", 120, 125);
+		addLabel(this, row++, exitLengthUnitsLabel, "m", 250, 30);
+		exitLengthTextField.setToolTipText("Length of the pit exit, after the pits");
+		fillLengthFields();
+		javax.swing.event.DocumentListener update = new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateLengthReadOuts();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateLengthReadOuts();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateLengthReadOuts();
+			}
+		};
+		pitsLengthTextField.getDocument().addDocumentListener(update);
+		pitCountTextField.getDocument().addDocumentListener(update);
+		lengthTextField.getDocument().addDocumentListener(update);
+		updateLengthReadOuts();
+		setLengthsEnabled(false);
 
 		add(getTabbedPane(), null);
 		getTabbedPane().setLocation(10, rowY(row));
@@ -487,7 +565,7 @@ public class PitProperties extends PropertyPanel
 	{
 		if (addPitsCheckBox == null)
 		{
-			addPitsCheckBox = new JCheckBox();
+			addPitsCheckBox = new JCheckBox("using existing segments");
 			addPitsCheckBox.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -500,7 +578,11 @@ public class PitProperties extends PropertyPanel
 						return;
 					}
 					if (addPitsCheckBox.isSelected())
+					{
+						getLengthsCheckBox().setSelected(false);
+						setLengthsEnabled(false);
 						addTabs();
+					}
 					setButtonsVisible(addPitsCheckBox.isSelected());
 				}
 			});
@@ -1084,6 +1166,11 @@ public class PitProperties extends PropertyPanel
 
 	private void doGenerate()
 	{
+		if (getLengthsCheckBox().isSelected())
+		{
+			doGenerateFromLengths();
+			return;
+		}
 		// the pit segments have to exist, be in order, and should fit the pits
 		if (!checkSegmentNames(this) || !checkOrder(this) || !checkBuildingsEnd(this))
 			return;
@@ -1129,6 +1216,525 @@ public class PitProperties extends PropertyPanel
 		updateGenerateButtons();
 		refreshView();
 		getEditorFrame().documentIsModified = true;
+	}
+
+	private JCheckBox getLengthsCheckBox()
+	{
+		if (lengthsCheckBox == null)
+		{
+			lengthsCheckBox = new JCheckBox("using lengths");
+			lengthsCheckBox.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					// the pit segments are made on Apply, so they needn't exist yet
+					if (lengthsCheckBox.isSelected())
+					{
+						getAddPitsCheckBox().setSelected(false);
+						addTabs();
+					}
+					setLengthsEnabled(lengthsCheckBox.isSelected());
+					setButtonsVisible(lengthsCheckBox.isSelected());
+				}
+			});
+		}
+		return lengthsCheckBox;
+	}
+
+	private JComboBox<String> getPitsOffsetComboBox()
+	{
+		if (pitsOffsetComboBox == null)
+		{
+			pitsOffsetComboBox = new JComboBox<String>(new String[] { CENTER_ON_LINE, OFFSET_FROM_LINE });
+			pitsOffsetComboBox.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					// the offset starts from the centered one
+					pitsOffsetTextField.setEditable(!centered());
+					updateLengthReadOuts();
+				}
+			});
+		}
+		return pitsOffsetComboBox;
+	}
+
+	private boolean centered()
+	{
+		return CENTER_ON_LINE.equals(getPitsOffsetComboBox().getSelectedItem());
+	}
+
+	/** The lengths can only be changed when adding pits using lengths */
+	private void setLengthsEnabled(boolean enabled)
+	{
+		JTextField[] fields = { entryLengthTextField, pitsOffsetTextField, pitsLengthTextField, buildingsOffsetTextField,
+			pitCountTextField, exitLengthTextField };
+		for (JTextField field : fields)
+			field.setEnabled(enabled);
+		getPitsOffsetComboBox().setEnabled(enabled);
+		pitsOffsetTextField.setEditable(!centered());
+	}
+
+	/** @return the length of a pit: the dialog's, or the default */
+	private double pitLength()
+	{
+		double length = getDouble(lengthTextField.getText());
+		return length > 0 ? length : 15.0;
+	}
+
+	/** @return the value without trailing zeros, to the cm */
+	private static String meters(double value)
+	{
+		String text = String.format(java.util.Locale.US, "%.2f", value);
+		if (text.contains("."))
+			text = text.replaceAll("0+$", "").replaceAll("\\.$", "");
+		return "-0".equals(text) ? "0" : text;
+	}
+
+	/** Shows the centered offset, and how long the buildings are or how many pits fit */
+	private void updateLengthReadOuts()
+	{
+		double pitsLength = getDouble(pitsLengthTextField.getText());
+		if (centered())
+			pitsOffsetTextField.setText(pitsLength > 0 ? meters(-pitsLength / 2) : "");
+		if (getEditorFrame().getGameType().hasPitOptions())
+		{
+			int count = getInteger(pitCountTextField.getText());
+			pitCountUnitsLabel.setText(count != Integer.MAX_VALUE && count > 0 ? "buildings " + meters(count * pitLength()) + " m" : "");
+			pitsLengthUnitsLabel.setText("m");
+		}
+		else
+		{
+			// TORCS fills the pits with as many pits as fit
+			int count = pitsLength > 0 ? (int) Math.floor(pitsLength / pitLength() + 1e-6) : 0;
+			pitsLengthUnitsLabel.setText(pitsLength > 0 ? "m (" + count + (count == 1 ? " pit)" : " pits)") : "m");
+		}
+	}
+
+	/** @return where each segment starts along the track from the start line, and at the end the track's length */
+	private static double[] positions(SegmentVector data)
+	{
+		double[] pos = new double[data.size() + 1];
+		for (int i = 0; i < data.size(); i++)
+			pos[i + 1] = pos[i] + gui.view.SegmentSplitter.formulaLength(data.get(i));
+		return pos;
+	}
+
+	/** @return the distance along the track, between 0 and its length */
+	private static double wrap(double at, double trackLength)
+	{
+		double wrapped = (at % trackLength + trackLength) % trackLength;
+		return wrapped > trackLength - 0.005 ? 0 : wrapped;
+	}
+
+	/**
+	 * Fills the lengths from the track's pits, when it has them, otherwise with
+	 * defaults: the pits centered on the start line.
+	 */
+	private void fillLengthFields()
+	{
+		Pits pits = getEditorFrame().getPits();
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		double entryLength = 120, offset = Double.NaN, pitsLength = 300, buildingsOffset = 15, exitLength = 120;
+		int count = 10;
+		double[] pos = positions(data);
+		double trackLength = pos[data.size()];
+		int start = indexOf(data, pits.getStart()), end = indexOf(data, pits.getEnd());
+		if (trackLength > 0 && start >= 0 && end >= 0)
+		{
+			double from = pos[start], to = pos[end + 1];
+			pitsLength = wrap(to - from, trackLength);
+			offset = from > trackLength / 2 ? from - trackLength : from;
+			int entry = indexOf(data, pits.getEntry()), exit = indexOf(data, pits.getExit());
+			if (entry >= 0)
+				entryLength = wrap(from - pos[entry], trackLength);
+			if (exit >= 0)
+				exitLength = wrap(pos[exit + 1] - to, trackLength);
+			int startBuildings = indexOf(data, pits.getStartBuildings());
+			if (startBuildings >= 0)
+				buildingsOffset = wrap(pos[startBuildings] - from, trackLength);
+			if (buildingsOffset >= pitsLength)
+				buildingsOffset = 0;
+			int stopBuildings = indexOf(data, pits.getStopBuildings());
+			if (pits.getMaxPits() != Integer.MAX_VALUE)
+				count = pits.getMaxPits();
+			else if (stopBuildings >= 0)
+				count = (int) Math.floor(wrap(pos[stopBuildings] - from - buildingsOffset, trackLength) / pitLength() + 1e-6);
+		}
+		entryLengthTextField.setText(meters(entryLength));
+		pitsLengthTextField.setText(meters(pitsLength));
+		buildingsOffsetTextField.setText(meters(buildingsOffset));
+		pitCountTextField.setText(count + "");
+		exitLengthTextField.setText(meters(exitLength));
+		boolean center = Double.isNaN(offset) || Math.abs(offset + pitsLength / 2) < 0.01;
+		getPitsOffsetComboBox().setSelectedItem(center ? CENTER_ON_LINE : OFFSET_FROM_LINE);
+		if (!center)
+			pitsOffsetTextField.setText(meters(offset));
+	}
+
+	private static int indexOf(SegmentVector data, String name)
+	{
+		if (name == null || name.trim().isEmpty())
+			return -1;
+		Segment segment = data.getSegmentFromName(name.trim());
+		return segment == null ? -1 : data.indexOf(segment);
+	}
+
+	/** Where the pit segments go, along the track from the start line */
+	private static class PitLengths
+	{
+		double	entryStart, pitStart, buildingsStart, buildingsEnd, pitEnd, exitEnd;
+		int		count;
+	}
+
+	/** @return the lengths in the dialog, or null when one is wrong, after saying which */
+	private PitLengths readLengths(boolean torcs, double trackLength)
+	{
+		double pitLength = pitLength();
+		double entry = getDouble(entryLengthTextField.getText());
+		double pitsLength = getDouble(pitsLengthTextField.getText());
+		double offset = centered() ? -pitsLength / 2 : getDouble(pitsOffsetTextField.getText());
+		double exit = getDouble(exitLengthTextField.getText());
+		double buildings = torcs ? 0 : getDouble(buildingsOffsetTextField.getText());
+		int count = torcs ? (pitsLength > 0 ? (int) Math.floor(pitsLength / pitLength + 1e-6) : 0) : getInteger(pitCountTextField.getText());
+		String problem = null;
+		if (!(entry > 0))
+			problem = "Entry Length has to be more than 0";
+		else if (!(pitsLength > 0))
+			problem = "Pits Length has to be more than 0";
+		else if (Double.isNaN(offset))
+			problem = "Pits Offset has to be a number";
+		else if (!(exit > 0))
+			problem = "Exit Length has to be more than 0";
+		else if (!(buildings >= 0))
+			problem = "Buildings Offset can't be less than 0";
+		else if (torcs && count < 1)
+			problem = "Pits Length has to be at least one pit long (" + meters(pitLength) + " m)";
+		else if (torcs && pitsLength - count * pitLength > 0.01)
+			problem = String.format("TORCS fills the pits with pits from the pit start to the pit end, so Pits Length has to be "
+				+ "a whole number of pits: %s or %s m", meters(count * pitLength), meters((count + 1) * pitLength));
+		else if (count == Integer.MAX_VALUE || count < 1)
+			problem = "Number of Pits has to be 1 or more";
+		else if (entry + pitsLength + exit > trackLength - 0.01)
+			problem = String.format("The entry, pits and exit are %s m long, but the track is only %s m long",
+				meters(entry + pitsLength + exit), meters(trackLength));
+		else if (!torcs && buildings + count * pitLength > pitsLength - 0.01)
+			problem = String.format("The buildings end %s m from the pit start (Buildings Offset and %d pits of %s m), "
+				+ "but they have to end before the pits do, at %s m: the stop buildings segment comes after them, in the pits",
+				meters(buildings + count * pitLength), count, meters(pitLength), meters(pitsLength));
+		if (problem != null)
+		{
+			JOptionPane.showMessageDialog(this, problem + ".", "Add Pits", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		PitLengths lengths = new PitLengths();
+		lengths.count = count;
+		lengths.entryStart = wrap(offset - entry, trackLength);
+		lengths.pitStart = wrap(offset, trackLength);
+		lengths.buildingsStart = wrap(offset + buildings, trackLength);
+		lengths.buildingsEnd = wrap(offset + buildings + count * pitLength, trackLength);
+		lengths.pitEnd = wrap(offset + pitsLength, trackLength);
+		lengths.exitEnd = wrap(offset + pitsLength + exit, trackLength);
+		return lengths;
+	}
+
+	/**
+	 * Trackgen starts the pit side's texture again at the start line, so when the
+	 * pits go across it, the pit boxes after it only line up when it's a whole
+	 * number of pits from the first pit. Offers to move the buildings (the pits in
+	 * TORCS) so it is.
+	 *
+	 * @return false when the user cancelled
+	 */
+	private boolean checkLengthsLine(PitLengths lengths, boolean torcs, double trackLength)
+	{
+		double pitLength = pitLength();
+		// the first pit, and how far the start line is from it
+		double first = torcs ? lengths.pitStart : lengths.buildingsStart;
+		double toLine = first == 0 ? 0 : trackLength - first;
+		double rest = toLine % pitLength;
+		if (toLine >= lengths.count * pitLength - 0.005 || rest < 0.005 || pitLength - rest < 0.005)
+			return true;
+
+		// earlier or later, whichever moves them less and still fits
+		double earlier = pitLength - rest, later = rest;
+		double pitsLength = getDouble(pitsLengthTextField.getText());
+		double offset = centered() ? -pitsLength / 2 : getDouble(pitsOffsetTextField.getText());
+		double buildings = torcs ? 0 : getDouble(buildingsOffsetTextField.getText());
+		boolean canEarlier = torcs || buildings - earlier >= -0.005;
+		boolean canLater = torcs || buildings + later + lengths.count * pitLength <= pitsLength - 0.01;
+		double shift = canLater && (later <= earlier || !canEarlier) ? later : canEarlier ? -earlier : Double.NaN;
+
+		String message = String.format("The start line is %s m into the pits (%d pits and %s m): trackgen starts the pit box "
+			+ "texture again at the line, so the boxes after it won't line up with the pits.", meters(toLine),
+			(int) Math.floor(toLine / pitLength), meters(rest));
+		String[] options;
+		if (Double.isNaN(shift))
+		{
+			message += "<br><br>Change the lengths so the line is a whole number of pits from the first pit, or Ignore to go on.";
+			options = new String[] { "Ignore", "Cancel" };
+		}
+		else
+		{
+			message += String.format("<br><br>Line Up moves the %s %s m %s, so %s.", torcs ? "pits" : "buildings",
+				meters(Math.abs(shift)), shift < 0 ? "earlier" : "later",
+				torcs ? "Pits Offset becomes " + meters(offset + shift) + " m" : "Buildings Offset becomes " + meters(buildings + shift) + " m");
+			options = new String[] { "Line Up", "Ignore", "Cancel" };
+		}
+		int answer = JOptionPane.showOptionDialog(this, "<html><body style='width: 400px'>" + message + "</body></html>",
+			"Pit Boxes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		if (answer < 0 || options[answer].equals("Cancel"))
+			return false;
+		if (options[answer].equals("Ignore"))
+			return true;
+		if (torcs)
+		{
+			getPitsOffsetComboBox().setSelectedItem(OFFSET_FROM_LINE);
+			pitsOffsetTextField.setText(meters(offset + shift));
+		}
+		else
+			buildingsOffsetTextField.setText(meters(buildings + shift));
+		return true;
+	}
+
+	/**
+	 * Makes a segment start where given: uses a segment boundary that's already
+	 * there, or moves one between two straights when it's near (so the track still
+	 * closes), or splits the segment there.
+	 *
+	 * @param keep where boundaries are wanted: these aren't moved
+	 * @return what was done, or null when nothing, and a problem or null
+	 */
+	private String[] placeBoundary(double at, java.util.List<Double> keep)
+	{
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		int n = data.size();
+		double[] pos = positions(data);
+		for (int i = 0; i <= n; i++)
+			if (Math.abs(pos[i] - at) < 0.01)
+				return new String[] { null, null };
+
+		int i = 0;
+		while (i < n - 1 && pos[i + 1] <= at)
+			i++;
+		// the nearer end of the segment first; not the start line
+		int[] ends = at - pos[i] <= pos[i + 1] - at ? new int[] { i, i + 1 } : new int[] { i + 1, i };
+		for (int b : ends)
+		{
+			if (b == 0 || b == n || Math.abs(pos[b] - at) > pitLength() / 2)
+				continue;
+			boolean kept = false;
+			for (double k : keep)
+				kept |= Math.abs(pos[b] - k) < 0.01;
+			Segment before = data.get(b - 1), after = data.get(b);
+			if (kept || before instanceof utils.circuit.Curve || after instanceof utils.circuit.Curve)
+				continue;
+			double shift = at - pos[b];
+			double lengthBefore = pos[b] - pos[b - 1] + shift, lengthAfter = pos[b + 1] - pos[b] - shift;
+			if (lengthBefore < 1 || lengthAfter < 1)
+				continue;
+			before.setLength(lengthBefore);
+			after.setLength(lengthAfter);
+			getEditorFrame().getTrackData().calculateSegmentValues();
+			return new String[] { String.format("The end of %s was moved %s m %s, so it's %s m long and %s %s m.", before.getName(),
+				meters(Math.abs(shift)), shift < 0 ? "earlier" : "later", meters(lengthBefore), after.getName(), meters(lengthAfter)), null };
+		}
+
+		Segment segment = data.get(i);
+		String name = segment.getName();
+		gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+		Segment piece2 = splitter.splitAtFraction(segment, (at - pos[i]) / (pos[i + 1] - pos[i]));
+		if (piece2 == null)
+			return new String[] { null, String.format("%s couldn't be split %s m from its start: %s", name, meters(at - pos[i]),
+				splitter.getProblem()) };
+		double actual = pos[i] + gui.view.SegmentSplitter.formulaLength(segment);
+		if (Math.abs(actual - at) >= 0.01)
+			return new String[] { null, String.format("%s is a spiral, which the game builds in steps, so it can only be split "
+				+ "where a step ends: %s m from where it's needed. Change the lengths so the pits' segments start elsewhere", name,
+				meters(Math.abs(actual - at))) };
+		return new String[] { String.format("%s was split %s m from its start, and %s is its second piece.", name,
+			meters(at - pos[i]), piece2.getName()), null };
+	}
+
+	/** @return the name of the segment that starts there, or ends there, or null */
+	private String segmentAt(double at, boolean starts)
+	{
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		int n = data.size();
+		double[] pos = positions(data);
+		for (int i = 0; i < n; i++)
+		{
+			double boundary = starts ? pos[i] : pos[i + 1];
+			if (Math.abs(boundary - at) < 0.01 || Math.abs(boundary - at - pos[n]) < 0.01 || Math.abs(boundary + pos[n] - at) < 0.01)
+				return data.get(i).getName();
+		}
+		return null;
+	}
+
+	/**
+	 * Makes the pit segments from the lengths: makes segments start where the
+	 * pits' zones do, and fills in the pit segments' names.
+	 *
+	 * @return what was done, and a problem or null
+	 */
+	private String[] placePitSegments(PitLengths lengths, boolean torcs)
+	{
+		StringBuilder done = new StringBuilder();
+		java.util.List<Double> keep = new java.util.ArrayList<Double>(java.util.Arrays.asList(lengths.entryStart, lengths.pitStart,
+			lengths.pitEnd, lengths.exitEnd));
+		if (!torcs)
+		{
+			keep.add(lengths.buildingsStart);
+			keep.add(lengths.buildingsEnd);
+		}
+		for (double at : keep)
+		{
+			String[] result = placeBoundary(at, keep);
+			if (result[1] != null)
+				return new String[] { done.toString(), result[1] };
+			if (result[0] != null)
+				done.append(result[0]).append("\n");
+		}
+
+		String[] names = { segmentAt(lengths.entryStart, true), segmentAt(lengths.pitStart, true),
+			torcs ? "" : segmentAt(lengths.buildingsStart, true), torcs ? "" : segmentAt(lengths.buildingsEnd, true),
+			segmentAt(lengths.pitEnd, false), segmentAt(lengths.exitEnd, false) };
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		for (String name : names)
+		{
+			if (name == null)
+				return new String[] { done.toString(), "A pit segment wasn't where it should be" };
+			int uses = 0;
+			for (int i = 0; i < data.size(); i++)
+				if (name.equals(data.get(i).getName()))
+					uses++;
+			if (uses > 1)
+				return new String[] { done.toString(), "More than one segment is called " + name
+					+ ", so the game can't tell which is a pit segment: rename one of them" };
+		}
+		entryTextField.setText(names[0]);
+		startTextField.setText(names[1]);
+		if (!torcs)
+		{
+			startBuildingsTextField.setText(names[2]);
+			stopBuildingsTextField.setText(names[3]);
+			if (showMaxPitsAndIndicator())
+				maxPitsTextField.setText(lengths.count + "");
+		}
+		endTextField.setText(names[4]);
+		exitTextField.setText(names[5]);
+		applyFields();
+
+		// Speed Dreams and CSR leave out the barrier along all but the last step of
+		// the stop buildings segment: make it one step long, where the pits end
+		if (!torcs)
+		{
+			refreshView();
+			gui.view3d.GameTrack.PitLayout now = pitLayout();
+			if (now != null && now.endsOnStopSegment() && now.stopSteps > 1)
+			{
+				Segment stop = data.getSegmentFromName(now.stopName);
+				double length = stop == null ? 0 : gui.view.SegmentSplitter.formulaLength(stop);
+				gui.view.SegmentSplitter splitter = new gui.view.SegmentSplitter(getEditorFrame());
+				Segment piece2 = stop == null || !(length > 0) ? null : splitter.splitAtFraction(stop, now.stopStepLength / length);
+				if (piece2 == null)
+					return new String[] { done.toString(), now.stopName + " couldn't be split to make the stop buildings segment one step long: "
+						+ (stop == null ? "it wasn't found" : splitter.getProblem()) };
+				// the pit lane keeps its end
+				if (now.stopName.equals(endTextField.getText().trim()))
+					endTextField.setText(piece2.getName());
+				done.append(String.format("%s was split %s m from its start, and %s is its second piece: the stop buildings segment "
+					+ "is one step long, as the game leaves out the barrier along all but its last step.%n", now.stopName,
+					meters(now.stopStepLength), piece2.getName()));
+				applyFields();
+			}
+		}
+
+		refreshView();
+		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		if (layout == null || layout.pits.isEmpty())
+			return new String[] { done.toString(), "The game wouldn't place any pits: check the Type and Side" };
+		if (layout.endProblem() != null)
+			return new String[] { done.toString(), layout.endProblem() };
+		if (!torcs && layout.pits.size() != lengths.count)
+			return new String[] { done.toString(), String.format("The game would place %d pits, not %d", layout.pits.size(), lengths.count) };
+		return new String[] { done.toString(), null };
+	}
+
+	/**
+	 * Adds the pits using lengths: makes the pit segments, then adds the pits to
+	 * them as Add Pits using existing segments does, as one undo step.
+	 */
+	private void doGenerateFromLengths()
+	{
+		boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
+		double trackLength = positions(getEditorFrame().getTrackData().getSegments())[getEditorFrame().getTrackData().getSegments().size()];
+		if (!(trackLength > 0))
+			return;
+		PitLengths lengths = readLengths(torcs, trackLength);
+		if (lengths == null || !checkLengthsLine(lengths, torcs, trackLength))
+			return;
+		// lined up: read them again
+		lengths = readLengths(torcs, trackLength);
+		if (lengths == null)
+			return;
+		// check the tabs first, so nothing is changed when something is missing
+		String problem = generateProblem();
+		if (problem != null)
+		{
+			JOptionPane.showMessageDialog(this, problem, "Add Pits", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		JTextField[] names = { entryTextField, startTextField, startBuildingsTextField, stopBuildingsTextField, maxPitsTextField,
+			endTextField, exitTextField };
+		String[] typed = new String[names.length];
+		for (int i = 0; i < names.length; i++)
+			typed[i] = names[i].getText();
+		boolean wasModified = getEditorFrame().documentIsModified;
+		saveInitialState();
+		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
+		String[] result;
+		try
+		{
+			result = placePitSegments(lengths, torcs);
+			if (result[1] == null)
+			{
+				storeTabs();
+				if (!createPits())
+					result[1] = "";
+			}
+		}
+		catch (RuntimeException e)
+		{
+			e.printStackTrace();
+			result = new String[] { "", "The pits couldn't be added: " + e };
+		}
+		if (result[1] != null)
+		{
+			// put back the track as it was, and the names typed
+			undo.undo();
+			getEditorFrame().documentIsModified = wasModified;
+			for (int i = 0; i < names.length; i++)
+				names[i].setText(typed[i]);
+			refreshView();
+			// createPits() has said what was wrong
+			if (!result[1].isEmpty())
+				JOptionPane.showMessageDialog(this, "<html><body style='width: 400px'>" + result[1]
+					+ ", so nothing was changed.</body></html>", "Add Pits", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		// so a later change to the pit segments shows their settings, not these
+		getEditorFrame().getPits().getGenerator().setSegmentsKey(pitSegmentsKey());
+		undo.captureAfter();
+		Undo.add(undo);
+		generateCount++;
+		undoCount = 0;
+		updateGenerateButtons();
+		refreshView();
+		getEditorFrame().documentIsModified = true;
+		if (!result[0].isEmpty())
+			JOptionPane.showMessageDialog(this, result[0].trim(), "Add Pits", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void doUndoGenerate()
@@ -1854,7 +2460,8 @@ public class PitProperties extends PropertyPanel
 	 */
 	public String generateProblem()
 	{
-		if (!getAddPitsCheckBox().isSelected() || tabbedPane == null || tabbedPane.getTabCount() == 0)
+		if (!getAddPitsCheckBox().isSelected() && !getLengthsCheckBox().isSelected() || tabbedPane == null
+			|| tabbedPane.getTabCount() == 0)
 			return null;
 
 		for (int i = 0; i < tabbedPane.getTabCount(); i++)
