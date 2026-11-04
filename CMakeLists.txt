@@ -73,6 +73,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/view/CircuitViewSelectionEvent.java
          gui/view/CircuitViewSelectionListener.java
          gui/view/SegmentSplitter.java
+         gui/view3d/CameraPlayer.java
          gui/view3d/GameTrack.java
          gui/view3d/OrbitCamera.java
          gui/view3d/RaceLine.java
@@ -152,6 +153,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/undo/UndoAddGraphicObject.java
          utils/undo/UndoAddObject.java
          utils/undo/UndoAddSegment.java
+         utils/undo/UndoCameras.java
          utils/undo/UndoDeleteAllGraphicObjects.java
          utils/undo/UndoDeleteGraphicObject.java
          utils/undo/UndoDeleteObject.java

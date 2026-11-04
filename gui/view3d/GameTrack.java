@@ -1152,9 +1152,7 @@ public class GameTrack
 			Seg seg = firstStep(camera.getSegment());
 			if (seg == null)
 				continue;
-			// GfParmGetCurNum: in SI units, 0 when missing
-			float toStart = (float) orZero(camera.getToStartUnits() == null ? camera.getToStart()
-				: GfParmNumbers.toSI(camera.getToStartUnits(), camera.getToStart(), game, null));
+			float toStart = cameraToStart(camera, seg);
 			float toRight = (float) orZero(camera.getToRight());
 			float[] xy = local2Global(seg, toStart, toRight);
 			float height = (float) orZero(camera.getHeight());
@@ -1184,6 +1182,82 @@ public class GameTrack
 		return views;
 	}
 
+	/**
+	 * @return a camera's "to start" as the game reads it once the editor saves it
+	 *         (GfParmGetCurNum): in SI units, an angle in radians in a curve, 0
+	 *         when missing. One without a known unit is saved in degrees in a
+	 *         curve.
+	 */
+	public float cameraToStart(Camera camera, Seg seg)
+	{
+		double value = camera.getToStart();
+		if (Double.isNaN(value))
+			return 0;
+		String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : seg.type == TR_STR ? null : "deg";
+		return (float) (units == null ? value : GfParmNumbers.toSI(units, value, game, null));
+	}
+
+	/**
+	 * @return where the game puts a camera: x, y, the height of the ground there,
+	 *         and its height above it. On the first segment when its segment isn't
+	 *         in the track, as the game does.
+	 */
+	public float[] cameraEye(Camera camera)
+	{
+		Seg seg = firstStep(camera.getSegment());
+		if (seg == null)
+			seg = segs.get(0);
+		float toStart = cameraToStart(camera, seg);
+		float toRight = (float) orZero(camera.getToRight());
+		float[] xy = local2Global(seg, toStart, toRight);
+		return new float[] { xy[0], xy[1], heightL(seg, toStart, toRight), (float) orZero(camera.getHeight()) };
+	}
+
+	/**
+	 * @return the camera that films each main segment, as the game's loader gives
+	 *         them: from its "fov start" segment up to its "fov end" one (all of
+	 *         the track when they're the same), a later camera taking over from an
+	 *         earlier one, the first segment for a name that isn't in the track.
+	 *         Null where no camera films.
+	 */
+	public Camera[] cameraOwners(List<Camera> cameras)
+	{
+		Camera[] owners = new Camera[segs.size()];
+		if (cameras == null)
+			return owners;
+		for (Camera camera : cameras)
+		{
+			Seg start = firstStep(camera.getFovStart()), end = firstStep(camera.getFovEnd());
+			if (start == null)
+				start = segs.get(0);
+			if (end == null)
+				end = segs.get(0);
+			Seg s = start;
+			do
+			{
+				owners[s.id] = camera;
+				s = s.next;
+			}
+			while (s != end && s != start);
+		}
+		return owners;
+	}
+
+	/** @return the main segment (step) this far from the start line */
+	public Seg segAt(double distance)
+	{
+		int low = 0, high = segs.size() - 1;
+		while (low < high)
+		{
+			int middle = (low + high + 1) / 2;
+			if (segs.get(middle).lgfromstart <= distance)
+				low = middle;
+			else
+				high = middle - 1;
+		}
+		return segs.get(low);
+	}
+
 	/** @return the point in the middle of the road this far along the segments */
 	private float[] middle(List<Seg> segments, float distance)
 	{
@@ -1205,7 +1279,7 @@ public class GameTrack
 	}
 
 	/** @return the first step of the named segment: the one its id names */
-	private Seg firstStep(String name)
+	public Seg firstStep(String name)
 	{
 		if (name != null)
 			for (Seg seg : segs)

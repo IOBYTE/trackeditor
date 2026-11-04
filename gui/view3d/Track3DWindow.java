@@ -69,6 +69,8 @@ public class Track3DWindow extends JFrame
 	private final EditorFrame		editorFrame;
 	private final GLCanvas			canvas;
 	private final Track3DRenderer	renderer;
+	// plays a lap from the track's cameras
+	private final CameraPlayer		player;
 	private final Runnable			trackListener;
 	private final JLabel			trackLabel		= new JLabel();
 	private final JLabel			frameLabel		= new JLabel();
@@ -78,6 +80,8 @@ public class Track3DWindow extends JFrame
 	private final JToggleButton		cullingButton	= new JToggleButton("Cull");
 	private final JToggleButton		racelineButton	= new JToggleButton("Raceline");
 	private final JButton			camerasButton	= new JButton("Cameras ▾");
+	private final JToggleButton		playButton		= new JToggleButton("Play cameras");
+	private final JToggleButton		driveButton		= new JToggleButton("Drive");
 	private final JComboBox<String>	colorBox		= new JComboBox<String>(new String[] { "textures", "by surface", "by height", "plain" });
 	private final JComboBox<String>	heightBox		= new JComboBox<String>(new String[] { "1", "2", "5", "10" });
 	private TrackData				shownTrack;
@@ -226,11 +230,16 @@ public class Track3DWindow extends JFrame
 		renderer = new Track3DRenderer(this);
 		canvas.addGLEventListener(renderer);
 		canvas.setFocusable(true);
+		player = new CameraPlayer(editorFrame, this, renderer);
 
 		add(createToolBar(), BorderLayout.NORTH);
 		restoreSettings();
 		add(canvas, BorderLayout.CENTER);
-		add(createStatusBar(), BorderLayout.SOUTH);
+		JPanel south = new JPanel(new BorderLayout());
+		south.add(player.bar, BorderLayout.NORTH);
+		south.add(createStatusBar(), BorderLayout.SOUTH);
+		add(south, BorderLayout.SOUTH);
+		add(player.editPanel, BorderLayout.EAST);
 		addMouseAndKeys();
 
 		restoreBounds();
@@ -247,6 +256,8 @@ public class Track3DWindow extends JFrame
 		{
 			public void windowClosed(WindowEvent e)
 			{
+				// back to the view from before playing, which is kept
+				player.setActive(false);
 				editorFrame.getCircuitView().removeTrackChangeListener(trackListener);
 				// the next window shows the track the same way
 				String state = viewState();
@@ -342,6 +353,14 @@ public class Track3DWindow extends JFrame
 		toolBar.add(new JLabel("Height × "));
 		toolBar.add(heightBox);
 		toolBar.add(Box.createHorizontalGlue());
+		playButton.setToolTipText("<html>Drive a lap and look from the track's cameras, as the game's road views do (space pauses).<br>"
+			+ "The strip below shows which camera films each part of the lap; Edit camera changes the one showing.</html>");
+		playButton.addActionListener(e -> play(playButton, driveButton, false));
+		driveButton.setToolTipText("<html>Drive a lap from the driver's seat, along the racing line or the middle of the road (space pauses).<br>"
+			+ "The strip below shows where the segments start: click it to go there.</html>");
+		driveButton.addActionListener(e -> play(driveButton, playButton, true));
+		toolBar.add(driveButton);
+		toolBar.add(playButton);
 		return toolBar;
 	}
 
@@ -423,6 +442,11 @@ public class Track3DWindow extends JFrame
 					break;
 				case KeyEvent.VK_N:
 					nextCamera();
+					break;
+				case KeyEvent.VK_SPACE:
+					if (!player.isActive())
+						return;
+					player.setPlaying(!player.isPlaying());
 					break;
 				case KeyEvent.VK_F:
 					frame();
@@ -575,6 +599,7 @@ public class Track3DWindow extends JFrame
 
 	private void fit(boolean top)
 	{
+		player.setPlaying(false);
 		RoadMesh mesh = renderer.getMesh();
 		if (mesh != null && !mesh.isEmpty())
 			renderer.camera.fit(mesh, renderer.getHeightScale(), top);
@@ -583,6 +608,7 @@ public class Track3DWindow extends JFrame
 
 	private void frame()
 	{
+		player.setPlaying(false);
 		RoadMesh mesh = renderer.getMesh();
 		if (mesh != null && !mesh.isEmpty())
 			renderer.camera.frame(mesh, renderer.getHeightScale());
@@ -620,6 +646,7 @@ public class Track3DWindow extends JFrame
 		if (mesh == null || mesh.isEmpty() || index >= mesh.cameras.size())
 			return;
 		cameraIndex = index;
+		player.setPlaying(false);
 		GameTrack.CameraView view = mesh.cameras.get(index);
 		double scale = renderer.getHeightScale();
 		// the exaggeration lifts the ground under it, not its height above the ground
@@ -660,6 +687,32 @@ public class Track3DWindow extends JFrame
 	void requestRedraw()
 	{
 		canvas.repaint();
+	}
+
+	/** Starts or stops playing the cameras or driving: one at a time. */
+	private void play(JToggleButton button, JToggleButton other, boolean drive)
+	{
+		other.setSelected(false);
+		player.setActive(false);
+		if (button.isSelected())
+		{
+			player.setDrive(drive);
+			player.setActive(true);
+		}
+		canvas.requestFocusInWindow();
+	}
+
+	/** The playback bar or the camera's panel was shown or hidden. */
+	void layoutChanged()
+	{
+		getContentPane().revalidate();
+		getContentPane().repaint();
+	}
+
+	/** A camera was edited in the playback: the Cameras menu follows. */
+	void cameraEdited()
+	{
+		trackChanged();
 	}
 
 	/** The main window redrew the track: rebuild the road once the current events are done. */
@@ -711,6 +764,15 @@ public class Track3DWindow extends JFrame
 		camerasButton.setEnabled(!mesh.cameras.isEmpty());
 		if (newTrack)
 			cameraIndex = -1;
+		playButton.setEnabled(!mesh.isEmpty());
+		driveButton.setEnabled(!mesh.isEmpty());
+		if (mesh.isEmpty() && player.isActive())
+		{
+			playButton.setSelected(false);
+			driveButton.setSelected(false);
+			player.setActive(false);
+		}
+		player.trackChanged();
 		requestRedraw();
 	}
 

@@ -3380,6 +3380,18 @@ public class EditorFrame extends JFrame
 		view.redrawCircuit();
 	}
 
+	/** Undoes the last change, as the Undo button does: for the 3D view's camera editing */
+	public void undo()
+	{
+		buttonUndo_actionPerformed(null);
+	}
+
+	/** Redoes the last change undone, as the Redo button does */
+	public void redo()
+	{
+		buttonRedo_actionPerformed(null);
+	}
+
 	/**
 	 * An undo or redo changes the track like any other edit, so it has to be
 	 * saved, and a relief change also has to rewrite the relief file.
