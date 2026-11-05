@@ -347,9 +347,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						newShape.setRadiusStart(50);
 						newShape.setRadiusEnd(50);
 						newShape.inheritProperties(handledShape);
-						int count = Properties.getInstance().getCurveNameCount()+1;
-						Properties.getInstance().setCurveNameCount(count);
-						newShape.setName("curve "+count);
+						newShape.setName(data.newSegmentName(true));
 						data.insertElementAt(newShape,pos+1);
 						newShape.setCount(data.indexOf(newShape) + 1);
 						Undo.add(new UndoAddSegment(editorFrame, newShape));
@@ -373,9 +371,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						newShape.setRadiusStart(50);
 						newShape.setRadiusEnd(50);
 						newShape.inheritProperties(handledShape);
-						int count = Properties.getInstance().getCurveNameCount()+1;
-						Properties.getInstance().setCurveNameCount(count);
-						newShape.setName("curve "+count);
+						newShape.setName(data.newSegmentName(true));
 						data.insertElementAt(newShape,pos+1);
 						newShape.setCount(data.indexOf(newShape) + 1);
 						Undo.add(new UndoAddSegment(editorFrame, newShape));
@@ -398,9 +394,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 						Straight newShape = new Straight();
 						newShape.setLength(50);
 						newShape.inheritProperties(handledShape);
-						int count = Properties.getInstance().getStraightNameCount()+1;
-						Properties.getInstance().setStraightNameCount(count);
-						newShape.setName("straight "+count);
+						newShape.setName(data.newSegmentName(false));
 						data.insertElementAt(newShape, pos + 1);
 						newShape.setCount(data.indexOf(newShape) + 1);
 						Undo.add(new UndoAddSegment(editorFrame, newShape));

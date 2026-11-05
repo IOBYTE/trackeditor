@@ -1663,7 +1663,7 @@ public class PitProperties extends PropertyPanel
 			if (renamed.contains(other) || !wanted.contains(other.getName()))
 				continue;
 			String old = other.getName();
-			renameSegment(other, newSegmentName(other));
+			renameSegment(other, data.newSegmentName(other instanceof utils.circuit.Curve));
 			done.append(String.format("%s is now called %s, so a pit segment can have its name.%n", old, other.getName()));
 		}
 
@@ -1694,28 +1694,6 @@ public class PitProperties extends PropertyPanel
 	{
 		getEditorFrame().getTrackData().renameSegmentReferences(segment.getName(), name);
 		segment.setName(name);
-	}
-
-	/** @return a new name for a segment, as a new straight or curve gets */
-	private String newSegmentName(Segment segment)
-	{
-		utils.Properties properties = utils.Properties.getInstance();
-		while (true)
-		{
-			String name;
-			if (segment instanceof utils.circuit.Curve)
-			{
-				properties.setCurveNameCount(properties.getCurveNameCount() + 1);
-				name = "curve " + properties.getCurveNameCount();
-			}
-			else
-			{
-				properties.setStraightNameCount(properties.getStraightNameCount() + 1);
-				name = "straight " + properties.getStraightNameCount();
-			}
-			if (getEditorFrame().getTrackData().getSegments().getSegmentFromName(name) == null)
-				return name;
-		}
 	}
 
 	/** @return the name, or it with a number after it, that no segment has */

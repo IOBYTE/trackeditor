@@ -22,6 +22,33 @@ public class SegmentVector extends Vector<Segment>
 		return null;
 	}
 
+	/**
+	 * @return a name for a new segment: "curve N" or "straight N" with the next
+	 *         number, skipping any that a segment already has (the numbers go on
+	 *         from the highest the track had when it was read, but a segment
+	 *         can have been given one since)
+	 */
+	public String newSegmentName(boolean curve)
+	{
+		Properties properties = Properties.getInstance();
+		while (true)
+		{
+			String name;
+			if (curve)
+			{
+				properties.setCurveNameCount(properties.getCurveNameCount() + 1);
+				name = "curve " + properties.getCurveNameCount();
+			}
+			else
+			{
+				properties.setStraightNameCount(properties.getStraightNameCount() + 1);
+				name = "straight " + properties.getStraightNameCount();
+			}
+			if (getSegmentFromName(name) == null)
+				return name;
+		}
+	}
+
 	public synchronized Segment set(int index, Segment segment)
 	{
 		Segment current = get(index);

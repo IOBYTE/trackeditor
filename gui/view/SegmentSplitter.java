@@ -3,7 +3,6 @@ package gui.view;
 import java.awt.geom.Point2D;
 
 import gui.EditorFrame;
-import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
@@ -261,18 +260,8 @@ public class SegmentSplitter
 		Segment previous = pos > 0 ? data.get(pos - 1) : null;
 		splitAttributes(original, previous, shape, piece2, t, length, steps, spiral, steps1, steps2);
 
-		if (isCurve)
-		{
-			int count = Properties.getInstance().getCurveNameCount() + 1;
-			Properties.getInstance().setCurveNameCount(count);
-			piece2.setName("curve " + count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getStraightNameCount() + 1;
-			Properties.getInstance().setStraightNameCount(count);
-			piece2.setName("straight " + count);
-		}
+		// a name no segment has
+		piece2.setName(data.newSegmentName(isCurve));
 
 		data.insertElementAt(piece2, pos + 1);
 
