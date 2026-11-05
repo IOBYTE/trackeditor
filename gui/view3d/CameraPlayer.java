@@ -46,6 +46,7 @@ import gui.view3d.GameTrack.Seg;
 import utils.SegmentVector;
 import utils.circuit.Camera;
 import utils.circuit.MainTrack;
+import utils.circuit.StartingGrid;
 import utils.undo.Undo;
 import utils.undo.UndoCameras;
 
@@ -58,6 +59,8 @@ import utils.undo.UndoCameras;
  * lap, and the camera showing can be edited as it plays.
  *
  * Driving is the same lap seen from the driver's seat, or from behind the car.
+ * It starts as a race does: from pole position on the grid, standing until the
+ * start lights go out, then pulling away to the path.
  */
 class CameraPlayer
 {
@@ -78,6 +81,16 @@ class CameraPlayer
 	private static final double		CHASE_BACK	= 8;
 	private static final double		CHASE_UP	= 2.8;
 	private static final double		CHASE_AHEAD	= 12;
+	// the start: the game's race clock starts at -2 s, after a pause while it waits
+	// for the player (here this long); then the car pulls away this hard, and
+	// reaches its path this far from its grid place
+	private static final double		START_CLOCK	= -2;
+	private static final double		START_WAIT	= 1;
+	private static final double		ACCELERATION	= 7;
+	private static final double		MERGE		= 150;
+	// the grid when neither the track nor the race says: Quick Race's
+	private static final int		GRID_ROWS	= 2;
+	private static final double		GRID_TO_START	= 25;
 	private static final Color[]	COLORS		= { new Color(0x378ADD), new Color(0x1D9E75), new Color(0xD85A30),
 		new Color(0x7F77DD), new Color(0xBA7517), new Color(0xD4537E), new Color(0x639922), new Color(0x888780) };
 
@@ -126,6 +139,15 @@ class CameraPlayer
 	private long					lastTick;
 	// how far round the lap the car is
 	private double					distance;
+	// starting from the grid: the race's clock (0 is the start), NaN when not
+	private double					clock			= Double.NaN;
+	private double					waited;
+	// the car's speed, in m/s, while it pulls away
+	private double					speed;
+	// how far it has driven from the grid, and its lane there (0 on the left edge, 1 on the right)
+	private double					driven;
+	private double					gridLane		= Double.NaN;
+	private double					gridToStart;
 	private GameTrack				track;
 	// the camera filming each main segment
 	private Camera[]				owners			= new Camera[0];
@@ -157,8 +179,8 @@ class CameraPlayer
 		pathBox.setLightWeightPopupEnabled(false);
 		pauseButton.setToolTipText("Pause or play (space)");
 		pauseButton.addActionListener(e -> setPlaying(!playing));
-		restartButton.setToolTipText("Back to the start line");
-		restartButton.addActionListener(e -> moveTo(0));
+		restartButton.setToolTipText("Back to the start line, or to the grid when driving");
+		restartButton.addActionListener(e -> restart());
 		nextButton.setToolTipText("Skip to where the next camera takes over");
 		nextButton.addActionListener(e -> nextCamera());
 		viewBox.setToolTipText("<html>Zoom: the TV director's view, zoomed so the car stays the same size.<br>No zoom: a fixed field of view.</html>");
@@ -368,6 +390,7 @@ class CameraPlayer
 			distance = 0;
 			lastOwner = null;
 			trackChanged();
+			restart();
 			bar.setVisible(true);
 			editPanel.setVisible(editBox.isSelected() && !drive);
 			setPlaying(true);
@@ -378,6 +401,9 @@ class CameraPlayer
 			endEdit();
 			timer.stop();
 			active = false;
+			clock = Double.NaN;
+			gridLane = Double.NaN;
+			renderer.setStartClock(Double.NaN);
 			playing = false;
 			bar.setVisible(false);
 			editPanel.setVisible(false);
@@ -447,7 +473,66 @@ class CameraPlayer
 		if (!playing || track == null)
 			return;
 		double total = track.length();
-		distance = (distance + speedSlider.getValue() / 3.6 * seconds) % total;
+		double target = speedSlider.getValue() / 3.6;
+		if (!Double.isNaN(clock))
+		{
+			// waiting, then the lights, then pulling away
+			if (waited < START_WAIT)
+				waited += seconds;
+			else
+				clock += seconds;
+			if (clock >= 0)
+			{
+				speed = Math.min(target, speed + ACCELERATION * seconds);
+				distance = (distance + speed * seconds) % total;
+				driven += speed * seconds;
+			}
+			renderer.setStartClock(clock);
+		}
+		else
+			distance = (distance + target * seconds) % total;
+		show();
+	}
+
+	/** Back to the start line, or, when driving, to pole position on the grid with the lights to come. */
+	private void restart()
+	{
+		if (track == null)
+			return;
+		if (!drive)
+		{
+			clock = Double.NaN;
+			gridLane = Double.NaN;
+			renderer.setStartClock(Double.NaN);
+			moveTo(0);
+			return;
+		}
+		// as the game places the first car: the track's grid, or the race's
+		StartingGrid grid = editorFrame.getTrackData().getStartingGrid();
+		int rows = grid.getRows() == Integer.MAX_VALUE ? GRID_ROWS : Math.max(1, grid.getRows());
+		gridToStart = Double.isNaN(grid.getDistanceToStart()) ? GRID_TO_START : grid.getDistanceToStart();
+		String pole = grid.getPolePositionSide();
+		if (pole == null || pole.isEmpty())
+		{
+			// the inside of the first turn
+			pole = "right";
+			for (Seg seg : track.segs)
+				if (seg.type != GameTrack.TR_STR)
+				{
+					pole = seg.type == GameTrack.TR_LFT ? "left" : "right";
+					break;
+				}
+		}
+		// the first of the row's places, counted from the pole side
+		double fromRight = 1.0 / (rows + 1);
+		gridLane = pole.equals("left") ? fromRight : 1 - fromRight;
+		double total = track.length();
+		distance = ((total - gridToStart) % total + total) % total;
+		clock = START_CLOCK;
+		waited = 0;
+		speed = 0;
+		driven = 0;
+		renderer.setStartClock(clock);
 		show();
 	}
 
@@ -504,6 +589,15 @@ class CameraPlayer
 		float toStart = seg.type == GameTrack.TR_STR ? along : along / seg.radius;
 		// the racing line's lane: 0 on the left edge, 1 on the right
 		double lane = pathBox.getSelectedIndex() == 0 ? raceLine().textureOffset(where) + 0.5 : 0.5;
+		if (!Double.isNaN(gridLane))
+		{
+			// from the grid place to the path, smoothly over the first meters
+			double total = track.length();
+			double ahead = ((where - distance) % total + total * 1.5) % total - total / 2;
+			double t = Math.max(0, Math.min(1, (driven + ahead) / MERGE));
+			t = t * t * (3 - 2 * t);
+			lane = gridLane + (lane - gridLane) * t;
+		}
 		float toRight = (float) (seg.width * (1 - lane));
 		float[] xy = GameTrack.local2Global(seg, toStart, toRight);
 		return new float[] { xy[0], xy[1], track.heightL(seg, toStart, toRight) };
@@ -540,7 +634,9 @@ class CameraPlayer
 		}
 		if (drive)
 		{
-			statusLabel.setText(String.format(Locale.US, "Segment: %s     %,.0f m of %,.0f m", seg.name, distance, total));
+			String start = Double.isNaN(clock) || clock >= 1 ? "" : waited < START_WAIT ? "On pole, " + text(gridToStart) + " m before the line     "
+				: clock < 0 ? String.format(Locale.US, "Start in %.1f s     ", -clock) : "Go!     ";
+			statusLabel.setText(String.format(Locale.US, "%sSegment: %s     %,.0f m of %,.0f m", start, seg.name, distance, total));
 			strip.repaint();
 			window.requestRedraw();
 			return;

@@ -49,19 +49,19 @@ import utils.circuit.Surface;
 public class TrackProperties extends PropertyPanel
 {
 	private JLabel				widthLabel					= new JLabel();
-	private JTextField			widthTextField				= new JTextField();
+	private JTextField			widthTextField				= hintTextField("15.0 (default)");
 	private JLabel				surfaceLabel				= new JLabel();
 	private SurfaceComboBox		surfaceComboBox				= null;
 	private JLabel				profilLabel					= new JLabel();
 	private JComboBox<String>	profilComboBox				= null;
 	private JLabel				profilStepsLengthLabel		= new JLabel();
-	private JTextField			profilStepsLengthTextField	= new JTextField();
+	private JTextField			profilStepsLengthTextField	= hintTextField("0.0 (default)");
 	private JLabel				racelineWidthscaleLabel		= new JLabel();
-	private JTextField			racelineWidthscaleTextField	= new JTextField();
+	private JTextField			racelineWidthscaleTextField	= hintTextField("1.0 (default)");
 	private JLabel				racelineIntLabel			= new JLabel();
-	private JTextField			racelineIntTextField		= new JTextField();
+	private JTextField			racelineIntTextField		= hintTextField("2.0 (default)");
 	private JLabel				racelineExtLabel			= new JLabel();
-	private JTextField			racelineExtTextField		= new JTextField();
+	private JTextField			racelineExtTextField		= hintTextField("2.0 (default)");
 	private JTabbedPane			tabbedPane					= null;
 
 	private String[]			roadSurfaceItems			=
@@ -76,7 +76,8 @@ public class TrackProperties extends PropertyPanel
      "barrier", "barrier2", "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		roadSurfaceVector			= new Vector<String>(Arrays.asList(roadSurfaceItems));
 
-	private String[]			borderStyleItems			= {"none", "plan", "curb", "wall"};
+	// "none" says what the game does without a value
+	private String[]			borderStyleItems			= {"none (plan)", "plan", "curb", "wall"};
 	
 	private String[]			borderSurfaceItems			=
 	{"curb-5cm-r", "curb-5cm-l", "curb-l", "tar-grass3-l",
@@ -100,9 +101,9 @@ public class TrackProperties extends PropertyPanel
 	 "b-asphalt-grass6", "b-asphalt-grass6-l1", "b-asphalt-sand3", "b-asphalt-sand3-l1", "barrier", "barrier2",
 	 "barrier-turn", "barrier-grille", "wall", "wall2", "tire-wall"};
 	private Vector<String>		sideSurfaceVector			= new Vector<String>(Arrays.asList(sideSurfaceItems));
-	private String[]			barrierStyleItems			= {"none", "fence", "fence1", "fence2", "wall"};
+	private String[]			barrierStyleItems			= {"none (fence)", "fence", "fence1", "fence2", "wall"};
 	// only Speed Dreams has fence1/fence2 (for the others they are written as fence)
-	private String[]			basicBarrierStyleItems		= {"none", "fence", "wall"};
+	private String[]			basicBarrierStyleItems		= {"none (fence)", "fence", "wall"};
 	private String[]			barrierSurfaceItems			=
 	{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 	 "wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -155,6 +156,11 @@ public class TrackProperties extends PropertyPanel
 		addDefaultSurfaces(sideSurfaceVector);
 		addDefaultSurfaces(borderSurfaceVector);
 		addDefaultSurfaces(barrierSurfaceVector);
+		// no surface: the game's default, first
+		roadSurfaceVector.add(0, "none (asphalt)");
+		sideSurfaceVector.add(0, "none (grass)");
+		borderSurfaceVector.add(0, "none (grass)");
+		barrierSurfaceVector.add(0, "none (barrier)");
 		
 		this.setLayout(null);
 		this.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
@@ -210,7 +216,9 @@ public class TrackProperties extends PropertyPanel
 			if (!found)
 			{
 				surfaceVector.add(surface);
-				Collections.sort(surfaceVector);
+				// the "none" choice stays first
+				int first = !surfaceVector.isEmpty() && isNone(surfaceVector.get(0)) ? 1 : 0;
+				Collections.sort(surfaceVector.subList(first, surfaceVector.size()));
 			}
 		}
 	}
@@ -228,7 +236,7 @@ public class TrackProperties extends PropertyPanel
 			addSurface(roadSurfaceVector, newSurface);			
 			surfaceComboBox = new SurfaceComboBox(getEditorFrame(), roadSurfaceVector);
 			surfaceComboBox.setBounds(150, 37, 200, 23);
-			surfaceComboBox.setSelectedItem(newSurface);
+			selectItem(surfaceComboBox, newSurface);
 		}
 		return surfaceComboBox;
 	}
@@ -242,13 +250,11 @@ public class TrackProperties extends PropertyPanel
 	{
 		if (profilComboBox == null)
 		{
-			String[] items = {"none", "linear", "spline"};
+			// the games don't read the Main Track's profil: a segment's is spline when not set
+			String[] items = {"none (ignored)", "linear", "spline"};
 			profilComboBox = new JComboBox<String>(items);
-			profilComboBox.setBounds(150, 64, 125, 23);						
-			String profil = getEditorFrame().getTrackData().getMainTrack().getProfil();
-			if (profil == null || profil.isEmpty())
-				profil = "none";
-			selectItem(profilComboBox, profil);
+			profilComboBox.setBounds(150, 64, 125, 23);
+			selectItem(profilComboBox, getEditorFrame().getTrackData().getMainTrack().getProfil());
 		}
 		return profilComboBox;
 	}
@@ -264,7 +270,7 @@ public class TrackProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 205, 510, 370);
+			tabbedPane.setBounds(10, 205, 510, 337);
 
 			tabbedPane.addTab("Left", null, new SidePanel(getEditorFrame().getTrackData().getMainTrack().getLeft()), null);
 			tabbedPane.addTab("Right", null, new SidePanel(getEditorFrame().getTrackData().getMainTrack().getRight()), null);
@@ -276,23 +282,29 @@ public class TrackProperties extends PropertyPanel
 	{
 		private SegmentSide 		side;
 		private JLabel				sideWidthLabel				= new JLabel();
-		private JTextField 			sideWidthTextField			= new JTextField();
+		private JTextField 			sideWidthTextField			= hintTextField("0.0 (default)");
 		private JLabel				sideSurfaceLabel			= new JLabel();
 		private SurfaceComboBox		sideSurfaceComboBox			= null;
 		private JLabel				sideBankingTypeLabel		= new JLabel();
 		private JComboBox<String>	sideBankingTypeComboBox		= null;
 		private JLabel				borderWidthLabel			= new JLabel();
-		private JTextField			borderWidthTextField		= new JTextField();
+		private JTextField			borderWidthTextField		= hintTextField("0.0 (default)");
 		private JLabel				borderHeightLabel			= new JLabel();
-		private JTextField			borderHeightTextField		= new JTextField();
+		// a plan border has no height
+		private JTextField			borderHeightTextField		= hintTextField(() -> "curb".equals(style(this.borderStyleComboBox))
+			|| "wall".equals(style(this.borderStyleComboBox)) ? "0.0 (default)" : "0.0 (plan: always 0)");
 		private JLabel				borderSurfaceLabel			= new JLabel();
 		private SurfaceComboBox		borderSurfaceComboBox		= null;
 		private JLabel				borderStyleLabel			= new JLabel();
 		private JComboBox<String>	borderStyleComboBox			= null;
 		private JLabel				barrierWidthLabel			= new JLabel();
-		private JTextField			barrierWidthTextField		= new JTextField();
+		// only a wall has a width
+		private JTextField			barrierWidthTextField		= hintTextField(() -> "wall".equals(style(this.barrierStyleComboBox))
+			? "0.5 (default)" : "0.0 (fence: always 0)");
 		private JLabel				barrierHeightLabel			= new JLabel();
-		private JTextField			barrierHeightTextField		= new JTextField();
+		// version 3 tracks' barriers are higher
+		private JTextField			barrierHeightTextField		= hintTextField(() -> getEditorFrame().getTrackData().getHeader()
+			.getVersion() == 3 ? "1.0 (default)" : "0.6 (default)");
 		private JLabel				barrierSurfaceLabel			= new JLabel();
 		private SurfaceComboBox		barrierSurfaceComboBox		= null;
 		private JLabel				barrierStyleLabel			= new JLabel();
@@ -346,7 +358,7 @@ public class TrackProperties extends PropertyPanel
 			add(getBarrierSurfaceComboBox(), null);
 			add(getBarrierStyleComboBox(), null);
 
-			switch (borderStyleComboBox.getSelectedItem().toString())
+			switch (style(borderStyleComboBox))
 			{
 			case "none":
 				borderWidthTextField.setEnabled(false);
@@ -369,7 +381,7 @@ public class TrackProperties extends PropertyPanel
 				borderSurfaceComboBox.setEnabled(true);
 				break;
 			}
-			switch (barrierStyleComboBox.getSelectedItem().toString())
+			switch (style(barrierStyleComboBox))
 			{
 			case "none":
 				barrierWidthTextField.setEnabled(false);
@@ -393,6 +405,15 @@ public class TrackProperties extends PropertyPanel
 			initialized = true;
 		}
 		
+		/** @return the style chosen, "none" for none, or null before the list is made */
+		private String style(JComboBox<String> comboBox)
+		{
+			if (comboBox == null)
+				return null;
+			Object item = comboBox.getSelectedItem();
+			return item == null || isNone(item) ? "none" : item.toString();
+		}
+
 		/**
 		 * This method initializes sideSurfaceComboBox
 		 *
@@ -405,7 +426,7 @@ public class TrackProperties extends PropertyPanel
 				addSurface(sideSurfaceVector, side.getSideSurface());
 				sideSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), sideSurfaceVector);
 				sideSurfaceComboBox.setBounds(150, 37, 200, 23);
-				sideSurfaceComboBox.setSelectedItem(side.getSideSurface());
+				selectItem(sideSurfaceComboBox, side.getSideSurface());
 				sideSurfaceComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
@@ -426,14 +447,11 @@ public class TrackProperties extends PropertyPanel
 		{
 			if (sideBankingTypeComboBox == null)
 			{
-				String[] items = {"none", "level", "tangent"};
+				String[] items = {"none (level)", "level", "tangent"};
 				sideBankingTypeComboBox = new JComboBox<String>();
 				sideBankingTypeComboBox.setBounds(150, 64, 125, 23);
 				sideBankingTypeComboBox.setModel(new DefaultComboBoxModel<String>(items));
-				String type = side.getSideBankingType();
-				if (type == null || type.isEmpty())
-					type = "none";
-				selectItem(sideBankingTypeComboBox, type);
+				selectItem(sideBankingTypeComboBox, side.getSideBankingType());
 				sideBankingTypeComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
@@ -457,7 +475,7 @@ public class TrackProperties extends PropertyPanel
 				addSurface(borderSurfaceVector, side.getBorderSurface());
 				borderSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), borderSurfaceVector);
 				borderSurfaceComboBox.setBounds(150, 145, 200, 23);
-				borderSurfaceComboBox.setSelectedItem(side.getBorderSurface());
+				selectItem(borderSurfaceComboBox, side.getBorderSurface());
 				borderSurfaceComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
@@ -491,8 +509,9 @@ public class TrackProperties extends PropertyPanel
 						
 						if (!initialized)
 							return;
+						borderHeightTextField.repaint();
 
-						switch (borderStyleComboBox.getSelectedItem().toString())
+						switch (style(borderStyleComboBox))
 						{
 						case "none":
 							borderWidthTextField.setText(null);
@@ -500,7 +519,7 @@ public class TrackProperties extends PropertyPanel
 							borderHeightTextField.setText(null);
 							borderHeightTextField.setEnabled(false);
 							borderSurfaceComboBox.setEnabled(false);
-							borderSurfaceComboBox.setSelectedIndex(-1);
+							borderSurfaceComboBox.setSelectedIndex(0);
 							break;
 						case "plan":
 							borderWidthTextField.setEnabled(true);
@@ -559,7 +578,7 @@ public class TrackProperties extends PropertyPanel
 				addSurface(barrierSurfaceVector, side.getBarrierSurface());
 				barrierSurfaceComboBox = new SurfaceComboBox(getEditorFrame(), barrierSurfaceVector);
 				barrierSurfaceComboBox.setBounds(150, 253, 200, 23);
-				barrierSurfaceComboBox.setSelectedItem(side.getBarrierSurface());
+				selectItem(barrierSurfaceComboBox, side.getBarrierSurface());
 				barrierSurfaceComboBox.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
@@ -583,8 +602,6 @@ public class TrackProperties extends PropertyPanel
 				barrierStyleComboBox = new JComboBox<String>();
 				barrierStyleComboBox.setBounds(150, 280, 125, 23);
 				String style = side.getBarrierStyle();
-				if (style == null || style.isEmpty())
-					style = "none";
 				barrierStyleComboBox.setModel(new DefaultComboBoxModel<String>(getBarrierStyleItems(style)));
 				selectItem(barrierStyleComboBox, style);
 				barrierStyleComboBox.addActionListener(new ActionListener()
@@ -595,8 +612,9 @@ public class TrackProperties extends PropertyPanel
 						
 						if (!initialized)
 							return;
+						barrierWidthTextField.repaint();
 
-						switch (barrierStyleComboBox.getSelectedItem().toString())
+						switch (style(barrierStyleComboBox))
 						{
 						case "none":
 							barrierWidthTextField.setEnabled(false);
@@ -604,7 +622,7 @@ public class TrackProperties extends PropertyPanel
 							barrierHeightTextField.setText(null);
 							barrierHeightTextField.setEnabled(false);
 							barrierSurfaceComboBox.setEnabled(false);
-							barrierSurfaceComboBox.setSelectedIndex(-1);
+							barrierSurfaceComboBox.setSelectedIndex(0);
 							break;
 						case "fence":
 						case "fence1":
@@ -647,14 +665,14 @@ public class TrackProperties extends PropertyPanel
             getEditorFrame().documentIsModified = true;
         }
 
-        if (isDifferent((String) surfaceComboBox.getSelectedItem(),
+        if (isDifferent(chosenItem(surfaceComboBox),
         	getEditorFrame().getTrackData().getMainTrack().getSurface(), stringResult))
         {
         	getEditorFrame().getTrackData().getMainTrack().setSurface(stringResult.getValue());
         	getEditorFrame().documentIsModified = true;
         }
 
-		if (isDifferent((String) profilComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(profilComboBox),
 	        getEditorFrame().getTrackData().getMainTrack().getProfil(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().setProfil(stringResult.getValue());
@@ -699,13 +717,13 @@ public class TrackProperties extends PropertyPanel
 			mainLeft.setSideEndWidth(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) left.sideSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.sideSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getSideSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setSideSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) left.sideBankingTypeComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.sideBankingTypeComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getSideBankingType(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setSideBankingType(stringResult.getValue());
@@ -723,13 +741,13 @@ public class TrackProperties extends PropertyPanel
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderHeight(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-		if (isDifferent((String) left.borderSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.borderSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBorderSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) left.borderStyleComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.borderStyleComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBorderStyle(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderStyle(stringResult.getValue());
@@ -747,13 +765,13 @@ public class TrackProperties extends PropertyPanel
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBarrierHeight(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-		if (isDifferent((String) left.barrierSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.barrierSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBarrierSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setBarrierSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) left.barrierStyleComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(left.barrierStyleComboBox),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBarrierStyle(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setBarrierStyle(stringResult.getValue());
@@ -770,13 +788,13 @@ public class TrackProperties extends PropertyPanel
 			mainRight.setSideEndWidth(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) right.sideSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.sideSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getSideSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setSideSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) right.sideBankingTypeComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.sideBankingTypeComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getSideBankingType(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setSideBankingType(stringResult.getValue());
@@ -794,13 +812,13 @@ public class TrackProperties extends PropertyPanel
             getEditorFrame().getTrackData().getMainTrack().getRight().setBorderHeight(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-		if (isDifferent((String) right.borderSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.borderSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBorderSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setBorderSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) right.borderStyleComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.borderStyleComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBorderStyle(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setBorderStyle(stringResult.getValue());
@@ -818,13 +836,13 @@ public class TrackProperties extends PropertyPanel
             getEditorFrame().getTrackData().getMainTrack().getRight().setBarrierHeight(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-		if (isDifferent((String) right.barrierSurfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.barrierSurfaceComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBarrierSurface(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setBarrierSurface(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) right.barrierStyleComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(right.barrierStyleComboBox),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBarrierStyle(), stringResult))
 		{
 			getEditorFrame().getTrackData().getMainTrack().getRight().setBarrierStyle(stringResult.getValue());

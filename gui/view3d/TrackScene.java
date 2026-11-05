@@ -32,6 +32,7 @@ import utils.ac3d.Ac3dSurface;
 import utils.circuit.MainTrack;
 import utils.circuit.RoadTexture;
 import utils.circuit.Surface;
+import utils.circuit.TrackLight;
 import utils.circuit.TurnMarks;
 
 /**
@@ -64,6 +65,10 @@ public abstract class TrackScene
 		public float[]		color;
 		/** what the strip is part of: the road, a border, a side or a barrier */
 		public Part			part;
+		/** a start light's texture when it is off, its role and its index */
+		public String		textureOff;
+		public String		lightRole;
+		public int			lightIndex;
 		/** x, y, z for each point */
 		private float[]		points	= new float[48];
 		/** u, v for each point */
@@ -167,7 +172,7 @@ public abstract class TrackScene
 		}
 	}
 
-	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, PIT_DOOR, CROSSING };
+	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, PIT_DOOR, CROSSING, TRACK_LIGHT };
 
 	/** the strips in the order trackgen makes them; empty ones are left out */
 	public final List<Strip>	strips	= new ArrayList<Strip>();
@@ -491,6 +496,52 @@ public abstract class TrackScene
 		startBridge();
 		pitBuildings();
 		pitDoors();
+		trackLights();
+	}
+
+	/**
+	 * The start lights: not trackgen's, the game adds them when a race starts.
+	 * Each is a two-sided rectangle standing between its two corners, at the
+	 * game's coordinates. They show lit, and go on and off as in a race when
+	 * driving from the grid. Only Speed Dreams and CSR have
+	 * them, and only the roles they know are drawn.
+	 */
+	private void trackLights()
+	{
+		if (!editorFrame.getGameType().hasSpeedDreamsExtensions())
+			return;
+		String data = editorFrame.getDataDirectory();
+		// the corners are in the game's coordinates, moved to start at 0
+		float[] origin = null;
+		int k = 0;
+		for (TrackLight light : editorFrame.getTrackData().getTrackLights())
+		{
+			String role = light.getRole();
+			if (role == null || !(role.equals("st_red") || role.equals("st_green") || role.equals("st_green_st") || role.equals("st_yellow")))
+				continue;
+			if (origin == null)
+				origin = track.gameOrigin();
+			float x1 = origin[0] + (float) orDefault(light.getTopLeftX(), 0), y1 = origin[1] + (float) orDefault(light.getTopLeftY(), 0), z1 = origin[2] + (float) orDefault(light.getTopLeftZ(), 0);
+			float x2 = origin[0] + (float) orDefault(light.getBottomRightX(), 0), y2 = origin[1] + (float) orDefault(light.getBottomRightY(), 0), z2 = origin[2] + (float) orDefault(light.getBottomRightZ(), 0);
+			Strip strip = new Strip();
+			strip.name = "light " + (light.getName() != null ? light.getName() : String.valueOf(k + 1));
+			k++;
+			strip.part = Part.TRACK_LIGHT;
+			strip.doubleSided = true;
+			strip.clamp = true;
+			strip.color = new float[] { (float) orDefault(light.getRed(), 1), (float) orDefault(light.getGreen(), 1), (float) orDefault(light.getBlue(), 1) };
+			// the game looks for the texture from its data folder
+			strip.texture = lightTexture(light.getTextureOn(), data);
+			strip.textureOff = lightTexture(light.getTextureOff(), data);
+			strip.lightRole = role;
+			strip.lightIndex = light.getIndex() == Integer.MAX_VALUE ? 0 : light.getIndex();
+			// as the game makes it: down the top left edge, then the bottom right one
+			strip.add(0, 0, x1, y1, z1);
+			strip.add(0, 1, x1, y1, z2);
+			strip.add(1, 0, x2, y2, z1);
+			strip.add(1, 1, x2, y2, z2);
+			strips.add(strip);
+		}
 	}
 
 	/**
@@ -567,6 +618,12 @@ public abstract class TrackScene
 				setPoint(1.0f, 1.0f, x, y, z + tmHeight);
 			}
 		}
+	}
+
+	/** A start light's texture, where the game looks for it: from its data folder */
+	private static String lightTexture(String texture, String data)
+	{
+		return texture == null || texture.isEmpty() ? "" : foundTexture("track light/", texture, data, Properties.getInstance().getPath());
 	}
 
 	private static double orDefault(double value, double otherwise)
@@ -1102,7 +1159,7 @@ public abstract class TrackScene
 	/** @return a texture's name as the game knows it, without the prefix of one found here */
 	public static String textureDisplayName(String name)
 	{
-		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/")))
+		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/") || name.startsWith("track light/")))
 			return name.substring(name.indexOf('/') + 1);
 		return name;
 	}

@@ -831,7 +831,8 @@ public class XmlReader
             surf.setTextureRandomness(getAttrNumValue(surface, "texture randomness", "m"));
             surf.setTextureLinkWithPrevious(getAttrStrValue(surface, "texture link with previous"));
             surf.setTextureStartOnBoundary(getAttrStrValue(surface, "texture start on boundary"));
-            surf.setTextureMipMap(getAttrNumValue(surface, "texture mipmap", "m"));
+            // a count, not a length
+            surf.setTextureMipMap(getAttrNumValue(surface, "texture mipmap"));
             surf.setFriction(getAttrNumValue(surface, "friction"));
             surf.setRollingResistance(getAttrNumValue(surface, "rolling resistance"));
             surf.setBumpName(getAttrStrValue(surface, "bump name"));

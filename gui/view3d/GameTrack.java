@@ -508,6 +508,48 @@ public class GameTrack
 	}
 
 	/** @return the track's length: its main segments' */
+	/**
+	 * Where the game's origin is here: the loader moves the track so its
+	 * smallest x, y and z are 0, so a point the game reads in its own
+	 * coordinates (a start light's corners) is that much further here. As the
+	 * loader finds them: from 0, the corners of the road, the borders and the
+	 * sides, and 36 points along each edge of a curve.
+	 */
+	public float[] gameOrigin()
+	{
+		float[] min = { 0, 0, 0 };
+		for (Seg main : segs)
+		{
+			Seg[] chain = { main, main.rside, main.rside == null ? null : main.rside.rside,
+				main.lside, main.lside == null ? null : main.lside.lside };
+			for (Seg seg : chain)
+			{
+				if (seg == null)
+					continue;
+				for (float[] v : seg.vertex)
+					for (int i = 0; i < 3; i++)
+						min[i] = Math.min(min[i], v[i]);
+				if (seg.type == TR_LFT || seg.type == TR_RGT)
+				{
+					float sign = seg.type == TR_LFT ? 1 : -1;
+					for (int edge : new int[] { TR_SL, TR_SR })
+					{
+						float[] v = seg.vertex[edge];
+						double r = Math.hypot(v[0] - seg.centerX, v[1] - seg.centerY);
+						double a0 = Math.atan2(v[1] - seg.centerY, v[0] - seg.centerX);
+						for (int j = 1; j <= 36; j++)
+						{
+							double a = a0 + sign * seg.arc * j / 36;
+							min[0] = (float) Math.min(min[0], seg.centerX + r * Math.cos(a));
+							min[1] = (float) Math.min(min[1], seg.centerY + r * Math.sin(a));
+						}
+					}
+				}
+			}
+		}
+		return min;
+	}
+
 	public float length()
 	{
 		float length = 0;

@@ -298,21 +298,21 @@ public class ObjectProperties extends PropertyPanel
 		private JLabel				orientationTypeLabel	= new JLabel();
 		private JComboBox<String>	orientationTypeComboBox	= null;
 		private JLabel				orientationLabel		= new JLabel();
-		private JTextField			borderDistanceTextField	= new JTextField();
+		private JTextField			borderDistanceTextField	= hintTextField("1.0 (default)");
 		private JLabel				borderDistanceLabel		= new JLabel();
-		private JTextField			orientationTextField	= new JTextField();
+		private JTextField			orientationTextField	= hintTextField("0.0 (default)");
 		private JLabel				deltaHeightLabel		= new JLabel();
-		private JTextField			deltaHeightTextField	= new JTextField();
+		private JTextField			deltaHeightTextField	= hintTextField("0.0 (default)");
 		private JLabel				deltaVertLabel			= new JLabel();
-		private JTextField			deltaVertTextField		= new JTextField();
+		private JTextField			deltaVertTextField		= hintTextField("5.0 (default)");
 		private JLabel				scaleTypeLabel			= new JLabel();
 		private JComboBox<String>	scaleTypeComboBox		= null;
 		private JLabel				scaleLabel				= new JLabel();
-		private JTextField			scaleTextField			= new JTextField();
+		private JTextField			scaleTextField			= hintTextField("1.0 (default)");
 		private JLabel				scaleMinLabel			= new JLabel();
-		private JTextField			scaleMinTextField		= new JTextField();
+		private JTextField			scaleMinTextField		= hintTextField("0.5 (default)");
 		private JLabel				scaleMaxLabel			= new JLabel();
-		private JTextField			scaleMaxTextField		= new JTextField();
+		private JTextField			scaleMaxTextField		= hintTextField("2.0 (default)");
 		private JLabel				useMaterialLabel		= new JLabel();
 		private JComboBox<String>	useMaterialComboBox		= null;
 		private JButton				objectButton			= null;
@@ -365,7 +365,7 @@ public class ObjectProperties extends PropertyPanel
 			setHexTextField(colorTextField, object.getColor());
 
 			add(getOrientationTypeComboBox(), null);
-			selectItem(getOrientationTypeComboBox(), toNoneString(object.getOrientationType()));
+			selectItem(getOrientationTypeComboBox(), object.getOrientationType());
 
 			// TORCS trackgen reads neither the border distance nor the scale settings
 			boolean speedDreams = getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys();
@@ -384,7 +384,7 @@ public class ObjectProperties extends PropertyPanel
 
 			// the scale fields are filled in even when they aren't shown, as the scale
 			// type's listener uses them
-			selectItem(getScaleTypeComboBox(), toNoneString(object.getScaleType()));
+			selectItem(getScaleTypeComboBox(), object.getScaleType());
 			setTextField(scaleTextField, object.getScale());
 			setTextField(scaleMinTextField, object.getScaleMin());
 			setTextField(scaleMaxTextField, object.getScaleMax());
@@ -405,7 +405,7 @@ public class ObjectProperties extends PropertyPanel
 			{
 				addLabel(this, 4, useMaterialLabel, "Use Material", 265, 90);
 				add(getUseMaterialComboBox(), null);
-				selectItem(getUseMaterialComboBox(), toNoneString(object.getUseMaterial()));
+				selectItem(getUseMaterialComboBox(), object.getUseMaterial());
 			}
 
 			if (defaultObjects)
@@ -511,7 +511,8 @@ public class ObjectProperties extends PropertyPanel
 		{
 			if (orientationTypeComboBox == null)
 			{
-				String[] items = {"none", "random", "standard", "track", "terrain", "border"};
+				// trackgen: anything else is standard, turned by the orientation
+				String[] items = {"none (standard)", "random", "standard", "track", "terrain", "border"};
 				orientationTypeComboBox = new JComboBox<String>(items);
 				orientationTypeComboBox.setBounds(120, 118, 125, 23);
 			}
@@ -522,9 +523,9 @@ public class ObjectProperties extends PropertyPanel
 		{
 			if (useMaterialComboBox == null)
 			{
-				String[] items = {"none", "yes", "no"};
+				String[] items = {"none (no)", "yes", "no"};
 				useMaterialComboBox = new JComboBox<String>(items);
-				useMaterialComboBox.setBounds(360, 118, 80, 23);
+				useMaterialComboBox.setBounds(360, 118, 95, 23);
 				useMaterialComboBox.setToolTipText("Use the object's own material instead of the terrain's");
 			}
 			return useMaterialComboBox;
@@ -534,9 +535,9 @@ public class ObjectProperties extends PropertyPanel
 		{
 			if (scaleTypeComboBox == null)
 			{
-				String[] items = {"none", "random", "fixed"};
+				String[] items = {"none (no scaling)", "random", "fixed"};
 				scaleTypeComboBox = new JComboBox<String>(items);
-				scaleTypeComboBox.setBounds(120, 255, 125, 23);
+				scaleTypeComboBox.setBounds(120, 255, 150, 23);
 				scaleTypeComboBox.addActionListener(new java.awt.event.ActionListener()
 				{
 					public void actionPerformed(java.awt.event.ActionEvent e)
@@ -572,8 +573,8 @@ public class ObjectProperties extends PropertyPanel
 				}
 			}
 
-			String type = scaleTypeComboBox.getSelectedItem().toString();
-			if (type.equals("none"))
+			String type = chosenItem(scaleTypeComboBox);
+			if (type == null)
 			{
 				scaleTextField.setEnabled(false);
 				scaleTextField.setText(null);
@@ -810,7 +811,7 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.getOrientationTypeComboBox().getSelectedItem().toString(), object.getOrientationType(), stringResult))
+            if (isDifferent(chosenItem(panel.getOrientationTypeComboBox()), object.getOrientationType(), stringResult))
             {
                 object.setOrientationType(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -842,7 +843,7 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-			if (speedDreams && isDifferent(panel.getScaleTypeComboBox().getSelectedItem().toString(), object.getScaleType(), stringResult))
+			if (speedDreams && isDifferent(chosenItem(panel.getScaleTypeComboBox()), object.getScaleType(), stringResult))
             {
                 object.setScaleType(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -867,7 +868,7 @@ public class ObjectProperties extends PropertyPanel
             }
 
 			if (getEditorFrame().getGameType().hasUseMaterial() &&
-                isDifferent(panel.getUseMaterialComboBox().getSelectedItem().toString(), object.getUseMaterial(), stringResult))
+                isDifferent(chosenItem(panel.getUseMaterialComboBox()), object.getUseMaterial(), stringResult))
             {
                 object.setUseMaterial(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -897,17 +898,17 @@ public class ObjectProperties extends PropertyPanel
 		object.setName(panel.nameTextField.getText());
 		object.setObject(panel.objectTextField.getText());
 		object.setColor(getInteger(panel.colorTextField.getText()));
-		object.setOrientationType(getString(panel.orientationTypeComboBox.getSelectedItem().toString()));
+		object.setOrientationType(chosenItem(panel.orientationTypeComboBox));
 		object.setBorderDistance(getDouble(panel.borderDistanceTextField.getText()));
 		object.setOrientation(getDouble(panel.orientationTextField.getText()));
 		object.setDeltaHeight(getDouble(panel.deltaHeightTextField.getText()));
 		object.setDeltaVert(getDouble(panel.deltaVertTextField.getText()));
-		object.setScaleType(getString(panel.scaleTypeComboBox.getSelectedItem().toString()));
+		object.setScaleType(chosenItem(panel.scaleTypeComboBox));
 		object.setScale(getDouble(panel.scaleTextField.getText()));
 		object.setScaleMin(getDouble(panel.scaleMinTextField.getText()));
 		object.setScaleMax(getDouble(panel.scaleMaxTextField.getText()));
 		if (getEditorFrame().getGameType().hasUseMaterial())
-			object.setUseMaterial(getString(panel.getUseMaterialComboBox().getSelectedItem().toString()));
+			object.setUseMaterial(chosenItem(panel.getUseMaterialComboBox()));
 	}
 
 	private void setPanelFromObject(TrackObject object, ObjectPanel panel)
@@ -915,14 +916,14 @@ public class ObjectProperties extends PropertyPanel
 		setTextField(panel.nameTextField, object.getName());
 		setTextField(panel.objectTextField, object.getObject());
 		setHexTextField(panel.colorTextField, object.getColor());
-		selectItem(panel.orientationTypeComboBox, toNoneString(object.getOrientationType()));
+		selectItem(panel.orientationTypeComboBox, object.getOrientationType());
 		setTextField(panel.orientationTextField, object.getOrientation());
 		setTextField(panel.deltaHeightTextField, object.getDeltaHeight());
 		setTextField(panel.deltaVertTextField, object.getDeltaVert());
-		selectItem(panel.scaleTypeComboBox, toNoneString(object.getScaleType()));
+		selectItem(panel.scaleTypeComboBox, object.getScaleType());
 		setTextField(panel.scaleTextField, object.getScale());
 		setTextField(panel.scaleMinTextField, object.getScaleMin());
 		setTextField(panel.scaleMaxTextField, object.getScaleMax());
-		selectItem(panel.getUseMaterialComboBox(), toNoneString(object.getUseMaterial()));
+		selectItem(panel.getUseMaterialComboBox(), object.getUseMaterial());
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

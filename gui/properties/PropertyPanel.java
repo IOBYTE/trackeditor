@@ -64,6 +64,15 @@ public class PropertyPanel extends JPanel
 	 */
 	public static JTextField hintTextField(final String hint)
 	{
+		return hintTextField(() -> hint);
+	}
+
+	/**
+	 * @return a text field that shows a hint in gray while it's empty, one that
+	 *         can change (what the game uses can depend on another choice)
+	 */
+	public static JTextField hintTextField(final java.util.function.Supplier<String> hints)
+	{
 		return new JTextField()
 		{
 			private static final long serialVersionUID = 1L;
@@ -72,6 +81,7 @@ public class PropertyPanel extends JPanel
 			protected void paintComponent(java.awt.Graphics g)
 			{
 				super.paintComponent(g);
+				String hint = hints.get();
 				if (hint == null || !getText().isEmpty())
 					return;
 				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
@@ -442,6 +452,22 @@ public class PropertyPanel extends JPanel
 	}
 
 	/**
+	 * @return whether a choice is "none", or "none (what the game does then)": no
+	 *         value in the track
+	 */
+	public static boolean isNone(Object item)
+	{
+		return item != null && (item.equals("none") || item.toString().startsWith("none ("));
+	}
+
+	/** @return the combo box's choice, or null for none */
+	public static String chosenItem(javax.swing.JComboBox<?> comboBox)
+	{
+		Object item = comboBox.getSelectedItem();
+		return item == null || isNone(item) ? null : item.toString();
+	}
+
+	/**
 	 * Selects value in a combo box of fixed choices, adding it when the list doesn't have
 	 * it, so a value from the track file isn't replaced by the first choice (and then
 	 * removed from the track when Ok is pressed).
@@ -454,8 +480,11 @@ public class PropertyPanel extends JPanel
 			// unset: "none" where the list has it, otherwise nothing selected
 			comboBox.setSelectedItem(null);
 			for (int i = 0; i < model.getSize(); i++)
-				if ("none".equals(model.getElementAt(i)))
-					comboBox.setSelectedItem("none");
+				if (isNone(model.getElementAt(i)))
+				{
+					comboBox.setSelectedItem(model.getElementAt(i));
+					break;
+				}
 			return;
 		}
 		boolean found = false;

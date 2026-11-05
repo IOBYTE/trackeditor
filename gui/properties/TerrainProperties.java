@@ -57,35 +57,36 @@ import utils.circuit.TerrainGeneration;
 public class TerrainProperties extends PropertyPanel
 {
 	private JLabel				trackStepLabel				= new JLabel();
-	private JTextField			trackStepTextField			= new JTextField();
+	private JTextField			trackStepTextField			= hintTextField(() -> getEditorFrame().getGameType()
+		== EditorFrame.GameType.TORCS ? "5.0 (default)" : "10.0 (default)");
 	private JLabel				borderMarginLabel			= new JLabel();
-	private JTextField			borderMarginTextField		= new JTextField();
+	private JTextField			borderMarginTextField		= hintTextField("100.0 (default)");
 	private JLabel				borderStepLabel				= new JLabel();
-	private JTextField			borderStepTextField			= new JTextField();
+	private JTextField			borderStepTextField			= hintTextField("10.0 (default)");
 	private JLabel				borderHeightLabel			= new JLabel();
-	private JTextField			borderHeightTextField		= new JTextField();
+	private JTextField			borderHeightTextField		= hintTextField("0.0 (default)");
 	private JLabel				orientationLabel			= new JLabel();
 	private JComboBox<String>	orientationComboBox			= null;
 	private JLabel				maximumAltitudeLabel		= new JLabel();
-	private JTextField			maximumAltitudeTextField	= new JTextField();
+	private JTextField			maximumAltitudeTextField	= hintTextField("track's highest");
 	private JLabel				minimumAltitudeLabel		= new JLabel();
-	private JTextField			minimumAltitudeTextField	= new JTextField();
+	private JTextField			minimumAltitudeTextField	= hintTextField("track's lowest");
 	private JLabel				groupSizeLabel				= new JLabel();
-	private JTextField			groupSizeTextField			= new JTextField();
+	private JTextField			groupSizeTextField			= hintTextField("100.0 (default)");
 	private JLabel				elevationMapLabel			= new JLabel();
-	private JTextField			elevationMapTextField		= new JTextField();
+	private JTextField			elevationMapTextField		= hintTextField("none");
 	private JLabel				reliefFileLabel				= new JLabel();
-	private JTextField			reliefFileTextField			= new JTextField();
+	private JTextField			reliefFileTextField			= hintTextField("none");
 	private JLabel				reliefBorderLabel			= new JLabel();
 	private JComboBox<String>	reliefBorderComboBox		= null;
 	private JLabel				surfaceLabel				= new JLabel();
 	private SurfaceComboBox		surfaceComboBox				= null;
 	private JLabel				randomSeedLabel				= new JLabel();
-	private JTextField			randomSeedTextField			= new JTextField();
+	private JTextField			randomSeedTextField			= hintTextField("1 (default)");
 	private JLabel				useObjectMaterialsLabel		= new JLabel();
 	private JComboBox<String>	useObjectMaterialsComboBox	= null;	
 	private JLabel				tiledFileLabel				= new JLabel();
-	private JTextField			tiledFileTextField			= new JTextField();	
+	private JTextField			tiledFileTextField			= hintTextField("none");	
 	private JButton				defaultButton				= null;
 	private JButton				deleteButton				= null;
 	private JTabbedPane			tabbedPane					= null;
@@ -94,14 +95,14 @@ public class TerrainProperties extends PropertyPanel
 	private JButton				tiledFileButton				= null;
 	// TORCS
 	private JLabel				terrainTransitionLabel		= new JLabel();
-	private JTextField			terrainTransitionTextField	= new JTextField();
+	private JTextField			terrainTransitionTextField	= hintTextField(() -> borderMargin() + " (border margin)");
 	private JComboBox<String>	crossingModeComboBox		= null;
-	private JTextField			socketGapTextField			= new JTextField();
-	private JTextField			thicknessTextField			= new JTextField();
+	private JTextField			socketGapTextField			= hintTextField(TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SOCKET_GAP + " (default)");
+	private JTextField			thicknessTextField			= hintTextField(TerrainGeneration.DEFAULT_CROSSING_BRIDGE_THICKNESS + " (default)");
 	private SurfaceComboBox[]	bridgeSurfaceComboBoxes		= new SurfaceComboBox[TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length];
 	// accc
 	private JTextField[]		accGroupDistanceTextFields	= new JTextField[TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length];
-	private JTextField			accSplitDistanceTextField	= new JTextField();
+	private JTextField			accSplitDistanceTextField	= hintTextField("none (no split)");
 	private JComboBox<String>	accExtendedStripsComboBox	= null;
 
 	private final String sep = System.getProperty("file.separator");
@@ -135,6 +136,8 @@ public class TerrainProperties extends PropertyPanel
 	private void initialize()
 	{
 		addDefaultSurfaces(roadSurfaceVector);
+		// no surface: trackgen's default, first
+		roadSurfaceVector.add(0, "none (grass)");
 
 		setLayout(null);
 		setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
@@ -162,6 +165,24 @@ public class TerrainProperties extends PropertyPanel
 			addLabel(this, 13, terrainTransitionLabel, "Terrain Transition", 120);
 			addTextField(this, 13, terrainTransitionTextField, getEditorFrame().getTerrainGeneration().getTerrainTransition(), 140, 125);
 			terrainTransitionTextField.setToolTipText("Distance from the track over which the terrain spacing grows to the border step (empty = border margin, 0 or less = off)");
+			// its hint is the border margin
+			borderMarginTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+			{
+				public void insertUpdate(javax.swing.event.DocumentEvent e)
+				{
+					terrainTransitionTextField.repaint();
+				}
+
+				public void removeUpdate(javax.swing.event.DocumentEvent e)
+				{
+					terrainTransitionTextField.repaint();
+				}
+
+				public void changedUpdate(javax.swing.event.DocumentEvent e)
+				{
+					terrainTransitionTextField.repaint();
+				}
+			});
 		}
 
 		addTextField(this, 0, trackStepTextField, getEditorFrame().getTerrainGeneration().getTrackStep(), 140, 125);
@@ -194,8 +215,15 @@ public class TerrainProperties extends PropertyPanel
 			addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
 			this.add(getTiledFileButton(), null);
 		}
-		selectItem(getReliefBorderComboBox(), toNoneString(getEditorFrame().getTerrainGeneration().getReliefBorder()));
-		selectItem(getUseObjectMaterialsComboBox(), toNoneString(getEditorFrame().getTerrainGeneration().getUseObjectMaterials()));
+		selectItem(getReliefBorderComboBox(), getEditorFrame().getTerrainGeneration().getReliefBorder());
+		selectItem(getUseObjectMaterialsComboBox(), getEditorFrame().getTerrainGeneration().getUseObjectMaterials());
+	}
+
+	/** @return the border margin typed, or trackgen's when there's none */
+	private String borderMargin()
+	{
+		String text = borderMarginTextField.getText().trim();
+		return text.isEmpty() ? "100.0" : text;
 	}
 
 	/**
@@ -208,13 +236,11 @@ public class TerrainProperties extends PropertyPanel
 		if (orientationComboBox == null)
 		{
 			String[] items =
-				{"none", "clockwise", "counter-clockwise"};
+				{"none (ignored)", "clockwise", "counter-clockwise"};
 			orientationComboBox = new JComboBox<String>(items);
 			orientationComboBox.setBounds(140, 118, 125, 23);
-			String orientation = getEditorFrame().getTerrainGeneration().getOrientation();
-			if (orientation == null || orientation.isEmpty())
-				orientation = "none";
-			selectItem(orientationComboBox, orientation);
+			// no trackgen reads it
+			selectItem(orientationComboBox, getEditorFrame().getTerrainGeneration().getOrientation());
 		}
 		return orientationComboBox;
 	}
@@ -232,7 +258,7 @@ public class TerrainProperties extends PropertyPanel
 			addSurface(roadSurfaceVector, surface);
 			surfaceComboBox = new SurfaceComboBox(getEditorFrame(), roadSurfaceVector);
 			surfaceComboBox.setBounds(140, 307, 200, 23);
-			surfaceComboBox.setSelectedItem(surface);
+			selectItem(surfaceComboBox, surface);
 		}
 		return surfaceComboBox;
 	}
@@ -246,7 +272,9 @@ public class TerrainProperties extends PropertyPanel
 	{
 		if (reliefBorderComboBox == null)
 		{
-			String[] items = {"none", "yes", "no"};
+			// TORCS trackgen doesn't read it
+			String none = getEditorFrame().getGameType() == EditorFrame.GameType.TORCS ? "none (ignored)" : "none (no)";
+			String[] items = {none, "yes", "no"};
 			reliefBorderComboBox = new JComboBox<String>(items);
 			reliefBorderComboBox.setBounds(140, 280, 125, 23);
 		}
@@ -262,7 +290,7 @@ public class TerrainProperties extends PropertyPanel
 	{
 		if (useObjectMaterialsComboBox == null)
 		{
-			String[] items = {"none", "yes", "no"};
+			String[] items = {"none (no)", "yes", "no"};
 			useObjectMaterialsComboBox = new JComboBox<String>(items);
 			useObjectMaterialsComboBox.setBounds(140, 361, 125, 23);
 		}
@@ -299,7 +327,9 @@ public class TerrainProperties extends PropertyPanel
 			if (!found)
 			{
 				surfaceVector.add(surface);
-				Collections.sort(surfaceVector);
+				// the "none" choice stays first
+				int first = !surfaceVector.isEmpty() && isNone(surfaceVector.get(0)) ? 1 : 0;
+				Collections.sort(surfaceVector.subList(first, surfaceVector.size()));
 			}
 		}
 	}
@@ -507,16 +537,16 @@ public class TerrainProperties extends PropertyPanel
 					setTextField(borderMarginTextField, TerrainGeneration.DEFAULT_BORDER_MARGIN);
 					setTextField(borderStepTextField, TerrainGeneration.DEFAULT_BORDER_STEP);
 					setTextField(borderHeightTextField, TerrainGeneration.DEFAULT_BORDER_HEIGHT);
-					orientationComboBox.setSelectedItem(TerrainGeneration.DEFAULT_ORIENTATION);
+					selectItem(orientationComboBox, TerrainGeneration.DEFAULT_ORIENTATION);
 					setTextField(maximumAltitudeTextField, TerrainGeneration.DEFAULT_MAXIMUM_ALTITUDE);
 					setTextField(minimumAltitudeTextField, TerrainGeneration.DEFAULT_MINIMUM_ALTITUDE);
 					setTextField(groupSizeTextField, TerrainGeneration.DEFAULT_GROUP_SIZE);
 					setTextField(elevationMapTextField, TerrainGeneration.DEFAULT_ELEVATION_MAP);
 					setTextField(reliefFileTextField, TerrainGeneration.DEFAULT_RELIEF_FILE);
-					surfaceComboBox.setSelectedItem(TerrainGeneration.DEFAULT_SURFACE);
+					selectItem(surfaceComboBox, TerrainGeneration.DEFAULT_SURFACE);
 					setTextField(randomSeedTextField, TerrainGeneration.DEFAULT_RANDOM_SEED);
-					reliefBorderComboBox.setSelectedItem(TerrainGeneration.DEFAULT_RELIEF_BORDER);
-					useObjectMaterialsComboBox.setSelectedItem(TerrainGeneration.DEFAULT_USE_OBJECT_MATERIALS);
+					selectItem(reliefBorderComboBox, TerrainGeneration.DEFAULT_RELIEF_BORDER);
+					selectItem(useObjectMaterialsComboBox, TerrainGeneration.DEFAULT_USE_OBJECT_MATERIALS);
 				}
 			});
 		}
@@ -543,16 +573,16 @@ public class TerrainProperties extends PropertyPanel
 					borderMarginTextField.setText(null);
 					borderStepTextField.setText(null);
 					borderHeightTextField.setText(null);
-					orientationComboBox.setSelectedItem(null);
+					selectItem(orientationComboBox, null);
 					maximumAltitudeTextField.setText(null);
 					minimumAltitudeTextField.setText(null);
 					groupSizeTextField.setText(null);
 					elevationMapTextField.setText(null);
 					reliefFileTextField.setText(null);
-					surfaceComboBox.setSelectedItem(null);
+					selectItem(surfaceComboBox, null);
 					randomSeedTextField.setText(null);
-					reliefBorderComboBox.setSelectedItem(null);
-					useObjectMaterialsComboBox.setSelectedItem(null);
+					selectItem(reliefBorderComboBox, null);
+					selectItem(useObjectMaterialsComboBox, null);
 				}
 			});
 		}
@@ -631,12 +661,14 @@ public class TerrainProperties extends PropertyPanel
 		{
 			String surface = terrain.getCrossingBridgeSurface(i);
 			Vector<String> surfaces = new Vector<String>(roadSurfaceVector);
+			// not the terrain's "none"
+			surfaces.remove(0);
 			addSurface(surfaces, surface);
-			surfaces.add(0, "none");
+			surfaces.add(0, "none (" + TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[i] + ")");
 			addLabel(panel, 3 + i, new JLabel(), TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i] + " Surface", 120);
 			bridgeSurfaceComboBoxes[i] = new SurfaceComboBox(getEditorFrame(), surfaces);
 			bridgeSurfaceComboBoxes[i].setBounds(140, 10 + (3 + i) * 27, 200, 23);
-			bridgeSurfaceComboBoxes[i].setSelectedItem(toNoneString(surface));
+			selectItem(bridgeSurfaceComboBoxes[i], surface);
 			bridgeSurfaceComboBoxes[i].setToolTipText("none = " + TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[i]);
 			panel.add(bridgeSurfaceComboBoxes[i]);
 		}
@@ -660,7 +692,7 @@ public class TerrainProperties extends PropertyPanel
 			"accc -d3: the largest distance of the groups (for example 1000 m)"};
 		for (int i = 0; i < accGroupDistanceTextFields.length; i++)
 		{
-			accGroupDistanceTextFields[i] = new JTextField();
+			accGroupDistanceTextFields[i] = hintTextField("none (no grouping)");
 			addLabel(panel, i, new JLabel(), names[i], 120);
 			addTextField(panel, i, accGroupDistanceTextFields[i], terrain.getAccGroupDistance(i), 140, 125);
 			accGroupDistanceTextFields[i].setToolTipText(tips[i]);
@@ -670,10 +702,10 @@ public class TerrainProperties extends PropertyPanel
 		accSplitDistanceTextField.setToolTipText("accc -S: the distance TERRAIN objects are split at (for example 300 m)");
 
 		addLabel(panel, 4, new JLabel(), "Extended Strips", 120);
-		String[] items = {"none", "yes", "no"};
+		String[] items = {"none (no)", "yes", "no"};
 		accExtendedStripsComboBox = new JComboBox<String>(items);
 		accExtendedStripsComboBox.setBounds(140, 10 + 4 * 27, 125, 23);
-		selectItem(accExtendedStripsComboBox, toNoneString(terrain.getAccExtendedStrips()));
+		selectItem(accExtendedStripsComboBox, terrain.getAccExtendedStrips());
 		accExtendedStripsComboBox.setToolTipText("accc -es: the extended file format for strips");
 		panel.add(accExtendedStripsComboBox);
 
@@ -740,7 +772,7 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent((String) getOrientationComboBox().getSelectedItem(),
+		if (isDifferent(chosenItem(getOrientationComboBox()),
 			getEditorFrame().getTerrainGeneration().getOrientation(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setOrientation(stringResult.getValue());
@@ -783,14 +815,14 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(reliefBorderComboBox.getSelectedItem().toString(),
+		if (isDifferent(chosenItem(reliefBorderComboBox),
 			getEditorFrame().getTerrainGeneration().getReliefBorder(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setReliefBorder(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent((String) surfaceComboBox.getSelectedItem(),
+		if (isDifferent(chosenItem(surfaceComboBox),
 			getEditorFrame().getTerrainGeneration().getSurface(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setSurface(stringResult.getValue());
@@ -806,7 +838,7 @@ public class TerrainProperties extends PropertyPanel
 
 		// the settings a game doesn't have aren't shown, so they are left as they are
 		if (getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys() &&
-			isDifferent(useObjectMaterialsComboBox.getSelectedItem().toString(),
+			isDifferent(chosenItem(useObjectMaterialsComboBox),
 			getEditorFrame().getTerrainGeneration().getUseObjectMaterials(), stringResult))
 		{
 			getEditorFrame().getTerrainGeneration().setUseObjectMaterials(stringResult.getValue());
@@ -828,7 +860,7 @@ public class TerrainProperties extends PropertyPanel
 				terrain.setTerrainTransition(doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
-			if (isDifferent((String) crossingModeComboBox.getSelectedItem(), terrain.getCrossingMode(), stringResult))
+			if (isDifferent(chosenItem(crossingModeComboBox), terrain.getCrossingMode(), stringResult))
 			{
 				terrain.setCrossingMode(stringResult.getValue());
 				getEditorFrame().documentIsModified = true;
@@ -845,7 +877,7 @@ public class TerrainProperties extends PropertyPanel
 			}
 			for (int i = 0; i < bridgeSurfaceComboBoxes.length; i++)
 			{
-				if (isDifferent((String) bridgeSurfaceComboBoxes[i].getSelectedItem(), terrain.getCrossingBridgeSurface(i), stringResult))
+				if (isDifferent(chosenItem(bridgeSurfaceComboBoxes[i]), terrain.getCrossingBridgeSurface(i), stringResult))
 				{
 					terrain.setCrossingBridgeSurface(i, stringResult.getValue());
 					getEditorFrame().documentIsModified = true;
@@ -867,7 +899,7 @@ public class TerrainProperties extends PropertyPanel
 			accTerrain.setAccSplitDistance(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-		if (isDifferent((String) accExtendedStripsComboBox.getSelectedItem(), accTerrain.getAccExtendedStrips(), stringResult))
+		if (isDifferent(chosenItem(accExtendedStripsComboBox), accTerrain.getAccExtendedStrips(), stringResult))
 		{
 			accTerrain.setAccExtendedStrips(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;

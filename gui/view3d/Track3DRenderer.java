@@ -68,6 +68,10 @@ public class Track3DRenderer implements GLEventListener
 	private final List<int[]>		runs			= new ArrayList<int[]>();
 	// the strips with textures that can be seen through, drawn one by one
 	private final List<SeeThrough>	seeThrough		= new ArrayList<SeeThrough>();
+	// the start lights, drawn last, each with its on or its off texture
+	private final List<LightRun>	lightRuns		= new ArrayList<LightRun>();
+	// the race's clock while driving from the grid (0 is the start), or NaN: all lights on
+	private volatile double			startClock		= Double.NaN;
 	// the textures loaded so far, by file and time, and the ones that couldn't be read
 	private final Map<String, Texture>	textures	= new HashMap<String, Texture>();
 	// the textures with parts that can be seen through, such as a fence's gaps
@@ -82,6 +86,28 @@ public class Track3DRenderer implements GLEventListener
 	Track3DRenderer(Track3DWindow window)
 	{
 		this.window = window;
+	}
+
+	/** Sets the race's clock the start lights follow, or NaN to show them all on. */
+	void setStartClock(double clock)
+	{
+		startClock = clock;
+	}
+
+	/**
+	 * Whether a start light is on in a race, as Speed Dreams and CSR switch them:
+	 * a red one from index / 10 s before the start (the clock starts at -2 s) until
+	 * the start, the green start one for the first 30 s; the others not in a race.
+	 */
+	static boolean lightOn(String role, int index, double clock)
+	{
+		if (Double.isNaN(clock))
+			return true;
+		if ("st_red".equals(role))
+			return clock < 0 && Math.floor(Math.max(-clock, 0) * 10) < index;
+		if ("st_green_st".equals(role))
+			return clock >= 0 && clock < 30;
+		return false;
 	}
 
 	void setMesh(RoadMesh mesh)
@@ -303,6 +329,15 @@ public class Track3DRenderer implements GLEventListener
 					bound = strip;
 					gl.glDrawArrays(GL.GL_TRIANGLES, strip.first, strip.count);
 				}
+				// the start lights, on or off as the race's clock says; unlit, as in the game
+				double clock = startClock;
+				if (!lightRuns.isEmpty())
+					gl.glDisable(GLLightingFunc.GL_LIGHTING);
+				for (LightRun light : lightRuns)
+				{
+					bind(gl, lightOn(light.role, light.index, clock) ? light.on : light.off, null, DOUBLE_SIDED);
+					gl.glDrawArrays(GL.GL_TRIANGLES, light.first, light.count);
+				}
 				gl.glDisable(GL.GL_BLEND);
 				gl.glActiveTexture(GL.GL_TEXTURE1);
 				gl.glDisable(GL.GL_TEXTURE_2D);
@@ -413,11 +448,14 @@ public class Track3DRenderer implements GLEventListener
 				!a.texture.equals(b.texture) ? a.texture.compareTo(b.texture) : String.valueOf(a.racelineTexture).compareTo(String.valueOf(b.racelineTexture)));
 		else
 			sorted.sort((a, b) -> Integer.compare(faces(a), faces(b)));
+		// the start lights last, out of the runs, as their textures change
+		sorted.sort((a, b) -> Boolean.compare(a.part == TrackScene.Part.TRACK_LIGHT, b.part == TrackScene.Part.TRACK_LIGHT));
 
 		runs.clear();
 		runTextures.clear();
 		runRacelines.clear();
 		seeThrough.clear();
+		lightRuns.clear();
 		clamped.clear();
 		float scale = (float) heightScale;
 		double heightRange = Math.max(1e-6, mesh.maxZ - mesh.minZ);
@@ -429,16 +467,26 @@ public class Track3DRenderer implements GLEventListener
 			if (strip.clamp && texture != null)
 				clamped.add(texture);
 			int[] order = strip.triangles();
-			int last = runs.size() - 1;
-			if (runs.isEmpty() || runTextures.get(last) != texture || runRacelines.get(last) != layer || runs.get(last)[2] != faces(strip))
+			if (strip.part == TrackScene.Part.TRACK_LIGHT)
 			{
-				runs.add(new int[] { tri * 3, 0, faces(strip) });
-				runTextures.add(texture);
-				runRacelines.add(layer);
+				Texture off = textured && strip.textureOff != null ? stripTextures.get(strip.textureOff) : null;
+				if (off != null)
+					clamped.add(off);
+				lightRuns.add(new LightRun(texture, off, strip.lightRole, strip.lightIndex, tri * 3, order.length));
 			}
-			runs.get(runs.size() - 1)[1] += order.length;
-			if (translucent.contains(texture) && order.length > 0)
-				seeThrough.add(new SeeThrough(strip, texture, layer, faces(strip), tri * 3, order.length, scale));
+			else
+			{
+				int last = runs.size() - 1;
+				if (runs.isEmpty() || runTextures.get(last) != texture || runRacelines.get(last) != layer || runs.get(last)[2] != faces(strip))
+				{
+					runs.add(new int[] { tri * 3, 0, faces(strip) });
+					runTextures.add(texture);
+					runRacelines.add(layer);
+				}
+				runs.get(runs.size() - 1)[1] += order.length;
+				if (translucent.contains(texture) && order.length > 0)
+					seeThrough.add(new SeeThrough(strip, texture, layer, faces(strip), tri * 3, order.length, scale));
+			}
 			boolean flip = texture != null && texture.getMustFlipVertically();
 			boolean flipLayer = layer != null && layer.getMustFlipVertically();
 			// a texture is lit as it is; a missing one shows the surface's color
@@ -494,6 +542,24 @@ public class Track3DRenderer implements GLEventListener
 		racelineCoords = Buffers.newDirectFloatBuffer(rt);
 		lines = Buffers.newDirectFloatBuffer(l);
 		drawnTriangles = tri;
+	}
+
+	/** A start light: its textures, role and index, and where it is in the arrays. */
+	private static final class LightRun
+	{
+		final Texture	on, off;
+		final String	role;
+		final int		index, first, count;
+
+		LightRun(Texture on, Texture off, String role, int index, int first, int count)
+		{
+			this.on = on;
+			this.off = off;
+			this.role = role;
+			this.index = index;
+			this.first = first;
+			this.count = count;
+		}
 	}
 
 	/** A strip with a texture that can be seen through: where it is in the arrays, and its middle. */

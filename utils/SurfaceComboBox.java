@@ -50,7 +50,7 @@ public class SurfaceComboBox extends JComboBox<String>
 			{
 				if (getSelectedIndex() != -1)
 				{
-					String surfaceName = getSelectedItem().toString();
+					String surfaceName = surfaceOf(getSelectedItem().toString());
 					if (surfaceName != null && !surfaceName.isEmpty())
 					{
 						String tooltipText = null;
@@ -74,6 +74,14 @@ public class SurfaceComboBox extends JComboBox<String>
 				}
 			}
 		});
+	}
+
+	/** @return the surface a choice is: the game's default for "none (default)" */
+	private static String surfaceOf(String item)
+	{
+		if (item != null && item.startsWith("none (") && item.endsWith(")"))
+			return item.substring("none (".length(), item.length() - 1);
+		return item;
 	}
 
 	private class ComboboxToolTipRenderer extends DefaultListCellRenderer
@@ -222,7 +230,7 @@ public class SurfaceComboBox extends JComboBox<String>
 		for (int i = 0; i < surfaceVector.size(); i++)
 		{
 			String tooltipText = null;
-			String surfaceName = surfaceVector.get(i);
+			String surfaceName = surfaceOf(surfaceVector.get(i));
 			if (editorFrame.getDataDirectory() != null)
 			{
 				tooltipText = getTextureName(surfaceName, defaultSurfaces, editorFrame.getDataDirectory() + sep + "data" + sep + "textures");

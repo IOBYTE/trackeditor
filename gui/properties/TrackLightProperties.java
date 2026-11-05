@@ -91,7 +91,11 @@ public class TrackLightProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					String name = uniqueName(tabbedPane, "light");
+					// the game reads the lights by number, 1 to their count
+					int number = tabbedPane.getTabCount() + 1;
+					while (tabbedPane.indexOfTab(String.valueOf(number)) != -1)
+						number++;
+					String name = String.valueOf(number);
 					TrackLight light = new TrackLight();
 
 					light.setName(name);
@@ -175,33 +179,33 @@ public class TrackLightProperties extends PropertyPanel
 		private JLabel				nameLabel				= new JLabel();
 		private JTextField 			nameTextField			= new JTextField();
 		private JLabel				roleLabel				= new JLabel();
-		private JTextField			roleTextField			= new JTextField();
+		private JTextField			roleTextField			= hintTextField("none (not drawn)");
 		private JLabel				topLeftXLabel			= new JLabel();
-		private JTextField			topLeftXTextField		= new JTextField();
+		private JTextField			topLeftXTextField		= hintTextField("0.0 (default)");
 		private JLabel				topLeftYLabel			= new JLabel();
-		private JTextField			topLeftYTextField		= new JTextField();
+		private JTextField			topLeftYTextField		= hintTextField("0.0 (default)");
 		private JLabel				topLeftZLabel			= new JLabel();
-		private JTextField			topLeftZTextField		= new JTextField();
+		private JTextField			topLeftZTextField		= hintTextField("0.0 (default)");
 		private JLabel				bottomRightXLabel		= new JLabel();
-		private JTextField			bottomRightXTextField	= new JTextField();
+		private JTextField			bottomRightXTextField	= hintTextField("0.0 (default)");
 		private JLabel				bottomRightYLabel		= new JLabel();
-		private JTextField			bottomRightYTextField	= new JTextField();
+		private JTextField			bottomRightYTextField	= hintTextField("0.0 (default)");
 		private JLabel				bottomRightZLabel		= new JLabel();
-		private JTextField			bottomRightZTextField	= new JTextField();
+		private JTextField			bottomRightZTextField	= hintTextField("0.0 (default)");
 		private JLabel				textureOnLabel			= new JLabel();
-		private JTextField			textureOnTextField		= new JTextField();
+		private JTextField			textureOnTextField		= hintTextField("none (no image)");
 		private JButton				textureOnButton			= null;
 		private JLabel				textureOffLabel			= new JLabel();
-		private JTextField			textureOffTextField		= new JTextField();
+		private JTextField			textureOffTextField		= hintTextField("none (no image)");
 		private JButton				textureOffButton		= null;
 		private JLabel				indexLabel				= new JLabel();
-		private JTextField			indexTextField			= new JTextField();
+		private JTextField			indexTextField			= hintTextField("0 (default)");
 		private JLabel				redLabel				= new JLabel();
-		private JTextField			redTextField			= new JTextField();
+		private JTextField			redTextField			= hintTextField("1.0 (default)");
 		private JLabel				greenLabel				= new JLabel();
-		private JTextField			greenTextField			= new JTextField();
+		private JTextField			greenTextField			= hintTextField("1.0 (default)");
 		private JLabel				blueLabel				= new JLabel();
-		private JTextField			blueTextField			= new JTextField();
+		private JTextField			blueTextField			= hintTextField("1.0 (default)");
 
 		private final String sep = System.getProperty("file.separator");
 
@@ -240,6 +244,9 @@ public class TrackLightProperties extends PropertyPanel
 			addTextField(this, 0, nameTextField, light.getName(), 120, 125);
 			markItemName(nameTextField);
 			addTextField(this, 1, roleTextField, light.getRole(), 120, 125);
+			roleTextField.setToolTipText("<html>st_red: on during the countdown (index / 10 s before the start), out at the start<br>"
+				+ "st_green_st: on for the first 30 s of a race<br>st_green: on during practice and qualifying<br>"
+				+ "st_yellow: never lit<br>Any other role isn't drawn.</html>");
 			addTextField(this, 2, topLeftXTextField, light.getTopLeftX(), 120, 125);
 			addTextField(this, 3, topLeftYTextField, light.getTopLeftY(), 120, 125);
 			addTextField(this, 4, topLeftZTextField, light.getTopLeftZ(), 120, 125);

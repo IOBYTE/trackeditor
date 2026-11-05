@@ -646,7 +646,7 @@ public class XmlWriter
 			addContent(el, "texture randomness", "m", surface.getTextureRandomness());
 			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
 			addContent(el, "texture start on boundary", surface.getTextureStartOnBoundary());
-			addContent(el, "texture mipmap", "m", surface.getTextureMipMap());
+			addContent(el, "texture mipmap", null, surface.getTextureMipMap());
 			addContent(el, "friction", null, surface.getFriction());
 			addContent(el, "rolling resistance", null, surface.getRollingResistance());
 			addContent(el, "bump name", surface.getBumpName());

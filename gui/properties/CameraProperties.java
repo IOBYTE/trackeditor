@@ -173,17 +173,17 @@ public class CameraProperties extends PropertyPanel
 		private JLabel				commentLabel		= new JLabel();
 		private JTextField 			commentTextField	= new JTextField();
 		private JLabel				segmentLabel		= new JLabel();
-		private JTextField			segmentTextField	= new JTextField();
+		private JTextField			segmentTextField	= hintTextField("required");
 		private JLabel				toRightLabel		= new JLabel();
-		private JTextField			toRightTextField	= new JTextField();
+		private JTextField			toRightTextField	= hintTextField("0.0 (right edge)");
 		private JLabel				toStartLabel		= new JLabel();
-		private JTextField			toStartTextField	= new JTextField();
+		private JTextField			toStartTextField	= hintTextField("0.0 (start of the segment)");
 		private JLabel				heightLabel			= new JLabel();
-		private JTextField			heightTextField		= new JTextField();
+		private JTextField			heightTextField		= hintTextField("0.0 (on the road)");
 		private JLabel				fovStartLabel		= new JLabel();
-		private JTextField			fovStartTextField	= new JTextField();
+		private JTextField			fovStartTextField	= hintTextField("required");
 		private JLabel				fovEndLabel			= new JLabel();
-		private JTextField			fovEndTextField		= new JTextField();
+		private JTextField			fovEndTextField		= hintTextField("required");
 
 		/**
 		 *
@@ -214,12 +214,12 @@ public class CameraProperties extends PropertyPanel
 			addTextField(this, 0, nameTextField, camera.getName(), 150, 125);
 			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, camera.getComment(), 150, 335);
-			addTextField(this, 2, segmentTextField, camera.getSegment(), 150, 125);
-			addTextField(this, 3, toRightTextField, camera.getToRight(), 150, 125);
-			addTextField(this, 4, toStartTextField, camera.getToStart(), 150, 125);
-			addTextField(this, 5, heightTextField, camera.getHeight(), 150, 125);
-			addTextField(this, 6, fovStartTextField, camera.getFovStart(), 150, 125);
-			addTextField(this, 7, fovEndTextField, camera.getFovEnd(), 150, 125);
+			addTextField(this, 2, segmentTextField, camera.getSegment(), 150, 185);
+			addTextField(this, 3, toRightTextField, camera.getToRight(), 150, 185);
+			addTextField(this, 4, toStartTextField, camera.getToStart(), 150, 185);
+			addTextField(this, 5, heightTextField, camera.getHeight(), 150, 185);
+			addTextField(this, 6, fovStartTextField, camera.getFovStart(), 150, 185);
+			addTextField(this, 7, fovEndTextField, camera.getFovEnd(), 150, 185);
 		}
 	}
 
