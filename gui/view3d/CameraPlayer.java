@@ -42,6 +42,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import gui.EditorFrame;
+import gui.properties.PropertyPanel;
 import gui.view3d.GameTrack.Seg;
 import utils.SegmentVector;
 import utils.circuit.Camera;
@@ -105,6 +106,7 @@ class CameraPlayer
 
 	private final JButton			pauseButton		= new JButton("Pause");
 	private final JButton			restartButton	= new JButton("Restart");
+	private final JButton			previousButton	= new JButton("Previous camera");
 	private final JButton			nextButton		= new JButton("Next camera");
 	private final JComboBox<String>	viewBox			= new JComboBox<String>(VIEWS);
 	private final JComboBox<String>	driveViewBox	= new JComboBox<String>(DRIVE_VIEWS);
@@ -117,12 +119,15 @@ class CameraPlayer
 
 	private final JLabel			titleLabel		= new JLabel();
 	private final JComboBox<String>	segmentBox		= new JComboBox<String>();
-	private final JTextField		toStartField	= new JTextField(7);
+	private final JTextField		toStartField	= hinted("0 (segment start)");
 	private final JComboBox<String>	unitBox			= new JComboBox<String>();
-	private final JTextField		toRightField	= new JTextField(7);
-	private final JTextField		heightField		= new JTextField(7);
+	private final JTextField		toRightField	= hinted("0 (right edge)");
+	private final JTextField		heightField		= hinted("0 (on the road)");
 	private final JComboBox<String>	fovStartBox		= new JComboBox<String>();
 	private final JComboBox<String>	fovEndBox		= new JComboBox<String>();
+	private final JButton			showStartButton	= new JButton("Show start");
+	private final JButton			showEndButton	= new JButton("Show end");
+	private final JButton			playCameraButton	= new JButton("Play camera");
 	private final JButton			moveButton		= new JButton("Move here");
 	private final JButton			startButton		= new JButton("Start here");
 	private final JButton			endButton		= new JButton("End here");
@@ -139,6 +144,8 @@ class CameraPlayer
 	private long					lastTick;
 	// how far round the lap the car is
 	private double					distance;
+	// playing one camera's stretch: how far is left to play, NaN when not
+	private double					cameraLeft		= Double.NaN;
 	// starting from the grid: the race's clock (0 is the start), NaN when not
 	private double					clock			= Double.NaN;
 	private double					waited;
@@ -181,6 +188,8 @@ class CameraPlayer
 		pauseButton.addActionListener(e -> setPlaying(!playing));
 		restartButton.setToolTipText("Back to the start line, or to the grid when driving");
 		restartButton.addActionListener(e -> restart());
+		previousButton.setToolTipText("Back to where the camera before this one takes over");
+		previousButton.addActionListener(e -> previousCamera());
 		nextButton.setToolTipText("Skip to where the next camera takes over");
 		nextButton.addActionListener(e -> nextCamera());
 		viewBox.setToolTipText("<html>Zoom: the TV director's view, zoomed so the car stays the same size.<br>No zoom: a fixed field of view.</html>");
@@ -206,6 +215,7 @@ class CameraPlayer
 		JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
 		controls.add(pauseButton);
 		controls.add(restartButton);
+		controls.add(previousButton);
 		controls.add(nextButton);
 		controls.add(new JLabel("View"));
 		controls.add(viewBox);
@@ -258,6 +268,11 @@ class CameraPlayer
 		row(c, "Fov End", fovEndBox);
 
 		JPanel here = new JPanel(new java.awt.GridLayout(0, 1, 0, 3));
+		JPanel show = new JPanel(new java.awt.GridLayout(1, 2, 4, 0));
+		show.add(showStartButton);
+		show.add(showEndButton);
+		here.add(show);
+		here.add(playCameraButton);
 		here.add(moveButton);
 		here.add(startButton);
 		here.add(endButton);
@@ -285,6 +300,8 @@ class CameraPlayer
 		heightField.setToolTipText("Above the ground");
 		fovStartBox.setToolTipText("The first segment the camera films");
 		fovEndBox.setToolTipText("The segment after the last one it films (the same as Fov Start films all the lap)");
+		showStartButton.setToolTipText("Pause with the car where the camera starts filming: the start of Fov Start");
+		showEndButton.setToolTipText("Pause with the car just before the camera stops filming: the start of Fov End");
 		moveButton.setToolTipText("Put the camera by the car, keeping To Right and Height");
 		startButton.setToolTipText("Make the camera film from the car's segment");
 		endButton.setToolTipText("Make the camera film up to the end of the car's segment");
@@ -325,6 +342,10 @@ class CameraPlayer
 			});
 			field.addActionListener(e -> endEdit());
 		}
+		playCameraButton.setToolTipText("Play the camera's stretch, from the start of Fov Start to the start of Fov End, then pause");
+		playCameraButton.addActionListener(e -> playCamera());
+		showStartButton.addActionListener(e -> showRange(true));
+		showEndButton.addActionListener(e -> showRange(false));
 		moveButton.addActionListener(e -> moveHere());
 		startButton.addActionListener(e -> startHere());
 		endButton.addActionListener(e -> endHere());
@@ -372,7 +393,7 @@ class CameraPlayer
 	void setDrive(boolean drive)
 	{
 		this.drive = drive;
-		for (JComponent c : java.util.Arrays.asList(viewBox, nextButton, editBox))
+		for (JComponent c : java.util.Arrays.asList(viewBox, previousButton, nextButton, editBox))
 			c.setVisible(!drive);
 		driveViewBox.setVisible(drive);
 	}
@@ -417,6 +438,8 @@ class CameraPlayer
 
 	void setPlaying(boolean play)
 	{
+		if (!play)
+			cameraLeft = Double.NaN;
 		playing = play && track != null;
 		pauseButton.setText(playing ? "Pause" : "Play");
 		lastTick = System.nanoTime();
@@ -490,7 +513,20 @@ class CameraPlayer
 			renderer.setStartClock(clock);
 		}
 		else
-			distance = (distance + target * seconds) % total;
+		{
+			double step = target * seconds;
+			if (!Double.isNaN(cameraLeft) && step >= cameraLeft)
+			{
+				// the end of the camera's stretch
+				distance = (distance + cameraLeft) % total;
+				setPlaying(false);
+			}
+			else
+			{
+				distance = (distance + step) % total;
+				cameraLeft -= step;
+			}
+		}
 		show();
 	}
 
@@ -538,6 +574,7 @@ class CameraPlayer
 
 	private void moveTo(double where)
 	{
+		cameraLeft = Double.NaN;
 		if (track == null)
 			return;
 		double total = track.length();
@@ -560,6 +597,35 @@ class CameraPlayer
 				return;
 			}
 		}
+	}
+
+	/** Back to the first segment of the camera before the one filming now (no camera counts as one). */
+	private void previousCamera()
+	{
+		if (track == null || owners.length == 0)
+			return;
+		int n = owners.length;
+		int id = track.segAt(distance).id;
+		// the start of this camera's stretch, then of the one before it
+		int start = runStart(id);
+		if (start < 0)
+			return;
+		int before = runStart((start - 1 + n) % n);
+		moveTo(track.segs.get(before).lgfromstart);
+	}
+
+	/** @return the first segment of the stretch the same camera films that includes this one, or -1 for the whole lap */
+	private int runStart(int id)
+	{
+		int n = owners.length;
+		Camera camera = owners[id];
+		for (int i = 0; i < n; i++)
+		{
+			int j = (id - i + n) % n;
+			if (owners[(j - 1 + n) % n] != camera)
+				return j;
+		}
+		return -1;
 	}
 
 	private Camera ownerAt(double where)
@@ -666,7 +732,7 @@ class CameraPlayer
 		if (camera != lastOwner)
 		{
 			lastOwner = camera;
-			if (editBox.isSelected() && pending == null)
+			if (editBox.isSelected() && pending == null && Double.isNaN(cameraLeft))
 				fillEdit(camera);
 		}
 		strip.repaint();
@@ -858,6 +924,14 @@ class CameraPlayer
 		endEdit();
 	}
 
+	/** A field that shows in gray what the game uses when it is empty */
+	private static JTextField hinted(String hint)
+	{
+		JTextField field = PropertyPanel.hintTextField(hint);
+		field.setColumns(9);
+		return field;
+	}
+
 	private static double parse(String text)
 	{
 		text = text.trim();
@@ -947,6 +1021,46 @@ class CameraPlayer
 		refreshEdit();
 		cameraChanged();
 		endEdit();
+	}
+
+	/**
+	 * Pauses with the car where the camera starts filming, or a little before
+	 * where it stops (with the same Fov Start and Fov End, it films all the lap,
+	 * so that is just before its start). Another camera later in the list may
+	 * film there instead: the status says which.
+	 */
+	private void showRange(boolean start)
+	{
+		if (edited == null || track == null)
+			return;
+		Seg first = track.firstStep(edited.getFovStart());
+		Seg end = track.firstStep(edited.getFovEnd());
+		if (first == null || end == null)
+			return;
+		setPlaying(false);
+		if (start)
+			moveTo(first.lgfromstart);
+		else
+			moveTo(end.lgfromstart - Math.min(2, end.prev.length / 2));
+	}
+
+	/** Plays the camera's stretch, from where it starts filming to just before where it stops, and pauses. */
+	private void playCamera()
+	{
+		if (edited == null || track == null)
+			return;
+		Seg first = track.firstStep(edited.getFovStart());
+		Seg end = track.firstStep(edited.getFovEnd());
+		if (first == null || end == null)
+			return;
+		double total = track.length();
+		// the same Fov Start and Fov End: all the lap
+		double length = ((end.lgfromstart - first.lgfromstart) % total + total) % total;
+		if (length == 0)
+			length = total;
+		moveTo(first.lgfromstart);
+		setPlaying(true);
+		cameraLeft = Math.max(0, length - Math.min(2, end.prev.length / 2));
 	}
 
 	private void startHere()
