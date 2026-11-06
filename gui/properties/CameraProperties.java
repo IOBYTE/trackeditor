@@ -214,9 +214,15 @@ public class CameraProperties extends PropertyPanel
 		private JLabel				toStartLabel		= new JLabel();
 		private JTextField			toStartTextField	= hintTextField("0.0 (start of the segment)");
 		private JButton				fixButton			= new JButton("Fix");
+		// a segment name that isn't one: Segment, Fov Start, Fov End
+		private JButton[]			fixNameButtons		= { new JButton("Fix"), new JButton("Fix"), new JButton("Fix") };
 		// the unit To Start is saved in, which Fix can change
 		private boolean				unitsKnown;
 		private String				units;
+		// what is wrong with To Start's unit, and with the segment names
+		private boolean				toStartProblem;
+		private boolean				namesProblem;
+		private String[]			segmentTip, fovStartTip, fovEndTip;
 		private JLabel				heightLabel			= new JLabel();
 		private JTextField			heightTextField		= hintTextField("0.0 (on the road)");
 		private JLabel				fovStartLabel		= new JLabel();
@@ -265,8 +271,8 @@ public class CameraProperties extends PropertyPanel
 			tip(nameLabel, nameTextField, "The camera's name, different from the other cameras'.",
 				"The game doesn't show it.");
 			tip(commentLabel, commentTextField, "A note for whoever edits the track. The game doesn't read it.");
-			tip(segmentLabel, segmentTextField, "The segment the camera stands by: To Start and To Right",
-				"are measured from it. Required: without it the game won't load the track.");
+			segmentTip = new String[] { "The segment the camera stands by: To Start and To Right",
+				"are measured from it. Required: without it the game won't load the track." };
 			tip(toRightLabel, toRightTextField, "How far across from the road's right edge, in meters, looking along the track:",
 				"0 is on the right edge, the road's width is on the left edge,",
 				"less than 0 is off the road on the right, more than the width is off it on the left.",
@@ -274,42 +280,135 @@ public class CameraProperties extends PropertyPanel
 			tip(heightLabel, heightTextField, "How high the camera is, in meters, above the ground under it",
 				"(the road, or a border or side when it is off the road).",
 				"Empty is 0, on the ground.");
-			tip(fovStartLabel, fovStartTextField, "The first segment this camera films.",
+			fovStartTip = new String[] { "The first segment this camera films.",
 				"Fov is the stretch of track the camera covers, not a lens angle: the game zooms by itself.",
 				"The camera films from the start of Fov Start up to the start of Fov End.",
 				"Where cameras' stretches overlap, the one later in the list films.",
-				"Required: without it the game won't load the track.");
-			tip(fovEndLabel, fovEndTextField, "The segment after the last one this camera films: it stops where this one starts.",
+				"Required: without it the game won't load the track." };
+			fovEndTip = new String[] { "The segment after the last one this camera films: it stops where this one starts.",
 				"The same segment as Fov Start films the whole lap.",
-				"Required: without it the game won't load the track.");
+				"Required: without it the game won't load the track." };
 
 			fixButton.setBounds(toStartTextField.getX() + toStartTextField.getWidth() + 5, toStartTextField.getY(), 60,
 				toStartTextField.getHeight());
 			fixButton.setToolTipText("Put To Start in a unit that fits the segment");
 			fixButton.addActionListener(e -> fixToStart());
 			add(fixButton);
+			JTextField[] nameFields = { segmentTextField, fovStartTextField, fovEndTextField };
+			for (int i = 0; i < nameFields.length; i++)
+			{
+				final int field = i;
+				JButton button = fixNameButtons[i];
+				button.setBounds(nameFields[i].getX() + nameFields[i].getWidth() + 5, nameFields[i].getY(), 60,
+					nameFields[i].getHeight());
+				button.setToolTipText("Pick the segment, starting from the closest name");
+				button.addActionListener(e -> fixName(field));
+				button.setVisible(false);
+				add(button);
+			}
 
-			// the segment says how To Start is read
-			showToStartUnits();
+			// the segment says how To Start is read; the names have to be segments
+			showProblems();
 			DocumentListener changed = new DocumentListener()
 			{
 				public void insertUpdate(DocumentEvent e)
 				{
-					showToStartUnits();
+					showProblems();
 				}
 
 				public void removeUpdate(DocumentEvent e)
 				{
-					showToStartUnits();
+					showProblems();
 				}
 
 				public void changedUpdate(DocumentEvent e)
 				{
-					showToStartUnits();
+					showProblems();
 				}
 			};
-			segmentTextField.getDocument().addDocumentListener(changed);
-			toStartTextField.getDocument().addDocumentListener(changed);
+			for (JTextField field : new JTextField[] { segmentTextField, toStartTextField, fovStartTextField, fovEndTextField })
+				field.getDocument().addDocumentListener(changed);
+		}
+
+		/** Shows what the game would make of the camera as it is now, as soon as the tab shows. */
+		private void showProblems()
+		{
+			showNameProblems();
+			showToStartUnits();
+		}
+
+		/**
+		 * Marks a segment name that is missing or isn't a segment in red, with what
+		 * the game does then; Ok offers to pick the right one.
+		 */
+		private void showNameProblems()
+		{
+			JLabel[] labels = { segmentLabel, fovStartLabel, fovEndLabel };
+			JTextField[] fields = { segmentTextField, fovStartTextField, fovEndTextField };
+			String[][] tips = { segmentTip, fovStartTip, fovEndTip };
+			String[] instead = { "the game puts the camera by the first segment instead",
+				"the game films from the first segment instead", "the game films up to the first segment instead" };
+			namesProblem = false;
+			for (int i = 0; i < fields.length; i++)
+			{
+				String name = fields[i].getText().trim();
+				String problem = null;
+				if (name.isEmpty())
+					problem = "Missing: the game won't load the track without it.";
+				else if (getEditorFrame().getSegment(name) == null)
+					problem = "\"" + name + "\" isn't a segment: " + instead[i] + ".";
+				String[] lines = tips[i];
+				if (problem != null)
+				{
+					namesProblem = true;
+					lines = java.util.Arrays.copyOf(lines, lines.length + 2);
+					lines[lines.length - 2] = "<font color=red>" + problem.replace("<", "&lt;") + "</font>";
+					lines[lines.length - 1] = "<font color=red>Fix, or Ok, offers to pick the right segment.</font>";
+				}
+				labels[i].setForeground(problem != null ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
+				tip(labels[i], fields[i], lines);
+				fixNameButtons[i].setVisible(problem != null);
+			}
+		}
+
+		/** Picks a segment for a name that is missing or isn't one, starting from the most likely one. */
+		private void fixName(int field)
+		{
+			JTextField[] fields = { segmentTextField, fovStartTextField, fovEndTextField };
+			String[] labels = { "Segment", "Fov Start", "Fov End" };
+			SegmentVector segments = getEditorFrame().getTrackData().getSegments();
+			String name = fields[field].getText().trim();
+			String guess = name.isEmpty() ? missingGuess(this, field, segments) : closestSegmentName(name, segments);
+			String[] names = new String[segments.size()];
+			for (int i = 0; i < names.length; i++)
+				names[i] = segments.get(i).getName();
+			if (names.length == 0)
+				return;
+			String message = "<html>" + labels[field] + " of camera " + nameTextField.getText().trim().replace("<", "&lt;") + ": "
+				+ (name.isEmpty() ? "missing." : "\"" + name.replace("<", "&lt;") + "\" isn't a segment.")
+				+ "<br>Pick the segment it should be:</html>";
+			Object picked = javax.swing.JOptionPane.showInputDialog(this, message, "Fix " + labels[field],
+				javax.swing.JOptionPane.QUESTION_MESSAGE, null, names, guess != null ? guess : names[0]);
+			if (picked != null)
+				fields[field].setText(picked.toString());
+		}
+
+		@Override
+		public void addNotify()
+		{
+			super.addNotify();
+			showTabProblem();
+		}
+
+		/** Shows the camera's tab in red while it has a problem. */
+		private void showTabProblem()
+		{
+			int i = tabbedPane == null ? -1 : tabbedPane.indexOfComponent(this);
+			if (i < 0)
+				return;
+			boolean problem = namesProblem || toStartProblem;
+			tabbedPane.setForegroundAt(i, problem ? java.awt.Color.RED : null);
+			tabbedPane.setToolTipTextAt(i, problem ? "This camera has a problem: see the red labels" : null);
 		}
 
 		/** @return the unit To Start is saved in: as the file has it, or as a new camera is saved */
@@ -485,6 +584,8 @@ public class CameraProperties extends PropertyPanel
 			}
 			tip(toStartLabel, toStartTextField, lines);
 			fixButton.setVisible(tip != null);
+			toStartProblem = tip != null;
+			showTabProblem();
 		}
 	}
 
