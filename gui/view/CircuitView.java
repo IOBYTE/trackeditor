@@ -219,6 +219,12 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	/** object showing state */
 	public boolean				showObjects						= false;
+	// the track cameras: where each is, and the road colored by the one filming it
+	private boolean				showCameras						= false;
+	private gui.view3d.GameTrack	cameraTrack						= null;
+	// where each camera's marker was drawn, for its tooltip
+	private final java.util.Map<utils.circuit.Camera, Point>	cameraMarkers	= new java.util.LinkedHashMap<utils.circuit.Camera, Point>();
+	private java.util.Set<utils.circuit.Camera>	filmingCameras	= new java.util.HashSet<utils.circuit.Camera>();
 
 	private int 				currentCount					= 0;
 
@@ -1003,6 +1009,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			return;
 
 		screenToReal(e, mousePoint);
+		showCameraTip(e);
 
 		if (editorFrame.getCursorCoordinates())
 		{
@@ -1787,6 +1794,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 			drawPitBuildings(g);
 
+			if (showCameras)
+				drawCameras(g);
+
 			if (terrain != null && terrainBorderMustBeShown)
 			{
 				terrain.calcShape(editorFrame, boundingRectangle);
@@ -2315,6 +2325,176 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	 * pit lane and its back behind it, or the low wall of Speed Dreams' "no
 	 * building" pits, with each pit's number when there's room for it.
 	 */
+	public boolean isShowCameras()
+	{
+		return showCameras;
+	}
+
+	public void setShowCameras(boolean showCameras)
+	{
+		this.showCameras = showCameras;
+		if (!showCameras)
+		{
+			cameraMarkers.clear();
+			setToolTipText(null);
+		}
+	}
+
+	/** Explains the camera under the mouse, when cameras are shown. */
+	private void showCameraTip(MouseEvent e)
+	{
+		utils.circuit.Camera found = null;
+		if (showCameras)
+			for (java.util.Map.Entry<utils.circuit.Camera, Point> marker : cameraMarkers.entrySet())
+				if (marker.getValue().distance(e.getPoint()) <= 9)
+					found = marker.getKey();
+		if (found == null)
+		{
+			if (getToolTipText() != null)
+				setToolTipText(null);
+			return;
+		}
+		// the unit as the game reads it: without one, meters on a straight and radians on a curve
+		String units = found.isToStartUnitsKnown() ? found.getToStartUnits() : null;
+		gui.view3d.GameTrack.Seg seg = cameraTrack == null ? null : cameraTrack.firstStep(found.getSegment());
+		if ((units == null || units.isEmpty()) && seg != null)
+			units = seg.type == gui.view3d.GameTrack.TR_STR ? "m" : found.isToStartUnitsKnown() ? "rad" : "deg";
+		StringBuilder text = new StringBuilder("<html><b>").append(html(found.getName())).append("</b>");
+		text.append("<br>Segment: ").append(html(found.getSegment()));
+		text.append("<br>To Start: ").append(number(found.getToStart())).append(units == null || units.isEmpty() ? "" : " " + units);
+		text.append("<br>To Right: ").append(number(found.getToRight())).append(" m");
+		text.append("<br>Height: ").append(number(found.getHeight())).append(" m");
+		text.append("<br>Films from ").append(html(found.getFovStart())).append(" up to ").append(html(found.getFovEnd()));
+		if (!filmingCameras.contains(found))
+			text.append("<br><font color=red>Never films: cameras later in the list film all of its stretch</font>");
+		setToolTipText(text.append("</html>").toString());
+	}
+
+	private static String html(String text)
+	{
+		return text == null ? "" : text.replace("&", "&amp;").replace("<", "&lt;");
+	}
+
+	private static String number(double value)
+	{
+		if (Double.isNaN(value))
+			return "0 (default)";
+		String text = String.format(java.util.Locale.US, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+		return "-0".equals(text) ? "0" : text;
+	}
+
+	// the cameras' colors; none is gray, which is the road no camera films
+	private static final Color[]	CAMERA_COLORS	= { new Color(0x378ADD), new Color(0x1D9E75), new Color(0xD85A30),
+		new Color(0x7F77DD), new Color(0xBA7517), new Color(0xD4537E), new Color(0x639922), new Color(0x1F6F8B),
+		new Color(0x2AA8BE), new Color(0xC83C3C) };
+
+	/**
+	 * The track cameras as the game places them: the road colored by the camera
+	 * that films it (later cameras taking over from earlier ones, gray where none
+	 * does), and each camera where it stands, with its name and lines to where
+	 * its stretch starts and ends.
+	 */
+	private void drawCameras(Graphics g)
+	{
+		java.util.List<utils.circuit.Camera> cameras = editorFrame.getTrackData().getCameras();
+		if (cameraTrack == null)
+			cameraTrack = gui.view3d.GameTrack.build(editorFrame);
+		gui.view3d.GameTrack track = cameraTrack;
+		if (track == null || track.segs.isEmpty())
+			return;
+		utils.circuit.Camera[] owners = track.cameraOwners(cameras);
+		// the colors in the order the cameras film round the lap, so neighbors differ,
+		// then the cameras that film nothing
+		java.util.Map<utils.circuit.Camera, Color> colors = new java.util.HashMap<utils.circuit.Camera, Color>();
+		filmingCameras = new java.util.HashSet<utils.circuit.Camera>();
+		for (utils.circuit.Camera owner : owners)
+			if (owner != null && !colors.containsKey(owner))
+			{
+				colors.put(owner, CAMERA_COLORS[colors.size() % CAMERA_COLORS.length]);
+				filmingCameras.add(owner);
+			}
+		for (utils.circuit.Camera camera : cameras)
+			if (!colors.containsKey(camera))
+				colors.put(camera, CAMERA_COLORS[colors.size() % CAMERA_COLORS.length]);
+		cameraMarkers.clear();
+
+		Graphics2D g2 = (Graphics2D) g;
+		Color oldColor = g2.getColor();
+		java.awt.Stroke oldStroke = g2.getStroke();
+		java.awt.Font oldFont = g2.getFont();
+		Object oldAntialias = g2.getRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING);
+		g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+		Point2D.Double p = new Point2D.Double();
+
+		// the road, a piece of each segment at a time
+		for (gui.view3d.GameTrack.Seg seg : track.segs)
+		{
+			utils.circuit.Camera owner = seg.id < owners.length ? owners[seg.id] : null;
+			Color c = owner == null ? new Color(150, 150, 150) : colors.get(owner);
+			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 120));
+			boolean straight = seg.type == gui.view3d.GameTrack.TR_STR;
+			int pieces = straight ? 1 : Math.max(2, (int) Math.ceil(Math.toDegrees(seg.arc) / 5));
+			int[] x = new int[2 * pieces + 2], y = new int[2 * pieces + 2];
+			for (int k = 0; k <= pieces; k++)
+			{
+				float toStart = straight ? seg.length * k / pieces : seg.arc * k / pieces;
+				for (int side = 0; side < 2; side++)
+				{
+					float[] xy = gui.view3d.GameTrack.local2Global(seg, toStart, side == 0 ? 0 : seg.width);
+					p.setLocation(xy[0], xy[1]);
+					affineTransform.transform(p, p);
+					int i = side == 0 ? k : 2 * pieces + 1 - k;
+					x[i] = (int) Math.round(p.getX());
+					y[i] = (int) Math.round(p.getY());
+				}
+			}
+			g2.fillPolygon(x, y, x.length);
+		}
+
+		// the cameras, and lines to the start and the end of what they film
+		g2.setFont(oldFont.deriveFont(java.awt.Font.BOLD, 11f));
+		for (utils.circuit.Camera camera : cameras)
+		{
+			gui.view3d.GameTrack.Seg seg = track.firstStep(camera.getSegment());
+			if (seg == null)
+				continue;
+			float[] eye = track.cameraEye(camera);
+			p.setLocation(eye[0], eye[1]);
+			affineTransform.transform(p, p);
+			int cx = (int) Math.round(p.getX()), cy = (int) Math.round(p.getY());
+			cameraMarkers.put(camera, new Point(cx, cy));
+			Color c = colors.get(camera);
+			g2.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 4, 4 }, 0));
+			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 160));
+			for (String name : new String[] { camera.getFovStart(), camera.getFovEnd() })
+			{
+				gui.view3d.GameTrack.Seg s = track.firstStep(name);
+				if (s == null)
+					continue;
+				float[] xy = gui.view3d.GameTrack.local2Global(s, 0, s.width / 2);
+				p.setLocation(xy[0], xy[1]);
+				affineTransform.transform(p, p);
+				g2.drawLine(cx, cy, (int) Math.round(p.getX()), (int) Math.round(p.getY()));
+			}
+			g2.setStroke(new BasicStroke(1));
+			int[] tx = { cx, cx + 7, cx - 7 }, ty = { cy - 8, cy + 6, cy + 6 };
+			g2.setColor(c);
+			g2.fillPolygon(tx, ty, 3);
+			g2.setColor(Color.black);
+			g2.drawPolygon(tx, ty, 3);
+			String name = camera.getName() == null ? "" : camera.getName();
+			g2.setColor(new Color(255, 255, 255, 190));
+			java.awt.FontMetrics metrics = g2.getFontMetrics();
+			g2.fillRect(cx + 9, cy - metrics.getAscent() + 2, metrics.stringWidth(name) + 4, metrics.getHeight() - 2);
+			g2.setColor(c.darker());
+			g2.drawString(name, cx + 11, cy + 2);
+		}
+		g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, oldAntialias);
+		g2.setColor(oldColor);
+		g2.setStroke(oldStroke);
+		g2.setFont(oldFont);
+	}
+
 	private void drawPitBuildings(Graphics g)
 	{
 		if (editorFrame.getTrackData().getMainTrack() == null)
@@ -2409,8 +2589,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 		editorFrame.getTrackData().calculateSegmentValues();
 		
-		// the segments change, so the pit buildings may move
+		// the segments change, so the pit buildings and the cameras may move
 		pitOutlinesKey = null;
+		cameraTrack = null;
 
 		int size = track.size();
 		

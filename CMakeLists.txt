@@ -180,6 +180,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
    #file(GLOB_RECURSE _PNGS *.png)
 
    SET(_ICONS gui/icons/Calc24.gif
+            gui/icons/Camera24.gif
             gui/icons/Check24.gif
             gui/icons/Cut24.gif
             gui/icons/Export24.gif

@@ -135,6 +135,7 @@ public class EditorFrame extends JFrame
 	ShowBackgroundAction		showBackgroundAction				= null;
 	ShowObjectsAction			showObjectsAction					= null;
 	ShowReliefsAction			showReliefsAction					= null;
+	ShowCamerasAction			showCamerasAction					= null;
 	MoveAction					moveAction							= null;
 	SubdivideAction 			subdivideAction						= null;
 	DumpTextAction 				dumpTextAction						= null;
@@ -229,6 +230,7 @@ public class EditorFrame extends JFrame
 	private JToggleButton		showBackgroundButton				= null;
 	private JToggleButton		showObjectsButton					= null;
 	private JToggleButton		showReliefsButton					= null;
+	private JToggleButton		showCamerasButton					= null;
 	private JButton				newButton							= null;
 	//private DeltaPanel			deltaPanel							= null;
 
@@ -3086,6 +3088,20 @@ public class EditorFrame extends JFrame
 	 *
 	 * @return javax.swing.JButton
 	 */
+	private JToggleButton getShowCamerasButton()
+	{
+		if (showCamerasButton == null)
+		{
+			showCamerasButton = new JToggleButton();
+			showCamerasButton.setAction(showCamerasAction);
+			if (showCamerasButton.getIcon() != null)
+			{
+				showCamerasButton.setText("");
+			}
+		}
+		return showCamerasButton;
+	}
+
 	private JToggleButton getShowReliefsButton()
 	{
 		if (showReliefsButton == null)
@@ -3550,6 +3566,7 @@ public class EditorFrame extends JFrame
 			jToolBar.add(getShowBackgroundButton());
 			jToolBar.add(getShowObjectsButton());
 			jToolBar.add(getShowReliefsButton());
+			jToolBar.add(getShowCamerasButton());
 			jToolBar.add(getView3DButton());
 			jToolBar.add(getCalculateDeltaButton());
 			jToolBar.add(getCheckButton());
@@ -3826,6 +3843,8 @@ public class EditorFrame extends JFrame
 		showBackgroundAction = new ShowBackgroundAction("Show background", createNavigationIcon("Search24"), "Show background image.", KeyEvent.VK_S);
 		showObjectsAction = new ShowObjectsAction("Show objects", createNavigationIcon("Object24"), "Show objects.", KeyEvent.VK_S);
 		showReliefsAction = new ShowReliefsAction("Show reliefs", createNavigationIcon("Relief24"), "Show reliefs.", KeyEvent.VK_S);
+		showCamerasAction = new ShowCamerasAction("Show cameras", createNavigationIcon("Camera24"),
+			"Show the cameras, and color the road by the camera that films it.", KeyEvent.VK_S);
 		checkAction = new CheckAction("Check", createNavigationIcon("Check24"), "Check.", KeyEvent.VK_S);
 		finishLineAction = new FinishLineAction("Finish Line", createNavigationIcon("Finish24"), "Finish Line.", KeyEvent.VK_S);
 		helpAction = new HelpAction("Help", createNavigationIcon("Help24"), "Help.", KeyEvent.VK_S);
@@ -4126,6 +4145,29 @@ public class EditorFrame extends JFrame
 				return;
 			}
 			toggleButtonShowObjects_actionPerformed(e);
+		}
+	}
+	public class ShowCamerasAction extends AbstractAction
+	{
+		public ShowCamerasAction(String text, ImageIcon icon, String desc, Integer mnemonic)
+		{
+			super(text, icon);
+			putValue(SHORT_DESCRIPTION, desc);
+			putValue(MNEMONIC_KEY, mnemonic);
+		}
+		public void actionPerformed(ActionEvent e)
+		{
+			if (trackData == null)
+			{
+				if (showCamerasButton.isSelected())
+					showCamerasButton.setSelected(false);
+
+				message("No track", "Nothing to show.");
+				return;
+			}
+			view.setShowCameras(getShowCamerasButton().isSelected());
+			view.invalidate();
+			view.repaint();
 		}
 	}
 	public class ShowReliefsAction extends AbstractAction
