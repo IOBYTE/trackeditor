@@ -414,7 +414,8 @@ class CameraPlayer
 			restart();
 			bar.setVisible(true);
 			editPanel.setVisible(editBox.isSelected() && !drive);
-			setPlaying(true);
+			// paused, at the start line or on the grid: Play (or space) starts it
+			setPlaying(false);
 			timer.start();
 		}
 		else
