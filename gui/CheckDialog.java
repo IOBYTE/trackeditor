@@ -356,10 +356,147 @@ public class CheckDialog extends JDialog
 
 	private void checkCameras()
 	{
-		for (utils.circuit.Camera camera : trackData.getCameras())
+		Vector<utils.circuit.Camera> cameras = trackData.getCameras();
+		for (utils.circuit.Camera camera : cameras)
 			for (String problem : gui.properties.CameraProperties.segmentProblems(trackData.getSegments(), camera.getName(),
 				camera.getSegment(), camera.getFovStart(), camera.getFovEnd()))
 				textArea.append(problem + "\n");
+
+		SegmentVector segments = trackData.getSegments();
+		int count = segments.size();
+		if (count == 0)
+			return;
+		for (utils.circuit.Camera camera : cameras)
+		{
+			checkCameraPlace(camera, segments);
+			double height = camera.getHeight();
+			if (Double.isNaN(height) || height == 0)
+				textArea.append("Camera " + camera.getName() + ": no height, so the game puts it on the ground\n");
+			else if (height < 0)
+				textArea.append("Camera " + camera.getName() + ": height " + format(height) + " m puts it under the ground\n");
+		}
+
+		// which camera the game uses on each segment: the last one whose stretch has it,
+		// a name no segment has being the first segment (a missing one stops the game)
+		String[] owners = new String[count];
+		for (utils.circuit.Camera camera : cameras)
+		{
+			if (!hasText(camera.getSegment()) || !hasText(camera.getFovStart()) || !hasText(camera.getFovEnd()))
+				continue;
+			int start = Math.max(0, segments.indexOf(segments.getSegmentFromName(camera.getFovStart().trim())));
+			int end = Math.max(0, segments.indexOf(segments.getSegmentFromName(camera.getFovEnd().trim())));
+			int i = start;
+			do
+			{
+				owners[i] = camera.getName();
+				i = (i + 1) % count;
+			}
+			while (i != end);
+		}
+		Set<String> filming = new HashSet<String>(java.util.Arrays.asList(owners));
+		for (utils.circuit.Camera camera : cameras)
+			if (hasText(camera.getSegment()) && hasText(camera.getFovStart()) && hasText(camera.getFovEnd())
+				&& !filming.contains(camera.getName()))
+				textArea.append("Camera " + camera.getName() + ": never films, as cameras later in the list film all of its stretch ("
+					+ camera.getFovStart() + " to " + camera.getFovEnd() + ")\n");
+
+		// the stretches no camera films, from the first segment of each
+		if (cameras.isEmpty())
+		{
+			textArea.append("No cameras: the game's TV views look at the cars from 120 m above the track\n");
+			return;
+		}
+		if (!filming.contains(null))
+			return;
+		if (filming.size() == 1)
+		{
+			textArea.append("No camera films any segment: the game's TV views look at the cars from 120 m above the track\n");
+			return;
+		}
+		for (int i = 0; i < count; i++)
+		{
+			if (owners[i] != null || owners[(i - 1 + count) % count] == null)
+				continue;
+			int last = i;
+			while (owners[(last + 1) % count] == null)
+				last = (last + 1) % count;
+			String from = segments.get(i).getName(), to = segments.get(last).getName();
+			textArea.append("No camera films " + (i == last ? "segment " + from : "segments " + from + " to " + to)
+				+ ": the game's TV views look at the cars from 120 m above the track there\n");
+		}
+	}
+
+	/**
+	 * Checks where To Start puts a camera, as the game reads it: in the unit the
+	 * file gives (deg becomes rad, ft becomes m), then as a length along a
+	 * straight or as an angle in radians round a curve. Past the end of a
+	 * straight is still on its line, and often meant; past the end of a curve
+	 * goes on round its circle, away from the road.
+	 */
+	private void checkCameraPlace(utils.circuit.Camera camera, SegmentVector segments)
+	{
+		Segment segment = hasText(camera.getSegment()) ? segments.getSegmentFromName(camera.getSegment().trim()) : null;
+		double value = camera.getToStart();
+		if (segment == null || Double.isNaN(value))
+			return;
+		boolean curve = !segment.getType().equals("str");
+		// a camera made here is saved in degrees on a curve and without a unit on a straight
+		String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : curve ? "deg" : null;
+		boolean angle = "deg".equals(units) || "rad".equals(units);
+		boolean length = units != null && !units.isEmpty() && !angle;
+		double read = units == null || units.isEmpty() ? value
+			: plugin.torcs.GfParmNumbers.toSI(units, value, editorFrame.getGameType(), null);
+		String name = "Camera " + camera.getName() + ": ";
+		String given = format(value) + (length || angle ? " " + units : "");
+		if (curve && length)
+		{
+			textArea.append(name + "to start " + given + " is a length on curve " + segment.getName()
+				+ ": the game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
+				+ " deg) round the curve, so the camera is far from where it should be\n");
+			return;
+		}
+		if (!curve && angle && value != 0)
+		{
+			textArea.append(name + "to start " + given + " is an angle on straight " + segment.getName()
+				+ ": the game reads it as " + format(read) + " m along it\n");
+			return;
+		}
+		if (curve)
+		{
+			double arc = ((Curve) segment).getArcRad();
+			if (Double.isNaN(arc))
+				return;
+			double past = read > arc ? read - arc : read < 0 ? -read : 0;
+			if (past <= Math.toRadians(1))
+				return;
+			boolean bare = units == null || units.isEmpty();
+			String text = name + "to start " + given + (bare ? " (radians, " + format(Math.toDegrees(read)) + " deg)" : "");
+			if (Math.abs(read) >= 2 * Math.PI)
+			{
+				// round and round the same circle
+				double turned = Math.toDegrees(read) % 360;
+				if (turned < 0)
+					turned += 360;
+				text += " is more than a full turn round curve " + segment.getName() + " (" + format(Math.toDegrees(arc))
+					+ " deg): the game puts the camera " + format(turned) + " deg round its circle from its start";
+			}
+			else
+				text += " is " + (read < 0 ? "before the start" : "past the end") + " of curve " + segment.getName() + " ("
+					+ format(Math.toDegrees(arc)) + " deg): the game puts the camera " + format(Math.toDegrees(past)) + " deg "
+					+ (read < 0 ? "before it" : "past it") + ", on the same circle";
+			// more than a turn without a unit: most likely meant as meters along the curve
+			double radius = ((Curve) segment).getRadiusStart();
+			if (bare && Math.abs(read) > 2 * Math.PI && !Double.isNaN(radius) && radius > 0)
+				text += "; if " + format(value) + " was meant as meters along it, that is " + format(Math.toDegrees(value / radius)) + " deg";
+			textArea.append(text + "\n");
+		}
+	}
+
+	/** @return a number with at most 2 decimals, and none when it is whole */
+	private static String format(double value)
+	{
+		String text = String.format(java.util.Locale.US, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+		return "-0".equals(text) ? "0" : text;
 	}
 
 	private void checkPits()

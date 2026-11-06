@@ -41,6 +41,7 @@ import utils.MutableDouble;
 import utils.MutableString;
 import utils.SegmentVector;
 import utils.circuit.Camera;
+import utils.circuit.Curve;
 import utils.circuit.Segment;
 
 /**
@@ -212,6 +213,10 @@ public class CameraProperties extends PropertyPanel
 		private JTextField			toRightTextField	= hintTextField("0.0 (right edge)");
 		private JLabel				toStartLabel		= new JLabel();
 		private JTextField			toStartTextField	= hintTextField("0.0 (start of the segment)");
+		private JButton				fixButton			= new JButton("Fix");
+		// the unit To Start is saved in, which Fix can change
+		private boolean				unitsKnown;
+		private String				units;
 		private JLabel				heightLabel			= new JLabel();
 		private JTextField			heightTextField		= hintTextField("0.0 (on the road)");
 		private JLabel				fovStartLabel		= new JLabel();
@@ -226,6 +231,8 @@ public class CameraProperties extends PropertyPanel
 		{
 			super();
 			this.item = camera;
+			unitsKnown = camera.isToStartUnitsKnown();
+			units = camera.getToStartUnits();
 			initialize(camera);
 		}
 
@@ -276,25 +283,133 @@ public class CameraProperties extends PropertyPanel
 				"The same segment as Fov Start films the whole lap.",
 				"Required: without it the game won't load the track.");
 
+			fixButton.setBounds(toStartTextField.getX() + toStartTextField.getWidth() + 5, toStartTextField.getY(), 60,
+				toStartTextField.getHeight());
+			fixButton.setToolTipText("Put To Start in a unit that fits the segment");
+			fixButton.addActionListener(e -> fixToStart());
+			add(fixButton);
+
 			// the segment says how To Start is read
-			showToStartUnits(camera);
-			segmentTextField.getDocument().addDocumentListener(new DocumentListener()
+			showToStartUnits();
+			DocumentListener changed = new DocumentListener()
 			{
 				public void insertUpdate(DocumentEvent e)
 				{
-					showToStartUnits(camera);
+					showToStartUnits();
 				}
 
 				public void removeUpdate(DocumentEvent e)
 				{
-					showToStartUnits(camera);
+					showToStartUnits();
 				}
 
 				public void changedUpdate(DocumentEvent e)
 				{
-					showToStartUnits(camera);
+					showToStartUnits();
 				}
-			});
+			};
+			segmentTextField.getDocument().addDocumentListener(changed);
+			toStartTextField.getDocument().addDocumentListener(changed);
+		}
+
+		/** @return the unit To Start is saved in: as the file has it, or as a new camera is saved */
+		private String savedUnits(Segment segment)
+		{
+			if (unitsKnown)
+				return units == null || units.isEmpty() ? null : units;
+			return segment != null && !segment.getType().equals("str") ? "deg" : null;
+		}
+
+		private double toStart()
+		{
+			try
+			{
+				return Double.parseDouble(toStartTextField.getText().trim());
+			}
+			catch (NumberFormatException e)
+			{
+				return Double.NaN;
+			}
+		}
+
+		/** @return the number, in its unit, as the game reads it: rad for deg, m for ft */
+		private double read(double value, String units)
+		{
+			return units == null ? value : plugin.torcs.GfParmNumbers.toSI(units, value, getEditorFrame().getGameType(), null);
+		}
+
+		/**
+		 * Offers To Start in a unit that fits its segment: what was most likely
+		 * meant, or the same place the game puts it now.
+		 */
+		private void fixToStart()
+		{
+			Segment segment = getEditorFrame().getSegment(segmentTextField.getText().trim());
+			double value = toStart();
+			if (segment == null || Double.isNaN(value))
+				return;
+			String units = savedUnits(segment);
+			double read = read(value, units);
+			String given = text(value) + (units == null ? "" : " " + units);
+			String message;
+			String[] options;
+			double[] values;
+			String[] newUnits;
+			if (segment.getType().equals("str"))
+			{
+				message = "On a straight the game reads To Start as meters: it turns " + given + " into " + text(read)
+					+ " and puts the camera " + text(read) + " m along " + segment.getName() + ".";
+				options = new String[] { "Meant " + text(value) + " m", "Keep it at " + text(read) + " m", "Cancel" };
+				values = new double[] { value, read };
+				newUnits = new String[] { null, null };
+			}
+			else
+			{
+				double radius = ((Curve) segment).getRadiusStart();
+				boolean length = units != null && !"deg".equals(units) && !"rad".equals(units);
+				double turned = Math.toDegrees(read) % 360;
+				if (turned < 0)
+					turned += 360;
+				// as meters along the middle of the road
+				double meters = length ? read : value;
+				// a value in degrees was meant as an angle
+				double meant = Double.isNaN(radius) || radius <= 0 || "deg".equals(units) ? Double.NaN : Math.toDegrees(meters / radius);
+				message = "On a curve the game reads To Start as an angle in radians: it reads " + given + " as "
+					+ text(read) + " radians and puts the camera " + text(Math.toDegrees(read)) + " deg round " + segment.getName()
+					+ (Math.abs(read) >= 2 * Math.PI ? ", more than a full turn, so " + text(turned) + " deg round its circle." : ".");
+				java.util.List<String> o = new java.util.ArrayList<String>();
+				java.util.List<Double> v = new java.util.ArrayList<Double>();
+				if (!Double.isNaN(meant))
+				{
+					o.add("Meant " + text(meters) + " m along it: " + text(meant) + " deg");
+					v.add(meant);
+				}
+				o.add("Keep it at " + text(Math.abs(read) >= 2 * Math.PI ? turned : Math.toDegrees(read)) + " deg");
+				v.add(Math.abs(read) >= 2 * Math.PI ? turned : Math.toDegrees(read));
+				o.add("Cancel");
+				options = o.toArray(new String[0]);
+				values = new double[v.size()];
+				for (int i = 0; i < values.length; i++)
+					values[i] = v.get(i);
+				newUnits = new String[values.length];
+				java.util.Arrays.fill(newUnits, "deg");
+			}
+			int choice = javax.swing.JOptionPane.showOptionDialog(this, "<html><body style='width: 380px'>" + message + "</body></html>", "Fix To Start",
+				javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			if (choice < 0 || choice >= values.length)
+				return;
+			unitsKnown = true;
+			this.units = newUnits[choice];
+			// close enough to the same place
+			String precise = String.format(java.util.Locale.US, "%.4f", values[choice]).replaceAll("0+$", "").replaceAll("\\.$", "");
+			toStartTextField.setText("-0".equals(precise) ? "0" : precise);
+			showToStartUnits();
+		}
+
+		private String text(double value)
+		{
+			String text = String.format(java.util.Locale.US, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+			return "-0".equals(text) ? "0" : text;
 		}
 
 		/** Explains a field, on it and on its label, for a minute: they take a while to read. */
@@ -321,31 +436,27 @@ public class CameraProperties extends PropertyPanel
 		 * in degrees on a curve. A unit that doesn't fit the segment is in red,
 		 * with what the game does with it.
 		 */
-		private void showToStartUnits(Camera camera)
+		private void showToStartUnits()
 		{
 			Segment segment = getEditorFrame().getSegment(segmentTextField.getText().trim());
-			String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : null;
+			String units = savedUnits(segment);
 			String text, tip = null;
 			if (segment == null)
-				text = camera.isToStartUnitsKnown() && units != null ? units : "m or deg";
+				text = unitsKnown && units != null ? units : "m or deg";
 			else
 			{
 				boolean curve = !segment.getType().equals("str");
-				if (!camera.isToStartUnitsKnown())
-					units = curve ? "deg" : null;
 				boolean angle = "deg".equals(units) || "rad".equals(units);
-				if (units == null || units.isEmpty())
-					text = curve ? "rad" : "m";
-				else
-				{
-					text = units;
-					if (curve && !angle)
-						tip = "On a curve the game reads To Start as an angle: this " + units
-							+ " length is read as radians, so the camera is far from where it should be";
-					else if (!curve && angle)
-						tip = "On a straight the game reads To Start as a length: this angle in " + units
-							+ " is turned into radians and read as meters";
-				}
+				double value = toStart();
+				text = units == null ? curve ? "rad" : "m" : units;
+				if (curve && units != null && !angle)
+					tip = "On a curve the game reads To Start as an angle: this " + units
+						+ " length is read as radians, so the camera is far from where it should be";
+				else if (!curve && angle && value != 0)
+					tip = "On a straight the game reads To Start as a length: this angle in " + units
+						+ " is turned into radians and read as meters";
+				else if (curve && Math.abs(read(value, units)) >= 2 * Math.PI)
+					tip = "This is more than a full turn round the curve: the game puts the camera round and round its circle";
 			}
 			toStartLabel.setText("To Start (" + text + ")");
 			toStartLabel.setForeground(tip != null ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
@@ -368,10 +479,12 @@ public class CameraProperties extends PropertyPanel
 					"Empty is 0, the segment's start." };
 			if (tip != null)
 			{
-				lines = java.util.Arrays.copyOf(lines, lines.length + 1);
-				lines[lines.length - 1] = "<font color=red>" + tip + ".</font>";
+				lines = java.util.Arrays.copyOf(lines, lines.length + 2);
+				lines[lines.length - 2] = "<font color=red>" + tip + ".</font>";
+				lines[lines.length - 1] = "<font color=red>Fix offers what was most likely meant, or the same place in a unit that fits.</font>";
 			}
 			tip(toStartLabel, toStartTextField, lines);
+			fixButton.setVisible(tip != null);
 		}
 	}
 
@@ -419,6 +532,13 @@ public class CameraProperties extends PropertyPanel
             if (isDifferent(panel.toStartTextField.getText(), camera.getToStart(), doubleResult))
             {
                 camera.setToStart(doubleResult.getValue());
+                getEditorFrame().documentIsModified = true;
+            }
+
+            // a unit Fix chose
+            if (panel.unitsKnown && (!camera.isToStartUnitsKnown() || !java.util.Objects.equals(panel.units, camera.getToStartUnits())))
+            {
+                camera.setToStartUnits(panel.units);
                 getEditorFrame().documentIsModified = true;
             }
 
