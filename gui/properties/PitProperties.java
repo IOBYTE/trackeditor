@@ -208,6 +208,20 @@ public class PitProperties extends PropertyPanel
 		addTextField(this, row++, endTextField, pits.getEnd(), 120, 200);
 		addLabel(this, row, exitLabel, "Exit", 110);
 		addTextField(this, row++, exitTextField, pits.getExit(), 120, 200);
+		// the segments picked from lists, or typed; a blank line for none
+		for (JTextField field : new JTextField[] { entryTextField, startTextField, startBuildingsTextField,
+			stopBuildingsTextField, endTextField, exitTextField })
+		{
+			if (field.getParent() != this)
+				continue;
+			java.awt.Rectangle bounds = field.getBounds();
+			remove(field);
+			SegmentChooser chooser = new SegmentChooser(field, true, () -> getEditorFrame().getTrackData().getSegments(),
+				() -> field.getText().trim().isEmpty() ? null
+					: closestSegmentName(field.getText().trim(), getEditorFrame().getTrackData().getSegments()));
+			chooser.setBounds(bounds);
+			add(chooser);
+		}
 		addLabel(this, row, widthLabel, "Width", 110);
 		addTextField(this, row++, widthTextField, pits.getWidth(), 120, 125);
 		widthTextField.setToolTipText("Width of each pit (empty = 5 m)");

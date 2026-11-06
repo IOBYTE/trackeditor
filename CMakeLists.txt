@@ -54,6 +54,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/properties/PropertyPanel.java
          gui/properties/ReliefProperties.java
          gui/properties/SectorProperties.java
+         gui/properties/SegmentChooser.java
          gui/properties/StartingGridProperties.java
          gui/properties/SurfaceProperties.java
          gui/properties/TerrainProperties.java
