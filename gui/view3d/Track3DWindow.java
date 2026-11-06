@@ -80,6 +80,7 @@ public class Track3DWindow extends JFrame
 	private final JToggleButton		cullingButton	= new JToggleButton("Cull");
 	private final JToggleButton		racelineButton	= new JToggleButton("Raceline");
 	private final JButton			camerasButton	= new JButton("Cameras ▾");
+	private final JToggleButton		showCamerasButton	= new JToggleButton("Show cameras");
 	private final JToggleButton		playButton		= new JToggleButton("Play cameras");
 	private final JToggleButton		driveButton		= new JToggleButton("Drive");
 	private final JComboBox<String>	colorBox		= new JComboBox<String>(new String[] { "textures", "by surface", "by height", "plain" });
@@ -313,6 +314,8 @@ public class Track3DWindow extends JFrame
 		camerasButton.setToolTipText("<html>Look from one of the track's cameras at all of the track it films (N for the next one).<br>" +
 			"The game turns it to follow a car and zooms in on it.</html>");
 		camerasButton.addActionListener(e -> showCameras());
+		showCamerasButton.setToolTipText("Show where the track's cameras are, in the colors the 2D view gives them (M)");
+		showCamerasButton.addActionListener(e -> setShowCameras(showCamerasButton.isSelected()));
 		JButton zoomIn = new JButton("+");
 		zoomIn.setToolTipText("Zoom in (+, or the wheel)");
 		zoomIn.addActionListener(e -> zoom(0.8));
@@ -344,6 +347,7 @@ public class Track3DWindow extends JFrame
 		toolBar.add(top);
 		toolBar.add(angled);
 		toolBar.add(camerasButton);
+		toolBar.add(showCamerasButton);
 		toolBar.add(zoomIn);
 		toolBar.add(zoomOut);
 		toolBar.addSeparator();
@@ -443,6 +447,10 @@ public class Track3DWindow extends JFrame
 				case KeyEvent.VK_N:
 					nextCamera();
 					break;
+				case KeyEvent.VK_M:
+					showCamerasButton.setSelected(!showCamerasButton.isSelected());
+					setShowCameras(showCamerasButton.isSelected());
+					break;
 				case KeyEvent.VK_SPACE:
 					if (!player.isActive())
 						return;
@@ -509,6 +517,13 @@ public class Track3DWindow extends JFrame
 		requestRedraw();
 	}
 
+	private void setShowCameras(boolean on)
+	{
+		renderer.setShowCameras(on);
+		saveSettings();
+		requestRedraw();
+	}
+
 	private void setRaceline(boolean on)
 	{
 		renderer.setRaceline(on);
@@ -532,6 +547,8 @@ public class Track3DWindow extends JFrame
 		wireframeButton.setSelected(preferences.getBoolean("View3DWireframe", false));
 		lightingButton.setSelected(preferences.getBoolean("View3DLighting", true));
 		cullingButton.setSelected(preferences.getBoolean("View3DCull", false));
+		showCamerasButton.setSelected(preferences.getBoolean("View3DShowCameras", false));
+		renderer.setShowCameras(showCamerasButton.isSelected());
 		renderer.setWireframe(wireframeButton.isSelected());
 		renderer.setLighting(lightingButton.isSelected());
 		renderer.setCulling(cullingButton.isSelected());
@@ -550,6 +567,7 @@ public class Track3DWindow extends JFrame
 		preferences.putBoolean("View3DWireframe", wireframeButton.isSelected());
 		preferences.putBoolean("View3DLighting", lightingButton.isSelected());
 		preferences.putBoolean("View3DCull", cullingButton.isSelected());
+		preferences.putBoolean("View3DShowCameras", showCamerasButton.isSelected());
 		preferences.putInt("View3DColor", colorBox.getSelectedIndex());
 		preferences.put("View3DHeightScale", (String) heightBox.getSelectedItem());
 	}

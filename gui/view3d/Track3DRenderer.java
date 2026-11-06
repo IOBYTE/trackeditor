@@ -72,6 +72,8 @@ public class Track3DRenderer implements GLEventListener
 	private final List<LightRun>	lightRuns		= new ArrayList<LightRun>();
 	// the race's clock while driving from the grid (0 is the start), or NaN: all lights on
 	private volatile double			startClock		= Double.NaN;
+	// where the track's cameras are
+	private volatile boolean		showCameras		= false;
 	// the textures loaded so far, by file and time, and the ones that couldn't be read
 	private final Map<String, Texture>	textures	= new HashMap<String, Texture>();
 	// the textures with parts that can be seen through, such as a fence's gaps
@@ -108,6 +110,11 @@ public class Track3DRenderer implements GLEventListener
 		if ("st_green_st".equals(role))
 			return clock >= 0 && clock < 30;
 		return false;
+	}
+
+	void setShowCameras(boolean on)
+	{
+		showCameras = on;
 	}
 
 	void setMesh(RoadMesh mesh)
@@ -338,6 +345,18 @@ public class Track3DRenderer implements GLEventListener
 					bind(gl, lightOn(light.role, light.index, clock) ? light.on : light.off, null, DOUBLE_SIDED);
 					gl.glDrawArrays(GL.GL_TRIANGLES, light.first, light.count);
 				}
+				if (showCameras)
+				{
+					// drawn here, not from the arrays: their size follows the distance
+					gl.glDisableClientState(GLPointerFunc.GL_COLOR_ARRAY);
+					gl.glDisableClientState(GLPointerFunc.GL_NORMAL_ARRAY);
+					gl.glDisableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
+					gl.glDisableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
+					drawCameraMarkers(gl, mesh, eye);
+					gl.glEnableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
+					gl.glEnableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
+					gl.glEnableClientState(GLPointerFunc.GL_NORMAL_ARRAY);
+				}
 				gl.glDisable(GL.GL_BLEND);
 				gl.glActiveTexture(GL.GL_TEXTURE1);
 				gl.glDisable(GL.GL_TEXTURE_2D);
@@ -542,6 +561,99 @@ public class Track3DRenderer implements GLEventListener
 		racelineCoords = Buffers.newDirectFloatBuffer(rt);
 		lines = Buffers.newDirectFloatBuffer(l);
 		drawnTriangles = tri;
+	}
+
+	/**
+	 * Each track camera where the game puts it: a pole from the ground, a body and
+	 * a lens aimed at where its stretch starts, in its color, and a sign with its
+	 * name turned to the viewer. Real size close by; further away bigger than
+	 * that, so they can be found on the whole track, but still smaller on the
+	 * screen the further they are. None for the camera looked from.
+	 */
+	private void drawCameraMarkers(GL2 gl, RoadMesh mesh, double[] eye)
+	{
+		List<RoadMesh.CameraMarker> markers = mesh.cameraMarkers;
+		if (markers == null || markers.isEmpty())
+			return;
+		float scale = (float) heightScale;
+		gl.glActiveTexture(GL.GL_TEXTURE1);
+		gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glActiveTexture(GL.GL_TEXTURE0);
+		gl.glDisable(GL.GL_CULL_FACE);
+		for (RoadMesh.CameraMarker m : markers)
+		{
+			float ground = m.ground * scale, top = ground + m.height;
+			double dx = m.x - eye[0], dy = m.y - eye[1], dz = top - eye[2];
+			double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+			if (distance < 3)
+				continue;
+			// real size close by; further away they grow, but more slowly than the distance, so they get smaller on the screen
+			float s = (float) Math.max(1, Math.pow(distance / 40, 0.5));
+			float fx = m.aimX, fy = m.aimY;
+			gl.glDisable(GL.GL_TEXTURE_2D);
+			if (lighting)
+				gl.glEnable(GLLightingFunc.GL_LIGHTING);
+			if (top - ground > 0.6f * s)
+				box(gl, m.x, m.y, ground, top - 0.6f * s, fx, fy, 0.15f * s, 0.15f * s, 0.3f, 0.3f, 0.3f);
+			box(gl, m.x - fx * 0.4f * s, m.y - fy * 0.4f * s, top - 0.6f * s, top + 0.6f * s, fx, fy, 1.6f * s, 0.9f * s,
+				m.color[0], m.color[1], m.color[2]);
+			box(gl, m.x + fx * 0.6f * s, m.y + fy * 0.6f * s, top - 0.35f * s, top + 0.35f * s, fx, fy, 0.5f * s, 0.6f * s,
+				0.12f, 0.12f, 0.15f);
+			// the name, facing the viewer
+			Texture name = m.nameImage == null ? null : texture(gl, m.nameImage);
+			double flat = Math.hypot(dx, dy);
+			// the viewer's right
+			float rx = flat < 1e-6 ? 1 : (float) (dy / flat), ry = flat < 1e-6 ? 0 : (float) (-dx / flat);
+			float w = 0.45f * s * Math.max(4, m.name.length()), h = 1.1f * s, z = top + 1.0f * s;
+			gl.glDisable(GLLightingFunc.GL_LIGHTING);
+			if (name != null)
+			{
+				name.enable(gl);
+				name.bind(gl);
+				gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
+				gl.glColor3f(1, 1, 1);
+			}
+			else
+				gl.glColor3f(m.color[0], m.color[1], m.color[2]);
+			float top0 = name != null && name.getMustFlipVertically() ? 0 : 1, bottom0 = 1 - top0;
+			gl.glBegin(GL2.GL_QUADS);
+			gl.glTexCoord2f(0, bottom0);
+			gl.glVertex3f(m.x - rx * w / 2, m.y - ry * w / 2, z);
+			gl.glTexCoord2f(1, bottom0);
+			gl.glVertex3f(m.x + rx * w / 2, m.y + ry * w / 2, z);
+			gl.glTexCoord2f(1, top0);
+			gl.glVertex3f(m.x + rx * w / 2, m.y + ry * w / 2, z + h);
+			gl.glTexCoord2f(0, top0);
+			gl.glVertex3f(m.x - rx * w / 2, m.y - ry * w / 2, z + h);
+			gl.glEnd();
+		}
+		gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glDisable(GLLightingFunc.GL_LIGHTING);
+	}
+
+	/** A box standing from z0 to z1 at (x, y), its length along (fx, fy), with a normal for each face. */
+	private static void box(GL2 gl, float x, float y, float z0, float z1, float fx, float fy, float length, float width,
+		float r, float g, float b)
+	{
+		float rx = fy, ry = -fx;
+		float[][] c = new float[8][];
+		int k = 0;
+		for (int up = 0; up < 2; up++)
+			for (int a = -1; a <= 1; a += 2)
+				for (int d = -1; d <= 1; d += 2)
+					c[k++] = new float[] { x + fx * a * length / 2 + rx * d * width / 2, y + fy * a * length / 2 + ry * d * width / 2,
+						up == 0 ? z0 : z1 };
+		int[][] faces = { { 0, 2, 3, 1 }, { 4, 5, 7, 6 }, { 0, 1, 5, 4 }, { 2, 6, 7, 3 }, { 0, 4, 6, 2 }, { 1, 3, 7, 5 } };
+		float[][] normals = { { 0, 0, -1 }, { 0, 0, 1 }, { -fx, -fy, 0 }, { fx, fy, 0 }, { -rx, -ry, 0 }, { rx, ry, 0 } };
+		gl.glColor3f(r, g, b);
+		gl.glBegin(GL2.GL_QUADS);
+		for (int f = 0; f < faces.length; f++)
+		{
+			gl.glNormal3f(normals[f][0], normals[f][1], normals[f][2]);
+			for (int i : faces[f])
+				gl.glVertex3f(c[i][0], c[i][1], c[i][2]);
+		}
+		gl.glEnd();
 	}
 
 	/** A start light: its textures, role and index, and where it is in the arrays. */
