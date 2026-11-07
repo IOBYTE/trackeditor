@@ -14,12 +14,16 @@ import utils.circuit.Segment;
  * configuration before and after generation, since the operation can split
  * segments (changing the count) and modify properties on an unbounded
  * number of segments, and the cameras, which follow the segments it renames.
+ * The segments themselves are kept too, so undo and redo put back the same
+ * segment objects with their values: the other undo steps and the segment
+ * dialog refer to them.
  */
 public class UndoPitGeneration implements UndoInterface
 {
 	private final EditorFrame editorFrame;
 
-	// state before generation
+	// state before generation: the segments and their values
+	private final Vector<Segment> instancesBefore;
 	private final Vector<Segment> segmentsBefore;
 	private final Pits pitsBefore;
 	private final Vector<Camera> camerasBefore;
@@ -27,6 +31,7 @@ public class UndoPitGeneration implements UndoInterface
 	private final int curveCountBefore;
 
 	// state after generation (captured by captureAfter)
+	private Vector<Segment> instancesAfter;
 	private Vector<Segment> segmentsAfter;
 	private Pits pitsAfter;
 	private Vector<Camera> camerasAfter;
@@ -39,6 +44,7 @@ public class UndoPitGeneration implements UndoInterface
 	public UndoPitGeneration(EditorFrame editorFrame)
 	{
 		this.editorFrame = editorFrame;
+		this.instancesBefore = new Vector<Segment>(editorFrame.getTrackData().getSegments());
 		this.segmentsBefore = cloneSegments(editorFrame.getTrackData().getSegments());
 		this.pitsBefore = clonePits(editorFrame.getPits());
 		this.camerasBefore = cloneCameras(editorFrame.getTrackData().getCameras());
@@ -51,6 +57,7 @@ public class UndoPitGeneration implements UndoInterface
 	 */
 	public void captureAfter()
 	{
+		this.instancesAfter = new Vector<Segment>(editorFrame.getTrackData().getSegments());
 		this.segmentsAfter = cloneSegments(editorFrame.getTrackData().getSegments());
 		this.pitsAfter = clonePits(editorFrame.getPits());
 		this.camerasAfter = cloneCameras(editorFrame.getTrackData().getCameras());
@@ -60,17 +67,17 @@ public class UndoPitGeneration implements UndoInterface
 
 	public void undo()
 	{
-		restore(segmentsBefore, pitsBefore, camerasBefore, straightCountBefore, curveCountBefore);
+		restore(instancesBefore, segmentsBefore, pitsBefore, camerasBefore, straightCountBefore, curveCountBefore);
 	}
 
 	public void redo()
 	{
-		restore(segmentsAfter, pitsAfter, camerasAfter, straightCountAfter, curveCountAfter);
+		restore(instancesAfter, segmentsAfter, pitsAfter, camerasAfter, straightCountAfter, curveCountAfter);
 	}
 
-	private void restore(Vector<Segment> segments, Pits pits, Vector<Camera> cameras, int straightCount, int curveCount)
+	private void restore(Vector<Segment> instances, Vector<Segment> segments, Pits pits, Vector<Camera> cameras, int straightCount, int curveCount)
 	{
-		editorFrame.getTrackData().getSegments().replaceAll(cloneSegments(segments));
+		editorFrame.getTrackData().getSegments().replaceAll(restoreSegments(instances, segments));
 		editorFrame.getTrackData().getMainTrack().setPits(clonePits(pits));
 		Vector<Camera> list = editorFrame.getTrackData().getCameras();
 		list.clear();
@@ -80,6 +87,22 @@ public class UndoPitGeneration implements UndoInterface
 		editorFrame.getCircuitView().redrawCircuit();
 		editorFrame.getCircuitView().invalidate();
 		editorFrame.getCircuitView().repaint();
+	}
+
+	/**
+	 * @return the segments with their values put back, so a segment is still the same
+	 *         object (and a later undo step or the segment dialog still finds it)
+	 */
+	public static Vector<Segment> restoreSegments(Vector<Segment> instances, Vector<Segment> values)
+	{
+		Vector<Segment> segments = new Vector<Segment>(instances.size());
+		for (int i = 0; i < instances.size(); i++)
+		{
+			Segment segment = instances.get(i);
+			segment.set(values.get(i));
+			segments.add(segment);
+		}
+		return segments;
 	}
 
 	private static Vector<Segment> cloneSegments(SegmentVector data)

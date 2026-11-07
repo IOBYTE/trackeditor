@@ -135,6 +135,8 @@ public class PitProperties extends PropertyPanel
 	private int					generateCount		= 0;
 	private int					undoCount			= 0;
 	private Vector<Segment>		initialSegments		= null;
+	// the segments themselves, put back with the values in initialSegments
+	private Vector<Segment>		initialInstances	= null;
 	private Pits				initialPits			= null;
 	private boolean				initialModified		= false;
 	private JTabbedPane			tabbedPane				= null;
@@ -1107,6 +1109,7 @@ public class PitProperties extends PropertyPanel
 	{
 		if (initialSegments == null)
 		{
+			initialInstances = new Vector<Segment>(getEditorFrame().getTrackData().getSegments());
 			initialSegments = cloneSegments(getEditorFrame().getTrackData().getSegments());
 			initialPits = clonePits(getEditorFrame().getPits());
 			initialModified = getEditorFrame().documentIsModified;
@@ -1879,12 +1882,15 @@ public class PitProperties extends PropertyPanel
 			}
 			undoCount = 0;
 			updateGenerateButtons();
-			// restore to the exact initial state
-			getEditorFrame().getTrackData().getSegments().replaceAll(initialSegments);
+			// restore to the exact initial state, with the same segments: the other undo
+			// steps and the segment dialog refer to them
+			getEditorFrame().getTrackData().getSegments().replaceAll(
+				utils.undo.UndoPitGeneration.restoreSegments(initialInstances, initialSegments));
 			getEditorFrame().getTrackData().getMainTrack().setPits(initialPits);
 			refreshView();
 			getEditorFrame().documentIsModified = initialModified;
 			initialSegments = null;
+			initialInstances = null;
 			initialPits = null;
 		}
 	}
@@ -2622,6 +2628,7 @@ public class PitProperties extends PropertyPanel
 		// generation is done via the Generate button, not on OK
 		// clear the initial state so cancel doesn't undo accepted changes
 		initialSegments = null;
+		initialInstances = null;
 		initialPits = null;
 	}
 
