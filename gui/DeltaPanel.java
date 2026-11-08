@@ -708,8 +708,15 @@ public class DeltaPanel extends JDialog
 	}
 
 	/**
-	 * Scales the straights that run mostly along y (or exactly along x)
-	 * so the track end moves by delta in that direction.
+	 * Lengthens and shortens the straights that run mostly along one axis so the
+	 * track's end moves by delta along it. Which way a straight heads doesn't
+	 * matter, only how much of it is along the axis: one heading -x runs along x
+	 * as much as one heading +x.
+	 *
+	 * Straights heading opposite ways change in opposite directions, each by the
+	 * same fraction of its length: lengthening every straight by one factor would
+	 * hardly move the end of a closed track, whose straights going one way about
+	 * cancel those going the other way.
 	 */
 	private void adjustStraights(boolean alongX, double delta)
 	{
@@ -718,42 +725,38 @@ public class DeltaPanel extends JDialog
 		editorFrame.refresh();
 
 		SegmentVector track = editorFrame.getTrackData().getSegments();
-		int size = track.size();
+		java.util.List<Straight> straights = new java.util.ArrayList<Straight>();
 		double total = 0;
 
-		for(int i=0; i<size; i++)
+		for (Segment obj : track)
 		{
-			Segment obj = track.get(i);
-			if(obj.getType().equals("str"))
+			if (obj instanceof Straight)
 			{
 			    Straight str = (Straight) obj;
-			    double x = str.getDx();
-			    double y = str.getDy();
-			    if(alongX ? y == 0 : y > x)
+			    double along = alongX ? str.getDx() : str.getDy();
+			    double across = alongX ? str.getDy() : str.getDx();
+			    if (Math.abs(along) > Math.abs(across))
 			    {
-			        total += alongX ? x : y;
+			        straights.add(str);
+			        total += Math.abs(along);
 			    }
 			}
 		}
 
-		if (total == 0)
+		if (total == 0 || delta == 0 || Double.isNaN(delta))
 		    return;
 
-		double co = (total+delta)/total;
+		// each straight's length changes by this fraction: the ones heading the
+		// way the end has to move get longer, the others shorter
+		double fraction = delta / total;
+		if (Math.abs(fraction) >= 1)
+		    throw new TrackgenException("The straights along " + (alongX ? "x" : "y")
+		        + " are too short to close a gap of " + delta + " m.");
 
-		for(int i=0; i<size; i++)
+		for (Straight str : straights)
 		{
-			Segment obj = track.get(i);
-			if(obj.getType().equals("str"))
-			{
-			    Straight str = (Straight) obj;
-			    double x = str.getDx();
-			    double y = str.getDy();
-			    if(alongX ? y == 0 : y > x)
-			    {
-			        str.setLength(str.getLength()*co);
-			    }
-			}
+		    double along = alongX ? str.getDx() : str.getDy();
+		    str.setLength(str.getLength() * (1 + fraction * Math.signum(along)));
 		}
 	    });
 	}
