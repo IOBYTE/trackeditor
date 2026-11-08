@@ -4,29 +4,35 @@ import java.util.Vector;
 
 import utils.circuit.ObjShapeRelief;
 
+/**
+ * Undoes an edit of a relief by copying the old values back into the relief
+ * itself, as UndoEditGraphicObject does: an index would point at a different
+ * relief once a relief before it is deleted, or past the end of the list.
+ */
 public class UndoEditRelief implements UndoInterface
 {
-	private Vector<ObjShapeRelief>	reliefs;
-	private ObjShapeRelief 			original;
-	private ObjShapeRelief 			clone;
-	private int 					index;
+	private ObjShapeRelief	relief;
+	private ObjShapeRelief	before;	// the values before the edit
+	private ObjShapeRelief	after;	// the values when it was undone
 
+	/**
+	 * @param reliefs the track's reliefs; not needed, the relief is changed in place
+	 * @param relief the relief about to be edited
+	 */
 	public UndoEditRelief(Vector<ObjShapeRelief> reliefs, ObjShapeRelief relief)
 	{
-		this.reliefs = reliefs;
-		index = reliefs.indexOf(relief);
-		clone = (ObjShapeRelief) relief.clone();
-		original = relief;
+		this.relief = relief;
+		before = (ObjShapeRelief) relief.clone();
 	}
 
 	public void undo()
 	{
-		original = (ObjShapeRelief) reliefs.get(index).clone();
-		reliefs.get(index).set(clone);
+		after = (ObjShapeRelief) relief.clone();
+		relief.set(before);
 	}
 
 	public void redo()
 	{
-		reliefs.get(index).set(original);
+		relief.set(after);
 	}
 }

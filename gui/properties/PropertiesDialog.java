@@ -33,6 +33,8 @@ import javax.swing.SwingUtilities;
 
 import gui.EditorFrame;
 import utils.Properties;
+import utils.undo.Undo;
+import utils.undo.UndoProperties;
 /**
  * @author babis
  *
@@ -550,6 +552,10 @@ public class PropertiesDialog extends JDialog
 			return;
 		}
 
+		// Ok is one undo step; converting the track's version clears the undo list
+		UndoProperties undo = new UndoProperties(editorFrame);
+		int version = editorFrame.getTrackData().getHeader().getVersion();
+
 		this.generalProperties.exit();
 		this.trackProperties.exit();
 		this.pitProperties.exit();
@@ -571,6 +577,11 @@ public class PropertiesDialog extends JDialog
 			this.sectorProperties.exit();
 		if (this.georeferenceProperties != null)
 			this.georeferenceProperties.exit();
+
+		undo.captureAfter();
+		if (version == editorFrame.getTrackData().getHeader().getVersion() && undo.changed())
+			Undo.add(undo);
+
 		Properties.getInstance().valueChanged();
 		APPROVE = true;
 		cancel();

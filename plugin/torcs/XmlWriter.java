@@ -50,6 +50,7 @@ import utils.circuit.Georeference;
 import utils.circuit.GraphicObject;
 import utils.circuit.MainTrack;
 import utils.circuit.ObjectMap;
+import utils.circuit.Reliefs;
 import utils.circuit.Sector;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -1112,12 +1113,14 @@ public class XmlWriter
 		addContent(element, "minimum altitude", "m", editorFrame.getTerrainGeneration().getMinimumAltitude());
 		addContent(element, "group size", "m", editorFrame.getTerrainGeneration().getGroupSize());
 		addContent(element, "elevation map", editorFrame.getTerrainGeneration().getElevationMap());
-		// reliefs drawn without a relief file go to <track>-relief.ac
+		// Add Relief names the file; reliefs left without one (the name was
+		// cleared) still go to <track folder>-relief.ac
 		if (!editorFrame.getReliefs().getReliefs().isEmpty() &&
 			(editorFrame.getTerrainGeneration().getReliefFile() == null || editorFrame.getTerrainGeneration().getReliefFile().isEmpty()))
 		{
-			String path = Properties.getInstance().getPath();
-			editorFrame.getReliefs().setNewFileName(path.substring(path.lastIndexOf(System.getProperty("file.separator")) + 1) + "-relief.ac");
+			String fileName = Reliefs.newFileName();
+			if (fileName != null)
+				editorFrame.getReliefs().setNewFileName(fileName);
 		}
 
 		addContent(element, "relief file", editorFrame.getTerrainGeneration().getReliefFile());

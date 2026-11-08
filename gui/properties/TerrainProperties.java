@@ -409,6 +409,62 @@ public class TerrainProperties extends PropertyPanel
 		}
 	}
 
+	/**
+	 * @param reliefs the reliefs of a file chosen with Browse, or null for the track's
+	 */
+	private ReliefProperties newReliefProperties(Reliefs reliefs)
+	{
+		ReliefProperties properties = reliefs == null ? new ReliefProperties(getEditorFrame())
+			: new ReliefProperties(getEditorFrame(), reliefs);
+		properties.setReliefAdded(new Runnable()
+		{
+			public void run()
+			{
+				reliefAdded();
+			}
+		});
+		properties.setAllReliefsDeleted(new Runnable()
+		{
+			public void run()
+			{
+				allReliefsDeleted();
+			}
+		});
+		return properties;
+	}
+
+	// the relief file name Delete Relief cleared, for Add Relief to put back
+	private String clearedReliefFile = null;
+
+	/**
+	 * With every relief deleted the track no longer needs a relief file: the
+	 * field is cleared, which OK makes the track's. The file itself is left as it is.
+	 */
+	private void allReliefsDeleted()
+	{
+		String fileName = reliefFileTextField.getText().trim();
+		if (!fileName.isEmpty())
+		{
+			clearedReliefFile = fileName;
+			reliefFileTextField.setText(null);
+		}
+	}
+
+	/**
+	 * A relief added on the Reliefs tab needs a file to be saved to: with no
+	 * relief file the field gets back the name Delete Relief cleared, or else
+	 * &lt;track folder&gt;-relief.ac, which OK makes the track's relief file.
+	 */
+	private void reliefAdded()
+	{
+		if (reliefFileTextField.getText().trim().isEmpty())
+		{
+			String fileName = clearedReliefFile != null ? clearedReliefFile : Reliefs.newFileName();
+			if (fileName != null)
+				reliefFileTextField.setText(fileName);
+		}
+	}
+
 	protected void reliefFile()
 	{
 		Boolean old = UIManager.getBoolean("FileChooser.readOnly");  
@@ -444,7 +500,7 @@ public class TerrainProperties extends PropertyPanel
 				// replace the Reliefs tab in its place, which depends on the game
 				int reliefTab = tabbedPane.indexOfTab("Reliefs");
 				tabbedPane.remove(reliefTab);
-				tabbedPane.insertTab("Reliefs", null, new ReliefProperties(getEditorFrame(), reliefs), null, reliefTab);
+				tabbedPane.insertTab("Reliefs", null, newReliefProperties(reliefs), null, reliefTab);
 				tabbedPane.setSelectedIndex(reliefTab);
 			}
 			catch (IOException e)
@@ -606,7 +662,7 @@ public class TerrainProperties extends PropertyPanel
 			if (getEditorFrame().getGameType().hasGraphicObjects())
 				tabbedPane.addTab("Objects", null, new GraphicObjectProperties(getEditorFrame()));
 			tabbedPane.addTab("Object Maps", null, new ObjectMapProperties(getEditorFrame()));
-			tabbedPane.addTab("Reliefs", null, new ReliefProperties(getEditorFrame()));
+			tabbedPane.addTab("Reliefs", null, newReliefProperties(null));
 			// last, so the other tabs keep their places
 			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
 				tabbedPane.addTab("Bridges", null, getBridgesPanel());
@@ -786,29 +842,32 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		// the Reliefs tab shows the reliefs of the file that was open: after switching to
-		// another file it must not copy them over the new file's reliefs
-		boolean reliefFileChanged = false;
+		// the Reliefs tab shows the reliefs of the file that was open: after another
+		// file is read it must not copy them over that file's reliefs. A new name
+		// (typed, or given by Add Relief) keeps the reliefs, so the tab's edits stay.
+		boolean keepReliefEdits = true;
 		if (isDifferent(reliefFileTextField.getText(),
 			getEditorFrame().getTerrainGeneration().getReliefFile(), stringResult))
 		{
-			reliefFileChanged = true;
 			try
 			{
-				getEditorFrame().getTerrainGeneration().setReliefFile(stringResult.getValue());
+				keepReliefEdits = !getEditorFrame().getTerrainGeneration().setReliefFile(stringResult.getValue());
 			}
 			catch (IOException e)
 			{
+				keepReliefEdits = false;
 				String msg = stringResult.getValue() + " : Can't read input file!";
 				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
 			catch (Ac3dException e)
 			{
+				keepReliefEdits = false;
 				String msg = stringResult.getValue() + " : " + e.getLocalizedMessage();
 				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
 			catch (Exception e)
 			{
+				keepReliefEdits = false;
 				String msg = stringResult.getValue() + " : " + e.getLocalizedMessage();
 				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
@@ -913,7 +972,7 @@ public class TerrainProperties extends PropertyPanel
 				((GraphicObjectProperties)component).exit();
 			else if (component instanceof ObjectMapProperties)
 				((ObjectMapProperties)component).exit();
-			else if (component instanceof ReliefProperties && !reliefFileChanged)
+			else if (component instanceof ReliefProperties && keepReliefEdits)
 				((ReliefProperties)component).exit();
 		}
 

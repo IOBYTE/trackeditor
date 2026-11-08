@@ -2854,9 +2854,11 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 					
 				if (index != -1)
 				{
-					Undo.add(new UndoDeleteRelief(reliefs, shape));
+					Undo.add(new UndoDeleteRelief(editorFrame.getReliefs(), shape));
 					reliefs.remove(shape);
 					editorFrame.getReliefs().setChanged(true);
+					// the last relief gone: the track no longer needs a relief file
+					editorFrame.getReliefs().dropFileIfEmpty();
 					selectedShape = null;
 					invalidate();
 					repaint();

@@ -20,7 +20,8 @@ public class UndoDeleteAllGraphicObjects implements UndoInterface
 	{
 		for (int i = undo.size() - 1; i >= 0 ; i--)
 		{
-			graphicObjects.add(undo.get(i).objectIndex, undo.get(i).object);
+			// objects deleted since (in the Properties dialog) can leave the list shorter
+			graphicObjects.add(Math.min(undo.get(i).objectIndex, graphicObjects.size()), undo.get(i).object);
 		}
 		redo = undo;
 		undo = null;

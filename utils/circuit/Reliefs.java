@@ -49,14 +49,16 @@ public class Reliefs
 	 * Changes the relief file from the editor: an existing file is read and
 	 * replaces the current reliefs; a new file name keeps the current reliefs,
 	 * which are written to it on the next save.
+	 *
+	 * @return true if the file was read, replacing the current reliefs
 	 */
-	public void useFile(String fileName) throws IOException, Ac3dException, Exception {
+	public boolean useFile(String fileName) throws IOException, Ac3dException, Exception {
 		if (fileName == null || fileName.isEmpty() || !resolve(fileName).toFile().exists())
 		{
 			this.fileName = fileName;
 			unreadable = false;
 			changed = true;
-			return;
+			return false;
 		}
 		String oldName = this.fileName;
 		boolean oldUnreadable = unreadable;
@@ -70,6 +72,47 @@ public class Reliefs
 			unreadable = oldUnreadable;
 			throw e;
 		}
+		return true;
+	}
+
+	/**
+	 * @return true if the file holds more than relief lines, or couldn't be read:
+	 *         deleting every relief then still leaves something trackgen may use
+	 */
+	public boolean hasOtherContent()
+	{
+		return unreadable || !other.isEmpty();
+	}
+
+	/**
+	 * Called after a relief is deleted: with none left the track stops
+	 * referring to the relief file, so it no longer needs one. The file itself
+	 * is left as it is. A file holding more than relief lines is kept.
+	 *
+	 * @return the file name that was dropped, or null
+	 */
+	public String dropFileIfEmpty()
+	{
+		if (!reliefs.isEmpty() || hasOtherContent() || fileName == null || fileName.isEmpty())
+			return null;
+		String dropped = fileName;
+		fileName = null;
+		// nothing is left to write
+		changed = false;
+		return dropped;
+	}
+
+	/**
+	 * @return the file reliefs go to when the track has no relief file:
+	 *         &lt;track folder&gt;-relief.ac, or null while there is no track folder
+	 */
+	public static String newFileName()
+	{
+		String path = Properties.getInstance().getPath();
+		if (path == null || path.isEmpty())
+			return null;
+		Path folder = Paths.get(path).getFileName();
+		return folder == null ? null : folder + "-relief.ac";
 	}
 
 	/**

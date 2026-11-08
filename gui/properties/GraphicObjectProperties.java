@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -146,7 +147,7 @@ public class GraphicObjectProperties extends PropertyPanel implements PropertyPa
 				name = new String("Unknown");
 			}
 
-			data.add(new GraphicObjectData(name, object.getComment(), object.getColor(), object.getX(), object.getY(), object.getOrientation(), object.getHeight()));
+			data.add(new GraphicObjectData(object, name, object.getComment(), object.getColor(), object.getX(), object.getY(), object.getOrientation(), object.getHeight()));
 		}
 	}
 
@@ -511,106 +512,111 @@ public class GraphicObjectProperties extends PropertyPanel implements PropertyPa
 		return null;
 	}
 
+	/**
+	 * Writes the table back to the objects. Each row goes to the object it was
+	 * read from, not to the object at its position: undo steps refer to the
+	 * objects themselves, so after a row is deleted an undo must still find the
+	 * object it changed. Deleted rows drop their objects and added rows make new
+	 * ones; the list stays the same Vector, which undo steps also hold.
+	 */
 	public void exit()
 	{
-		int minDataCount = Math.min(data.size(), graphicObjects.size());
 		MutableString stringResult = new MutableString();
+		Vector<GraphicObject> rowObjects = new Vector<GraphicObject>(data.size());
+		Set<GraphicObject> used = Collections.newSetFromMap(new IdentityHashMap<GraphicObject, Boolean>());
+		boolean modified = false;
 
-		if (data.size() != graphicObjects.size())
+		for (GraphicObjectData datum : data)
 		{
-			getEditorFrame().documentIsModified = true;
-		}
-		for (int j = 0; j < minDataCount; j++)
-		{
-			GraphicObjectData datum = data.get(j);
-			GraphicObject object = graphicObjects.get(j);
+			GraphicObject object = datum.object;
+
+			if (object == null || !graphicObjects.contains(object) || !used.add(object))
+			{
+				object = new GraphicObject(datum.name, datum.color, new Point2D.Double(datum.trackX, datum.trackY));
+				object.setComment(datum.comment);
+
+				if (datum.orientation != null && !Double.isNaN(datum.orientation))
+				{
+					object.setOrientation(datum.orientation);
+				}
+
+				if (datum.height != null && !Double.isNaN(datum.height))
+				{
+					object.setHeight(datum.height);
+				}
+				rowObjects.add(object);
+				modified = true;
+				continue;
+			}
+			rowObjects.add(object);
 
 			if (isDifferent(datum.name, object.getName(), stringResult))
 			{
 				object.setName(stringResult.getValue());
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (isDifferent(datum.comment, object.getComment(), stringResult))
 			{
 				object.setComment(stringResult.getValue());
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (!datum.color.equals(object.getColor()))
 			{
 				object.setColor(datum.color);
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (!datum.trackX.equals(object.getX()))
 			{
 				object.setX(datum.trackX);
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (!datum.trackY.equals(object.getY()))
 			{
 				object.setY(datum.trackY);
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (datum.orientation == null)
 			{
-				if (!Double.isNaN(object.getOrientation())) 
+				if (!Double.isNaN(object.getOrientation()))
 				{
 					object.setOrientation(Double.NaN);
-					getEditorFrame().documentIsModified = true;
+					modified = true;
 				}
 			}
 			else if (!datum.orientation.equals(object.getOrientation()))
 			{
 				object.setOrientation(datum.orientation);
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 
 			if (datum.height == null)
 			{
-				if (!Double.isNaN(object.getHeight())) 
+				if (!Double.isNaN(object.getHeight()))
 				{
 					object.setHeight(Double.NaN);
-					getEditorFrame().documentIsModified = true;
+					modified = true;
 				}
 			}
 			else if (!datum.height.equals(object.getHeight()))
 			{
 				object.setHeight(datum.height);
-				getEditorFrame().documentIsModified = true;
+				modified = true;
 			}
 		}
 
-		if (data.size() < graphicObjects.size())
+		if (replaceItems(graphicObjects, rowObjects))
 		{
-			// need to trim objects
-			while (graphicObjects.size() > data.size())
-			{
-				graphicObjects.remove(graphicObjects.size() - 1);
-			}
+			modified = true;
 		}
-		else if (graphicObjects.size() < data.size())
+
+		if (modified)
 		{
-			// need to add to objects
-			while (graphicObjects.size() < data.size())
-			{
-				GraphicObjectData datum = data.get(graphicObjects.size());
-
-				graphicObjects.add(new GraphicObject(datum.name, datum.color, new Point2D.Double(datum.trackX, datum.trackY)));
-
-				if (datum.orientation != null && !Double.isNaN(datum.orientation))
-				{
-					graphicObjects.lastElement().setOrientation(datum.orientation);
-				}
-
-				if (datum.height != null && !Double.isNaN(datum.height))
-				{
-					graphicObjects.lastElement().setHeight(datum.height);
-				}
-			}
+			getEditorFrame().documentIsModified = true;
 		}
 	}
 }

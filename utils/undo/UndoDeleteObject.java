@@ -20,7 +20,8 @@ public class UndoDeleteObject implements UndoInterface
 
 	public void undo()
 	{
-		objectMap.addObjectAt(undo, index);
+		// objects deleted since (in the Properties dialog) can leave the list shorter
+		objectMap.addObjectAt(undo, Math.min(index, objectMap.getObjects().size()));
 		redo = undo;
 		undo = null;
 	}

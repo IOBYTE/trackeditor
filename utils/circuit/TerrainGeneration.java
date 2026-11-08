@@ -209,10 +209,11 @@ public class TerrainGeneration
 	/**
 	 * @param reliefFile
 	 *            The reliefFile to set.
+	 * @return true if an existing file was read, replacing the reliefs
 	 */
-	public void setReliefFile(String reliefFile) throws Exception, IOException
+	public boolean setReliefFile(String reliefFile) throws Exception, IOException
 	{
-		this.reliefs.useFile(reliefFile);
+		return this.reliefs.useFile(reliefFile);
 	}
 	public Reliefs getReliefs()
 	{

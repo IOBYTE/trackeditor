@@ -21,7 +21,8 @@ public class UndoDeleteGraphicObject implements UndoInterface
 
 	public void undo()
 	{
-		graphicObjects.add(index, undo);
+		// objects deleted since (in the Properties dialog) can leave the list shorter
+		graphicObjects.add(Math.min(index, graphicObjects.size()), undo);
 		redo = undo;
 		undo = null;
 	}

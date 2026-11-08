@@ -31,6 +31,8 @@ public class ReliefProperties extends PropertyPanel
 	private JButton			addReliefButton		= null;
 	private JButton			deleteReliefButton	= null;
 	private Reliefs			reliefs				= null;
+	private Runnable		reliefAdded			= null;
+	private Runnable		allReliefsDeleted	= null;
 
 	ReliefProperties(EditorFrame editorFrame)
 	{
@@ -44,6 +46,24 @@ public class ReliefProperties extends PropertyPanel
 		super(editorFrame);
 		this.reliefs = reliefs;
 		initialize();
+	}
+
+	/**
+	 * @param reliefAdded run when Add Relief adds a relief, so the Terrain tab
+	 *        can name the file it will be saved to
+	 */
+	void setReliefAdded(Runnable reliefAdded)
+	{
+		this.reliefAdded = reliefAdded;
+	}
+
+	/**
+	 * @param allReliefsDeleted run when Delete Relief deletes the last relief of a
+	 *        file holding only relief lines, so the Terrain tab can drop the file name
+	 */
+	void setAllReliefsDeleted(Runnable allReliefsDeleted)
+	{
+		this.allReliefsDeleted = allReliefsDeleted;
 	}
 
 	private void initialize()
@@ -65,10 +85,26 @@ public class ReliefProperties extends PropertyPanel
 
 			for (int i = 0; i < reliefs.getReliefs().size(); i++)
 			{
-				tabbedPane.addTab("relief " + String.valueOf(i + 1), null, new ReliefPanel(reliefs.getReliefs().get(i)), null);
+				tabbedPane.addTab(tabTitle(i), null, new ReliefPanel(reliefs.getReliefs().get(i)), null);
 			}
 		}
 		return tabbedPane;
+	}
+
+	/**
+	 * Tabs are numbered by their place, as they are when the dialog opens: the
+	 * track's reliefs only change on OK, so they can't be counted for a new one.
+	 */
+	private static String tabTitle(int index)
+	{
+		return "relief " + String.valueOf(index + 1);
+	}
+
+	/** After a delete, number the tabs that are left 1, 2, 3... again. */
+	private void numberTabs()
+	{
+		for (int i = 0; i < tabbedPane.getTabCount(); i++)
+			tabbedPane.setTitleAt(i, tabTitle(i));
 	}
 
 	private JButton getAddReliefButton()
@@ -77,7 +113,7 @@ public class ReliefProperties extends PropertyPanel
 		{
 			addReliefButton = new JButton();
 			addReliefButton.setBounds(10, 333, 130, 25);
-			addReliefButton.setText("Add Releif");
+			addReliefButton.setText("Add Relief");
 			addReliefButton.addActionListener(new java.awt.event.ActionListener()
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
@@ -93,8 +129,10 @@ public class ReliefProperties extends PropertyPanel
 					relief.addVertex(new double[] { center[0] - 50, 0, -(center[1] + offset) });
 					relief.addVertex(new double[] { center[0] + 50, 0, -(center[1] + offset) });
 
-					tabbedPane.addTab("relief " + String.valueOf(reliefs.getReliefs().size() + 1), null, new ReliefPanel(relief), null);
+					tabbedPane.addTab(tabTitle(tabbedPane.getTabCount()), null, new ReliefPanel(relief), null);
 					tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+					if (reliefAdded != null)
+						reliefAdded.run();
 				}
 			});
 		}
@@ -115,6 +153,9 @@ public class ReliefProperties extends PropertyPanel
 					if (tabbedPane.getTabCount() > 0)
 					{
 						tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
+						numberTabs();
+						if (tabbedPane.getTabCount() == 0 && !reliefs.hasOtherContent() && allReliefsDeleted != null)
+							allReliefsDeleted.run();
 					}
 				}
 			});

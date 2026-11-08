@@ -18,7 +18,9 @@ public class UndoDeleteAllObjects implements UndoInterface
 		{
 			ObjectMapObject objectMapObject = undo.get(i);
 			
-			objectMapObject.objectMap.addObjectAt(objectMapObject.object, objectMapObject.objectIndex);
+			// objects deleted since (in the Properties dialog) can leave the list shorter
+			objectMapObject.objectMap.addObjectAt(objectMapObject.object,
+				Math.min(objectMapObject.objectIndex, objectMapObject.objectMap.getObjects().size()));
 		}
 		redo = undo;
 		undo = null;

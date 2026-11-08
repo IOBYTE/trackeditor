@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -415,7 +416,7 @@ public class ObjectMapProperties extends PropertyPanel
 
 				Point2D.Double real = new Point2D.Double();
 				getEditorFrame().getCircuitView().imageToReal(object.getImageX(), object.getImageY(), imageWidth, imageHeight, real);
-				data.add(new ObjectData(name, object.getRGB(), object.getImageX(), object.getImageY(), real.x, real.y));
+				data.add(new ObjectData(object, name, object.getRGB(), object.getImageX(), object.getImageY(), real.x, real.y));
 			}
     	}
 
@@ -936,71 +937,68 @@ public class ObjectMapProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            Vector<ObjectData> data = panel.getData();
-            Vector<ObjShapeObject>	objects = objectMap.getObjects();
-    		int minDataCount = Math.min(data.size(), objects.size());
+			// each row goes to the object it was read from, not to the object at
+			// its position, so undo steps (which refer to the objects) still find
+			// theirs after a row is deleted; see GraphicObjectProperties.exit()
+			Vector<ObjectData> data = panel.getData();
+			Vector<ObjShapeObject> objects = objectMap.getObjects();
+			Vector<ObjShapeObject> rowObjects = new Vector<ObjShapeObject>(data.size());
+			Set<ObjShapeObject> used = Collections.newSetFromMap(new IdentityHashMap<ObjShapeObject, Boolean>());
+			boolean changed = false;
 
-    		if (data.size() != objects.size())
-    		{
-    			getEditorFrame().documentIsModified = true;
-    			objectMap.setChanged(true);
-    		}
-            for (int j = 0; j < minDataCount; j++)
-            {
-            	ObjectData datum = data.get(j);
-            	ObjShapeObject object = objects.get(j);
+			for (ObjectData datum : data)
+			{
+				ObjShapeObject object = datum.object;
 
-            	if (!datum.color.equals(object.getRGB()))
-            	{
-            		object.setRGB(datum.color);
-        			getEditorFrame().documentIsModified = true;
-            	}
+				if (object == null || !objects.contains(object) || !used.add(object))
+				{
+					rowObjects.add(new ObjShapeObject(datum.color, datum.imageX, datum.imageY));
+					changed = true;
+					continue;
+				}
+				rowObjects.add(object);
 
-            	if (!datum.imageX.equals(object.getImageX()))
-            	{
-            		object.setImageX(datum.imageX);
-            		object.setTrackLocation(datum.trackX, datum.trackY);
-        			getEditorFrame().documentIsModified = true;
-            	}
+				boolean objectChanged = false;
 
-            	if (!datum.imageY.equals(object.getImageY()))
-            	{
-            		object.setImageY(datum.imageY);
-            		object.setTrackLocation(datum.trackX, datum.trackY);
-        			getEditorFrame().documentIsModified = true;
-            	}
+				if (!datum.color.equals(object.getRGB()))
+				{
+					object.setRGB(datum.color);
+					objectChanged = true;
+				}
 
-            	if (getEditorFrame().documentIsModified)
-            	{
-            		objectMap.setChanged(true);
-            		
-            		// force recalculation of points
-            		object.points = null;
-            	}
-            }
-            // recalculate colors
-            if (getEditorFrame().documentIsModified)
-            {
-            	objectMap.recalculateColors();
-            }
-            if (data.size() < objects.size())
-            {
-            	// need to trim objects
-            	while (objects.size() > data.size())
-            	{
-            		objects.remove(objects.size() - 1);
-            	}
-            }
-            else if (objects.size() < data.size())
-            {
-    			// need to add to objects
-    			while (objects.size() < data.size())
-    			{
-    				ObjectData datum = data.get(objects.size());
+				if (!datum.imageX.equals(object.getImageX()))
+				{
+					object.setImageX(datum.imageX);
+					object.setTrackLocation(datum.trackX, datum.trackY);
+					objectChanged = true;
+				}
 
-    				objects.add(new ObjShapeObject(datum.color, datum.imageX, datum.imageY));
-    			}
-    		}
+				if (!datum.imageY.equals(object.getImageY()))
+				{
+					object.setImageY(datum.imageY);
+					object.setTrackLocation(datum.trackX, datum.trackY);
+					objectChanged = true;
+				}
+
+				if (objectChanged)
+				{
+					// force recalculation of points
+					object.points = null;
+					changed = true;
+				}
+			}
+
+			if (replaceItems(objects, rowObjects))
+			{
+				changed = true;
+			}
+
+			if (changed)
+			{
+				objectMap.recalculateColors();
+				objectMap.setChanged(true);
+				getEditorFrame().documentIsModified = true;
+			}
 		}
 		if (replaceItems(objectMaps, tabItems))
 		{

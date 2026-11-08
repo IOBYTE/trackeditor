@@ -941,6 +941,57 @@ public class CheckDialog extends JDialog
 		}
 	}
 
+	/**
+	 * Trackgen compares the first 8 characters, so interior2 is interior.
+	 *
+	 * @param data an AC3D object's data
+	 * @return whether trackgen uses the object as an interior or exterior relief
+	 */
+	private static boolean isReliefData(String data)
+	{
+		return data.startsWith("interior") || data.startsWith("exterior");
+	}
+
+	/**
+	 * Counts the lines trackgen uses as reliefs: lines in an object with
+	 * interior or exterior data, or anywhere under one.
+	 *
+	 * @param object the object to count from
+	 * @param inRelief whether a parent has interior or exterior data
+	 * @param torcs whether any data counts (TORCS treats it as exterior)
+	 * @return the number of objects with relief lines
+	 */
+	private static int countReliefLines(Ac3dObject object, boolean inRelief, boolean torcs)
+	{
+		String data = object.getData();
+
+		if (data != null && (torcs || isReliefData(data)))
+		{
+			inRelief = true;
+		}
+
+		int count = 0;
+
+		if (inRelief)
+		{
+			for (Ac3dSurface surface : object.getSurfaces())
+			{
+				if (surface.isOpenLine() || surface.isClosedLine())
+				{
+					count++;
+					break;
+				}
+			}
+		}
+
+		for (Ac3dObject kid : object.getKids())
+		{
+			count += countReliefLines(kid, inRelief, torcs);
+		}
+
+		return count;
+	}
+
 	private void checkTerrainGeneration()
 	{
 		// TORCS trackgen stops with an error for these
@@ -986,6 +1037,12 @@ public class CheckDialog extends JDialog
 					}
 
 					Ac3dObject root = ac3dFile.getRoot();
+					boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+
+					if (root == null || countReliefLines(root, false, torcs) == 0)
+					{
+						textArea.append("Terrain Generation relief file " + reliefFile + " : no interior or exterior lines\n");
+					}
 
 					if (root != null && "world".equals(root.getType()))
 					{
@@ -1001,9 +1058,12 @@ public class CheckDialog extends JDialog
 								{
 									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : missing interior or exterior data\n");									
 								}
-								else if (!(data.equals("interior") || data.equals("exterior")))
+								else if (!isReliefData(data))
 								{
-									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + "\n");
+									// TORCS trackgen puts everything that isn't interior in the exterior list
+									String result = torcs ? "treated as exterior by" : "ignored by";
+
+									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + editorFrame.getGameType().getShortName() + " trackgen\n");
 								}
 
 								// sd2-trackgen expects borders and holes to be closed line and generates bad terrain when using line and duplicate vertices 

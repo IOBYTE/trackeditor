@@ -109,6 +109,7 @@ import utils.undo.Undo;
 import utils.undo.UndoDeleteRelief;
 import utils.undo.UndoEditRelief;
 import utils.undo.UndoInterface;
+import utils.undo.UndoProperties;
 
 /**
  * @author Patrice Espie , Charalampos Alexopoulos
@@ -3419,6 +3420,9 @@ public class EditorFrame extends JFrame
 			return;
 
 		documentIsModified = true;
+		// the surfaces the segment dialog offers can have changed
+		if (step instanceof UndoProperties && view.segmentParamDialog != null)
+			view.segmentParamDialog.refresh();
 		view.undoneOrRedone();
 
 		if (step instanceof UndoEditRelief || step instanceof UndoDeleteRelief)
