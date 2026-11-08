@@ -50,6 +50,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -4742,8 +4744,9 @@ public class EditorFrame extends JFrame
 	 */
 	/**
 	 * @return the keys and sections in the file just read that saving won't keep, as
-	 *         messages: the ones the editor doesn't read, and the ones it reads that it
-	 *         doesn't write for this game (the game doesn't use them)
+	 *         messages: the ones the editor doesn't read (or skips, like the game), and
+	 *         the ones it reads that it doesn't write for this game (the game doesn't
+	 *         use them)
 	 */
 	private List<String> findUnusedKeys(XmlReader xmlReader)
 	{
@@ -4755,6 +4758,8 @@ public class EditorFrame extends JFrame
 				messages.add(lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it");
 			else if ("attnum".equals(key.wrongType))
 				messages.add(lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it");
+			else if (key.reason != null)
+				messages.add(lineText(key) + what + ": " + key.reason);
 			else
 				messages.add(lineText(key) + what + ": the editor doesn't read it, so saving removes it");
 		}
@@ -4821,6 +4826,13 @@ public class EditorFrame extends JFrame
 	private static String lineText(XmlReader.FileKey key)
 	{
 		return key.line > 0 ? "Line " + key.line + ": " : "";
+	}
+
+	/** @return the line a message starting with lineText is about, after all lines if none */
+	private static int messageLine(String message)
+	{
+		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^Line (\\d+): ").matcher(message);
+		return matcher.find() ? Integer.parseInt(matcher.group(1)) : Integer.MAX_VALUE;
 	}
 
 	/**
@@ -4907,8 +4919,13 @@ public class EditorFrame extends JFrame
 				documentIsModified = true;
 			}
 
-			// what saving won't keep from the file, for the Check dialog
-			trackData.setUnusedKeys(findUnusedKeys(xmlReader));
+			// what saving won't keep from the file, and the values it changes (shown
+			// when the track was read too), for the Check dialog, in file order
+			List<String> unusedKeys = findUnusedKeys(xmlReader);
+			for (String warning : xmlReader.getValueWarnings())
+				unusedKeys.add(warning.startsWith("line ") ? "Line " + warning.substring("line ".length()) : warning);
+			Collections.sort(unusedKeys, Comparator.comparingInt(EditorFrame::messageLine));
+			trackData.setUnusedKeys(unusedKeys);
 		}
 		catch (Exception e)
 		{

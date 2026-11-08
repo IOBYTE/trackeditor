@@ -334,7 +334,8 @@ public class CheckDialog extends JDialog
 	
 	/**
 	 * What's in the track file that saving won't keep: keys and sections the editor
-	 * doesn't read, and keys the game in use doesn't (found when the track was read).
+	 * doesn't read or skips, and keys the game in use doesn't; and the values saving
+	 * changes (found when the track was read).
 	 */
 	private void checkUnusedKeys()
 	{

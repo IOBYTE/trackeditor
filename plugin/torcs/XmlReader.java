@@ -151,14 +151,22 @@ public class XmlReader
 		public final int		keys;
 		// an attnum read as text or an attstr read as a number: what it is
 		public final String		wrongType;
+		// why saving removes it, when it isn't just that the editor doesn't read it
+		public final String		reason;
 
 		FileKey(int line, String path, boolean section, int keys, String wrongType)
+		{
+			this(line, path, section, keys, wrongType, null);
+		}
+
+		FileKey(int line, String path, boolean section, int keys, String wrongType, String reason)
 		{
 			this.line = line;
 			this.path = path;
 			this.section = section;
 			this.keys = keys;
 			this.wrongType = wrongType;
+			this.reason = reason;
 		}
 	}
 
@@ -171,6 +179,8 @@ public class XmlReader
     {
     	this.filename = filename;
 		warnings.clear();
+		duplicateWarnings.clear();
+		reportedDuplicates.clear();
 
         Document doc = readFromFile(filename);
         Element element = doc.getRootElement();
@@ -178,6 +188,7 @@ public class XmlReader
         read.clear();
         typeMatched.clear();
         typeMismatched.clear();
+        skippedSegments.clear();
         setTrackData(element);
         findUnread(element);
     }
@@ -189,9 +200,10 @@ public class XmlReader
     }
 
     /**
-     * @return the keys and sections in the file the editor didn't read, so saving
-     *         doesn't keep them: a section is listed once when nothing in it was read.
-     *         Duplicate keys aren't listed: they are reported when the track is read.
+     * @return the keys and sections in the file that saving doesn't keep: the ones the
+     *         editor didn't read (a section is listed once when nothing in it was read),
+     *         the segments it skipped, the second and later keys with the same name,
+     *         and elements that aren't sections or keys
      */
     public List<FileKey> getUnreadKeys()
     {
@@ -216,7 +228,10 @@ public class XmlReader
 
             if (child.getName().equals("section"))
             {
-                if (read.contains(child) || hasRead(child))
+                if (skippedSegments.contains(child))
+                    unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null,
+                        "has no type str, lft or rgt, so like the game the editor skips the segment and saving removes it"));
+                else if (read.contains(child) || hasRead(child))
                     findUnread(child, childPath);
                 else
                     unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null));
@@ -227,8 +242,18 @@ public class XmlReader
                     unreadKeys.add(new FileKey(line, childPath, false, 1, child.getName()));
                 else if (read.contains(child))
                     readKeys.add(new FileKey(line, childPath, false, 1, null));
-                else if (!reportedDuplicates.contains(child))
+                else if (reportedDuplicates.contains(child))
+                    unreadKeys.add(new FileKey(line, childPath, false, 1, null,
+                        "is in its section more than once: like the game, the first one is used, so saving removes this one"));
+                else
                     unreadKeys.add(new FileKey(line, childPath, false, 1, null));
+            }
+            else
+            {
+                // the games' parameter parser skips any other element
+                String tag = "<" + child.getName() + (name != null ? " name=\"" + name + "\"" : "") + ">";
+                unreadKeys.add(new FileKey(line, path.isEmpty() ? tag : path + "/" + tag, false, 1, null,
+                    "isn't a section, attnum or attstr, so no game reads it and saving removes it"));
             }
         }
     }
@@ -1260,6 +1285,7 @@ public class XmlReader
             // like the game, skip a segment without a type (or one it doesn't know)
             if (type == null || !(type.equals("str") || type.equals("lft") || type.equals("rgt")))
             {
+                skippedSegments.add(e);
                 skipped++;
                 continue;
             }
@@ -1485,7 +1511,7 @@ public class XmlReader
 				if (out == null)
 					out = child;
 				else if (!child.getName().equals("section") && reportedDuplicates.add(child))
-					warn(child, "is in its section more than once: like the game, the first one is used, so this one isn't saved.");
+					duplicateWarnings.add(warn(child, "is in its section more than once: like the game, the first one is used, so this one isn't saved."));
 			}
 		}
 		if (out != null)
@@ -1540,16 +1566,39 @@ public class XmlReader
 	// duplicate values already reported
 	private final java.util.Set<Element>	reportedDuplicates	=
 		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+	// the warnings about those, which getUnreadKeys lists too
+	private final java.util.Set<String>		duplicateWarnings	= new java.util.HashSet<String>();
+	// the segments skipped because they have no type the game knows
+	private final java.util.Set<Element>	skippedSegments	=
+		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
 
     public List<String> getWarnings()
     {
         return warnings;
     }
 
-    private void warn(Element e, String message)
+    /**
+     * @return the warnings about values saving changes: getWarnings without the
+     *         duplicate keys, which getUnreadKeys lists
+     */
+    public List<String> getValueWarnings()
+    {
+        List<String> values = new java.util.ArrayList<String>();
+        for (String warning : warnings)
+        {
+            if (!duplicateWarnings.contains(warning))
+                values.add(warning);
+        }
+        return values;
+    }
+
+    /** @return the warning, which is also added to the warnings */
+    private String warn(Element e, String message)
     {
         String where = e instanceof MyElement ? "line " + ((MyElement) e).getLineNumber() + ": " : "";
-        warnings.add(where + "\"" + e.getAttributeValue("name") + "\" " + message);
+        String warning = where + "\"" + e.getAttributeValue("name") + "\" " + message;
+        warnings.add(warning);
+        return warning;
     }
 
     /**
