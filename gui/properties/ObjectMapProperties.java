@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -81,7 +80,7 @@ public class ObjectMapProperties extends PropertyPanel
 		{
 			tabbedPane = new JTabbedPane();
 			tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-			tabbedPane.setBounds(10, 10, 487, 346);
+			tabbedPane.setBounds(10, 10, 487, 313);
 
 			Vector<ObjectMap> objectMaps = getEditorFrame().getObjectMaps();
 
@@ -99,7 +98,7 @@ public class ObjectMapProperties extends PropertyPanel
 		if (addObjectMapButton == null)
 		{
 			addObjectMapButton = new JButton();
-			addObjectMapButton.setBounds(10, 300, 130, 25);
+			addObjectMapButton.setBounds(10, 333, 130, 25);
 			addObjectMapButton.setText("Add Object Map");
 			addObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -122,7 +121,7 @@ public class ObjectMapProperties extends PropertyPanel
 		if (deleteObjectMapButton == null)
 		{
 			deleteObjectMapButton = new JButton();
-			deleteObjectMapButton.setBounds(155, 300, 140, 25);
+			deleteObjectMapButton.setBounds(155, 333, 160, 25);
 			deleteObjectMapButton.setText("Delete Object Map");
 			deleteObjectMapButton.addActionListener(new java.awt.event.ActionListener()
 			{
@@ -147,6 +146,9 @@ public class ObjectMapProperties extends PropertyPanel
 		private final int 			IMAGE_Y_INDEX			= 4;
 		private final int 			TRACK_X_INDEX			= 5;
 		private final int 			TRACK_Y_INDEX			= 6;
+		// the table's height, and how much of it a problem reading the image takes
+		private static final int	TABLE_HEIGHT			= 210;
+		private static final int	PROBLEM_HEIGHT			= 34;
 
 		private JLabel				nameLabel				= new JLabel();
 		private JTextField 			nameTextField			= new JTextField();
@@ -154,7 +156,9 @@ public class ObjectMapProperties extends PropertyPanel
 		private JTextField			objectMapTextField		= new JTextField();
 		private JButton				objectMapCreateButton 	= null;
 		private JButton				objectMapButton			= null;
-		private ObjectTablePanel	objectTablePanel		= null;		
+		private ObjectTablePanel	objectTablePanel		= null;
+		// why the image the Object Map field names can't be read; hidden when it can
+		private JLabel				problemLabel			= new JLabel();
 		private ObjectMap			objectMap				= null;
 
 		private Vector<ObjectData> data = new Vector<ObjectData>();
@@ -197,8 +201,17 @@ public class ObjectMapProperties extends PropertyPanel
 			add(getObjectMapCreateButton(), null);
 			add(getObjectMapButton(), null);
 			add(getObjectTablePanel(objectMap), null);
+			problemLabel.setForeground(Color.RED);
+			problemLabel.setVerticalAlignment(JLabel.TOP);
+			add(problemLabel, null);
 
 			objectMapCreateButton.setEnabled(objectMap.getObjectMap() == null || objectMap.getObjectMap().isEmpty());
+
+			// the map's image couldn't be read when the track was opened
+			if (objectMap.getObjectMap() != null && !objectMap.getObjectMap().isEmpty() && objectMap.getImageWidth() <= 0)
+				showProblem("Couldn't read " + objectMap.getObjectMap() + " when the track was opened, so the map has no objects and saving won't overwrite the file.");
+			else
+				showProblem(null);
 
 			objectMapTextField.getDocument().addDocumentListener(new DocumentListener()
 			{
@@ -217,15 +230,7 @@ public class ObjectMapProperties extends PropertyPanel
 
 				public void changed()
 				{
-					// update table with new data
-					try
-					{
-						getDataFromImage(Properties.getInstance().getPath() + sep + objectMapTextField.getText());
-						objectTablePanel.dataChanged();
-					}
-					catch (IOException ex)
-					{
-					}
+					readImageFromField();
 				}
 			});
 		}
@@ -276,10 +281,8 @@ public class ObjectMapProperties extends PropertyPanel
 
 				if (option == 1)
 				{
+					// the field's listener reads it
 					objectMapTextField.setText(filename.getFileName().toString());
-
-					getDataFromImage(filename.toString());
-					objectTablePanel.dataChanged();
 					return;
 				}
 				else if (option != 0)
@@ -296,10 +299,8 @@ public class ObjectMapProperties extends PropertyPanel
 
 			ObjectMap.createImage(filename, imageWidth, imageHeight);
 
+			// the field's listener reads it
 			objectMapTextField.setText(filename.getFileName().toString());
-
-			getDataFromImage(filename.toString());
-			objectTablePanel.dataChanged();
 		}
 
 		/**
@@ -338,7 +339,8 @@ public class ObjectMapProperties extends PropertyPanel
 			fc.setFileHidingEnabled(false);
 			fc.setVisible(true);
 			fc.setAcceptAllFileFilterUsed(false);
-			FileNameExtensionFilter filter = new FileNameExtensionFilter("RGB and PNG images", "rgb", "png");
+			// the games read object maps as PNG only
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
 			fc.addChoosableFileFilter(filter);
 			fc.setCurrentDirectory(new File(Properties.getInstance().getPath()));
 			int result = fc.showOpenDialog(this);
@@ -351,55 +353,98 @@ public class ObjectMapProperties extends PropertyPanel
 				String pathToFile = selectedFile.substring(0, index);
 				if (pathToFile.equals(Properties.getInstance().getPath()))
 					fileName = selectedFile.substring(index + 1);
+				// the field's listener reads it
 				objectMapTextField.setText(fileName);
-
-				// update table with new data
-				try
-				{
-					getDataFromImage(selectedFile);
-					objectTablePanel.dataChanged();
-				}
-				catch (IOException e)
-				{
-				}
 			}
 		}
 
-    	public void getDataFromImage(String fileName) throws IOException
-    	{
-    		data.clear();
+		/**
+		 * Shows the objects in the image the Object Map field names, as Ok will
+		 * read them. An image that can't be read leaves the table empty and says
+		 * why: Ok then leaves the map without objects.
+		 */
+		private void readImageFromField()
+		{
+			String fileName = objectMapTextField.getText();
+			Vector<ObjectData> rows = new Vector<ObjectData>();
+			String problem = null;
+			int width = 0;
+			int height = 0;
 
-			File file = new File(fileName);
-
-			if (file.exists())
+			// nothing to say about an empty field: it is being typed in
+			if (!fileName.isEmpty())
 			{
-				BufferedImage image = ImageIO.read(file);
-				if (image == null)
-					throw new IOException("not an image format the editor can read (use PNG)");
-				imageWidth = image.getWidth();
-				imageHeight = image.getHeight();
-
-				for (int x = 0; x < imageWidth; x++)
+				try
 				{
-					for (int y = 0; y < imageHeight; y++)
-					{
-						int rgb = image.getRGB(x, y) & 0x00ffffff;
+					BufferedImage image = ObjectMap.readImageFile(ObjectMap.imageFile(fileName));
+					width = image.getWidth();
+					height = image.getHeight();
 
-						if (rgb != 0x0)
+					for (int x = 0; x < width; x++)
+					{
+						for (int y = 0; y < height; y++)
 						{
-							String name = getEditorFrame().getObjectColorName(rgb);
-							if (name == null)
+							int rgb = image.getRGB(x, y) & 0x00ffffff;
+
+							if (rgb != 0x0)
 							{
-								name = new String("Unknown");
+								String name = getEditorFrame().getObjectColorName(rgb);
+								if (name == null)
+								{
+									name = new String("Unknown");
+								}
+								Point2D.Double real = new Point2D.Double();
+								getEditorFrame().getCircuitView().imageToReal(x, y, width, height, real);
+								rows.add(new ObjectData(name, rgb, x, y, real.x, real.y));
 							}
-							Point2D.Double real = new Point2D.Double();
-							getEditorFrame().getCircuitView().imageToReal(x, y, imageWidth, imageHeight, real);
-							data.add(new ObjectData(name, rgb, x, y, real.x, real.y));
 						}
 					}
 				}
+				catch (IOException e)
+				{
+					String reason = e.getLocalizedMessage();
+					if (reason == null || reason.isEmpty())
+						reason = e.toString();
+					problem = "Can't read " + fileName + ": " + reason + ". Ok would leave the map without objects.";
+					rows.clear();
+					width = 0;
+					height = 0;
+				}
 			}
-    	}
+
+			// the table is told at once, so it never paints rows that are gone
+			imageWidth = width;
+			imageHeight = height;
+			data.clear();
+			data.addAll(rows);
+			objectTablePanel.dataChanged();
+			showProblem(problem);
+		}
+
+		/**
+		 * Shows why the image can't be read under the table, which makes room
+		 * for it, or hides it when problem is null.
+		 */
+		private void showProblem(String problem)
+		{
+			if (problem == null)
+			{
+				problemLabel.setVisible(false);
+				problemLabel.setText("");
+				objectTablePanel.setBounds(10, 64, 465, TABLE_HEIGHT);
+			}
+			else
+			{
+				// html, so a long reason wraps
+				problemLabel.setText("<html>" + problem.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</html>");
+				problemLabel.setToolTipText(problem);
+				problemLabel.setBounds(10, 64 + TABLE_HEIGHT - PROBLEM_HEIGHT, 465, PROBLEM_HEIGHT);
+				problemLabel.setVisible(true);
+				objectTablePanel.setBounds(10, 64, 465, TABLE_HEIGHT - PROBLEM_HEIGHT - 4);
+			}
+			objectTablePanel.revalidate();
+			repaint();
+		}
 
     	public void getDataFromObjectMap(ObjectMap objectMap)
     	{
@@ -425,7 +470,7 @@ public class ObjectMapProperties extends PropertyPanel
 			if (objectTablePanel == null)
 			{
 				objectTablePanel = new ObjectTablePanel(objectMap);
-				objectTablePanel.setBounds(10, 64, 465, 240);
+				objectTablePanel.setBounds(10, 64, 465, TABLE_HEIGHT);
 			}
 			return objectTablePanel;
 		}

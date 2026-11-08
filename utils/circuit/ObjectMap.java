@@ -3,7 +3,6 @@ package utils.circuit;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -140,19 +139,7 @@ public class ObjectMap
 		imageWidth = 0;
 		imageHeight = 0;
 
-		Path filename = Paths.get(objectMap);
-		Path trackPath = Paths.get(Properties.getInstance().getPath());
-
-		// check for parent directory
-		if (filename.getParent() == null)
-		{
-			// use track directory
-			filename = Paths.get(trackPath.toString(), filename.toString());
-		}
-
-		BufferedImage image = ImageIO.read(new File(filename.toString()));
-		if (image == null)
-			throw new IOException("not an image format the editor can read (use PNG)");
+		BufferedImage image = readImageFile(imageFile(objectMap));
 		imageWidth = image.getWidth();
 		imageHeight = image.getHeight();
 
@@ -197,20 +184,45 @@ public class ObjectMap
 		}
 		graphic.dispose();
 
-		Path filename = Paths.get(objectMap);
-		Path trackPath = Paths.get(Properties.getInstance().getPath());
-
-		// check for parent directory
-		if (filename.getParent() == null)
-		{
-			// use track directory
-			filename = Paths.get(trackPath.toString(), filename.toString());
-		}
-
-		writePng(filename, image);
+		writePng(imageFile(objectMap), image);
 
 		// written, so the next save doesn't have to write it again
 		changed = false;
+	}
+
+	/**
+	 * @return the file an object map's name stands for: a name without a folder
+	 *         is in the track's folder
+	 * @throws IOException if the name can't be a file name
+	 */
+	public static Path imageFile(String objectMap) throws IOException
+	{
+		try
+		{
+			Path filename = Paths.get(objectMap);
+			if (filename.getParent() == null)
+				filename = Paths.get(Properties.getInstance().getPath(), objectMap);
+			return filename;
+		}
+		catch (java.nio.file.InvalidPathException e)
+		{
+			throw new IOException("it isn't a valid file name");
+		}
+	}
+
+	/**
+	 * @return the object map image in the file
+	 * @throws IOException if there is no such file or it isn't an image the
+	 *         editor can read
+	 */
+	public static BufferedImage readImageFile(Path filename) throws IOException
+	{
+		if (!java.nio.file.Files.isRegularFile(filename))
+			throw new IOException("there is no such file");
+		BufferedImage image = ImageIO.read(filename.toFile());
+		if (image == null)
+			throw new IOException("not an image format the editor can read (use PNG)");
+		return image;
 	}
 
 	/**
