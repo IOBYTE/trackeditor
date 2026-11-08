@@ -21,7 +21,6 @@
 package utils.undo;
 
 import gui.EditorFrame;
-import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Segment;
 
@@ -80,16 +79,8 @@ public class UndoDeleteSegment implements UndoInterface
 	 */
 	public void undo()
 	{
-		if ("str".equals(undo.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() + 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() + 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
+		// deleting doesn't change the "curve N" / "straight N" counters (the
+		// deleted segment keeps its name), so undoing it doesn't either
 		data.insertElementAt(undo,pos);
 		if (next != null)
 			next.set(nextBefore);
@@ -109,16 +100,6 @@ public class UndoDeleteSegment implements UndoInterface
 	public void redo()
 	{
 		pos = data.indexOf(redo);
-		if ("str".equals(redo.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() - 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() - 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
 		data.remove(redo);
 		if (next != null && nextAfter != null)
 			next.set(nextAfter);

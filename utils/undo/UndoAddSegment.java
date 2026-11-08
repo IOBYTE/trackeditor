@@ -21,7 +21,6 @@
 package utils.undo;
 
 import gui.EditorFrame;
-import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Segment;
 
@@ -38,13 +37,17 @@ public class UndoAddSegment implements UndoInterface
 	private Segment 		undo;
 	private Segment 		redo;
 	private int 			pos;
+	// the name counters before the segment was named, and when it was undone
+	private NameCounters	countersBefore;
+	private NameCounters	countersAfter;
 
 	/**
-	 *
+	 * @param countersBefore the name counters before the segment was given its name
 	 */
-	public UndoAddSegment(EditorFrame editorFrame, Segment segment)
+	public UndoAddSegment(EditorFrame editorFrame, Segment segment, NameCounters countersBefore)
 	{
 		data = editorFrame.getTrackData().getSegments();
+		this.countersBefore = countersBefore;
 		undo = segment;
 		redo = null;
 
@@ -61,16 +64,8 @@ public class UndoAddSegment implements UndoInterface
 	public void undo()
 	{
 		pos = data.indexOf(undo);
-		if ("str".equals(undo.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() - 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() - 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
+		countersAfter = new NameCounters();
+		countersBefore.restore();
 		data.remove(undo);
 		redo = undo;
 		undo = null;
@@ -87,16 +82,7 @@ public class UndoAddSegment implements UndoInterface
 	 */
 	public void redo()
 	{
-		if ("str".equals(redo.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() + 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() + 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
+		countersAfter.restore();
 		data.insertElementAt(redo, pos);
 		undo = redo;
 		redo = null;

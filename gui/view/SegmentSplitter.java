@@ -8,6 +8,7 @@ import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Straight;
+import utils.undo.NameCounters;
 import utils.undo.Undo;
 import utils.undo.UndoSplitSegment;
 
@@ -140,11 +141,12 @@ public class SegmentSplitter
 			return "Too close to the end of the segment to split it";
 
 		Segment original = (Segment) shape.clone();
+		NameCounters counters = new NameCounters();
 		Segment piece2 = splitAtFraction(shape, t);
 		if (piece2 == null)
 			return problem;
 
-		Undo.add(new UndoSplitSegment(editorFrame, shape, original, piece2));
+		Undo.add(new UndoSplitSegment(editorFrame, shape, original, piece2, counters));
 
 		return null;
 	}

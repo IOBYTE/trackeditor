@@ -1,7 +1,6 @@
 package utils.undo;
 
 import gui.EditorFrame;
-import utils.Properties;
 import utils.SegmentVector;
 import utils.circuit.Segment;
 
@@ -18,11 +17,19 @@ public class UndoSplitSegment implements UndoInterface
 	private Segment		redo;
 	private int			addedPos;
 
+	// the name counters before the new piece was named, and when it was undone
+	private NameCounters	countersBefore;
+	private NameCounters	countersAfter;
+
 	/**
 	 *
 	 */
-	public UndoSplitSegment(EditorFrame editorFrame, Segment changed, Segment original, Segment added)
+	/**
+	 * @param countersBefore the name counters before the new piece was given its name
+	 */
+	public UndoSplitSegment(EditorFrame editorFrame, Segment changed, Segment original, Segment added, NameCounters countersBefore)
 	{
+		this.countersBefore = countersBefore;
 		SegmentVector data = editorFrame.getTrackData().getSegments();
 
 		this.editorFrame = editorFrame;
@@ -47,16 +54,8 @@ public class UndoSplitSegment implements UndoInterface
 	{
 		SegmentVector data = editorFrame.getTrackData().getSegments();
 
-		if ("str".equals(added.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() - 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() - 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
+		countersAfter = new NameCounters();
+		countersBefore.restore();
 		data.remove(addedPos);
 		redo = added;
 		added = null;
@@ -79,16 +78,7 @@ public class UndoSplitSegment implements UndoInterface
 
 		data.set(changedPos, (Segment) changedState.clone());
 
-		if ("str".equals(redo.getType()))
-		{
-			int count = Properties.getInstance().getStraightNameCount() + 1;
-			Properties.getInstance().setStraightNameCount(count);
-		}
-		else
-		{
-			int count = Properties.getInstance().getCurveNameCount() + 1;
-			Properties.getInstance().setCurveNameCount(count);
-		}
+		countersAfter.restore();
 		data.insertElementAt(redo, addedPos);
 		added = redo;
 		redo = null;

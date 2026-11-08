@@ -150,6 +150,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/undo/ObjectMapObject.java
          utils/undo/DeletedObject.java
          utils/undo/MovedObject.java
+         utils/undo/NameCounters.java
          utils/undo/Snapshot.java
          utils/undo/Undo.java
          utils/undo/UndoAddGraphicObject.java
