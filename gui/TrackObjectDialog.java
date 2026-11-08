@@ -583,6 +583,8 @@ public class TrackObjectDialog extends JDialog
 			return;
 		}
 
+		// an object map's image only has to be written again when an object's color changes
+		int oldRGB = objectShape != null ? objectShape.getRGB() : rgb;
 		setRGB(rgb);
 
 		if (objectShape != null)
@@ -609,7 +611,8 @@ public class TrackObjectDialog extends JDialog
 				String newName = (String) objectComboBox.getSelectedItem();
 				
 				objectShape.setName(newName);
-				editorFrame.getObjectMaps().get(editorFrame.getCurrentObjectMap()).setChanged(true);
+				if (objectShape.getRGB() != oldRGB)
+					editorFrame.getObjectMaps().get(editorFrame.getCurrentObjectMap()).setChanged(true);
 			}
 			
 			if (graphicObject == null)

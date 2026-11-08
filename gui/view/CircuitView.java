@@ -3101,7 +3101,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 							editObjectsDialog.setModal(true);
 							editObjectsDialog.setVisible(true);
 
-							if (editObjectsDialog.isChanged())
+							// the same color: nothing to change, and no image to write again
+							if (editObjectsDialog.isChanged() && shape.getRGB() != originalRGB)
 							{
 								int newRGB = shape.getRGB();	// save the new rgb
 								shape.setRGB(originalRGB);		// restore the original rgb
