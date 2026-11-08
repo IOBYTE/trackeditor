@@ -34,13 +34,12 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import org.jdom.DefaultJDOMFactory;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.input.SAXHandler;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.located.LocatedElement;
+import org.jdom2.located.LocatedJDOMFactory;
+import org.jdom2.input.SAXBuilder;
 import org.xml.sax.InputSource;
 
 import gui.EditorFrame;
@@ -74,53 +73,13 @@ import utils.circuit.Sector;
  */
 public class XmlReader
 {
-	public class MyElement extends Element {
-		int lineNumber;
-
-		public MyElement(final String name, final Namespace namespace) {
-			super(name, namespace);
-		}
-
-		public int getLineNumber() {
-			return lineNumber;
-		}
-
-		public void setLineNumber(int lineNumber) {
-			this.lineNumber = lineNumber;
-		}
-	}
-
-	public class MySAXBuilder extends SAXBuilder {
-		public MySAXBuilder(boolean validate) {
-			super(validate);
-			setFactory(new MyFactory());
-		}
-
-		protected void configureContentHandler(SAXHandler contentHandler) {
-			super.configureContentHandler(contentHandler);
-			((MyFactory) getFactory()).setSAXHandler(contentHandler);
-		}
-	}
-
-	public class MyFactory extends DefaultJDOMFactory {
-		private SAXHandler saxHandler;
-
-		public void setSAXHandler(SAXHandler sh) {
-			this.saxHandler = sh;
-		}
-
-		public Element element(String name) {
-			return this.element(name, (Namespace) null);
-		}
-
-		public Element element(String name, Namespace namespace) {
-			MyElement e = new MyElement(name, namespace);
-
-			org.xml.sax.Locator loc = this.saxHandler.getDocumentLocator();
-			e.setLineNumber(loc.getLineNumber());
-
-			return e;
-		}
+	/**
+	 * @return the line of the file the element is on (where its start tag ends),
+	 *         0 if it wasn't read from a file
+	 */
+	private static int lineOf(Element e)
+	{
+		return e instanceof LocatedElement ? ((LocatedElement) e).getLine() : 0;
 	}
 
 	private EditorFrame		editorFrame = null;
@@ -224,7 +183,7 @@ public class XmlReader
             Element child = (Element) o;
             String name = child.getAttributeValue("name");
             String childPath = path.isEmpty() ? name : path + "/" + name;
-            int line = child instanceof MyElement ? ((MyElement) child).getLineNumber() : 0;
+            int line = lineOf(child);
 
             if (child.getName().equals("section"))
             {
@@ -366,7 +325,7 @@ public class XmlReader
 
     private static String where(Element e)
     {
-        String line = e instanceof MyElement ? "line " + ((MyElement) e).getLineNumber() + ": " : "";
+        String line = lineOf(e) > 0 ? "line " + lineOf(e) + ": " : "";
         return line;
     }
 
@@ -413,7 +372,9 @@ public class XmlReader
         checkDefaultEntity(text);
 
         Document d = null;
-        MySAXBuilder sxb = new MySAXBuilder(false);
+        // not validating (JDOM's default), and with each element's line, for messages
+        SAXBuilder sxb = new SAXBuilder();
+        sxb.setJDOMFactory(new LocatedJDOMFactory());
 
         sxb.setEntityResolver(new NoOpEntityResolver());
         d = sxb.build(new File(fname));
@@ -452,8 +413,8 @@ public class XmlReader
 			readFragment(filename) +
 			"</section>" +
 			"</params>";
-		SAXBuilder sxb = new SAXBuilder(false);
-		sxb.setValidation(false);
+		// not validating: JDOM's default
+		SAXBuilder sxb = new SAXBuilder();
 		sxb.setFeature("http://xml.org/sax/features/validation", false);
 		sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
 		sxb.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
@@ -1595,7 +1556,7 @@ public class XmlReader
     /** @return the warning, which is also added to the warnings */
     private String warn(Element e, String message)
     {
-        String where = e instanceof MyElement ? "line " + ((MyElement) e).getLineNumber() + ": " : "";
+        String where = lineOf(e) > 0 ? "line " + lineOf(e) + ": " : "";
         String warning = where + "\"" + e.getAttributeValue("name") + "\" " + message;
         warnings.add(warning);
         return warning;

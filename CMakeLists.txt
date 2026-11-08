@@ -89,7 +89,6 @@ IF(Java_Development_FOUND AND Java_FOUND)
          miscel/TCPopupEventQueue.java
          plugin/torcs/GfParmNumbers.java
          plugin/torcs/NoOpEntityResolver.java
-         plugin/torcs/XMLOutput.java
          plugin/torcs/XmlReader.java
          plugin/torcs/XmlWriter.java
          utils/AtomicFile.java
@@ -213,7 +212,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
    )
 
    SET(JAVA_JARS bsh-2.0b4.jar
-                  jdom-1.1.3.jar
+                  jdom-2.0.6.1.jar
                   jgoodies-looks-2.5.3.jar
                   jgoodies-common-1.8.1.jar
                   gluegen-rt.jar
@@ -409,7 +408,7 @@ endif()
    ADD_CUSTOM_TARGET(${_TARGET_NAME}-src SOURCES ${_JAVA_SRC} ${_PNGS} ${_ICONS} META-INF/MANIFEST.MF)
 
    # https://github.com/beanshell/beanshell/releases
-   # http://www.jdom.org/dist/binary/archive/jdom-1.1.3.zip
+   # http://www.jdom.org/downloads/ (jdom-2.0.6.1.zip: only jdom-2.0.6.1.jar is needed)
    # http://www.java2s.com/Code/JarDownload/jgoodies/jgoodies-common-1.8.1.jar.zip
    # http://www.java2s.com/Code/JarDownload/jgoodies/jgoodies-looks-2.5.3.jar.zip
    # https://jogamp.org/deployment/v2.6.0/jar/ (gluegen-rt, jogl-all and their -natives- jars)

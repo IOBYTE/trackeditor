@@ -23,6 +23,7 @@ package plugin.torcs;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,12 +32,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.jdom.Attribute;
-import org.jdom.Comment;
-import org.jdom.DocType;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.output.Format;
+import org.jdom2.Attribute;
+import org.jdom2.Comment;
+import org.jdom2.DocType;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.EntityRef;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.jdom2.output.support.AbstractXMLOutputProcessor;
+import org.jdom2.output.support.FormatStack;
+import org.jdom2.util.NamespaceStack;
 
 import gui.EditorFrame;
 import utils.DoubleValue;
@@ -191,7 +197,8 @@ public class XmlWriter
 		{
 			try (FileOutputStream out = new FileOutputStream(temp.toFile()))
 			{
-				XMLOutput op = new XMLOutput(Format.getPrettyFormat());
+				// escapes &, <, > and " in names and values; the entity references are EntityRefs
+				XMLOutputter op = new XMLOutputter(Format.getPrettyFormat(), new TrackOutputProcessor());
 				op.output(doc, out);
 				out.flush();
 			}
@@ -618,7 +625,7 @@ public class XmlWriter
 		}
 
 		if (editorFrame.getTrackData().getHasSurfacesReference())
-			surfaces.setText("&default-surfaces;");
+			surfaces.addContent(new EntityRef("default-surfaces"));
 
 		Vector<Surface> surfaceData = editorFrame.getTrackData().getSurfaces();
 
@@ -826,7 +833,7 @@ public class XmlWriter
 		Element objects = new Element("section");
 		objects.setAttribute(new Attribute("name", "Objects"));
 		if (editorFrame.getTrackData().getHasObjectsReference())
-			objects.setText("&default-objects;");
+			objects.addContent(new EntityRef("default-objects"));
 
 		Vector<TrackObject> objectData = editorFrame.getTrackData().getObjects();
 
@@ -1348,7 +1355,46 @@ public class XmlWriter
 		// the key is missing ("background image" is then background.png)
 		if (string != null)
 		{
-			section.addContent(attstrElement(attribute, string.replace("\"", "&quot;")));
+			// the outputter escapes it
+			section.addContent(attstrElement(attribute, string));
+		}
+	}
+
+	/**
+	 * Lays the file out like the editor always has: &amp;default-surfaces; and
+	 * &amp;default-objects; on a line of their own before a section's sections
+	 * (pretty printing would put the first section on the same line), and an
+	 * empty line after the DOCTYPE and at the end.
+	 */
+	public static class TrackOutputProcessor extends AbstractXMLOutputProcessor
+	{
+		@Override
+		protected void printDocType(Writer out, FormatStack fstack, DocType docType) throws IOException
+		{
+			super.printDocType(out, fstack, docType);
+			if (fstack.getLineSeparator() != null)
+				write(out, fstack.getLineSeparator());
+		}
+
+		@Override
+		protected void printDocument(Writer out, FormatStack fstack, NamespaceStack nstack, Document doc) throws IOException
+		{
+			super.printDocument(out, fstack, nstack, doc);
+			if (fstack.getLineSeparator() != null)
+				write(out, fstack.getLineSeparator());
+		}
+
+		@Override
+		protected void printEntityRef(Writer out, FormatStack fstack, EntityRef entity) throws IOException
+		{
+			super.printEntityRef(out, fstack, entity);
+
+			org.jdom2.Parent parent = entity.getParent();
+			if (fstack.getLineSeparator() == null || fstack.getLevelIndent() == null || parent == null)
+				return;
+			int next = parent.indexOf(entity) + 1;
+			if (next < parent.getContentSize() && parent.getContent(next) instanceof Element)
+				write(out, fstack.getLineSeparator() + fstack.getLevelIndent());
 		}
 	}
 }
