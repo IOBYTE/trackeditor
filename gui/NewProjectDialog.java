@@ -29,6 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
@@ -504,10 +505,40 @@ public class NewProjectDialog extends JDialog
 	 */
 	protected void exit()
 	{
-		String tmpName = getProjectNameTextField().getText();	
+		String tmpName = getProjectNameTextField().getText().trim();
 		String tmpPath = getPathTextField().getText();
 
+		// the name is the track's folder and file names
+		if (tmpName.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, "The track needs a name.", "New Project", JOptionPane.ERROR_MESSAGE);
+			getProjectNameTextField().requestFocusInWindow();
+			return;
+		}
+
 		File projectPath = new File(tmpPath + sep + tmpName);
+
+		// saving the new track would replace these without asking
+		String existing = "";
+		for (String fileName : new String[] { tmpName + ".xml", tmpName + ".prj.xml" })
+		{
+			if (new File(projectPath, fileName).exists())
+				existing += "\n" + fileName;
+		}
+		if (!existing.isEmpty())
+		{
+			String[] options = { "Replace", "Cancel" };
+			int choice = JOptionPane.showOptionDialog(this,
+				projectPath + " already has a track called " + tmpName + ":\n" + existing
+				+ "\n\nSaving the new track will replace it. Replace it?",
+				"New Project", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+			if (choice != 0)
+			{
+				getProjectNameTextField().requestFocusInWindow();
+				return;
+			}
+		}
+
 		if (!projectPath.exists())
 		{
 			projectPath.mkdirs();
