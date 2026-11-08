@@ -180,6 +180,49 @@ public class PropertiesDialog extends JDialog
 		return tabbedPane;
 	}
 	/**
+	 * Shows the tab with the first title, then in it the tab with the next title and
+	 * so on: a tab of the dialog, then a tab inside it (a Terrain tab, a camera, a
+	 * surface...). A title that isn't found ends it there.
+	 */
+	public void showTabs(final String... titles)
+	{
+		// after the tab last shown has been selected (see getTabbedPane)
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				java.awt.Container container = getContentPane();
+				for (String title : titles)
+				{
+					JTabbedPane tabs = findTabs(container, title);
+					if (tabs == null)
+						return;
+					tabs.setSelectedIndex(tabs.indexOfTab(title));
+					if (!(tabs.getSelectedComponent() instanceof java.awt.Container))
+						return;
+					container = (java.awt.Container) tabs.getSelectedComponent();
+				}
+			}
+		});
+	}
+
+	/** @return the tabs in container, the nearest first, that have a tab with the title */
+	private static JTabbedPane findTabs(java.awt.Container container, String title)
+	{
+		java.util.ArrayDeque<java.awt.Component> queue = new java.util.ArrayDeque<java.awt.Component>();
+		queue.add(container);
+		while (!queue.isEmpty())
+		{
+			java.awt.Component component = queue.poll();
+			if (component instanceof JTabbedPane && ((JTabbedPane) component).indexOfTab(title) >= 0)
+				return (JTabbedPane) component;
+			if (component instanceof java.awt.Container)
+				queue.addAll(java.util.Arrays.asList(((java.awt.Container) component).getComponents()));
+		}
+		return null;
+	}
+
+	/**
 	 * This method initializes generalProperties
 	 *
 	 * @return gui.properties.GeneralProperties
@@ -364,7 +407,7 @@ public class PropertiesDialog extends JDialog
 			graphicProperties = new GraphicProperties(editorFrame);
 		}
 		return graphicProperties;
-	}	
+	}
 	/**
 	 * This method initializes graphic3DProperties
 	 *
@@ -375,7 +418,7 @@ public class PropertiesDialog extends JDialog
 			graphic3DProperties = new Graphic3DProperties(editorFrame);
 		}
 		return graphic3DProperties;
-	}	
+	}
 	/**
 	 * This method initializes envMapProperties
 	 *

@@ -2780,6 +2780,60 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		fireTrackChanged();
 	}
 	
+	/**
+	 * Selects the segment, scrolls it to the middle of the view (zooming out first
+	 * when it doesn't fit) and, as clicking it does, opens the segment dialog on it.
+	 *
+	 * @return false if the segment isn't part of the track any more
+	 */
+	public boolean showSegment(Segment segment)
+	{
+		boolean found = false;
+		if (editorFrame.getTrackData() != null)
+		{
+			for (Segment other : editorFrame.getTrackData().getSegments())
+				found |= other == segment;
+		}
+		if (!found)
+			return false;
+
+		final Rectangle2D.Double bounds = segment.getBounds();
+		boolean usable = bounds != null && !Double.isNaN(bounds.getWidth()) && !Double.isNaN(bounds.getHeight())
+			&& !Double.isInfinite(bounds.getWidth()) && !Double.isInfinite(bounds.getHeight());
+		Rectangle visible = getVisibleRect();
+		if (usable && visible.width > 0 && visible.height > 0 && bounds.getWidth() > 0 && bounds.getHeight() > 0
+			&& (bounds.getWidth() * zoomFactor > visible.width * 0.9 || bounds.getHeight() * zoomFactor > visible.height * 0.9))
+		{
+			setZoomFactor(0.8 * Math.min(visible.width / bounds.getWidth(), visible.height / bounds.getHeight()));
+		}
+
+		Segment previous = selectedShape;
+		selectedShape = segment;
+		if (previous != segment)
+			fireSelectionChanged(selectionChangedEvent);
+		invalidate();
+		repaint();
+		if (currentState == STATE_NONE)
+			openSegmentDialog(segment);
+
+		// once a new zoom has given the view its size
+		if (usable)
+		{
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					Point2D.Double center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+					affineTransform.transform(center, center);
+					Rectangle shown = getVisibleRect();
+					scrollRectToVisible(new Rectangle((int) center.getX() - shown.width / 2,
+						(int) center.getY() - shown.height / 2, shown.width, shown.height));
+				}
+			});
+		}
+		return true;
+	}
+
 	private void openSegmentDialog(Segment shape)
 	{
 		// showing the segment starts its undo step, before any interactive fix

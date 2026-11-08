@@ -1,8 +1,18 @@
 package gui;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -20,9 +30,21 @@ import java.util.Set;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import utils.Properties;
@@ -52,7 +74,13 @@ public class CheckDialog extends JDialog
 {
 	private final String 		sep 			= System.getProperty("file.separator");
 	private JScrollPane			scrollPane		= null;
-	private JTextArea			textArea		= null;
+	// the messages, and what each is about
+	private final DefaultListModel<Message>	messages	= new DefaultListModel<Message>();
+	// all of them, also the ones about the objects' models that are hidden
+	private final java.util.List<Message>	allMessages	= new java.util.ArrayList<Message>();
+	private final JToggleButton	objectFilesButton	= new JToggleButton();
+	private final JList<Message>	list			= new JList<Message>(messages);
+	private final Report		report			= new Report();
 	private EditorFrame			editorFrame		= null;
 	private Vector<Surface>		defaultSurfaces	= null;
 	private Vector<TrackObject>	defaultObjects	= null;
@@ -65,7 +93,8 @@ public class CheckDialog extends JDialog
 
 	public CheckDialog(EditorFrame editorFrame)
 	{
-		super();
+		// owned by the editor, so it stays in front of it while the track is edited
+		super(editorFrame);
 		this.editorFrame = editorFrame;
 		// the track only has the default surfaces and objects when its Surfaces and
 		// Objects sections include &default-surfaces; and &default-objects;
@@ -97,40 +126,303 @@ public class CheckDialog extends JDialog
 		p.y = editorFrame.getProject().getCheckDialogY();
 		this.setLocation(p);
 
-		textArea = new JTextArea();
-		textArea.setLineWrap(false);
-		textArea.setEditable(false);
-		textArea.setVisible(true);
+		list.setCellRenderer(new MessageRenderer());
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setToolTipText("");
+		list.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
+				{
+					int index = list.locationToIndex(e.getPoint());
+					if (index >= 0 && list.getCellBounds(index, index).contains(e.getPoint()))
+						show(messages.get(index));
+				}
+			}
+		});
+		list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "show");
+		list.getActionMap().put("show", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (list.getSelectedValue() != null)
+					show(list.getSelectedValue());
+			}
+		});
 
-		scrollPane = new JScrollPane (textArea);
+		scrollPane = new JScrollPane(list);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-		add(scrollPane);
+		JButton recheck = new JButton("Recheck");
+		recheck.addActionListener(e -> recheck());
+		JButton copy = new JButton("Copy");
+		copy.setToolTipText("Copies the messages shown as text");
+		copy.addActionListener(e -> copy());
+		// an object's model is often from elsewhere: its problems are hidden unless asked for
+		objectFilesButton.setToolTipText("Shows or hides the messages about the objects' models: their AC3D files and textures");
+		objectFilesButton.addActionListener(e -> showMessages());
+		JButton close = new JButton("Close");
+		close.addActionListener(e -> close());
+		JPanel buttons = new JPanel(new BorderLayout());
+		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		left.add(recheck);
+		left.add(copy);
+		left.add(objectFilesButton);
+		left.add(new JLabel("Double-click a blue message to show what it is about"));
+		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		right.add(close);
+		buttons.add(left, BorderLayout.CENTER);
+		buttons.add(right, BorderLayout.EAST);
+
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(scrollPane, BorderLayout.CENTER);
+		getContentPane().add(buttons, BorderLayout.SOUTH);
 
 		addComponentListener(new ComponentAdapter()
 		{
 			public void componentShown(ComponentEvent e)
 			{
-				checkSectionNames();
-				checkTrackHeight();
-				checkSurfaces();
-				checkObjects();
-				checkTerrainGeneration();
-				checkEnvironmentMapping();
-				if (editorFrame.getGameType().hasSpeedDreamsExtensions())
-					checkTrackLights();
-				checkGraphic();
-				checkPits();
-				checkCameras();
-				checkTrack();
-				checkHeader();
-				checkUnusedKeys();
-
-				textArea.append("Checking complete!");
+				recheck();
 			}
 		});
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	}
+
+	/**
+	 * Runs all the checks again, on the track as it is now: the dialog stays open
+	 * while the track is edited.
+	 */
+	public void recheck()
+	{
+		messages.clear();
+		allMessages.clear();
+		report.reset();
+		// the same track (another one closes the dialog), maybe with other default
+		// surfaces and objects since
+		trackData = editorFrame.getTrackData();
+		if (trackData == null)
+			return;
+		defaultSurfaces = trackData.getHasSurfacesReference() ? editorFrame.getDefaultSurfaces() : new Vector<Surface>();
+		defaultObjects = trackData.getHasObjectsReference() ? editorFrame.getDefaultObjects() : new Vector<TrackObject>();
+
+		// what the messages of each check are about, unless they say
+		check(null, this::checkSectionNames);
+		check(null, this::checkTrackHeight);
+		check(null, this::checkSurfaces);
+		check(properties("Objects"), this::checkObjects);
+		check(properties("Terrain"), this::checkTerrainGeneration);
+		check(properties("Env Map"), this::checkEnvironmentMapping);
+		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+			check(properties("Lights"), this::checkTrackLights);
+		check(properties("Graphic"), this::checkGraphic);
+		check(properties("Pit"), this::checkPits);
+		check(properties("Cameras"), this::checkCameras);
+		check(null, this::checkTrack);
+		check(properties("General"), this::checkHeader);
+		// lines of the file: what saving drops isn't in the editor to show
+		check(null, this::checkUnusedKeys);
+
+		report.append("Checking complete!\n");
+		showMessages();
+	}
+
+	/** Shows the messages, without the ones about the objects' models unless they are asked for */
+	private void showMessages()
+	{
+		int objectFiles = 0;
+		for (Message message : allMessages)
+		{
+			if (message.objectFile)
+				objectFiles++;
+		}
+		boolean show = objectFilesButton.isSelected();
+		objectFilesButton.setText((show ? "Hide" : "Show") + " object messages (" + objectFiles + ")");
+		objectFilesButton.setEnabled(objectFiles > 0 || show);
+
+		messages.clear();
+		for (Message message : allMessages)
+		{
+			if (show || !message.objectFile)
+				messages.addElement(message);
+		}
+	}
+
+	/** Runs a check whose messages are about the target unless they say otherwise */
+	private void check(Target about, Runnable check)
+	{
+		report.about(about);
+		try
+		{
+			check.run();
+		}
+		finally
+		{
+			report.about(null);
+		}
+	}
+
+	/** Shows what the message is about, or says why it can't */
+	private void show(Message message)
+	{
+		if (message.target == null)
+			return;
+		String problem = message.target.show();
+		if (problem != null)
+			JOptionPane.showMessageDialog(this, problem, "Check Track", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/** Copies all the messages, one per line */
+	private void copy()
+	{
+		StringBuilder text = new StringBuilder();
+		for (int i = 0; i < messages.size(); i++)
+			text.append(messages.get(i).text).append(System.lineSeparator());
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text.toString()), null);
+	}
+
+	private void close()
+	{
+		storeBounds();
+		dispose();
+	}
+
+	/** What a message is about */
+	private interface Target
+	{
+		/** @return null once it is shown, or why it can't be */
+		String show();
+	}
+
+	/** For a message about nothing the editor can show */
+	private static final Target	NONE	= () -> null;
+
+	private static class Message
+	{
+		final String	text;
+		final Target	target;
+		// about an object's model: its AC3D file or textures
+		final boolean	objectFile;
+
+		Message(String text, Target target, boolean objectFile)
+		{
+			this.text = text;
+			this.target = target;
+			this.objectFile = objectFile;
+		}
+
+		@Override
+		public String toString()
+		{
+			return text;
+		}
+	}
+
+	/**
+	 * Collects the messages: text up to a new line is one message, about the
+	 * target given with it or else the one set with about().
+	 */
+	private class Report
+	{
+		private final StringBuilder	line	= new StringBuilder();
+		private Target				lineTarget;
+		private boolean				lineStarted;
+		private Target				context;
+		// whether the messages are about an object's model: its AC3D file or textures
+		boolean						objectFile;
+		private boolean				lineObjectFile;
+
+		/**
+		 * The target of the messages that don't give one, until it is set again.
+		 *
+		 * @return the one it replaces
+		 */
+		Target about(Target target)
+		{
+			Target previous = context;
+			context = target;
+			return previous;
+		}
+
+		void append(String text)
+		{
+			append(text, null);
+		}
+
+		void append(String text, Target target)
+		{
+			for (int i = 0; i < text.length(); i++)
+			{
+				if (!lineStarted)
+				{
+					lineTarget = target != null ? target : context;
+					lineObjectFile = objectFile;
+					lineStarted = true;
+				}
+				char c = text.charAt(i);
+				if (c != '\n')
+				{
+					line.append(c);
+					continue;
+				}
+				allMessages.add(new Message(line.toString(), lineTarget == NONE ? null : lineTarget, lineObjectFile));
+				line.setLength(0);
+				lineStarted = false;
+			}
+		}
+
+		void reset()
+		{
+			line.setLength(0);
+			lineStarted = false;
+			context = null;
+			objectFile = false;
+		}
+	}
+
+	/** Messages that show something when double-clicked look like links */
+	private static class MessageRenderer extends DefaultListCellRenderer
+	{
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus)
+		{
+			Component component = super.getListCellRendererComponent(list, value, index, selected, focus);
+			boolean link = value instanceof Message && ((Message) value).target != null;
+			if (link && !selected)
+				component.setForeground(new Color(0, 0, 192));
+			((JComponent) component).setToolTipText(link ? "Double-click to show it" : null);
+			return component;
+		}
+	}
+
+	/** @return a target that selects the segment in the track view and opens the segment dialog */
+	private Target segment(final Segment segment)
+	{
+		if (segment == null)
+			return null;
+		return () -> editorFrame.getCircuitView().showSegment(segment) ? null
+			: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
+	}
+
+	/** @return a target for the segment with the name, null if there is none */
+	private Target segment(String name)
+	{
+		return name == null ? null : segment(trackData.getSegments().getSegmentFromName(name.trim()));
+	}
+
+	/**
+	 * @return a target that opens the Properties dialog on a tab, and in it the tab
+	 *         with the next title and so on (see PropertiesDialog.showTabs)
+	 */
+	private Target properties(final String... tabs)
+	{
+		return () ->
+		{
+			editorFrame.showProperties(tabs);
+			return null;
+		};
 	}
 
 	private void checkTrack()
@@ -139,13 +431,17 @@ public class CheckDialog extends JDialog
 
 		if (segments.isEmpty())
 		{
-			textArea.append("The track has no segments\n");
+			report.append("The track has no segments\n");
 		}
 
 		checkTrackCloses(segments);
 
 		for (Segment segment : segments)
+		{
+			report.about(segment(segment));
 			checkSegmentSize(segment);
+		}
+		report.about(null);
 
 		for (int i = 0; i < segments.size(); i++)
 		{
@@ -176,17 +472,20 @@ public class CheckDialog extends JDialog
 
 				if (startWidth > curve.getRadiusStart())
 				{
-					textArea.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n");
+					report.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n", segment(curve));
 				}
 				if (endWidth > curve.getValidRadiusEnd())
 				{
-					textArea.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n");
+					report.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n", segment(curve));
 				}
 			}
 		}
 
+		report.about(properties("Track", "Left"));
 		checkMainTrackSide(trackData.getMainTrack().getLeft(), "Left");
+		report.about(properties("Track", "Right"));
 		checkMainTrackSide(trackData.getMainTrack().getRight(), "Right");
+		report.about(null);
 
 		// the editor shows what the game uses (see GameSides); these point out values in the
 		// file that the game ignores or that it takes from an earlier segment
@@ -195,9 +494,11 @@ public class CheckDialog extends JDialog
 			Segment segment = segments.get(i);
 			Segment previousSegment = i > 0 ? segments.get(i - 1) : null;
 
+			report.about(segment(segment));
 			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
 			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
 		}
+		report.about(null);
 	}
 
 	/**
@@ -214,11 +515,11 @@ public class CheckDialog extends JDialog
 		{
 			double length = segment.getLength();
 			if (Double.isNaN(length))
-				textArea.append(name + "no length: the game reads it as 0, so the straight has no length\n");
+				report.append(name + "no length: the game reads it as 0, so the straight has no length\n");
 			else if (length == 0)
-				textArea.append(name + "length 0: the straight has no length\n");
+				report.append(name + "length 0: the straight has no length\n");
 			else if (length < 0)
-				textArea.append(name + "length " + format(length) + " m: a straight needs a length greater than 0, "
+				report.append(name + "length " + format(length) + " m: a straight needs a length greater than 0, "
 					+ "the game builds it backwards or not at all\n");
 			return;
 		}
@@ -226,24 +527,24 @@ public class CheckDialog extends JDialog
 		Curve curve = (Curve) segment;
 		double radius = curve.getRadiusStart();
 		if (Double.isNaN(radius))
-			textArea.append(name + "no radius: the game reads it as 0, so the curve turns on the spot\n");
+			report.append(name + "no radius: the game reads it as 0, so the curve turns on the spot\n");
 		else if (radius == 0)
-			textArea.append(name + "radius 0: the curve turns on the spot\n");
+			report.append(name + "radius 0: the curve turns on the spot\n");
 		else if (radius < 0)
-			textArea.append(name + "radius " + format(radius) + " m: a curve needs a radius greater than 0\n");
+			report.append(name + "radius " + format(radius) + " m: a curve needs a radius greater than 0\n");
 
 		// an end radius that isn't set is the start radius
 		double end = curve.getValidRadiusEnd();
 		if (!Double.isNaN(end) && end <= 0 && end != radius)
-			textArea.append(name + "end radius " + format(end) + " m: a curve needs a radius greater than 0\n");
+			report.append(name + "end radius " + format(end) + " m: a curve needs a radius greater than 0\n");
 
 		double arc = curve.getArcDeg();
 		if (Double.isNaN(arc))
-			textArea.append(name + "no arc: the game reads it as 0, so the curve has no length and doesn't turn\n");
+			report.append(name + "no arc: the game reads it as 0, so the curve has no length and doesn't turn\n");
 		else if (arc == 0)
-			textArea.append(name + "arc 0: the curve has no length and doesn't turn\n");
+			report.append(name + "arc 0: the curve has no length and doesn't turn\n");
 		else if (arc < 0)
-			textArea.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0, "
+			report.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0, "
 				+ "the game builds it backwards or not at all\n");
 	}
 
@@ -280,7 +581,7 @@ public class CheckDialog extends JDialog
 		}
 		if (Math.abs(turn) >= 0.01)
 			message += String.format(", heading %.2f degrees to the %s of it", Math.abs(turn), turn >= 0 ? "left" : "right");
-		textArea.append(message + "\n");
+		report.append(message + "\n", segment(last));
 	}
 
 	/**
@@ -298,12 +599,12 @@ public class CheckDialog extends JDialog
 		String borderStyle = main.getBorderStyle();
 		if (hasText(borderStyle) && !borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
 		{
-			textArea.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
+			report.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
 		}
 		if (editorFrame.getGameType().planBorderResetsHeight() && (!hasText(borderStyle) || borderStyle.equals("plan")) &&
 			!Double.isNaN(main.getBorderHeight()) && main.getBorderHeight() != 0)
 		{
-			textArea.append(prefix + " border style is plan with " + main.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
+			report.append(prefix + " border style is plan with " + main.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
 		}
 
 		// barrier (fence when it isn't set)
@@ -313,13 +614,13 @@ public class CheckDialog extends JDialog
 			(fence1Fence2 && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2")));
 		if (!fence && !barrierStyle.equals("wall"))
 		{
-			textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't " + (fence1Fence2 ? "fence, fence1, fence2" : "fence") +
+			report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't " + (fence1Fence2 ? "fence, fence1, fence2" : "fence") +
 				" or wall" + (version3 ? " in a version 3 track" : "") + ", so the game makes it a wall" +
 				(barrierStyle.equals("no barrier") ? " (only a segment can have no barrier)" : "") + "\n");
 		}
 		if (fence && !Double.isNaN(main.getBarrierWidth()) && main.getBarrierWidth() != 0)
 		{
-			textArea.append(prefix + " barrier style is " + (hasText(barrierStyle) ? barrierStyle : "fence") + " with " + main.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
+			report.append(prefix + " barrier style is " + (hasText(barrierStyle) ? barrierStyle : "fence") + " with " + main.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
 		}
 	}
 
@@ -333,13 +634,13 @@ public class CheckDialog extends JDialog
 		if (borderStyle != null && !borderStyle.isEmpty() &&
 			!borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
 		{
-			textArea.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
+			report.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
 		}
 		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
 		if (editorFrame.getGameType().planBorderResetsHeight() &&
 			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
 		{
-			textArea.append(prefix + " border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
+			report.append(prefix + " border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
 		}
 
 		// barrier
@@ -351,17 +652,17 @@ public class CheckDialog extends JDialog
 			!barrierStyle.equals("fence") && !(editorFrame.getGameType().hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
 		{
 			if (walls)
-				textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall\n");
+				report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall\n");
 			else
-				textArea.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
+				report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
 		}
 		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
 		{
-			textArea.append(prefix + " barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
+			report.append(prefix + " barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
 		}
 		if (state.barrierStyle.equals("no barrier") && !Double.isNaN(side.getBarrierHeight()) && side.getBarrierHeight() != 0)
 		{
-			textArea.append(prefix + " barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)\n");
+			report.append(prefix + " barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)\n");
 		}
 
 		if (previousSegment == null)
@@ -371,11 +672,11 @@ public class CheckDialog extends JDialog
 		GameSides.State previous = GameSides.of(previousSegment, right, editorFrame);
 		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
 		{
-			textArea.append(prefix + " border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")\n");
+			report.append(prefix + " border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")\n");
 		}
 		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
 		{
-			textArea.append(prefix + " barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")\n");
+			report.append(prefix + " barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")\n");
 		}
 		// CSR's track loader takes a missing barrier style from a list that has no
 		// "no barrier", so after one it reads past the end of the list (once per run
@@ -384,7 +685,7 @@ public class CheckDialog extends JDialog
 		if (editorFrame.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
 			(barrierStyle == null || barrierStyle.isEmpty()))
 		{
-			textArea.append(prefix + " follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash\n");
+			report.append(prefix + " follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash\n");
 		}
 	}
 
@@ -424,15 +725,15 @@ public class CheckDialog extends JDialog
 			int slash = path.lastIndexOf('/');
 			String parent = slash < 0 ? "" : path.substring(0, slash);
 			String[] kind = sectionKind(parent);
-			textArea.append(kind[0] + " name \"" + path.substring(slash + 1) + "\" is used " + entry.getValue()
+			report.append(kind[0] + " name \"" + path.substring(slash + 1) + "\" is used " + entry.getValue()
 				+ " times: the game can't load a track file with two sections of the same name (" + path
-				+ "), so rename all but one of the " + kind[1] + "s\n");
+				+ "), so rename all but one of the " + kind[1] + "s\n", sectionTarget(parent, path.substring(slash + 1)));
 		}
 		for (String[] slash : slashes)
 		{
 			String[] kind = sectionKind(slash[0]);
-			textArea.append(kind[0] + " name \"" + slash[1] + "\" contains /: the game reads it as a section inside "
-				+ "another one, so the " + kind[1] + " is lost\n");
+			report.append(kind[0] + " name \"" + slash[1] + "\" contains /: the game reads it as a section inside "
+				+ "another one, so the " + kind[1] + " is lost\n", sectionTarget(slash[0], slash[1]));
 		}
 	}
 
@@ -460,6 +761,41 @@ public class CheckDialog extends JDialog
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @return where a section in the parent section is edited: the first segment with
+	 *         the name, or the Properties tab of the item; null when it isn't one of
+	 *         the editor's lists
+	 */
+	private Target sectionTarget(String parent, String name)
+	{
+		switch (parent)
+		{
+		case "Main Track/Track Segments":
+		case "Main Track/segments":
+			return segment(name);
+		case "Surfaces":
+		case "Surfaces/List":
+			return properties("Surfaces", name);
+		case "Objects":
+			return properties("Objects", name);
+		case "Cameras":
+		case "Cameras/list":
+			return properties("Cameras", name);
+		case "Track Lights":
+			return properties("Lights", name);
+		case "Sectors":
+			return properties("Sectors", name);
+		case "Graphic/Environment Mapping":
+			return properties("Env Map", name);
+		case "Graphic/Terrain Generation/Object Maps":
+			return properties("Terrain", "Object Maps", name);
+		case "Graphic/Terrain Generation/Objects":
+			return properties("Terrain", "Objects");
+		default:
+			return null;
+		}
 	}
 
 	/** @return what the sections in the parent section are: capitalized, and not */
@@ -501,7 +837,7 @@ public class CheckDialog extends JDialog
 	private void checkUnusedKeys()
 	{
 		for (String message : trackData.getUnusedKeys())
-			textArea.append(message + "\n");
+			report.append(message + "\n");
 	}
 
 	public void checkHeader()
@@ -511,7 +847,7 @@ public class CheckDialog extends JDialog
 		{
 			if (!"speedway".equals(trackData.getHeader().getCategory()))
 			{
-				textArea.append("Subcategory " + trackData.getHeader().getSubcategory() + " should only be used with the speedway category\n");
+				report.append("Subcategory " + trackData.getHeader().getSubcategory() + " should only be used with the speedway category\n");
 			}
 		}
 	}
@@ -522,21 +858,24 @@ public class CheckDialog extends JDialog
 		for (utils.circuit.Camera camera : cameras)
 			for (String problem : gui.properties.CameraProperties.segmentProblems(trackData.getSegments(), camera.getName(),
 				camera.getSegment(), camera.getFovStart(), camera.getFovEnd()))
-				textArea.append(problem + "\n");
+				report.append(problem + "\n", properties("Cameras", camera.getName()));
 
 		SegmentVector segments = trackData.getSegments();
 		int count = segments.size();
 		if (count == 0)
 			return;
+		Target cameraTab = report.about(null);
 		for (utils.circuit.Camera camera : cameras)
 		{
+			report.about(properties("Cameras", camera.getName()));
 			checkCameraPlace(camera, segments);
 			double height = camera.getHeight();
 			if (Double.isNaN(height) || height == 0)
-				textArea.append("Camera " + camera.getName() + ": no height, so the game puts it on the ground\n");
+				report.append("Camera " + camera.getName() + ": no height, so the game puts it on the ground\n");
 			else if (height < 0)
-				textArea.append("Camera " + camera.getName() + ": height " + format(height) + " m puts it under the ground\n");
+				report.append("Camera " + camera.getName() + ": height " + format(height) + " m puts it under the ground\n");
 		}
+		report.about(cameraTab);
 
 		// which camera the game uses on each segment: the last one whose stretch has it,
 		// a name no segment has being the first segment (a missing one stops the game)
@@ -559,20 +898,20 @@ public class CheckDialog extends JDialog
 		for (utils.circuit.Camera camera : cameras)
 			if (hasText(camera.getSegment()) && hasText(camera.getFovStart()) && hasText(camera.getFovEnd())
 				&& !filming.contains(camera.getName()))
-				textArea.append("Camera " + camera.getName() + ": never films, as cameras later in the list film all of its stretch ("
-					+ camera.getFovStart() + " to " + camera.getFovEnd() + ")\n");
+				report.append("Camera " + camera.getName() + ": never films, as cameras later in the list film all of its stretch ("
+					+ camera.getFovStart() + " to " + camera.getFovEnd() + ")\n", properties("Cameras", camera.getName()));
 
 		// the stretches no camera films, from the first segment of each
 		if (cameras.isEmpty())
 		{
-			textArea.append("No cameras: the game's TV views look at the cars from 120 m above the track\n");
+			report.append("No cameras: the game's TV views look at the cars from 120 m above the track\n");
 			return;
 		}
 		if (!filming.contains(null))
 			return;
 		if (filming.size() == 1)
 		{
-			textArea.append("No camera films any segment: the game's TV views look at the cars from 120 m above the track\n");
+			report.append("No camera films any segment: the game's TV views look at the cars from 120 m above the track\n");
 			return;
 		}
 		for (int i = 0; i < count; i++)
@@ -583,8 +922,8 @@ public class CheckDialog extends JDialog
 			while (owners[(last + 1) % count] == null)
 				last = (last + 1) % count;
 			String from = segments.get(i).getName(), to = segments.get(last).getName();
-			textArea.append("No camera films " + (i == last ? "segment " + from : "segments " + from + " to " + to)
-				+ ": the game's TV views look at the cars from 120 m above the track there\n");
+			report.append("No camera films " + (i == last ? "segment " + from : "segments " + from + " to " + to)
+				+ ": the game's TV views look at the cars from 120 m above the track there\n", segment(segments.get(i)));
 		}
 	}
 
@@ -612,14 +951,14 @@ public class CheckDialog extends JDialog
 		String given = format(value) + (length || angle ? " " + units : "");
 		if (curve && length)
 		{
-			textArea.append(name + "to start " + given + " is a length on curve " + segment.getName()
+			report.append(name + "to start " + given + " is a length on curve " + segment.getName()
 				+ ": the game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
 				+ " deg) round the curve, so the camera is far from where it should be\n");
 			return;
 		}
 		if (!curve && angle && value != 0)
 		{
-			textArea.append(name + "to start " + given + " is an angle on straight " + segment.getName()
+			report.append(name + "to start " + given + " is an angle on straight " + segment.getName()
 				+ ": the game reads it as " + format(read) + " m along it\n");
 			return;
 		}
@@ -650,7 +989,7 @@ public class CheckDialog extends JDialog
 			double radius = ((Curve) segment).getRadiusStart();
 			if (bare && Math.abs(read) > 2 * Math.PI && !Double.isNaN(radius) && radius > 0)
 				text += "; if " + format(value) + " was meant as meters along it, that is " + format(Math.toDegrees(value / radius)) + " deg";
-			textArea.append(text + "\n");
+			report.append(text + "\n");
 		}
 	}
 
@@ -674,7 +1013,7 @@ public class CheckDialog extends JDialog
 		// version 3 tracks only have pits with the pit type "track side"
 		if (!noSegments && trackData.getHeader().getVersion() == 3 && pits.getStyle() != 1)
 		{
-			textArea.append("Pit segments are set, but a version 3 track only has pits when the pit type is \"track side\", so the game ignores them\n");
+			report.append("Pit segments are set, but a version 3 track only has pits when the pit type is \"track side\", so the game ignores them\n");
 			return;
 		}
 
@@ -683,44 +1022,44 @@ public class CheckDialog extends JDialog
 			SegmentVector segments = trackData.getSegments();
 
 			if (!hasText(pits.getEntry()))
-				textArea.append("Missing pit entry: the game has no pits without it\n");
+				report.append("Missing pit entry: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getEntry()) == null)
-				textArea.append("Invalid pit entry: " + pits.getEntry() + " isn't a segment, so the game has no pits\n");
+				report.append("Invalid pit entry: " + pits.getEntry() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getStart()))
-				textArea.append("Missing pit start: the game has no pits without it\n");
+				report.append("Missing pit start: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getStart()) == null)
-				textArea.append("Invalid pit start: " + pits.getStart() + " isn't a segment, so the game has no pits\n");
+				report.append("Invalid pit start: " + pits.getStart() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getEnd()))
-				textArea.append("Missing pit end: the game has no pits without it\n");
+				report.append("Missing pit end: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getEnd()) == null)
-				textArea.append("Invalid pit end: " + pits.getEnd() + " isn't a segment, so the game has no pits\n");
+				report.append("Invalid pit end: " + pits.getEnd() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getExit()))
-				textArea.append("Missing pit exit: the game has no pits without it\n");
+				report.append("Missing pit exit: the game has no pits without it\n");
 			else if (segments.getSegmentFromName(pits.getExit()) == null)
-				textArea.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
+				report.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
 
 			String order = Pits.orderProblem(segments, pits.getEntry(), pits.getStart(), pits.getStartBuildings(),
 				pits.getStopBuildings(), pits.getEnd(), pits.getExit(), editorFrame.getGameType().hasPitOptions());
 			if (order != null)
-				textArea.append(order + "\n");
+				report.append(order + "\n");
 
 			// Speed Dreams and CSR: a buildings segment that isn't found is the pit start or end
 			if (editorFrame.getGameType().hasPitOptions())
 			{
 				if (hasText(pits.getStartBuildings()) && segments.getSegmentFromName(pits.getStartBuildings()) == null)
-					textArea.append("Invalid pit start buildings: " + pits.getStartBuildings() + " isn't a segment, so the game uses the pit start\n");
+					report.append("Invalid pit start buildings: " + pits.getStartBuildings() + " isn't a segment, so the game uses the pit start\n");
 				if (hasText(pits.getStopBuildings()) && segments.getSegmentFromName(pits.getStopBuildings()) == null)
-					textArea.append("Invalid pit stop buildings: " + pits.getStopBuildings() + " isn't a segment, so the game uses the pit end\n");
+					report.append("Invalid pit stop buildings: " + pits.getStopBuildings() + " isn't a segment, so the game uses the pit end\n");
 			}
 
 			// the games read any side but "right" as left
 			if (!hasText(pits.getSide()))
-				textArea.append("Missing pit side: the game uses right\n");
+				report.append("Missing pit side: the game uses right\n");
 			else if (!(pits.getSide().equals("left") || pits.getSide().equals("right")))
-				textArea.append("Invalid pit side: " + pits.getSide() + " (the game uses left)\n");
+				report.append("Invalid pit side: " + pits.getSide() + " (the game uses left)\n");
 		}
 
 		// the games only show a pit indicator with the pit type "no building"
@@ -730,9 +1069,9 @@ public class CheckDialog extends JDialog
 		{
 			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
 			if (indicator < 1)
-				textArea.append("Pit indicator " + indicator + ": the game only shows one for 1 (pit_indicator.ac) or more (normal_pit_indicator.ac)\n");
+				report.append("Pit indicator " + indicator + ": the game only shows one for 1 (pit_indicator.ac) or more (normal_pit_indicator.ac)\n");
 			else if (style != 3)
-				textArea.append("Pit indicator is set, but the game only shows it when the pit type is \"no building\"\n");
+				report.append("Pit indicator is set, but the game only shows it when the pit type is \"no building\"\n");
 		}
 
 		if (!noSegments)
@@ -763,7 +1102,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			textArea.append(problem + ": Apply or Ok in the Pit properties offers to move the start of the pits\n");
+			report.append(problem + ": Apply or Ok in the Pit properties offers to move the start of the pits\n");
 	}
 
 
@@ -782,7 +1121,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			textArea.append(problem + ": Apply or Ok in the Pit properties offers to fit the segments to the pits\n");
+			report.append(problem + ": Apply or Ok in the Pit properties offers to fit the segments to the pits\n");
 	}
 
 	/**
@@ -823,8 +1162,8 @@ public class CheckDialog extends JDialog
 			int first = numbers.get(0), last = numbers.get(numbers.size() - 1);
 			list.append(curve.getKey()).append(first == last ? ": pit " + first : ": pits " + first + "-" + last);
 		}
-		textArea.append("Pits on a curve (" + list + "): the game reads a pit's place along a curve as an angle, so it draws "
-			+ "their buildings, doors, low wall or indicators in the wrong place (pit stops still work)\n");
+		report.append("Pits on a curve (" + list + "): the game reads a pit's place along a curve as an angle, so it draws "
+			+ "their buildings, doors, low wall or indicators in the wrong place (pit stops still work)\n", segment(curves.keySet().iterator().next()));
 	}
 
 	/**
@@ -846,11 +1185,14 @@ public class CheckDialog extends JDialog
 		String inside = pits.getSide() == null || "right".equals(pits.getSide()) ? "rgt" : "lft";
 		int from = segments.indexOf(entry), to = segments.indexOf(exit);
 		StringBuilder list = new StringBuilder();
+		Segment first = null;
 		for (int i = from; ; i = (i + 1) % segments.size())
 		{
 			Segment segment = segments.get(i);
 			if (inside.equals(segment.getType()))
 			{
+				if (first == null)
+					first = segment;
 				if (list.length() > 0)
 					list.append(", ");
 				list.append(segment.getName());
@@ -859,8 +1201,8 @@ public class CheckDialog extends JDialog
 				break;
 		}
 		if (list.length() > 0)
-			textArea.append("Pit lane on the inside of curves (" + list + "): with the pit type \"no building\" the game doesn't "
-				+ "exempt the pit lane from the cutting rule, so cars using the pits there can be penalized for cutting\n");
+			report.append("Pit lane on the inside of curves (" + list + "): with the pit type \"no building\" the game doesn't "
+				+ "exempt the pit lane from the cutting rule, so cars using the pits there can be penalized for cutting\n", segment(first));
 	}
 
 	private void checkTrackHeight()
@@ -880,6 +1222,7 @@ public class CheckDialog extends JDialog
 		for (int i = 0; i < segments.size(); i++)
 		{
 			Segment segment = segments.get(i);
+			report.about(segment(segment));
 
 			String	segmentInfo = "Segment " + segment.getName() + " : ";
 
@@ -900,7 +1243,7 @@ public class CheckDialog extends JDialog
 
 			if (hasHeightStart && (hasHeightStartLeft || hasHeightStartRight))
 			{
-				textArea.append(segmentInfo + "has height start and height start left or height start right\n");
+				report.append(segmentInfo + "has height start and height start left or height start right\n");
 			}
 
 			// Track should start at an elevation of 0.0.
@@ -918,20 +1261,20 @@ public class CheckDialog extends JDialog
 					{
 						// disabled because many tracks don't start at 0 because of banking
 						// or because they use the actual elevation
-						//textArea.append(segmentInfo + "Track height at start should be 0. Actual height: " + centerHeight +"\n");
+						//report.append(segmentInfo + "Track height at start should be 0. Actual height: " + centerHeight +"\n");
 					}
 				}
 			}
 
 			if (hasBankingStart && hasBankingStartFromHeights)
 			{
-				textArea.append(segmentInfo + "Banking start angle and banking from heights\n");
+				report.append(segmentInfo + "Banking start angle and banking from heights\n");
 
 				double bankingFromHeights = Math.toDegrees(Math.atan2(heightStartLeft - heightStartRight, width));
 
 				if (bankingStart != bankingFromHeights)
 				{
-					textArea.append(segmentInfo + "Banking start: " + bankingStart + " doesn't match banking from heights: " + bankingFromHeights + "\n");
+					report.append(segmentInfo + "Banking start: " + bankingStart + " doesn't match banking from heights: " + bankingFromHeights + "\n");
 				}
 			}
 
@@ -952,18 +1295,18 @@ public class CheckDialog extends JDialog
 
 			if (hasHeightEnd && (hasHeightEndLeft || hasHeightEndRight))
 			{
-				textArea.append(segmentInfo + "has height end and height end left or height end right\n");
+				report.append(segmentInfo + "has height end and height end left or height end right\n");
 			}
 
 			if (hasBankingEnd && hasBankingEndFromHeights)
 			{
-				textArea.append(segmentInfo + "Banking end angle and banking from heights\n");
+				report.append(segmentInfo + "Banking end angle and banking from heights\n");
 
 				double bankingFromHeights = Math.toDegrees(Math.atan2(heightEndLeft - heightEndRight, width));
 
 				if (bankingEnd != bankingFromHeights)
 				{
-					textArea.append(segmentInfo + "Banking end: " + bankingEnd + " doesn't match banking from heights: " + bankingFromHeights + "\n");
+					report.append(segmentInfo + "Banking end: " + bankingEnd + " doesn't match banking from heights: " + bankingFromHeights + "\n");
 				}
 			}
 
@@ -974,11 +1317,11 @@ public class CheckDialog extends JDialog
 			{
 				if (hasBankingEndFromHeights)
 				{
-					textArea.append(segmentInfo + "Grade and end banking from heights\n");
+					report.append(segmentInfo + "Grade and end banking from heights\n");
 				}
 				else
 				{
-					textArea.append(segmentInfo + "Grade and end height\n");
+					report.append(segmentInfo + "Grade and end height\n");
 				}
 			}
 
@@ -989,78 +1332,78 @@ public class CheckDialog extends JDialog
 			{
 				if (!Double.isNaN(previousHeightEndLeft) && previousHeightEndLeft != heightStartLeft)
 				{
-					textArea.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStartLeft + "\n");
+					report.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStartLeft + "\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartLeft)
 				{
-					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartLeft + "\n");
+					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartLeft + "\n");
 				}
 
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStartRight)
 				{
-					textArea.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStartRight + "\n");
+					report.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStartRight + "\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartRight)
 				{
-					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartRight + "\n");
+					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartRight + "\n");
 				}
 			}
 			else if (previous != null && hasHeightStart)
 			{
 				if (!Double.isNaN(previousHeightEndLeft) && previousHeightEndLeft != heightStart)
 				{
-					textArea.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStart + "\n");
 				}
 
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStart)
 				{
-					textArea.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStart + "\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStart)
 				{
-					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStart + "\n");
 				}
 			}
 			else if (next == null && hasHeightEndLeftRight)
 			{
 				if (!Double.isNaN(firstHeightStartLeft) && firstHeightStartLeft != heightEndLeft)
 				{
-					textArea.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStartLeft + "\n");
+					report.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStartLeft + "\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndLeft)
 				{
-					textArea.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStart + "\n");
 				}
 
 				if (!Double.isNaN(firstHeightStartRight) && firstHeightStartRight != heightEndRight)
 				{
-					textArea.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStartRight + "\n");
+					report.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStartRight + "\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndRight)
 				{
-					textArea.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStart + "\n");
 				}
 			}
 			else if (next == null && hasHeightEnd)
 			{
 				if (!Double.isNaN(firstHeightStartLeft) && firstHeightStartLeft != heightEnd)
 				{
-					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartLeft + "\n");
+					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartLeft + "\n");
 				}
 
 				if (!Double.isNaN(firstHeightStartRight) && firstHeightStartRight != heightEnd)
 				{
-					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartRight + "\n");
+					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartRight + "\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEnd)
 				{
-					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStart + "\n");
 				}
 			}
 
@@ -1084,6 +1427,7 @@ public class CheckDialog extends JDialog
 		for (int i = 0; i < lightData.size(); i++)
 		{
 			TrackLight light = lightData.get(i);
+			report.about(properties("Lights", light.getName()));
 
 			String texture = light.getTextureOn();
 			checkTexture("Track Lights " + light.getName() + " Texture On ", texture);
@@ -1099,6 +1443,7 @@ public class CheckDialog extends JDialog
 		for (int i = 0; i < envMaps.size(); i++)
 		{
 			String texture = envMaps.get(i).getEnvMapImage();
+			report.about(properties("Env Map", envMaps.get(i).getName()));
 			checkTexture("Environment Map " + envMaps.get(i).getName(), texture);
 		}
 	}
@@ -1162,9 +1507,9 @@ public class CheckDialog extends JDialog
 			double gap = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSocketGap();
 			double thickness = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeThickness();
 			if (!Double.isNaN(gap) && (Double.isInfinite(gap) || gap < 0))
-				textArea.append("Terrain Generation crossing bridge socket gap " + gap + " must not be negative: trackgen stops\n");
+				report.append("Terrain Generation crossing bridge socket gap " + gap + " must not be negative: trackgen stops\n", properties("Terrain", "Bridges"));
 			if (!Double.isNaN(thickness) && (Double.isInfinite(thickness) || thickness <= 0))
-				textArea.append("Terrain Generation crossing bridge thickness " + thickness + " must be more than 0: trackgen stops\n");
+				report.append("Terrain Generation crossing bridge thickness " + thickness + " must be more than 0: trackgen stops\n", properties("Terrain", "Bridges"));
 		}
 
 		String reliefFile = trackData.getGraphic().getTerrainGeneration().getReliefFile();
@@ -1175,7 +1520,7 @@ public class CheckDialog extends JDialog
 
 			if (file == null)
 			{
-				textArea.append("Terrain Generation relief file " + reliefFile + " not found\n");
+				report.append("Terrain Generation relief file " + reliefFile + " not found\n");
 			}
 			else
 			{
@@ -1193,7 +1538,7 @@ public class CheckDialog extends JDialog
 						{
 							if (name.contains(" "))
 							{
-								textArea.append("Relief file " + file.toString() + " : material \"" + name + "\" has space in name\n");
+								report.append("Relief file " + file.toString() + " : material \"" + name + "\" has space in name\n");
 							}
 						}
 					}
@@ -1203,7 +1548,7 @@ public class CheckDialog extends JDialog
 
 					if (root == null || countReliefLines(root, false, torcs) == 0)
 					{
-						textArea.append("Terrain Generation relief file " + reliefFile + " : no interior or exterior lines\n");
+						report.append("Terrain Generation relief file " + reliefFile + " : no interior or exterior lines\n");
 					}
 
 					if (root != null && "world".equals(root.getType()))
@@ -1218,14 +1563,14 @@ public class CheckDialog extends JDialog
 
 								if (data == null)
 								{
-									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : missing interior or exterior data\n");
+									report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : missing interior or exterior data\n");
 								}
 								else if (!isReliefData(data))
 								{
 									// TORCS trackgen puts everything that isn't interior in the exterior list
 									String result = torcs ? "treated as exterior by" : "ignored by";
 
-									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + editorFrame.getGameType().getShortName() + " trackgen\n");
+									report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + editorFrame.getGameType().getShortName() + " trackgen\n");
 								}
 
 								// sd2-trackgen expects borders and holes to be closed line and generates bad terrain when using line and duplicate vertices
@@ -1240,7 +1585,7 @@ public class CheckDialog extends JDialog
 
 										if (firstVertex[0] == lastVertex[0] && firstVertex[1] == lastVertex[1] && firstVertex[2] == lastVertex[2])
 										{
-											textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : line with first and last vertices same\n");
+											report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : line with first and last vertices same\n");
 										}
 									}
 								}
@@ -1250,11 +1595,11 @@ public class CheckDialog extends JDialog
 				}
 				catch (Ac3dException e)
 				{
-					textArea.append("Terrain Generation relief file " + reliefFile + " line " + e.getLineNumber() + " : " + e.getLocalizedMessage() + "\n");
+					report.append("Terrain Generation relief file " + reliefFile + " line " + e.getLineNumber() + " : " + e.getLocalizedMessage() + "\n");
 				}
 				catch (Exception e)
 				{
-					textArea.append("Terrain Generation relief file " + reliefFile + " : " + e.getLocalizedMessage() + "\n");
+					report.append("Terrain Generation relief file " + reliefFile + " : " + e.getLocalizedMessage() + "\n");
 				}
 			}
 		}
@@ -1267,7 +1612,7 @@ public class CheckDialog extends JDialog
 
 			if (!file.exists())
 			{
-				textArea.append("Terrain Generation elevation file " + elevationFile + " not found\n");
+				report.append("Terrain Generation elevation file " + elevationFile + " not found\n");
 			}
 		}
 
@@ -1278,18 +1623,19 @@ public class CheckDialog extends JDialog
 		for (int i = 0; i < objectMaps.size(); i++)
 		{
 			ObjectMap objectMap = objectMaps.get(i);
+			report.about(properties("Terrain", "Object Maps", objectMap.getName()));
 			String objectMapName = objectMap.getName();
 			String objectMapFile = objectMap.getObjectMap();
 
 			if (!hasText(objectMapName))
 			{
-				textArea.append("Terrain Generation object map " + (i + 1) + " missing name\n");
+				report.append("Terrain Generation object map " + (i + 1) + " missing name\n");
 				objectMapName = (i + 1) + "";
 			}
 
 			if (!hasText(objectMapFile))
 			{
-				textArea.append("Terrain Generation object map " + objectMapName + " missing file name\n");
+				report.append("Terrain Generation object map " + objectMapName + " missing file name\n");
 			}
 			else
 			{
@@ -1307,7 +1653,7 @@ public class CheckDialog extends JDialog
 
 				if (!file.exists())
 				{
-					textArea.append("Terrain Generation object map file " + objectMapFile + " not found\n");
+					report.append("Terrain Generation object map file " + objectMapFile + " not found\n");
 				}
 				else
 				{
@@ -1316,12 +1662,12 @@ public class CheckDialog extends JDialog
 					// trackgen spreads an image of any size over the terrain, but only reads PNG
 					if (!isPng(file))
 					{
-						textArea.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
+						report.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
 							+ " isn't a PNG image: trackgen only reads PNG object maps, so it places none of its objects\n");
 					}
 					else if (objectMap.getImageWidth() <= 0 || objectMap.getImageHeight() <= 0)
 					{
-						textArea.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
+						report.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
 							+ " couldn't be read when the track was opened, so the map has no objects and saving won't overwrite the file\n");
 					}
 				}
@@ -1330,6 +1676,8 @@ public class CheckDialog extends JDialog
 
 		Set<Integer> definedColors = new HashSet<Integer>();
 
+		report.about(properties("Terrain"));
+
 		// get defined colors from track objects
 		for (int i = 0; i < trackData.getObjects().size(); i++)
 		{
@@ -1337,7 +1685,7 @@ public class CheckDialog extends JDialog
 
 			if (color == Integer.MAX_VALUE)
 			{
-				textArea.append("Track object " + (i + 1) + " missing color\n");
+				report.append("Track object " + (i + 1) + " missing color\n", properties("Objects", trackData.getObjects().get(i).getName()));
 			}
 			else
 			{
@@ -1352,7 +1700,7 @@ public class CheckDialog extends JDialog
 
 			if (color == Integer.MAX_VALUE)
 			{
-				textArea.append("Default object " + (i + 1) + " missing color\n");
+				report.append("Default object " + (i + 1) + " missing color\n", NONE);
 			}
 			else
 			{
@@ -1369,7 +1717,7 @@ public class CheckDialog extends JDialog
 
 			if (!definedColors.contains(color))
 			{
-				textArea.append("No object for color " + String.format("0x%06X", color) + "\n");
+				report.append("No object for color " + String.format("0x%06X", color) + "\n", properties("Objects"));
 			}
 		}
 
@@ -1395,8 +1743,8 @@ public class CheckDialog extends JDialog
 
 						if (pixels.contains(pixel))
 						{
-							textArea.append("Duplicate objects for color " + String.format("0x%06X", color) +
-									" at " + object.getImageX() + ", " + object.getImageY() + "\n");
+							report.append("Duplicate objects for color " + String.format("0x%06X", color) +
+									" at " + object.getImageX() + ", " + object.getImageY() + "\n", properties("Terrain", "Object Maps"));
 						}
 						else
 						{
@@ -1414,7 +1762,7 @@ public class CheckDialog extends JDialog
 
 				if (pixels.contains(new Point(pixel.x + 1, pixel.y)) || pixels.contains(new Point(pixel.x, pixel.y + 1)))
 				{
-					textArea.append("Adjacent pixels for object color " + String.format("0x%06X", color) + " found at " + pixel.x + ", " + pixel.y + "\n");
+					report.append("Adjacent pixels for object color " + String.format("0x%06X", color) + " found at " + pixel.x + ", " + pixel.y + "\n", properties("Terrain", "Object Maps"));
 				}
 			}
 		}
@@ -1473,13 +1821,13 @@ public class CheckDialog extends JDialog
 
 				if (!terrainRectangle.contains(location))
 				{
-					textArea.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " outside terrain boundary\n");
+					report.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " outside terrain boundary\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
 				}
 				else
 				{
 					String place = placeText(terrainShape, location.x, location.y);
 					if (place != null)
-						textArea.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " " + place + "\n");
+						report.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " " + place + "\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
 				}
 			}
 		}
@@ -1493,7 +1841,7 @@ public class CheckDialog extends JDialog
 			{
 				String place = placeText(terrainShape, graphicObject.getX(), graphicObject.getY());
 				if (place != null)
-					textArea.append("Graphic Object " + graphicObject.getName() + " " + place + "\n");
+					report.append("Graphic Object " + graphicObject.getName() + " " + place + "\n", properties("Terrain", "Objects"));
 			}
 		}
 
@@ -1568,7 +1916,21 @@ public class CheckDialog extends JDialog
 			": trackgen leaves it out";
 	}
 
+	/** Checks an object's model: its AC3D file and textures (hidden unless asked for) */
 	private void checkTrackObject(TrackObject trackObject, String type)
+	{
+		report.objectFile = true;
+		try
+		{
+			checkTrackObjectModel(trackObject, type);
+		}
+		finally
+		{
+			report.objectFile = false;
+		}
+	}
+
+	private void checkTrackObjectModel(TrackObject trackObject, String type)
 	{
 		doubleSided = false;
 		flatShaded = false;
@@ -1578,7 +1940,7 @@ public class CheckDialog extends JDialog
 
 		if (!hasText(object))
 		{
-			textArea.append(type + " object " + object + " missing model\n");
+			report.append(type + " object " + object + " missing model\n");
 			return;
 		}
 
@@ -1586,7 +1948,7 @@ public class CheckDialog extends JDialog
 
 		if (file == null)
 		{
-			textArea.append(type + " object " + trackObject.getName() + " model " + object + " not found\n");
+			report.append(type + " object " + trackObject.getName() + " model " + object + " not found\n");
 			return;
 		}
 
@@ -1622,7 +1984,7 @@ public class CheckDialog extends JDialog
 				{
 					if (name.contains(" "))
 					{
-						textArea.append("Object file " + file.toString() + " : material \"" + name + "\" has space in name\n");
+						report.append("Object file " + file.toString() + " : material \"" + name + "\" has space in name\n");
 					}
 				}
 			}
@@ -1639,12 +2001,12 @@ public class CheckDialog extends JDialog
 
 			if (doubleSided)
 			{
-				textArea.append("Object file " + file.toString() + " : has double sided surface\n");
+				report.append("Object file " + file.toString() + " : has double sided surface\n");
 			}
 
 			if (flatShaded)
 			{
-				textArea.append("Object file " + file.toString() + " : has flat shaded surface\n");
+				report.append("Object file " + file.toString() + " : has flat shaded surface\n");
 			}
 
 			if (textures.size() > 1)
@@ -1671,17 +2033,17 @@ public class CheckDialog extends JDialog
 				// check for more than one of either alpha or non-alpha textures
 				if (hasAlpha == 0 || hasAlpha == textures.size() || (textures.size() - hasAlpha > 1) || hasAlpha > 1)
 				{
-					textArea.append("Object file " + file.toString() + " : has multiple textures\n");
+					report.append("Object file " + file.toString() + " : has multiple textures\n");
 				}
 			}
 		}
 		catch (Ac3dException e)
 		{
-			textArea.append("Object file " + file.toString() + " line " + e.getLineNumber() + " : " + e.getLocalizedMessage() + "\n");
+			report.append("Object file " + file.toString() + " line " + e.getLineNumber() + " : " + e.getLocalizedMessage() + "\n");
 		}
 		catch (Exception e)
 		{
-			textArea.append("Object file " + file.toString() + " : " + e.getLocalizedMessage() + "\n");
+			report.append("Object file " + file.toString() + " : " + e.getLocalizedMessage() + "\n");
 		}
 	}
 
@@ -1691,12 +2053,12 @@ public class CheckDialog extends JDialog
 		{
 			if (object.getTexture() == null || object.getTexture().isEmpty())
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no texture\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no texture\n");
 			}
 
 			if (object.getSurfaces().isEmpty())
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no surfaces\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no surfaces\n");
 				return;
 			}
 
@@ -1715,7 +2077,7 @@ public class CheckDialog extends JDialog
 
 				if (surface.getRefs().size() != 3)
 				{
-					textArea.append("Object file " + file.toString() + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");
+					report.append("Object file " + file.toString() + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");
 				}
 
 				types.add(surface.getSurf());
@@ -1762,12 +2124,12 @@ public class CheckDialog extends JDialog
 
 			if (types.size() > 1)
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");
 			}
 
 			if (mats.size() > 1)
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");
 			}
 		}
 		else
@@ -1806,7 +2168,7 @@ public class CheckDialog extends JDialog
 		}
 		for (int i = 0; i < messages.size(); i++)
 		{
-			textArea.append(description + messages.get(i));
+			report.append(description + messages.get(i));
 		}
 	}
 	private void checkObjects()
@@ -1818,7 +2180,7 @@ public class CheckDialog extends JDialog
 
 			if (name == null || name.isEmpty())
 			{
-				textArea.append("Track object " + (i + 1) + " missing name\n");
+				report.append("Track object " + (i + 1) + " missing name\n", properties("Objects"));
 			}
 			else
 			{
@@ -1828,8 +2190,8 @@ public class CheckDialog extends JDialog
 				{
 					if (name.equals(defaultObjects.get(j).getName()))
 					{
-						textArea.append("Track object " + (i + 1) + " " + name + " has the same name as default object " + (j + 1)
-							+ ": the track includes the default objects, and the game can't load a track file with two sections of the same name\n");
+						report.append("Track object " + (i + 1) + " " + name + " has the same name as default object " + (j + 1)
+							+ ": the track includes the default objects, and the game can't load a track file with two sections of the same name\n", properties("Objects", name));
 					}
 				}
 			}
@@ -1843,7 +2205,7 @@ public class CheckDialog extends JDialog
 
 			if (color == Integer.MAX_VALUE)
 			{
-				textArea.append("Track object " + (i + 1) + " missing color\n");
+				report.append("Track object " + (i + 1) + " missing color\n", properties("Objects", trackData.getObjects().get(i).getName()));
 			}
 			else
 			{
@@ -1851,7 +2213,7 @@ public class CheckDialog extends JDialog
 				{
 					if (color == trackData.getObjects().get(j).getColor())
 					{
-						textArea.append("Track object " + (i + 1) + " " + name + " has same color as Track object " + (j + 1) + " " + trackData.getObjects().get(j).getName() + "\n");
+						report.append("Track object " + (i + 1) + " " + name + " has same color as Track object " + (j + 1) + " " + trackData.getObjects().get(j).getName() + "\n", properties("Objects", name));
 					}
 				}
 
@@ -1859,7 +2221,7 @@ public class CheckDialog extends JDialog
 				{
 					if (color == defaultObjects.get(j).getColor())
 					{
-						textArea.append("Track object " + (i + 1) + " " + name + " has same color as Default object " + (j + 1) + " " + defaultObjects.get(j).getName() + "\n");
+						report.append("Track object " + (i + 1) + " " + name + " has same color as Default object " + (j + 1) + " " + defaultObjects.get(j).getName() + "\n", properties("Objects", name));
 					}
 				}
 			}
@@ -1870,7 +2232,10 @@ public class CheckDialog extends JDialog
 		for (int i = 0; i < trackData.getObjects().size(); i++)
 		{
 			if (isUsed(trackData.getObjects().get(i), used))
+			{
+				report.about(properties("Objects", trackData.getObjects().get(i).getName()));
 				checkTrackObject(trackData.getObjects().get(i), "Track");
+			}
 		}
 
 		if (editorFrame.getCheckDefaultObjects())
@@ -1878,7 +2243,11 @@ public class CheckDialog extends JDialog
 			for (int i = 0; i < defaultObjects.size(); i++)
 			{
 				if (isUsed(defaultObjects.get(i), used))
+				{
+					// a default object isn't edited in the track
+					report.about(NONE);
 					checkTrackObject(defaultObjects.get(i), "Default");
+				}
 			}
 		}
 	}
@@ -1919,17 +2288,35 @@ public class CheckDialog extends JDialog
 		}
 		return file;
 	}
-	private void checkSurface(String surface, String description)
+	/**
+	 * @param where what uses the surface: a missing surface, or a default surface's
+	 *        textures, are about it; a track surface's textures are about the surface
+	 */
+	private void checkSurface(String surface, String description, Target where)
 	{
 		if (surface == null || surface.isEmpty())
 			return;
 
 		String message = description + " surface " + surface;
+		Target outer = report.about(where);
+		try
+		{
+			checkSurface(surface, message);
+		}
+		finally
+		{
+			report.about(outer);
+		}
+	}
 
+	/** @return whether the surface was found */
+	private boolean checkSurface(String surface, String message)
+	{
 		for (int i = 0; i < trackData.getSurfaces().size(); i++)
 		{
 			if (trackData.getSurfaces().get(i).getName().equals(surface))
 			{
+				Target outer = report.about(properties("Surfaces", surface));
 				String texture = trackData.getSurfaces().get(i).getTextureName();
 				checkTexture(message, texture);
 
@@ -1941,7 +2328,8 @@ public class CheckDialog extends JDialog
 				if (hasText(texture))
 					checkTexture(message + " Raceline ", texture);
 
-				return;
+				report.about(outer);
+				return true;
 			}
 		}
 		for (int i = 0; i < defaultSurfaces.size(); i++)
@@ -1959,11 +2347,12 @@ public class CheckDialog extends JDialog
 				if (hasText(texture))
 					checkTexture(message + " Raceline ", texture);
 
-				return;
+				return true;
 			}
 		}
 
-		textArea.append(description + " surface " + surface + " not found\n");
+		report.append(message + " not found\n");
+		return false;
 	}
 	private void checkSurfaces()
 	{
@@ -1974,7 +2363,7 @@ public class CheckDialog extends JDialog
 
 			if (!hasText(name))
 			{
-				textArea.append("Track surface " + (i + 1) + " missing name\n");
+				report.append("Track surface " + (i + 1) + " missing name\n", properties("Surfaces"));
 			}
 			else
 			{
@@ -1984,44 +2373,47 @@ public class CheckDialog extends JDialog
 				{
 					if (name.equals(defaultSurfaces.get(j).getName()))
 					{
-						textArea.append("Track surface " + (i + 1) + " " + name + " has the same name as default surface " + (j + 1)
-							+ ": the track includes the default surfaces, and the game can't load a track file with two sections of the same name\n");
+						report.append("Track surface " + (i + 1) + " " + name + " has the same name as default surface " + (j + 1)
+							+ ": the track includes the default surfaces, and the game can't load a track file with two sections of the same name\n", properties("Surfaces", name));
 					}
 				}
 			}
 		}
 
-		checkSurface(trackData.getMainTrack().getSurface(), "Main Track");
-		checkSurface(trackData.getMainTrack().getLeft().getBorderSurface(), "Main Track Left Border");
-		checkSurface(trackData.getMainTrack().getLeft().getSideSurface(), "Main Track Left Side");
-		checkSurface(trackData.getMainTrack().getLeft().getBarrierSurface(), "Main Track Left Barrier");
-		checkSurface(trackData.getMainTrack().getRight().getBorderSurface(), "Main Track Right Border");
-		checkSurface(trackData.getMainTrack().getRight().getSideSurface(), "Main Track Right Side");
-		checkSurface(trackData.getMainTrack().getRight().getBarrierSurface(), "Main Track Right Barrier");
+		checkSurface(trackData.getMainTrack().getSurface(), "Main Track", properties("Track"));
+		checkSurface(trackData.getMainTrack().getLeft().getBorderSurface(), "Main Track Left Border", properties("Track", "Left"));
+		checkSurface(trackData.getMainTrack().getLeft().getSideSurface(), "Main Track Left Side", properties("Track", "Left"));
+		checkSurface(trackData.getMainTrack().getLeft().getBarrierSurface(), "Main Track Left Barrier", properties("Track", "Left"));
+		checkSurface(trackData.getMainTrack().getRight().getBorderSurface(), "Main Track Right Border", properties("Track", "Right"));
+		checkSurface(trackData.getMainTrack().getRight().getSideSurface(), "Main Track Right Side", properties("Track", "Right"));
+		checkSurface(trackData.getMainTrack().getRight().getBarrierSurface(), "Main Track Right Barrier", properties("Track", "Right"));
 		for (int i = 0; i < trackData.getSegments().size(); i++)
 		{
 			Segment segment = trackData.getSegments().get(i);
 
-			checkSurface(segment.getSurface(), "Segment " + segment.getName() + " Track");
-			checkSurface(segment.getLeft().getBorderSurface(), "Segment " + segment.getName() + " Left Border");
-			checkSurface(segment.getLeft().getSideSurface(), "Segment " + segment.getName() + " Left Side");
-			checkSurface(segment.getLeft().getBarrierSurface(), "Segment " + segment.getName() + " Left Barrier");
-			checkSurface(segment.getRight().getBorderSurface(), "Segment " + segment.getName() + " Right Border");
-			checkSurface(segment.getRight().getSideSurface(), "Segment " + segment.getName() + " Right Side");
-			checkSurface(segment.getRight().getBarrierSurface(), "Segment " + segment.getName() + " Right Barrier");
+			checkSurface(segment.getSurface(), "Segment " + segment.getName() + " Track", segment(segment));
+			checkSurface(segment.getLeft().getBorderSurface(), "Segment " + segment.getName() + " Left Border", segment(segment));
+			checkSurface(segment.getLeft().getSideSurface(), "Segment " + segment.getName() + " Left Side", segment(segment));
+			checkSurface(segment.getLeft().getBarrierSurface(), "Segment " + segment.getName() + " Left Barrier", segment(segment));
+			checkSurface(segment.getRight().getBorderSurface(), "Segment " + segment.getName() + " Right Border", segment(segment));
+			checkSurface(segment.getRight().getSideSurface(), "Segment " + segment.getName() + " Right Side", segment(segment));
+			checkSurface(segment.getRight().getBarrierSurface(), "Segment " + segment.getName() + " Right Barrier", segment(segment));
 		}
-		checkSurface(trackData.getGraphic().getTerrainGeneration().getSurface(), "Terrain");
+		checkSurface(trackData.getGraphic().getTerrainGeneration().getSurface(), "Terrain", properties("Terrain"));
 	}
 
 	protected void processWindowEvent(WindowEvent e)
 	{
 		super.processWindowEvent(e);
 		if (e.getID() == WindowEvent.WINDOW_CLOSING)
-		{
-			editorFrame.getProject().setCheckDialogX(this.getX());
-			editorFrame.getProject().setCheckDialogY(this.getY());
-			editorFrame.getProject().setCheckDialogWidth(this.getWidth());
-			editorFrame.getProject().setCheckDialogHeight(this.getHeight());
-		}
+			storeBounds();
+	}
+
+	private void storeBounds()
+	{
+		editorFrame.getProject().setCheckDialogX(this.getX());
+		editorFrame.getProject().setCheckDialogY(this.getY());
+		editorFrame.getProject().setCheckDialogWidth(this.getWidth());
+		editorFrame.getProject().setCheckDialogHeight(this.getHeight());
 	}
 }

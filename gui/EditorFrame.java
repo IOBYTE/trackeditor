@@ -3784,14 +3784,22 @@ public class EditorFrame extends JFrame
 		return Double.toString(value);
 	}
 
-	/**
-	 *
-	 */
 	protected void propertiesDialog()
+	{
+		showProperties();
+	}
+
+	/**
+	 * Opens the Properties dialog, on the tab with the first title and in it the tab
+	 * with the next one and so on, or on the tab last shown when there are none.
+	 */
+	public void showProperties(String... tabs)
 	{
 		if (trackData != null)
 		{
 			PropertiesDialog properties = new PropertiesDialog(this);
+			if (tabs.length > 0)
+				properties.showTabs(tabs);
 			properties.setVisible(true);
 			if (view.segmentParamDialog != null)
 				view.segmentParamDialog.refresh();
@@ -4232,10 +4240,19 @@ public class EditorFrame extends JFrame
 			return;
 		}
 
-		CheckDialog checkDialog = new CheckDialog(this);
-		checkDialog.setModal(true);
+		// not modal: it stays open while the problems it lists are fixed
+		if (checkDialog != null && checkDialog.isDisplayable())
+		{
+			checkDialog.recheck();
+			checkDialog.toFront();
+			return;
+		}
+		checkDialog = new CheckDialog(this);
 		checkDialog.setVisible(true);
 	}
+
+	// the open Check dialog, if there is one
+	private CheckDialog			checkDialog;
 
 	public class FinishLineAction extends AbstractAction
 	{
