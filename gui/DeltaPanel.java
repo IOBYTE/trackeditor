@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -40,6 +43,8 @@ import utils.SegmentVector;
 import utils.circuit.Curve;
 import utils.circuit.Segment;
 import utils.circuit.Straight;
+import utils.undo.Undo;
+import utils.undo.UndoPitGeneration;
 
 import javax.swing.JTextField;
 
@@ -57,6 +62,8 @@ public class DeltaPanel extends JDialog
     // the trackgen process running now, so Cancel can stop it
     private volatile Process process = null;
     private volatile boolean cancelled = false;
+    // whether the running adjustment has changed the track
+    private volatile boolean changed = false;
 
     private JPanel jPanel = null;
     private JLabel nameLabel = null;
@@ -131,6 +138,7 @@ public class DeltaPanel extends JDialog
 		final String[] trackName = new String[1];
 		final String[] trackgen = new String[1];
 		final String[] category = new String[1];
+		final List<String> folderArgs = new ArrayList<String>();
 		final boolean[] exported = new boolean[1];
 		final String[] problem = new String[1];
 
@@ -145,6 +153,9 @@ public class DeltaPanel extends JDialog
 			trackName[0] = path.substring(path.lastIndexOf(sep) + 1);
 			trackgen[0] = editorFrame.getTrackgenPath();
 			category[0] = editorFrame.getTrackData().getHeader().getCategory();
+			// where the track is: without it CSR and Speed Dreams trackgen read the
+			// installed track of that name (see EditorFrame.getTrackgenFolderArgs)
+			folderArgs.addAll(editorFrame.getTrackgenFolderArgs());
 
 			// don't run trackgen on an old or missing track file
 			exported[0] = editorFrame.exportTrack();
@@ -169,7 +180,9 @@ public class DeltaPanel extends JDialog
 		Process proc;
 		try
 		{
-			ProcessBuilder pb = new ProcessBuilder(trackgen[0], "-z", "-c", category[0], "-n", trackName[0]);
+			List<String> command = new ArrayList<String>(Arrays.asList(trackgen[0], "-z", "-c", category[0], "-n", trackName[0]));
+			command.addAll(folderArgs);
+			ProcessBuilder pb = new ProcessBuilder(command);
 			pb.redirectErrorStream(true);
 			// TORCS trackgen reads the track from the directory it runs in
 			pb.directory(editorFrame.getTrackgenDirectory());
@@ -547,15 +560,15 @@ public class DeltaPanel extends JDialog
 				public void actionPerformed(java.awt.event.ActionEvent e) 
 				{  
 				    int options = JOptionPane.OK_CANCEL_OPTION;
-				    String msg = "This option will change your track permantly.\n"
-				        +"The result will be writed on xml file and no undo has implemented yet.\n\n"
+				    String msg = "This option will change your track.\n"
+				        +"The result is written to the track's xml file (Undo takes it back).\n\n"
 				        +"If you decide to continue keep in mind that the adjust method is\n"
 				        +"experimental and not propertly tested. As far as i know doing the job but\n"
 				        +"need to use the adjust button two or three times";
 				    int out = JOptionPane.showConfirmDialog(DeltaPanel.this,msg,"Warning",options);
 				    if(out != JOptionPane.OK_OPTION)
 				        return;
-				    startCalculation(() -> adjust());
+				    startCalculation(() -> undoable(() -> adjust()));
 				}
 			});
 		}
@@ -594,15 +607,15 @@ public class DeltaPanel extends JDialog
 				    }
 
 				    int options = JOptionPane.OK_CANCEL_OPTION;
-				    String msg = "This option will change your track permantly.\n"
-				        +"The result will be writed on xml file and no undo has implemented yet.\n\n"
+				    String msg = "This option will change your track.\n"
+				        +"The result is written to the track's xml file (Undo takes it back).\n\n"
 				        +"If you decide to continue keep in mind that the adjust method is\n"
 				        +"experimental and not propertly tested.";
 				    int out = JOptionPane.showConfirmDialog(DeltaPanel.this,msg,"Warning",options);
 				    if(out != JOptionPane.OK_OPTION)
 				        return;
 
-				    startCalculation(() -> adjustLength(newLength));
+				    startCalculation(() -> undoable(() -> adjustLength(newLength)));
 				}
 			});
 		}
@@ -636,6 +649,7 @@ public class DeltaPanel extends JDialog
 	    final double co = newLength/length;
 
 	    onEdt(() -> {
+		changed = true;
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		int size = track.size();
 
@@ -667,12 +681,53 @@ public class DeltaPanel extends JDialog
 	}
 	
 	/**
+	 * Runs an adjustment as one undo step. Changes made before a cancel or a failure
+	 * are kept (see startCalculation), so they are part of the step too. Called on the
+	 * worker thread.
+	 */
+	private void undoable(Runnable adjustment)
+	{
+		final UndoPitGeneration[] undo = new UndoPitGeneration[1];
+		changed = false;
+		// UndoPitGeneration keeps every segment's values (and the pits, cameras and
+		// name counters, which an adjustment doesn't change)
+		onEdt(() -> undo[0] = new UndoPitGeneration(editorFrame));
+		try
+		{
+			adjustment.run();
+		}
+		finally
+		{
+			// not onEdt: that refuses to run once Cancel was pressed
+			Runnable add = () -> {
+				if (!changed)
+					return;
+				undo[0].captureAfter();
+				Undo.add(undo[0]);
+				editorFrame.documentIsModified = true;
+			};
+			try
+			{
+				SwingUtilities.invokeAndWait(add);
+			}
+			catch (InvocationTargetException e)
+			{
+				e.printStackTrace();
+			}
+			catch (InterruptedException e)
+			{
+				Thread.currentThread().interrupt();
+			}
+		}
+	}
+
+	/**
 	 * Adjusts the curves and straights so the track closes. Called on the worker thread.
 	 */
 	private void adjust()
 	{
 	    runTrackgen();
-	    adjustArcs(360/(360+angle));
+	    adjustArcs(angle);
 	    runTrackgen();
 	    adjustStraights(false, dY);
 	    runTrackgen();
@@ -681,11 +736,37 @@ public class DeltaPanel extends JDialog
 	    onEdt(() -> editorFrame.refresh());
 	}
 
-	private void adjustArcs(double co)
+	/**
+	 * Scales every curve's arc so the track's turns add up to a whole turn.
+	 *
+	 * @param angle the angle trackgen reports, in degrees: the first segment's
+	 *        start angle minus the last segment's end angle, so the turns have to
+	 *        change by it. The track's turns (left positive) are N, and should be
+	 *        N + angle, so the arcs are scaled by (N + angle) / N: this works for
+	 *        tracks turning either way (N about +360 or -360)
+	 */
+	private void adjustArcs(double angle)
 	{
 	    onEdt(() -> {
 		SegmentVector track = editorFrame.getTrackData().getSegments();
 		int size = track.size();
+
+		double turns = 0;
+		for (Segment obj : track)
+		{
+			if (obj instanceof Curve)
+			{
+				Curve curve = (Curve) obj;
+				turns += "lft".equals(curve.getType()) ? curve.getArcDeg() : -curve.getArcDeg();
+			}
+		}
+
+		// turns that cancel out (a figure eight) can't be closed by scaling them all
+		double target = turns + angle;
+		if (Math.round(target / 360) == 0 || turns == 0)
+			return;
+		double co = target / turns;
+		changed = true;
 
 		for(int i=0; i<size; i++)
 		{
@@ -752,6 +833,7 @@ public class DeltaPanel extends JDialog
 		if (Math.abs(fraction) >= 1)
 		    throw new TrackgenException("The straights along " + (alongX ? "x" : "y")
 		        + " are too short to close a gap of " + delta + " m.");
+		changed = true;
 
 		for (Straight str : straights)
 		{
