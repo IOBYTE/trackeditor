@@ -4737,12 +4737,6 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * Reads a track into a new TrackData. If anything goes wrong the track that
-	 * was open before stays open, so a half-read track can't be saved over the file.
-	 *
-	 * @return true if the track was read
-	 */
-	/**
 	 * @return the keys and sections in the file just read that saving won't keep, as
 	 *         messages: the ones the editor doesn't read (or skips, like the game), and
 	 *         the ones it reads that it doesn't write for this game (the game doesn't
@@ -4858,6 +4852,12 @@ public class EditorFrame extends JFrame
 		}
 	}
 
+	/**
+	 * Reads a track into a new TrackData. If anything goes wrong the track that
+	 * was open before stays open, so a half-read track can't be saved over the file.
+	 *
+	 * @return true if the track was read
+	 */
 	public boolean readFile(File file)
 	{
 		//System.out.println("readFile : " + file.getAbsolutePath());

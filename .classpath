@@ -7,7 +7,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="bsh-2.0b4.jar"/>
-	<classpathentry kind="lib" path="jgoodies-looks-2.5.3.jar"/>
+	<classpathentry kind="lib" path="jgoodies-looks-2.7.0.jar"/>
 	<classpathentry kind="lib" path="jgoodies-common-1.8.1.jar"/>
 	<classpathentry kind="lib" path="jdom-2.0.6.1.jar" sourcepath="jdom-2.0.6.1-sources.jar"/>
 	<classpathentry kind="lib" path="gluegen-rt.jar"/>

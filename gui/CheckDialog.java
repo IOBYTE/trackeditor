@@ -35,13 +35,13 @@ import utils.ac3d.Ac3dObject;
 import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
-import utils.circuit.GameSides;
+import utils.circuit.GameSides;
 import utils.circuit.GraphicObject;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjShapeTerrain;
 import utils.circuit.ObjectMap;
 import utils.circuit.Pits;
-import utils.circuit.Segment;
+import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
@@ -98,39 +98,39 @@ public class CheckDialog extends JDialog
 		this.setLocation(p);
 
 		textArea = new JTextArea();
-	    textArea.setLineWrap(false);
-	    textArea.setEditable(false);
-	    textArea.setVisible(true);
+		textArea.setLineWrap(false);
+		textArea.setEditable(false);
+		textArea.setVisible(true);
 
-	    scrollPane = new JScrollPane (textArea);
-	    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-	    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane = new JScrollPane (textArea);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-	    add(scrollPane);
+		add(scrollPane);
 
-	    addComponentListener(new ComponentAdapter()
-	    {
-	    	public void componentShown(ComponentEvent e)
-	    	{
+		addComponentListener(new ComponentAdapter()
+		{
+			public void componentShown(ComponentEvent e)
+			{
 				checkSectionNames();
-	    		checkTrackHeight();
-	    		checkSurfaces();
-	    		checkObjects();
-	    		checkTerrainGeneration();
-	    		checkEnvironmentMapping();
+				checkTrackHeight();
+				checkSurfaces();
+				checkObjects();
+				checkTerrainGeneration();
+				checkEnvironmentMapping();
 				if (editorFrame.getGameType().hasSpeedDreamsExtensions())
 					checkTrackLights();
-	    		checkGraphic();
-	    		checkPits();
+				checkGraphic();
+				checkPits();
 				checkCameras();
-	    		checkTrack();
-	    		checkHeader();
+				checkTrack();
+				checkHeader();
 				checkUnusedKeys();
 
-	    		textArea.append("Checking complete!");
-	    	}
-	    });
-	    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				textArea.append("Checking complete!");
+			}
+		});
+		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
 	private void checkTrack()
@@ -143,6 +143,9 @@ public class CheckDialog extends JDialog
 		}
 
 		checkTrackCloses(segments);
+
+		for (Segment segment : segments)
+			checkSegmentSize(segment);
 
 		for (int i = 0; i < segments.size(); i++)
 		{
@@ -181,7 +184,7 @@ public class CheckDialog extends JDialog
 				}
 			}
 		}
-		
+
 		checkMainTrackSide(trackData.getMainTrack().getLeft(), "Left");
 		checkMainTrackSide(trackData.getMainTrack().getRight(), "Right");
 
@@ -195,6 +198,53 @@ public class CheckDialog extends JDialog
 			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
 			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
 		}
+	}
+
+	/**
+	 * A straight needs a length, and a curve a radius and an arc, greater than 0.
+	 * The games read a missing one as 0, and build each segment in steps of the
+	 * profile step length: with 0 a straight or an arc has no length (a curve with
+	 * no radius turns on the spot), and with less than 0 the steps go backwards, or
+	 * there are none and the segment isn't built.
+	 */
+	private void checkSegmentSize(Segment segment)
+	{
+		String name = "Segment " + segment.getName() + ": ";
+		if (segment.getType().equals("str"))
+		{
+			double length = segment.getLength();
+			if (Double.isNaN(length))
+				textArea.append(name + "no length: the game reads it as 0, so the straight has no length\n");
+			else if (length == 0)
+				textArea.append(name + "length 0: the straight has no length\n");
+			else if (length < 0)
+				textArea.append(name + "length " + format(length) + " m: a straight needs a length greater than 0, "
+					+ "the game builds it backwards or not at all\n");
+			return;
+		}
+
+		Curve curve = (Curve) segment;
+		double radius = curve.getRadiusStart();
+		if (Double.isNaN(radius))
+			textArea.append(name + "no radius: the game reads it as 0, so the curve turns on the spot\n");
+		else if (radius == 0)
+			textArea.append(name + "radius 0: the curve turns on the spot\n");
+		else if (radius < 0)
+			textArea.append(name + "radius " + format(radius) + " m: a curve needs a radius greater than 0\n");
+
+		// an end radius that isn't set is the start radius
+		double end = curve.getValidRadiusEnd();
+		if (!Double.isNaN(end) && end <= 0 && end != radius)
+			textArea.append(name + "end radius " + format(end) + " m: a curve needs a radius greater than 0\n");
+
+		double arc = curve.getArcDeg();
+		if (Double.isNaN(arc))
+			textArea.append(name + "no arc: the game reads it as 0, so the curve has no length and doesn't turn\n");
+		else if (arc == 0)
+			textArea.append(name + "arc 0: the curve has no length and doesn't turn\n");
+		else if (arc < 0)
+			textArea.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0, "
+				+ "the game builds it backwards or not at all\n");
 	}
 
 	/**
@@ -337,7 +387,7 @@ public class CheckDialog extends JDialog
 			textArea.append(prefix + " follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash\n");
 		}
 	}
-	
+
 	/**
 	 * Every segment, surface, object, camera, track light, sector, environment map,
 	 * object map and graphic object is a section named after it. The games' parameter
@@ -847,10 +897,10 @@ public class CheckDialog extends JDialog
 
 			double bankingStart = segment.getBankingStart();
 			boolean hasBankingStart = !Double.isNaN(bankingStart);
-			
+
 			if (hasHeightStart && (hasHeightStartLeft || hasHeightStartRight))
 			{
-				textArea.append(segmentInfo + "has height start and height start left or height start right\n");				
+				textArea.append(segmentInfo + "has height start and height start left or height start right\n");
 			}
 
 			// Track should start at an elevation of 0.0.
@@ -902,7 +952,7 @@ public class CheckDialog extends JDialog
 
 			if (hasHeightEnd && (hasHeightEndLeft || hasHeightEndRight))
 			{
-				textArea.append(segmentInfo + "has height end and height end left or height end right\n");				
+				textArea.append(segmentInfo + "has height end and height end left or height end right\n");
 			}
 
 			if (hasBankingEnd && hasBankingEndFromHeights)
@@ -941,17 +991,17 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStartLeft + "\n");
 				}
-				
+
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartLeft)
 				{
 					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartLeft + "\n");
-				} 
+				}
 
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStartRight)
 				{
 					textArea.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStartRight + "\n");
 				}
-				
+
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartRight)
 				{
 					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartRight + "\n");
@@ -963,12 +1013,12 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStart + "\n");
 				}
-				
+
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStart)
 				{
 					textArea.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStart + "\n");
 				}
-				
+
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStart)
 				{
 					textArea.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStart + "\n");
@@ -980,7 +1030,7 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStartLeft + "\n");
 				}
-				
+
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndLeft)
 				{
 					textArea.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStart + "\n");
@@ -990,7 +1040,7 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStartRight + "\n");
 				}
-				
+
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndRight)
 				{
 					textArea.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStart + "\n");
@@ -1002,18 +1052,18 @@ public class CheckDialog extends JDialog
 				{
 					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartLeft + "\n");
 				}
-				
+
 				if (!Double.isNaN(firstHeightStartRight) && firstHeightStartRight != heightEnd)
 				{
 					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartRight + "\n");
 				}
-				
+
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEnd)
 				{
 					textArea.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStart + "\n");
 				}
 			}
-			
+
 			previousHeightEnd = heightEnd;
 			previousHeightEndLeft = heightEndLeft;
 			previousHeightEndRight = heightEndRight;
@@ -1138,12 +1188,12 @@ public class CheckDialog extends JDialog
 					for (Ac3dMaterial material : ac3dFile.getMaterials())
 					{
 						String name = material.getName();
-						
+
 						if (name != null && !name.isEmpty())
 						{
 							if (name.contains(" "))
 							{
-								textArea.append("Relief file " + file.toString() + " : material \"" + name + "\" has space in name\n");					
+								textArea.append("Relief file " + file.toString() + " : material \"" + name + "\" has space in name\n");
 							}
 						}
 					}
@@ -1168,7 +1218,7 @@ public class CheckDialog extends JDialog
 
 								if (data == null)
 								{
-									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : missing interior or exterior data\n");									
+									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : missing interior or exterior data\n");
 								}
 								else if (!isReliefData(data))
 								{
@@ -1178,7 +1228,7 @@ public class CheckDialog extends JDialog
 									textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + editorFrame.getGameType().getShortName() + " trackgen\n");
 								}
 
-								// sd2-trackgen expects borders and holes to be closed line and generates bad terrain when using line and duplicate vertices 
+								// sd2-trackgen expects borders and holes to be closed line and generates bad terrain when using line and duplicate vertices
 								for (int j = 0; j < object.getSurfaces().size(); j++)
 								{
 									Ac3dSurface	surface = object.getSurfaces().get(j);
@@ -1187,10 +1237,10 @@ public class CheckDialog extends JDialog
 									{
 										double[] firstVertex = object.getVertices().get(0);
 										double[] lastVertex = object.getVertices().get(object.getVertices().size() - 1);
-										
+
 										if (firstVertex[0] == lastVertex[0] && firstVertex[1] == lastVertex[1] && firstVertex[2] == lastVertex[2])
 										{
-											textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : line with first and last vertices same\n");																				
+											textArea.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : line with first and last vertices same\n");
 										}
 									}
 								}
@@ -1393,9 +1443,9 @@ public class CheckDialog extends JDialog
 			border = TerrainGeneration.DEFAULT_BORDER_MARGIN;
 		}
 		Rectangle2D.Double terrainRectangle = new Rectangle2D.Double(boundingRectangle.getMinX() - border,
-				 													 boundingRectangle.getMinY() - border,
-				 													 boundingRectangle.getWidth() + (border * 2),
-				 													 boundingRectangle.getHeight() + (border * 2));
+																	 boundingRectangle.getMinY() - border,
+																	 boundingRectangle.getWidth() + (border * 2),
+																	 boundingRectangle.getHeight() + (border * 2));
 
 		// where trackgen makes terrain: the border or relief border, less the holes
 		ObjShapeTerrain terrainShape = new ObjShapeTerrain();
@@ -1433,7 +1483,7 @@ public class CheckDialog extends JDialog
 				}
 			}
 		}
-		
+
 		//check for graphic objects outside the terrain (beyond the border or relief border)
 		//or inside a hole: trackgen finds no height there (no terrain or track), so it leaves them out
 		Vector<GraphicObject> graphicObjects = trackData.getGraphic().getTerrainGeneration().getGraphicObjects();
@@ -1523,7 +1573,7 @@ public class CheckDialog extends JDialog
 		doubleSided = false;
 		flatShaded = false;
 		textures.clear();
-		
+
 		String	object = trackObject.getObject();
 
 		if (!hasText(object))
@@ -1542,16 +1592,16 @@ public class CheckDialog extends JDialog
 
 		try (BufferedReader br = new BufferedReader(new FileReader(file)))
 		{
-		    String line;
+			String line;
 
-		    while ((line = br.readLine()) != null)
-		    {
-		        if (line.startsWith("texture"))
-		        {
-		        	String texture = line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\""));
-		        	checkTexture(type + " object " + trackObject.getName() + " model " + object, texture);
-		        }
-		    }
+			while ((line = br.readLine()) != null)
+			{
+				if (line.startsWith("texture"))
+				{
+					String texture = line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\""));
+					checkTexture(type + " object " + trackObject.getName() + " model " + object, texture);
+				}
+			}
 		}
 		catch (Exception e)
 		{
@@ -1567,7 +1617,7 @@ public class CheckDialog extends JDialog
 			for (Ac3dMaterial material : ac3dFile.getMaterials())
 			{
 				String name = material.getName();
-				
+
 				if (name != null && !name.isEmpty())
 				{
 					if (name.contains(" "))
@@ -1632,7 +1682,7 @@ public class CheckDialog extends JDialog
 		catch (Exception e)
 		{
 			textArea.append("Object file " + file.toString() + " : " + e.getLocalizedMessage() + "\n");
-		}		
+		}
 	}
 
 	public void checkKid(File file, Ac3dObject object)
@@ -1665,12 +1715,12 @@ public class CheckDialog extends JDialog
 
 				if (surface.getRefs().size() != 3)
 				{
-					textArea.append("Object file " + file.toString() + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");																				
+					textArea.append("Object file " + file.toString() + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");
 				}
 
 				types.add(surface.getSurf());
 				mats.add(surface.getMat());
-				
+
 				// a double sided surface is only needed where the texture is see-through:
 				// an opaque one (.rgb, or a .png without alpha) is reported
 				if (surface.isDoubleSided() && objectTexture != null)
@@ -1703,7 +1753,7 @@ public class CheckDialog extends JDialog
 						}
 					}
 				}
-				
+
 				if (surface.isFlatShaded())
 				{
 					flatShaded = true;
@@ -1712,12 +1762,12 @@ public class CheckDialog extends JDialog
 
 			if (types.size() > 1)
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");																							
+				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");
 			}
 
 			if (mats.size() > 1)
 			{
-				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");																							
+				textArea.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");
 			}
 		}
 		else
@@ -1754,10 +1804,10 @@ public class CheckDialog extends JDialog
 				messages.add(" texture " + texture + " should remove path\n");
 			}
 		}
-    	for (int i = 0; i < messages.size(); i++)
-    	{
-    		textArea.append(description + messages.get(i));
-    	}
+		for (int i = 0; i < messages.size(); i++)
+		{
+			textArea.append(description + messages.get(i));
+		}
 	}
 	private void checkObjects()
 	{

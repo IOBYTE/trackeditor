@@ -191,6 +191,10 @@ public class XmlReader
                     unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null, skippedSegments.get(child)));
                 else if (read.contains(child) || hasRead(child))
                     findUnread(child, childPath);
+                else if (hasEarlierSection(element, child, name))
+                    unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null,
+                        "is in its section more than once: the game can't load a track file with two sections of "
+                        + "the same name, and the editor reads only the first, so saving removes this one"));
                 else
                     unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null));
             }
@@ -228,6 +232,19 @@ public class XmlReader
         (ok ? typeMatched : typeMismatched).add(e);
         return ok;
     }
+
+	/** @return whether a section before section in parent has the name */
+	private static boolean hasEarlierSection(Element parent, Element section, String name)
+	{
+		for (Element child : parent.getChildren("section"))
+		{
+			if (child == section)
+				return false;
+			if (name != null && name.equals(child.getAttributeValue("name")))
+				return true;
+		}
+		return false;
+	}
 
     /** @return whether anything in the section was read */
     private boolean hasRead(Element section)
