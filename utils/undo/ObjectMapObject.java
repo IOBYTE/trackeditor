@@ -15,4 +15,15 @@ public class ObjectMapObject
 		this.object = object;
 		this.objectIndex = objectMap.getObjectIndex(object);
 	}
+
+	/**
+	 * @param objectIndex where the object is in the map's list, when the caller
+	 *        knows it: finding it means searching the list
+	 */
+	public ObjectMapObject(ObjectMap objectMap, ObjShapeObject object, int objectIndex)
+	{
+		this.objectMap = objectMap;
+		this.object = object;
+		this.objectIndex = objectIndex;
+	}
 }

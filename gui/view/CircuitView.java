@@ -530,6 +530,140 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 	}
 
+	/** @return a key for an object map pixel */
+	private static long pixelKey(int x, int y)
+	{
+		return ((long) x << 32) | (y & 0xffffffffL);
+	}
+
+	/** @return where each object is in its object map's list */
+	private static java.util.Map<ObjShapeObject, Integer> objectIndexes(ObjectMap objectMap)
+	{
+		java.util.Map<ObjShapeObject, Integer> indexes = new java.util.IdentityHashMap<ObjShapeObject, Integer>();
+		for (int i = 0; i < objectMap.getObjects().size(); i++)
+			indexes.put(objectMap.getObjects().get(i), i);
+		return indexes;
+	}
+
+	/** @return the objects of a color in an object map, by their pixel */
+	private static java.util.Map<Long, ObjShapeObject> objectPixels(ObjectMap objectMap, int rgb)
+	{
+		java.util.Map<Long, ObjShapeObject> pixels = new java.util.HashMap<Long, ObjShapeObject>();
+		for (ObjShapeObject object : objectMap.getObjects())
+		{
+			if (object.getRGB() == rgb)
+				pixels.put(pixelKey(object.getImageX(), object.getImageY()), object);
+		}
+		return pixels;
+	}
+
+	/**
+	 * @return the objects of seed's color in its object map that touch it (side or
+	 *         corner), directly or through others: the patch it is in, without seed.
+	 *         Pixels of other object maps aren't next to it, whatever their position.
+	 */
+	private static Vector<ObjectMapObject> adjacentObjects(ObjectMap objectMap, ObjShapeObject seed)
+	{
+		java.util.Map<Long, ObjShapeObject> pixels = objectPixels(objectMap, seed.getRGB());
+		java.util.Set<ObjShapeObject> found = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<ObjShapeObject, Boolean>());
+		java.util.ArrayDeque<ObjShapeObject> todo = new java.util.ArrayDeque<ObjShapeObject>();
+
+		// a search with a list of objects to look around, not a recursion: a big
+		// patch would overflow the stack
+		found.add(seed);
+		todo.add(seed);
+		while (!todo.isEmpty())
+		{
+			ObjShapeObject object = todo.removeFirst();
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dy = -1; dy <= 1; dy++)
+				{
+					ObjShapeObject next = pixels.get(pixelKey(object.getImageX() + dx, object.getImageY() + dy));
+					if (next != null && found.add(next))
+						todo.add(next);
+				}
+			}
+		}
+
+		java.util.Map<ObjShapeObject, Integer> indexes = objectIndexes(objectMap);
+		Vector<ObjectMapObject> adjacent = new Vector<ObjectMapObject>();
+		for (ObjShapeObject object : found)
+		{
+			if (object != seed)
+				adjacent.add(new ObjectMapObject(objectMap, object, indexes.get(object)));
+		}
+		return adjacent;
+	}
+
+	/**
+	 * @return in every object map, the objects of shape's color that touch another
+	 *         one of its color (side or corner) in the same map, except shape
+	 */
+	private Vector<ObjectMapObject> allAdjacentObjects(ObjShapeObject shape)
+	{
+		Vector<ObjectMapObject> adjacent = new Vector<ObjectMapObject>();
+		for (ObjectMap objectMap : editorFrame.getObjectMaps())
+		{
+			java.util.Map<Long, ObjShapeObject> pixels = objectPixels(objectMap, shape.getRGB());
+			java.util.Map<ObjShapeObject, Integer> indexes = objectIndexes(objectMap);
+			for (ObjShapeObject object : pixels.values())
+			{
+				if (object == shape)
+					continue;
+				boolean touches = false;
+				for (int dx = -1; dx <= 1 && !touches; dx++)
+				{
+					for (int dy = -1; dy <= 1 && !touches; dy++)
+					{
+						ObjShapeObject next = pixels.get(pixelKey(object.getImageX() + dx, object.getImageY() + dy));
+						touches = next != null && next != object;
+					}
+				}
+				if (touches)
+					adjacent.add(new ObjectMapObject(objectMap, object, indexes.get(object)));
+			}
+		}
+		return adjacent;
+	}
+
+	/**
+	 * Deletes object map objects as one undo step. They are deleted from the end of
+	 * each map's list, the way the undo step puts them back (in reverse), so each one
+	 * goes back where it was.
+	 */
+	private void deleteMapObjects(Vector<ObjectMapObject> objects)
+	{
+		if (objects.isEmpty())
+			return;
+
+		objects.sort((a, b) -> {
+			int map = Integer.compare(editorFrame.getObjectMaps().indexOf(a.objectMap), editorFrame.getObjectMaps().indexOf(b.objectMap));
+			return map != 0 ? map : Integer.compare(b.objectIndex, a.objectIndex);
+		});
+
+		Undo.add(new UndoDeleteAllObjects(objects));
+
+		// one pass over each map's list, not a search of it for every object
+		java.util.Map<ObjectMap, java.util.Set<ObjShapeObject>> byMap = new java.util.IdentityHashMap<ObjectMap, java.util.Set<ObjShapeObject>>();
+		for (ObjectMapObject object : objects)
+		{
+			byMap.computeIfAbsent(object.objectMap,
+				map -> java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<ObjShapeObject, Boolean>())).add(object.object);
+		}
+		for (java.util.Map.Entry<ObjectMap, java.util.Set<ObjShapeObject>> entry : byMap.entrySet())
+		{
+			entry.getKey().getObjects().removeIf(entry.getValue()::contains);
+			// its image has to be written again
+			entry.getKey().setChanged(true);
+		}
+
+		selectedShape = null;
+		editorFrame.documentIsModified = true;
+		invalidate();
+		repaint();
+	}
+
 	private ObjectMap findObjectMap(ObjShapeObject object)
 	{
 		for (int i = 0; i < editorFrame.getObjectMaps().size(); i++)
@@ -3276,70 +3410,20 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 		class DeleteAdjacentAction extends AbstractAction
 		{
-			int 					rgb = shape.getRGB();
-			int						x = shape.getImageX();
-			int						y = shape.getImageY();
-			Vector<ObjectMapObject>	deletedObjects = new Vector<ObjectMapObject>();
-
 			public DeleteAdjacentAction(String text, ImageIcon icon, String desc)
 			{
 				super(text, icon);
 				putValue(SHORT_DESCRIPTION, desc);
 			}
-			public boolean findDeletedObject(ObjShapeObject object)
-			{
-				for (ObjectMapObject deleted : deletedObjects)
-				{
-					if (deleted.object == object)
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-			public void findAdjacent(ObjShapeObject objShape)
-			{
-				for (ObjectMap objectMap : editorFrame.getObjectMaps())
-				{
-					for (ObjShapeObject object : objectMap.getObjects())
-					{
-						if (rgb == object.getRGB())
-						{
-							int dx = Math.abs(objShape.getImageX() - object.getImageX());
-							int dy = Math.abs(objShape.getImageY() - object.getImageY());
-
-							if ((dx == 1 && dy == 0) || (dx == 1 && dy == 1) || (dx == 0 && dy == 1))
-							{
-								if (!(object.getImageX() == x && object.getImageY() == y))
-								{
-									if (!findDeletedObject(object))
-									{
-										deletedObjects.add(new ObjectMapObject(objectMap, object));
-										findAdjacent(object);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
 			public void actionPerformed(ActionEvent e)
 			{
 				editorFrame.setPasteObject(false);
 
-				findAdjacent(shape);
+				ObjectMap objectMap = findObjectMap(shape);
+				if (objectMap == null)
+					return;
 
-				Undo.add(new UndoDeleteAllObjects(deletedObjects));
-
-				for (ObjectMapObject deletedObject : deletedObjects)
-				{
-					deletedObject.objectMap.removeObject(deletedObject.object);
-				}
-
-				selectedShape = null;
-				editorFrame.documentIsModified = true;
-				invalidate();
-				repaint();
+				deleteMapObjects(adjacentObjects(objectMap, shape));
 			}
 		}
 
@@ -3347,83 +3431,16 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 		class DeleteAllAdjacentAction extends AbstractAction
 		{
-			int 					rgb = shape.getRGB();
-			int						x = shape.getImageX();
-			int						y = shape.getImageY();
-			Vector<ObjectMapObject>	deletedObjects = new Vector<ObjectMapObject>();
-
 			public DeleteAllAdjacentAction(String text, ImageIcon icon, String desc)
 			{
 				super(text, icon);
 				putValue(SHORT_DESCRIPTION, desc);
 			}
-			public boolean findDeletedObject(ObjShapeObject object)
-			{
-				for (ObjectMapObject deleted : deletedObjects)
-				{
-					if (deleted.object == object)
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-			public void findAdjacent(ObjShapeObject objShape)
-			{
-				for (ObjectMap objectMap : editorFrame.getObjectMaps())
-				{
-					for (ObjShapeObject object : objectMap.getObjects())
-					{
-						if (rgb == object.getRGB())
-						{
-							int dx = Math.abs(objShape.getImageX() - object.getImageX());
-							int dy = Math.abs(objShape.getImageY() - object.getImageY());
-
-							if ((dx == 1 && dy == 0) || (dx == 1 && dy == 1) || (dx == 0 && dy == 1))
-							{
-								if (!(object.getImageX() == x && object.getImageY() == y))
-								{
-									if (!findDeletedObject(object))
-									{
-										deletedObjects.add(new ObjectMapObject(objectMap, object));
-										findAdjacent(object);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			public void findAllAdjacent(ObjShapeObject objShape)
-			{
-				for (ObjectMap objectMap : editorFrame.getObjectMaps())
-				{
-					for (ObjShapeObject object : objectMap.getObjects())
-					{
-						if (rgb == object.getRGB())
-						{
-							findAdjacent(object);
-						}
-					}
-				}
-			}
 			public void actionPerformed(ActionEvent e)
 			{
 				editorFrame.setPasteObject(false);
 
-				findAllAdjacent(shape);
-
-				Undo.add(new UndoDeleteAllObjects(deletedObjects));
-
-				for (ObjectMapObject deletedObject : deletedObjects)
-				{
-					deletedObject.objectMap.removeObject(deletedObject.object);
-				}
-
-				selectedShape = null;
-				editorFrame.documentIsModified = true;
-				invalidate();
-				repaint();
+				deleteMapObjects(allAdjacentObjects(shape));
 			}
 		}
 
