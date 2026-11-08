@@ -1072,9 +1072,11 @@ public class XmlWriter
 		addContent(element, "shininess", null, editorFrame.getTrackData().getGraphic().getShininess());
 		addContent(element, "fov factor", null, editorFrame.getTrackData().getGraphic().getFovFactor());
 
+		// TORCS tracks leave the section out when it has nothing to say: no values,
+		// or only the values the game uses anyway
 		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
 		if (!torcs ||
-			(!editorFrame.getTrackData().getGraphic().getTurnMarks().isEmpty() ||
+			(!editorFrame.getTrackData().getGraphic().getTurnMarks().isEmpty() &&
 			 !editorFrame.getTrackData().getGraphic().getTurnMarks().isDefault()))
 			element.addContent(getTurnMarks());
 		element.addContent(getTerrainGeneration());

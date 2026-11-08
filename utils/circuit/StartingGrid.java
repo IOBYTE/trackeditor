@@ -45,14 +45,15 @@ public class StartingGrid {
 		this.initialHeight = initialHeight;
 	}
 
+	/** @return whether no value is set (NaN never equals anything, NaN included) */
 	public boolean isEmpty()
 	{
 		return rows == Integer.MAX_VALUE &&
 			   polePositionSide == null &&
-			   distanceToStart == Double.NaN &&
-			   distanceBetweenColumns == Double.NaN &&
-			   offsetWithinAColumn == Double.NaN &&
-			   initialHeight == Double.NaN;
+			   Double.isNaN(distanceToStart) &&
+			   Double.isNaN(distanceBetweenColumns) &&
+			   Double.isNaN(offsetWithinAColumn) &&
+			   Double.isNaN(initialHeight);
 	}
 
 	public void dump(String indent)

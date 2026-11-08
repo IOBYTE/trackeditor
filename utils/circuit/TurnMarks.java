@@ -72,12 +72,13 @@ public class TurnMarks {
 		this.horizontalSpace = horizontalSpace;
 	}
 
+	/** @return whether no value is set (NaN never equals anything, NaN included) */
 	public boolean isEmpty()
 	{
-		return width == Double.NaN &&
-			   height == Double.NaN &&
-			   verticalSpace == Double.NaN &&
-			   horizontalSpace == Double.NaN;
+		return Double.isNaN(width) &&
+			   Double.isNaN(height) &&
+			   Double.isNaN(verticalSpace) &&
+			   Double.isNaN(horizontalSpace);
 	}
 
 	public boolean isDefault()
