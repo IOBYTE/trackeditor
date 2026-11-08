@@ -354,7 +354,7 @@ public class PropertyPanel extends JPanel
 			if (other == field)
 				break;
 			if (name.equals(other.getText()))
-				return "the name \"" + name + "\" is already used, and the game would only keep one of them";
+				return "the name \"" + name + "\" is already used, and the game can't load a track with two of the same name";
 		}
 		return null;
 	}
@@ -401,7 +401,7 @@ public class PropertyPanel extends JPanel
 
 	/**
 	 * Checks the names of list items: a missing name makes the track impossible to
-	 * save, and of two items with one name the game keeps only one.
+	 * save, and the game can't load a track with two items of the same name.
 	 * Otherwise shows the bad name, tells the user and returns false.
 	 */
 	public static boolean checkNames(Component parent, Container container)

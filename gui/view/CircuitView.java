@@ -969,7 +969,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 	/**
 	 * A graphic object name no other graphic object (or name in also) uses: the game
-	 * keeps only one of the objects that share a name.
+	 * can't load a track with two objects of the same name.
 	 */
 	private String uniqueGraphicObjectName(String base, java.util.Set<String> also)
 	{

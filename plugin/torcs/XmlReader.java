@@ -187,9 +187,8 @@ public class XmlReader
 
             if (child.getName().equals("section"))
             {
-                if (skippedSegments.contains(child))
-                    unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null,
-                        "has no type str, lft or rgt, so like the game the editor skips the segment and saving removes it"));
+                if (skippedSegments.containsKey(child))
+                    unreadKeys.add(new FileKey(line, childPath, true, countKeys(child), null, skippedSegments.get(child)));
                 else if (read.contains(child) || hasRead(child))
                     findUnread(child, childPath);
                 else
@@ -1230,7 +1229,9 @@ public class XmlReader
         }
 
         List<?> segments = segmentsSection.getChildren();
-        int skipped = 0;
+        int missing = 0;
+        int unknown = 0;
+        String unknownResult = null;
 
         SegmentVector trackData = new SegmentVector();
         Iterator<?> it;
@@ -1241,13 +1242,25 @@ public class XmlReader
         while (it.hasNext())
         {
             Element e = (Element) it.next();
+            // the game only goes through the sections (a key here is listed as unread)
+            if (!e.getName().equals("section"))
+                continue;
             read.add(e);
             String type = getAttrStrValue(e, "type");
-            // like the game, skip a segment without a type (or one it doesn't know)
-            if (type == null || !(type.equals("str") || type.equals("lft") || type.equals("rgt")))
+            // like the game, skip a segment without a type
+            if (type == null)
             {
-                skippedSegments.add(e);
-                skipped++;
+                skippedSegments.put(e, "has no type, so like the game the editor skips the segment and saving removes it");
+                missing++;
+                continue;
+            }
+            // a type the game doesn't know: the editor leaves the segment out too
+            if (!(type.equals("str") || type.equals("lft") || type.equals("rgt")))
+            {
+                unknownResult = unknownTypeResult();
+                skippedSegments.put(e, "has the type \"" + type + "\", which isn't str, lft or rgt: " + unknownResult
+                    + ". The editor leaves the segment out, so saving removes it");
+                unknown++;
                 continue;
             }
             if (type.equals("str"))
@@ -1262,11 +1275,17 @@ public class XmlReader
             prev = shape;
         }
 
-        if (skipped > 0)
+        if (missing > 0 || unknown > 0)
         {
-            JOptionPane.showMessageDialog(editorFrame, skipped + " segment" + (skipped == 1 ? " has" : "s have") +
-                " no type (str, lft or rgt) and " + (skipped == 1 ? "was" : "were") + " left out.\n" +
-                "The game skips segments without a type.", "Read Track", JOptionPane.WARNING_MESSAGE);
+            String message = "";
+            if (missing > 0)
+                message += missing + " segment" + (missing == 1 ? " has" : "s have") + " no type and "
+                    + (missing == 1 ? "was" : "were") + " left out, as the game skips segments without a type.\n";
+            if (unknown > 0)
+                message += unknown + " segment" + (unknown == 1 ? " has a type" : "s have types") + " other than str, lft or rgt and "
+                    + (unknown == 1 ? "was" : "were") + " left out:\n" + unknownResult + ".\n";
+            message += "Check lists them.";
+            JOptionPane.showMessageDialog(editorFrame, message, "Read Track", JOptionPane.WARNING_MESSAGE);
         }
 
         editorFrame.getTrackData().setSegments(trackData);
@@ -1529,9 +1548,23 @@ public class XmlReader
 		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
 	// the warnings about those, which getUnreadKeys lists too
 	private final java.util.Set<String>		duplicateWarnings	= new java.util.HashSet<String>();
-	// the segments skipped because they have no type the game knows
-	private final java.util.Set<Element>	skippedSegments	=
-		java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Element, Boolean>());
+	// the segments skipped because they have no type the game knows, and why
+	private final java.util.Map<Element, String>	skippedSegments	= new java.util.IdentityHashMap<Element, String>();
+
+	/**
+	 * @return what the game does with a segment whose type isn't str, lft or rgt:
+	 *         TORCS's version 4 loader stops; the others (TORCS's version 3 loader,
+	 *         and Speed Dreams' and CSR's) have no case for it, so the segment keeps
+	 *         the type and size worked out for the segment before it
+	 */
+	private String unknownTypeResult()
+	{
+		EditorFrame.GameType game = editorFrame.getGameType();
+		if (game == EditorFrame.GameType.TORCS && editorFrame.getTrackData().getHeader().getVersion() >= 4)
+			return "TORCS stops loading the track (\"Unknown track segment type\")";
+		return game.getShortName() + " doesn't skip such a segment, but builds it with the shape of the segment before it "
+			+ "(its type, length, radius and arc)";
+	}
 
     public List<String> getWarnings()
     {

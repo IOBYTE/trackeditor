@@ -112,6 +112,7 @@ public class CheckDialog extends JDialog
 	    {
 	    	public void componentShown(ComponentEvent e)
 	    	{
+				checkSectionNames();
 	    		checkTrackHeight();
 	    		checkSurfaces();
 	    		checkObjects();
@@ -135,6 +136,11 @@ public class CheckDialog extends JDialog
 	private void checkTrack()
 	{
 		SegmentVector segments = trackData.getSegments();
+
+		if (segments.isEmpty())
+		{
+			textArea.append("The track has no segments\n");
+		}
 
 		checkTrackCloses(segments);
 
@@ -332,6 +338,111 @@ public class CheckDialog extends JDialog
 		}
 	}
 	
+	/**
+	 * Every segment, surface, object, camera, track light, sector, environment map,
+	 * object map and graphic object is a section named after it. The games' parameter
+	 * parser stops at a second section with the same name, so the whole track file
+	 * fails to load, and it reads a / in a name as a section inside another one, so
+	 * that item is lost. The editor's panels allow neither, but a track read from a
+	 * file can have them, and saving writes them out again. Checked on the document
+	 * saving makes, so only what is saved for this game counts.
+	 */
+	private void checkSectionNames()
+	{
+		org.jdom2.Document document;
+		try
+		{
+			document = new plugin.torcs.XmlWriter(editorFrame).getDocument("");
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return;
+		}
+		Map<String, Integer> counts = new java.util.LinkedHashMap<String, Integer>();
+		java.util.List<String[]> slashes = new java.util.ArrayList<String[]>();
+		countSections(document.getRootElement(), "", counts, slashes);
+
+		// a section inside a duplicated one is reported with it
+		Set<String> duplicated = new HashSet<String>();
+		for (Map.Entry<String, Integer> entry : counts.entrySet())
+		{
+			String path = entry.getKey();
+			if (entry.getValue() < 2 || insideAny(path, duplicated))
+				continue;
+			duplicated.add(path);
+			int slash = path.lastIndexOf('/');
+			String parent = slash < 0 ? "" : path.substring(0, slash);
+			String[] kind = sectionKind(parent);
+			textArea.append(kind[0] + " name \"" + path.substring(slash + 1) + "\" is used " + entry.getValue()
+				+ " times: the game can't load a track file with two sections of the same name (" + path
+				+ "), so rename all but one of the " + kind[1] + "s\n");
+		}
+		for (String[] slash : slashes)
+		{
+			String[] kind = sectionKind(slash[0]);
+			textArea.append(kind[0] + " name \"" + slash[1] + "\" contains /: the game reads it as a section inside "
+				+ "another one, so the " + kind[1] + " is lost\n");
+		}
+	}
+
+	/** Counts the full names of the sections in element, and notes the names with a / */
+	private static void countSections(org.jdom2.Element element, String path, Map<String, Integer> counts,
+		java.util.List<String[]> slashes)
+	{
+		for (org.jdom2.Element child : element.getChildren("section"))
+		{
+			String name = child.getAttributeValue("name", "");
+			String childPath = path.isEmpty() ? name : path + "/" + name;
+			if (name.contains("/"))
+				slashes.add(new String[] { path, name });
+			counts.merge(childPath, 1, Integer::sum);
+			countSections(child, childPath, counts, slashes);
+		}
+	}
+
+	/** @return whether path is inside one of the sections */
+	private static boolean insideAny(String path, Set<String> sections)
+	{
+		for (String section : sections)
+		{
+			if (path.startsWith(section + "/"))
+				return true;
+		}
+		return false;
+	}
+
+	/** @return what the sections in the parent section are: capitalized, and not */
+	private static String[] sectionKind(String parent)
+	{
+		switch (parent)
+		{
+		case "Main Track/Track Segments":
+		case "Main Track/segments":
+			return new String[] { "Segment", "segment" };
+		case "Surfaces":
+		case "Surfaces/List":
+			return new String[] { "Surface", "surface" };
+		case "Objects":
+			return new String[] { "Object", "object" };
+		case "Cameras":
+		case "Cameras/list":
+			return new String[] { "Camera", "camera" };
+		case "Track Lights":
+			return new String[] { "Track light", "track light" };
+		case "Sectors":
+			return new String[] { "Sector", "sector" };
+		case "Graphic/Environment Mapping":
+			return new String[] { "Environment map", "environment map" };
+		case "Graphic/Terrain Generation/Object Maps":
+			return new String[] { "Object map", "object map" };
+		case "Graphic/Terrain Generation/Objects":
+			return new String[] { "Graphic object", "graphic object" };
+		default:
+			return new String[] { parent.isEmpty() ? "Section" : "Section in " + parent, "section" };
+		}
+	}
+
 	/**
 	 * What's in the track file that saving won't keep: keys and sections the editor
 	 * doesn't read or skips, and keys the game in use doesn't; and the values saving
@@ -1151,10 +1262,17 @@ public class CheckDialog extends JDialog
 				else
 				{
 					colors.addAll(objectMap.getColors());
-					
-					if (objectMap.getImageWidth() != 1024)
+
+					// trackgen spreads an image of any size over the terrain, but only reads PNG
+					if (!isPng(file))
 					{
-						textArea.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile + " image width must be 1024 but found " + objectMap.getImageWidth() + "\n");
+						textArea.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
+							+ " isn't a PNG image: trackgen only reads PNG object maps, so it places none of its objects\n");
+					}
+					else if (objectMap.getImageWidth() <= 0 || objectMap.getImageHeight() <= 0)
+					{
+						textArea.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile
+							+ " couldn't be read when the track was opened, so the map has no objects and saving won't overwrite the file\n");
 					}
 				}
 			}
@@ -1265,6 +1383,9 @@ public class CheckDialog extends JDialog
 			else
 				boundingRectangle.add(r);
 		}
+		// without segments there is no terrain to place anything on (checkTrack says so)
+		if (boundingRectangle == null)
+			return;
 		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
 		if (Double.isNaN(border))
 		{
@@ -1326,16 +1447,21 @@ public class CheckDialog extends JDialog
 			}
 		}
 
-		//check for graphic objects with same name
-		for (int i = 0; i < graphicObjects.size() - 1; i++)
+		// (graphic objects with the same name: see checkSectionNames)
+	}
+
+	/** @return whether the file starts like a PNG image */
+	private static boolean isPng(File file)
+	{
+		byte[] signature = { (byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n' };
+		byte[] start = new byte[signature.length];
+		try (java.io.FileInputStream in = new java.io.FileInputStream(file))
 		{
-			for (int j = i + 1; j < graphicObjects.size(); j++)
-			{
-				if (graphicObjects.get(i).getName().equals(graphicObjects.get(j).getName()))
-				{
-					textArea.append("Graphic Objects has duplicate name: " + graphicObjects.get(i).getName() + "\n");					
-				}
-			}
+			return in.read(start) == start.length && java.util.Arrays.equals(start, signature);
+		}
+		catch (java.io.IOException e)
+		{
+			return false;
 		}
 	}
 
@@ -1646,19 +1772,14 @@ public class CheckDialog extends JDialog
 			}
 			else
 			{
-				for (int j = i + 1; j < trackData.getObjects().size(); j++)
-				{
-					if (name.equals(trackData.getObjects().get(j).getName()))
-					{
-						textArea.append("Track object " + (i + 1) + " " + name + " has same name as Track object " + (j + 1) + " " + trackData.getObjects().get(j).getName() + "\n");
-					}
-				}
-
-				for (int j = 0; j < defaultObjects.size(); j++)
+				// (two track objects with one name: see checkSectionNames)
+				// the default objects are in the same section when the track includes them
+				for (int j = 0; trackData.getHasObjectsReference() && j < defaultObjects.size(); j++)
 				{
 					if (name.equals(defaultObjects.get(j).getName()))
 					{
-						textArea.append("Track object " + (i + 1) + " " + name + " has same name as Default object " + (j + 1) + " " + defaultObjects.get(j).getName() + "\n");
+						textArea.append("Track object " + (i + 1) + " " + name + " has the same name as default object " + (j + 1)
+							+ ": the track includes the default objects, and the game can't load a track file with two sections of the same name\n");
 					}
 				}
 			}
@@ -1807,19 +1928,14 @@ public class CheckDialog extends JDialog
 			}
 			else
 			{
-				for (int j = i + 1; j < trackData.getSurfaces().size(); j++)
-				{
-					if (name.equals(trackData.getSurfaces().get(j).getName()))
-					{
-						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Track surface " + (j + 1) + " " + trackData.getSurfaces().get(j).getName() + "\n");
-					}
-				}
-
-				for (int j = 0; j < defaultSurfaces.size(); j++)
+				// (two track surfaces with one name: see checkSectionNames)
+				// the default surfaces are in the same section when the track includes them
+				for (int j = 0; trackData.getHasSurfacesReference() && j < defaultSurfaces.size(); j++)
 				{
 					if (name.equals(defaultSurfaces.get(j).getName()))
 					{
-						textArea.append("Track surface " + (i + 1) + " " + name + " has same name as Default surface " + (j + 1) + " " + defaultSurfaces.get(j).getName() + "\n");
+						textArea.append("Track surface " + (i + 1) + " " + name + " has the same name as default surface " + (j + 1)
+							+ ": the track includes the default surfaces, and the game can't load a track file with two sections of the same name\n");
 					}
 				}
 			}

@@ -479,7 +479,7 @@ public class GraphicObjectProperties extends PropertyPanel implements PropertyPa
 
 	/**
 	 * Each object is a section named after it: a missing name stops the track from
-	 * being saved, and of two objects with one name the game keeps only one.
+	 * being saved, and the game can't load a track with two objects of the same name.
 	 */
 	public String checkNames()
 	{
@@ -498,7 +498,7 @@ public class GraphicObjectProperties extends PropertyPanel implements PropertyPa
 			else if (name.contains("/"))
 				problem = "the name \"" + name + "\" can't contain /";
 			else if (first.containsKey(name))
-				problem = "the name \"" + name + "\" is also used by row " + (first.get(name) + 1) + ", and the game would only keep one of them";
+				problem = "the name \"" + name + "\" is also used by row " + (first.get(name) + 1) + ", and the game can't load a track with two of the same name";
 			else
 				first.put(name, i);
 			if (problem != null)

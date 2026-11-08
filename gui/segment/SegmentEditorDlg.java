@@ -709,8 +709,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 	/**
 	 * Renames the segment to what the Name field holds, if it is a name the game can
-	 * use: set, without '/' and not used by another segment (the game would keep only
-	 * one of two segments with the same name). Otherwise the field turns red and the
+	 * use: set, without '/' and not used by another segment (the game can't load a
+	 * track with two segments of the same name). Otherwise the field turns red and the
 	 * segment keeps its name. The pits and cameras that refer to the segment follow.
 	 */
 	private void nameChanged()
