@@ -16,6 +16,8 @@ import java.util.Objects;
 
 import utils.SegmentVector;
 import utils.circuit.Curve;
+import utils.circuit.ObjShapeObject;
+import utils.circuit.ObjShapeRelief;
 import utils.circuit.Straight;
 
 /**
@@ -28,6 +30,12 @@ import utils.circuit.Straight;
  * It follows the editor's own classes (utils...), collections, maps, arrays and
  * points. The track's segments are left out: they have their own undo steps.
  * Anything else (strings, numbers, images, files) is kept as it is.
+ *
+ * Object map objects and reliefs are kept as just what their files hold (color,
+ * pixel and place; type and points): an object map can have tens of thousands of
+ * objects, and every field of each would take several kilobytes. What relief
+ * files hold besides reliefs (AC3D objects and materials) is never changed in the
+ * editor, so it is kept as it is too.
  */
 public class Snapshot
 {
@@ -108,6 +116,10 @@ public class Snapshot
 		if (SegmentVector.class.isAssignableFrom(c) || Straight.class.isAssignableFrom(c) || Curve.class.isAssignableFrom(c))
 			return false;
 
+		// read from a relief file and written back unchanged
+		if (c.getName().startsWith("utils.ac3d."))
+			return false;
+
 		if (Collection.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c))
 			return true;
 
@@ -127,6 +139,22 @@ public class Snapshot
 	private static Object capture(Object object)
 	{
 		Class<?> c = object.getClass();
+
+		if (object instanceof ObjShapeObject)
+		{
+			ObjShapeObject o = (ObjShapeObject) object;
+			return new CompactState(o.getName(), o.getRGB(), o.getImageX(), o.getImageY(),
+				o.getTrackLocation().x, o.getTrackLocation().y);
+		}
+
+		if (object instanceof ObjShapeRelief)
+		{
+			ObjShapeRelief r = (ObjShapeRelief) object;
+			double[][] vertices = new double[r.getVertices().size()][];
+			for (int i = 0; i < vertices.length; i++)
+				vertices[i] = r.getVertices().get(i).clone();
+			return new CompactState(r.getName(), r.getReliefName(), r.getReliefType(), r.getLineType(), vertices);
+		}
 
 		if (c.isArray())
 		{
@@ -224,6 +252,10 @@ public class Snapshot
 	/** Adds the objects a state refers to. */
 	private static void addReferences(Object state, List<Object> todo)
 	{
+		// holds only values
+		if (state instanceof CompactState)
+			return;
+
 		if (state.getClass().isArray())
 		{
 			if (!state.getClass().getComponentType().isPrimitive())
@@ -254,6 +286,34 @@ public class Snapshot
 	@SuppressWarnings("unchecked")
 	private static void restore(Object object, Object state)
 	{
+		if (state instanceof CompactState)
+		{
+			Object[] v = ((CompactState) state).values;
+
+			if (object instanceof ObjShapeObject)
+			{
+				ObjShapeObject o = (ObjShapeObject) object;
+				o.setName((String) v[0]);
+				o.setRGB((Integer) v[1]);
+				o.setImageXY((Integer) v[2], (Integer) v[3]);
+				// also puts its drawing points there
+				o.calcShape(new Point2D.Double((Double) v[4], (Double) v[5]));
+			}
+			else
+			{
+				ObjShapeRelief r = (ObjShapeRelief) object;
+				r.setName((String) v[0]);
+				r.setReliefName((String) v[1]);
+				r.setReliefType((ObjShapeRelief.ReliefType) v[2]);
+				r.setLineType((ObjShapeRelief.LineType) v[3]);
+				java.util.Vector<double[]> vertices = new java.util.Vector<double[]>();
+				for (double[] vertex : (double[][]) v[4])
+					vertices.add(vertex.clone());
+				r.setVertices(vertices);
+			}
+			return;
+		}
+
 		if (object.getClass().isArray())
 		{
 			System.arraycopy(state, 0, object, 0, Array.getLength(state));
@@ -309,6 +369,12 @@ public class Snapshot
 
 	private boolean sameState(Object a, Object b)
 	{
+		if (a instanceof CompactState || b instanceof CompactState)
+		{
+			return a instanceof CompactState && b instanceof CompactState
+				&& java.util.Arrays.deepEquals(((CompactState) a).values, ((CompactState) b).values);
+		}
+
 		if (a.getClass().isArray())
 		{
 			if (!b.getClass().isArray() || Array.getLength(a) != Array.getLength(b))
@@ -372,6 +438,17 @@ public class Snapshot
 		if (a == null || b == null || states.containsKey(a) || states.containsKey(b))
 			return false;
 		return a.equals(b);
+	}
+
+	/** the few values that matter of an object map object or a relief */
+	private static class CompactState
+	{
+		final Object[]	values;
+
+		CompactState(Object... values)
+		{
+			this.values = values;
+		}
 	}
 
 	private static class State
