@@ -80,7 +80,6 @@ import utils.undo.UndoEditObject;
 import utils.undo.UndoEditRelief;
 import utils.undo.UndoMoveAllGraphicObjects;
 import utils.undo.UndoMoveGraphicObject;
-import utils.undo.UndoSegmentChange;
 
 
 /**
@@ -2645,10 +2644,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	
 	private void openSegmentDialog(Segment shape)
 	{
+		// showing the segment starts its undo step, before any interactive fix
 		if (segmentParamDialog != null)
 		{
-			// filling in the fields isn't an edit of the previous segment
-			segmentParamDialog.setPendingUndo(null);
 			segmentParamDialog.setShape(shape);
 			segmentParamDialog.setVisible(true);
 		}
@@ -2658,10 +2656,6 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			segmentParamDialog = new SegmentEditorDlg(this, editorFrame, "", false, shape);
 			segmentParamDialog.addWindowListener(this);
 		}
-
-		// the state before any edit in the dialog; it becomes an undo step only
-		// if the segment is changed, so just looking at a segment adds none
-		segmentParamDialog.setPendingUndo(new UndoSegmentChange(editorFrame, shape));
 	}
 
 	/**
@@ -2706,9 +2700,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			return;
 		}
 
-		segmentParamDialog.setPendingUndo(null);
-		segmentParamDialog.setShape(shape);
-		segmentParamDialog.setPendingUndo(new UndoSegmentChange(editorFrame, shape));
+		segmentParamDialog.setShape(shape, false);
 	}
 
 	private void reliefSelected(ObjShapeRelief shape, MouseEvent me)

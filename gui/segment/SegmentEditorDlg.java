@@ -1009,14 +1009,31 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	}
 
 	/**
-	 * Shows a segment. Filling in the fields fires their listeners, which isn't an edit.
+	 * Shows a segment, offering the interactive fixes.
 	 */
 	public void setShape(Segment shape)
 	{
+		setShape(shape, true);
+	}
+
+	/**
+	 * Shows a segment. Its undo step starts here, before an interactive fix can
+	 * change it, so a fix is undone like any other edit. Filling in the fields
+	 * fires their listeners, which isn't an edit.
+	 *
+	 * @param fixes whether to offer the interactive fixes: not when showing the
+	 *        segment again after an undo or redo, which would offer to fix what
+	 *        was just undone
+	 */
+	public void setShape(Segment shape, boolean fixes)
+	{
+		// the state before any edit; it becomes an undo step only if the segment
+		// is changed, so just looking at a segment adds none
+		setPendingUndo(new UndoSegmentChange(editorFrame, shape));
 		filling = true;
 		try
 		{
-			fillFields(shape);
+			fillFields(shape, fixes);
 		}
 		finally
 		{
@@ -1024,12 +1041,28 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		}
 	}
 
-	private void fillFields(Segment shape)
+	/**
+	 * An interactive fix changed the segment while the fields were filled in: an
+	 * edit like any other, so the track needs saving and the undo step is added.
+	 */
+	void fixApplied()
+	{
+		editorFrame.documentIsModified = true;
+		dirty = true;
+
+		if (pendingUndo != null)
+		{
+			Undo.add(pendingUndo);
+			pendingUndo = null;
+		}
+	}
+
+	private void fillFields(Segment shape, boolean fixes)
 	{
 		this.shape = shape;
 		addSurface(roadSurfaceVector, shape.getSurface());
-		this.getRightPanel().setSide(shape, shape.getRight());
-		this.getLeftPanel().setSide(shape, shape.getLeft());
+		this.getRightPanel().setSide(shape, shape.getRight(), fixes);
+		this.getLeftPanel().setSide(shape, shape.getLeft(), fixes);
 
 		// update all fields
 

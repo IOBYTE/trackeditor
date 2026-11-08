@@ -40,6 +40,7 @@ import utils.SurfaceComboBox;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Surface;
+import utils.undo.Snapshot;
 import bsh.EvalError;
 import bsh.Interpreter;
 /**
@@ -130,7 +131,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		addDefaultSurfaces(borderSurfaceVector, borderSurfaceItems);
 		addDefaultSurfaces(barrierSurfaceVector, barrierSurfaceItems);
 		
-		setSide(segment, side);
+		// the dialog shows the segment again once its panels exist, with the fixes
+		setSide(segment, side, false);
 		initialize();
 	}
 
@@ -837,12 +839,15 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		}
 	}
 
-	public void setSide(Segment segment, SegmentSide side)
+	/**
+	 * @param fixes whether to offer the interactive fixes (when that preference is on)
+	 */
+	public void setSide(Segment segment, SegmentSide side, boolean fixes)
 	{
 		filling = true;
 		try
 		{
-			fillSide(segment, side);
+			fillSide(segment, side, fixes && parent.editorFrame.getInteractiveFixes());
 		}
 		finally
 		{
@@ -863,7 +868,19 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		comboBox.setSelectedItem(style);
 	}
 
-	private void fillSide(Segment segment, SegmentSide side)
+	/**
+	 * Applies an interactive fix, and tells the dialog when it changed the side: the
+	 * change has to be undoable and saved like any other edit.
+	 */
+	private void fix(Runnable fix, SegmentSide side)
+	{
+		Snapshot before = new Snapshot(side);
+		fix.run();
+		if (!before.sameAs(new Snapshot(side)))
+			parent.fixApplied();
+	}
+
+	private void fillSide(Segment segment, SegmentSide side, boolean fixes)
 	{
 		this.side = side;
 
@@ -894,8 +911,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		// a fresh list each time, so an unlisted style shown for one segment isn't offered for the next
 		getBorderStyleComboBox().setModel(new DefaultComboBoxModel<String>(borderStyleItems));
 		selectStyle(getBorderStyleComboBox(), style);
-		if (parent.editorFrame.getInteractiveFixes())
-			fixBorder(segment, side);
+		if (fixes)
+			fix(() -> fixBorder(segment, side), side);
 		switch (style)
 		{
 		case "none":
@@ -954,8 +971,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		getBarrierStyleComboBox().setModel(new DefaultComboBoxModel<String>(barrierStyleItems(style)));
 		selectStyle(getBarrierStyleComboBox(), style);
 		updatingBarrierStyle = false;
-		if (parent.editorFrame.getInteractiveFixes())
-			fixBarrier(segment, side);
+		if (fixes)
+			fix(() -> fixBarrier(segment, side), side);
 		switch (style)
 		{
 		case "none":
