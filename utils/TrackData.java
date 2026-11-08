@@ -301,6 +301,89 @@ public final class TrackData
 				camera.setFovEnd(newName);
 		}
 	}
+
+	/**
+	 * @return the pit and camera references that are to the segment name now, so a
+	 *         rename can change those and no others
+	 */
+	public SegmentReferences findSegmentReferences(String name)
+	{
+		return new SegmentReferences(name);
+	}
+
+	/**
+	 * The pit and camera references to a segment, found when a rename starts. While
+	 * the name is typed, a reference left over from a deleted segment can match one
+	 * of the names on the way; renaming by name would take it along.
+	 *
+	 * Cameras are kept by their place in the list, not as objects: undoing a camera
+	 * change replaces them with copies, in the same order.
+	 */
+	public class SegmentReferences
+	{
+		// the pit references: entry, start, start buildings, stop buildings, end, exit
+		private final boolean[]				pits	= new boolean[6];
+		// {camera index, 0 segment, 1 fov start, 2 fov end}
+		private final java.util.List<int[]>	cameras	= new java.util.ArrayList<int[]>();
+
+		private SegmentReferences(String name)
+		{
+			if (name == null)
+				return;
+
+			utils.circuit.Pits p = mainTrack.getPits();
+			String[] names = { p.getEntry(), p.getStart(), p.getStartBuildings(), p.getStopBuildings(), p.getEnd(), p.getExit() };
+			for (int i = 0; i < names.length; i++)
+				pits[i] = name.equals(names[i]);
+
+			for (int i = 0; i < cameras().size(); i++)
+			{
+				Camera camera = cameras().get(i);
+				if (name.equals(camera.getSegment()))
+					this.cameras.add(new int[] { i, 0 });
+				if (name.equals(camera.getFovStart()))
+					this.cameras.add(new int[] { i, 1 });
+				if (name.equals(camera.getFovEnd()))
+					this.cameras.add(new int[] { i, 2 });
+			}
+		}
+
+		private Vector<Camera> cameras()
+		{
+			return getCameras();
+		}
+
+		/** Makes these references refer to the name. */
+		public void rename(String name)
+		{
+			utils.circuit.Pits p = mainTrack.getPits();
+			if (pits[0])
+				p.setEntry(name);
+			if (pits[1])
+				p.setStart(name);
+			if (pits[2])
+				p.setStartBuildings(name);
+			if (pits[3])
+				p.setStopBuildings(name);
+			if (pits[4])
+				p.setEnd(name);
+			if (pits[5])
+				p.setExit(name);
+
+			for (int[] reference : cameras)
+			{
+				if (reference[0] >= cameras().size())
+					continue;
+				Camera camera = cameras().get(reference[0]);
+				if (reference[1] == 0)
+					camera.setSegment(name);
+				else if (reference[1] == 1)
+					camera.setFovStart(name);
+				else
+					camera.setFovEnd(name);
+			}
+		}
+	}
     /**
      * @param mainTrack The mainTrack to set.
      */

@@ -38,6 +38,31 @@ public class UndoSegmentChange implements UndoInterface
 	private Segment 		clone;
 	private int 			pos;
 	private long			uid;
+	// the renames in the segment dialog, in order; their references are the
+	// only ones undo and redo change
+	private java.util.List<Rename>	renames	= new java.util.ArrayList<Rename>();
+
+	/** One rename: the references to the segment when it started, and its names. */
+	public static class Rename
+	{
+		final utils.TrackData.SegmentReferences	references;
+		final String							from;
+		String									to;
+
+		Rename(utils.TrackData.SegmentReferences references, String from)
+		{
+			this.references = references;
+			this.from = from;
+			this.to = from;
+		}
+
+		/** Renames the segment's references to the name. */
+		public void to(String name)
+		{
+			to = name;
+			references.rename(name);
+		}
+	}
 
 	/**
 	 * 
@@ -66,7 +91,10 @@ public class UndoSegmentChange implements UndoInterface
 		pos = position();
 		original = (Segment) data.get(pos).clone();
 		// a rename in the dialog also renamed the pit and camera references
-		trackData.renameSegmentReferences(original.getName(), clone.getName());
+		if (renames.isEmpty())
+			trackData.renameSegmentReferences(original.getName(), clone.getName());
+		for (int i = renames.size() - 1; i >= 0; i--)
+			renames.get(i).references.rename(renames.get(i).from);
 		data.set(pos,clone);
 
 		if (!data.validateLinks())
@@ -82,7 +110,10 @@ public class UndoSegmentChange implements UndoInterface
 	public void redo()
 	{
 		pos = position();
-		trackData.renameSegmentReferences(data.get(pos).getName(), original.getName());
+		if (renames.isEmpty())
+			trackData.renameSegmentReferences(data.get(pos).getName(), original.getName());
+		for (Rename rename : renames)
+			rename.references.rename(rename.to);
 		data.set(pos,original);
 
 		if (!data.validateLinks())
@@ -90,6 +121,25 @@ public class UndoSegmentChange implements UndoInterface
 			System.out.println("UndoSegmentChange.redo");
 			data.dumpLinks();
 		}
+	}
+
+	/**
+	 * Starts a rename of the segment, from its name now: the pit and camera
+	 * references to that name are the ones that follow it.
+	 */
+	public Rename startRename(String from)
+	{
+		Rename rename = new Rename(trackData.findSegmentReferences(from), from);
+		renames.add(rename);
+		return rename;
+	}
+
+	/**
+	 * @return a rename that isn't part of an undo step
+	 */
+	public static Rename rename(utils.TrackData trackData, String from)
+	{
+		return new Rename(trackData.findSegmentReferences(from), from);
 	}
 
 	/**

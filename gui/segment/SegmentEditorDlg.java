@@ -52,6 +52,7 @@ import utils.circuit.Segment;
 import utils.circuit.Surface;
 import utils.undo.Undo;
 import utils.undo.UndoInterface;
+import utils.undo.UndoSegmentChange;
 import bsh.EvalError;
 import bsh.Interpreter;
 
@@ -69,6 +70,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public boolean					dirty						= false;
 	// the segment's state before the first edit; added to the undo list on that edit
 	private UndoInterface			pendingUndo					= null;
+	// the undo step for the shown segment, also once it has been added
+	private UndoInterface			currentUndo					= null;
+	// the rename being typed: the references it found when typing started
+	private UndoSegmentChange.Rename	rename						= null;
 	// true while setShape fills in the fields
 	private boolean					filling						= false;
 
@@ -677,6 +682,14 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			nameTextField = new JTextField();
 			nameTextField.setBounds(75, 5, 180, 23);
 			nameTextField.setText(shape.getName());
+			// typing again later is another rename, from the name then
+			nameTextField.addFocusListener(new java.awt.event.FocusAdapter()
+			{
+				public void focusLost(java.awt.event.FocusEvent e)
+				{
+					rename = null;
+				}
+			});
 			nameTextField.getDocument().addDocumentListener(new DocumentListener()
 			{
 				public void removeUpdate(DocumentEvent e)
@@ -743,7 +756,16 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 
 		// the undo step (added by changed) has to see the old name, so add it first
 		changed();
-		editorFrame.getTrackData().renameSegmentReferences(oldName, name);
+		// only the references to this segment when the typing started follow it, not
+		// one to a deleted segment that matches a name on the way
+		if (rename == null)
+		{
+			if (currentUndo instanceof UndoSegmentChange)
+				rename = ((UndoSegmentChange) currentUndo).startRename(oldName);
+			else
+				rename = UndoSegmentChange.rename(editorFrame.getTrackData(), oldName);
+		}
+		rename.to(name);
 		shape.setName(name);
 		updateTitle();
 	}
@@ -958,6 +980,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 	public void setPendingUndo(UndoInterface undo)
 	{
 		pendingUndo = undo;
+		currentUndo = undo;
+		rename = null;
 	}
 
 	public Segment getSegment()
