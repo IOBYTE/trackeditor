@@ -101,6 +101,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/MutableInteger.java
          utils/MutableString.java
          utils/Project.java
+         utils/ProjectFile.java
          utils/Properties.java
          utils/SegmentSliderLayout.java
          utils/SegmentVector.java

@@ -40,10 +40,8 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.ExceptionListener;
-import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -84,6 +82,7 @@ import plugin.torcs.XmlWriter;
 import utils.CustomFileFilter;
 import utils.EditorPoint;
 import utils.Project;
+import utils.ProjectFile;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
@@ -1224,9 +1223,10 @@ public class EditorFrame extends JFrame
 		// read the project into a local first, so a failed open leaves the
 		// current track and its project settings untouched
 		Properties properties;
-		try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(projectFileName)))
+		try
 		{
-			properties = (Properties)decoder.readObject();
+			// checked before it is decoded: a project file could run any code
+			properties = ProjectFile.read(new File(projectFileName));
 
 			// update path from project file location
 			properties.setPath(projectFileName.substring(0, projectFileName.lastIndexOf(sep)));
@@ -1365,11 +1365,7 @@ public class EditorFrame extends JFrame
 		Path temp = target.resolveSibling(target.getFileName() + ".tmp");
 		try
 		{
-			Properties project;
-			try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(target.toFile())))
-			{
-				project = (Properties) decoder.readObject();
-			}
+			Properties project = ProjectFile.read(target.toFile());
 			project.setViewZoom(zoom);
 			project.setViewCenterX(center.getX());
 			project.setViewCenterY(center.getY());
@@ -1425,8 +1421,8 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * A track opened without its project, or a new track, has no background image:
-	 * the image settings of the track that was open don't apply to it.
+	 * A closed track's background image isn't shown any more: its settings
+	 * belong to that track.
 	 */
 	private void clearBackgroundImage()
 	{
@@ -1588,6 +1584,10 @@ public class EditorFrame extends JFrame
 	private void createNewCircuit(NewProjectInfo newProjectInfo)
 	{
 		Segment shape;
+		// a new track has none of the open track's project settings: no background
+		// image, saved view or pit generator settings, and its segment names start
+		// again at "straight 1" and "curve 1"
+		Properties.setInstance(new Properties());
 		SegmentVector track = new SegmentVector();
 
 		shape = new Straight();
@@ -1628,11 +1628,8 @@ public class EditorFrame extends JFrame
 		trackData = new TrackData();
 		// a new track: the 3D view shows all of it
 		view3D = null;
-		Properties.getInstance().setView3D(null);
-		Properties.getInstance().setPitGenerator(null);
 		Undo.clear();
 		closeTrackWindows();
-		clearBackgroundImage();
 
 		trackData.getHeader().setName(newProjectInfo.name);
 		trackData.getHeader().setCategory(newProjectInfo.category);
@@ -4716,21 +4713,23 @@ public class EditorFrame extends JFrame
 	 */
 	private void importTrackFile(String xmlFileName)
 	{
-		String path = xmlFileName.substring(0, xmlFileName.lastIndexOf(sep));
-		String oldPath = Properties.getInstance().getPath();
-		Properties.getInstance().setPath(path);
+		// no project, so none of the open track's project settings apply: no
+		// background image, saved view or pit generator settings, and the segment
+		// name counters start from the names the file has
+		Properties oldProperties = Properties.getInstance();
+		Properties properties = new Properties();
+		properties.setPath(xmlFileName.substring(0, xmlFileName.lastIndexOf(sep)));
+		Properties.setInstance(properties);
 		File file = new File(xmlFileName);
 		if (!readFile(file))
 		{
-			// the current track is still open
-			Properties.getInstance().setPath(oldPath);
+			// the current track is still open, so keep its project settings
+			Properties.setInstance(oldProperties);
 		}
 		else
 		{
-			clearBackgroundImage();
-			// no project, so no saved view: show all of it
+			// no saved view: show all of it
 			fitView();
-			Properties.getInstance().setView3D(null);
 			updateRecentFiles(xmlFileName);
 		}
 	}

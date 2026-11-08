@@ -34,7 +34,9 @@ import utils.circuit.Pits;
 public  class Properties
 {
 	private static Properties	instance				= new Properties();
-	private Vector<ActionListener>	propertiesListeners	= new Vector<ActionListener>();
+	// shared by every instance: opening a project or importing a track puts a
+	// new instance in place, and the views have to hear about its changes too
+	private static volatile Vector<ActionListener>	propertiesListeners	= new Vector<ActionListener>();
 	public final String			title					= "sd2-trackeditor";
 	public final String			version					= "1.7.6";
 	private String				path;
@@ -228,13 +230,16 @@ public  class Properties
 
 	}
 
-	public synchronized void addPropertiesListener(ActionListener l)
+	public void addPropertiesListener(ActionListener l)
 	{
-		Vector<ActionListener> v = propertiesListeners == null ? new Vector<ActionListener>(2) : (Vector<ActionListener>) propertiesListeners.clone();
-		if (!v.contains(l))
+		synchronized (Properties.class)
 		{
-			v.addElement(l);
-			propertiesListeners = v;
+			Vector<ActionListener> v = propertiesListeners == null ? new Vector<ActionListener>(2) : (Vector<ActionListener>) propertiesListeners.clone();
+			if (!v.contains(l))
+			{
+				v.addElement(l);
+				propertiesListeners = v;
+			}
 		}
 	}
 
