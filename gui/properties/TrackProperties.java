@@ -401,10 +401,112 @@ public class TrackProperties extends PropertyPanel
 				barrierSurfaceComboBox.setEnabled(true);
 				break;
 			}
-			
+
+			// a plan border has no height and a fence no width: one the file gives
+			// shows why it shouldn't
+			onChange(borderHeightTextField, this::showPlanBorderHeight);
+			onChange(barrierWidthTextField, this::showFenceBarrierWidth);
+			showPlanBorderHeight();
+			showFenceBarrierWidth();
 			initialized = true;
 		}
-		
+
+		/** Runs show whenever the field's text changes */
+		private void onChange(JTextField field, final Runnable show)
+		{
+			field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+			{
+				public void insertUpdate(javax.swing.event.DocumentEvent e)
+				{
+					show.run();
+				}
+
+				public void removeUpdate(javax.swing.event.DocumentEvent e)
+				{
+					show.run();
+				}
+
+				public void changedUpdate(javax.swing.event.DocumentEvent e)
+				{
+					show.run();
+				}
+			});
+		}
+
+		/**
+		 * A plan border has no height (except in TORCS, which keeps it for the
+		 * borders after it), and no style is plan: see showIgnored.
+		 */
+		private void showPlanBorderHeight()
+		{
+			String style = style(borderStyleComboBox);
+			boolean plan = getEditorFrame().getGameType().planBorderResetsHeight()
+				&& ("none".equals(style) || "plan".equals(style));
+			showIgnored(borderHeightTextField, plan,
+				"A plan border is always 0 high, so this is redundant: clear it",
+				"A plan border has no height: the game ignores %s and uses 0. Clear it, or set the border style to curb or wall");
+		}
+
+		/**
+		 * A fence has no width, and no style is a fence (fence1 and fence2 are
+		 * fences only in Speed Dreams version 4 tracks, as Check says): see
+		 * showIgnored.
+		 */
+		private void showFenceBarrierWidth()
+		{
+			String style = style(barrierStyleComboBox);
+			boolean fence1Fence2 = getEditorFrame().getGameType().hasFence1Fence2()
+				&& getEditorFrame().getTrackData().getHeader().getVersion() != 3;
+			boolean fence = "none".equals(style) || "fence".equals(style)
+				|| (fence1Fence2 && ("fence1".equals(style) || "fence2".equals(style)));
+			showIgnored(barrierWidthTextField, fence,
+				"A fence is always 0 wide, so this is redundant: clear it",
+				"A fence has no width: the game ignores %s and uses 0. Clear it, or set the barrier style to wall");
+		}
+
+		/**
+		 * A value the style doesn't have shouldn't be set: the game ignores it and
+		 * uses 0. One other than 0 is shown in red, and 0 is only redundant; either
+		 * way the field can be used until it is cleared, and then it's disabled.
+		 *
+		 * @param ignored whether the style has no such value
+		 * @param redundant the tool tip for 0
+		 * @param wrong the tool tip for another value, with %s for it
+		 */
+		private void showIgnored(JTextField field, boolean ignored, String redundant, String wrong)
+		{
+			String text = field.getText().trim();
+			if (!ignored || text.isEmpty())
+			{
+				field.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
+				field.setToolTipText(null);
+				if (ignored)
+					field.setEnabled(false);
+				return;
+			}
+
+			field.setEnabled(true);
+			double value;
+			try
+			{
+				value = Double.parseDouble(text);
+			}
+			catch (NumberFormatException e)
+			{
+				value = Double.NaN;
+			}
+			if (value == 0)
+			{
+				field.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
+				field.setToolTipText(redundant);
+			}
+			else
+			{
+				field.setForeground(java.awt.Color.RED);
+				field.setToolTipText(String.format(wrong, text));
+			}
+		}
+
 		/** @return the style chosen, "none" for none, or null before the list is made */
 		private String style(JComboBox<String> comboBox)
 		{
@@ -524,8 +626,9 @@ public class TrackProperties extends PropertyPanel
 						case "plan":
 							borderWidthTextField.setEnabled(true);
 							borderWidthTextField.setText(Double.toString(SegmentSide.DEFAULT_BORDER_PLAN_WIDTH));
+							// no height: a plan border has none
 							borderHeightTextField.setEnabled(false);
-							borderHeightTextField.setText(Double.toString(SegmentSide.DEFAULT_BORDER_PLAN_HEIGHT));
+							borderHeightTextField.setText(null);
 							borderSurfaceComboBox.setEnabled(true);
 							if (side.isRight())
 							{
@@ -560,6 +663,7 @@ public class TrackProperties extends PropertyPanel
 							}
 							break;
 						}
+						showPlanBorderHeight();
 					}
 				});
 			}
@@ -627,8 +731,9 @@ public class TrackProperties extends PropertyPanel
 						case "fence":
 						case "fence1":
 						case "fence2":
+							// no width: a fence has none
 							barrierWidthTextField.setEnabled(false);
-							barrierWidthTextField.setText(Double.toString(SegmentSide.DEFAULT_BARRIER_FENCE_WIDTH));
+							barrierWidthTextField.setText(null);
 							barrierHeightTextField.setEnabled(true);
 							barrierHeightTextField.setText(Double.toString(SegmentSide.DEFAULT_BARRIER_FENCE_HEIGHT));
 							barrierSurfaceComboBox.setEnabled(true);
@@ -643,6 +748,7 @@ public class TrackProperties extends PropertyPanel
 							barrierSurfaceComboBox.setSelectedItem(SegmentSide.DEFAULT_BARRIER_WALL_SURFACE);
 							break;
 						}
+						showFenceBarrierWidth();
 					}
 				});
 			}

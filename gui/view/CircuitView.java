@@ -2788,6 +2788,17 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	 */
 	public boolean showSegment(Segment segment)
 	{
+		return showSegment(segment, null);
+	}
+
+	/**
+	 * Shows the segment as showSegment(Segment) does, and the segment dialog's tab
+	 * with the title (Left, Center or Right) when the dialog opens.
+	 *
+	 * @return false if the segment isn't part of the track any more
+	 */
+	public boolean showSegment(Segment segment, String tab)
+	{
 		boolean found = false;
 		if (editorFrame.getTrackData() != null)
 		{
@@ -2814,7 +2825,11 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		invalidate();
 		repaint();
 		if (currentState == STATE_NONE)
+		{
 			openSegmentDialog(segment);
+			if (tab != null && segmentParamDialog != null)
+				segmentParamDialog.showTab(tab);
+		}
 
 		// once a new zoom has given the view its size
 		if (usable)

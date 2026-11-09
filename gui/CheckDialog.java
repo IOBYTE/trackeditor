@@ -83,6 +83,8 @@ public class CheckDialog extends JDialog
 	private final JToggleButton	objectFilesButton	= new JToggleButton();
 	private final JToggleButton	pngButton			= new JToggleButton();
 	private final JToggleButton	savingButton		= new JToggleButton();
+	// shown at first: a missing texture is a real problem, unless the data folder isn't set
+	private final JToggleButton	textureButton		= new JToggleButton(null, null, true);
 	private final JList<Message>	list			= new JList<Message>(messages);
 	private final Report		report			= new Report();
 	private EditorFrame			editorFrame		= null;
@@ -186,6 +188,8 @@ public class CheckDialog extends JDialog
 		// keys the editor doesn't keep are often only left over from an older version
 		savingButton.setToolTipText("Shows or hides the messages about what the file has that saving removes");
 		savingButton.addActionListener(e -> showMessages());
+		textureButton.setToolTipText("Shows or hides the messages about textures that aren't found");
+		textureButton.addActionListener(e -> showMessages());
 		JButton close = new JButton("Close");
 		close.addActionListener(e -> close());
 		JPanel buttons = new JPanel(new BorderLayout());
@@ -194,6 +198,7 @@ public class CheckDialog extends JDialog
 		shown.add(objectFilesButton);
 		shown.add(pngButton);
 		shown.add(savingButton);
+		shown.add(textureButton);
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		left.add(recheck);
 		left.add(copy);
@@ -260,40 +265,41 @@ public class CheckDialog extends JDialog
 	}
 
 	/**
-	 * Shows the messages, without the ones about the objects' models, about
-	 * converting textures to png or about what saving removes, unless they are
-	 * asked for. Each button counts the messages it would show.
+	 * Shows the messages, without the kinds whose button is off: the objects'
+	 * models, converting textures to png, what saving removes and textures not
+	 * found. Each button counts the messages it would show.
 	 */
 	private void showMessages()
 	{
-		boolean showObjects = objectFilesButton.isSelected();
-		boolean showPng = pngButton.isSelected();
-		boolean showSaving = savingButton.isSelected();
-		int objectFiles = 0;
-		int png = 0;
-		int saving = 0;
-		for (Message message : allMessages)
-		{
-			boolean objectsShown = showObjects || !message.objectFile;
-			boolean pngShown = showPng || !message.png;
-			boolean savingShown = showSaving || !message.saving;
-			if (message.objectFile && pngShown && savingShown)
-				objectFiles++;
-			if (message.png && objectsShown && savingShown)
-				png++;
-			if (message.saving && objectsShown && pngShown)
-				saving++;
-		}
-		showCount(objectFilesButton, "object messages", objectFiles);
-		showCount(pngButton, "convert to png messages", png);
-		showCount(savingButton, "saving removes messages", saving);
-
+		JToggleButton[] buttons = { objectFilesButton, pngButton, savingButton, textureButton };
+		String[] names = { "object messages", "convert to png messages", "saving removes messages", "texture not found messages" };
+		int[] counts = new int[buttons.length];
 		messages.clear();
 		for (Message message : allMessages)
 		{
-			if ((showObjects || !message.objectFile) && (showPng || !message.png) && (showSaving || !message.saving))
+			boolean[] kinds = { message.objectFile, message.png, message.saving, message.texture };
+			// the kinds that hide the message
+			int hiding = 0;
+			int hidden = -1;
+			for (int i = 0; i < kinds.length; i++)
+			{
+				if (kinds[i] && !buttons[i].isSelected())
+				{
+					hiding++;
+					hidden = i;
+				}
+			}
+			// a button counts what it adds: the messages only it hides, or that it shows
+			for (int i = 0; i < kinds.length; i++)
+			{
+				if (kinds[i] && (hiding == 0 || (hiding == 1 && hidden == i)))
+					counts[i]++;
+			}
+			if (hiding == 0)
 				messages.addElement(message);
 		}
+		for (int i = 0; i < buttons.length; i++)
+			showCount(buttons[i], names[i], counts[i]);
 	}
 
 	/** Names what a show/hide button does, with how many messages it shows */
@@ -350,8 +356,15 @@ public class CheckDialog extends JDialog
 		String show();
 	}
 
-	/** What the messages say about something in the file that saving removes */
-	private static final java.util.regex.Pattern	SAVING_MESSAGE	= java.util.regex.Pattern.compile("\\bsaving (for \\S+ )?removes (it|this one)\\b");
+	/**
+	 * What the messages say about something in the file that saving removes: "saving
+	 * removes it", or "saving for Speed Dreams removes it" (a game's name can have
+	 * spaces)
+	 */
+	private static final java.util.regex.Pattern	SAVING_MESSAGE	= java.util.regex.Pattern.compile("\\bsaving (for .+? )?removes (it|this one)\\b");
+
+	/** What the messages say about a texture that isn't found, the data folder set or not */
+	private static final java.util.regex.Pattern	TEXTURE_NOT_FOUND	= java.util.regex.Pattern.compile(" texture .+ (not found$|isn't in the track's folder)");
 
 	/** How the messages suggesting converting a texture to png end */
 	private static final String	PNG_MESSAGE	= " should be converted to png format";
@@ -369,6 +382,8 @@ public class CheckDialog extends JDialog
 		final boolean	png;
 		// says the file has something that saving removes
 		final boolean	saving;
+		// says a texture isn't found
+		final boolean	texture;
 
 		Message(String text, Target target, boolean objectFile)
 		{
@@ -377,6 +392,7 @@ public class CheckDialog extends JDialog
 			this.objectFile = objectFile;
 			this.png = text.endsWith(PNG_MESSAGE);
 			this.saving = SAVING_MESSAGE.matcher(text).find();
+			this.texture = TEXTURE_NOT_FOUND.matcher(text).find();
 		}
 
 		@Override
@@ -466,6 +482,15 @@ public class CheckDialog extends JDialog
 	/** @return a target that selects the segment in the track view and opens the segment dialog */
 	private Target segment(final Segment segment)
 	{
+		return segment(segment, null);
+	}
+
+	/**
+	 * @return a target that selects the segment in the track view and opens the
+	 *         segment dialog on the tab: Left or Right for a side, null for as it is
+	 */
+	private Target segment(final Segment segment, final String tab)
+	{
 		if (segment == null)
 			return null;
 		return () ->
@@ -473,7 +498,7 @@ public class CheckDialog extends JDialog
 			// it blocks the track view and the segment dialog
 			if (editorFrame.isPropertiesOpen())
 				return "Close the Properties dialog to show segment " + segment.getName();
-			return editorFrame.getCircuitView().showSegment(segment) ? null
+			return editorFrame.getCircuitView().showSegment(segment, tab) ? null
 				: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
 		};
 	}
@@ -524,6 +549,8 @@ public class CheckDialog extends JDialog
 				Curve curve = (Curve) segment;
 				double startWidth = trackData.getMainTrack().getValidWidth() / 2.0;
 				double endWidth = startWidth;
+				// the side on the inside of the curve, whose border and side reach its centre
+				String inside = segment.getType().equals("rgt") ? "Right" : "Left";
 
 				if (segment.getType().equals("rgt"))
 				{
@@ -544,11 +571,11 @@ public class CheckDialog extends JDialog
 
 				if (startWidth > curve.getRadiusStart())
 				{
-					report.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n", segment(curve));
+					report.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n", segment(curve, inside));
 				}
 				if (endWidth > curve.getValidRadiusEnd())
 				{
-					report.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n", segment(curve));
+					report.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n", segment(curve, inside));
 				}
 			}
 		}
@@ -566,8 +593,9 @@ public class CheckDialog extends JDialog
 			Segment segment = segments.get(i);
 			Segment previousSegment = i > 0 ? segments.get(i - 1) : null;
 
-			report.about(segment(segment));
+			report.about(segment(segment, "Left"));
 			checkSide(segment, previousSegment, segment.getLeft(), "Left", false);
+			report.about(segment(segment, "Right"));
 			checkSide(segment, previousSegment, segment.getRight(), "Right", true);
 		}
 		report.about(null);
@@ -696,69 +724,12 @@ public class CheckDialog extends JDialog
 		}
 	}
 
+	/** The side's values the game ignores or reads differently (GameSides.problems: the segment dialog shows them too) */
 	private void checkSide(Segment segment, Segment previousSegment, SegmentSide side, String name, boolean right)
 	{
-		GameSides.State state = GameSides.of(segment, right, editorFrame);
 		String prefix = "Segment " + segment.getName() + " " + name;
-
-		// border
-		String borderStyle = side.getBorderStyle();
-		if (borderStyle != null && !borderStyle.isEmpty() &&
-			!borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
-		{
-			report.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
-		}
-		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
-		if (editorFrame.getGameType().planBorderResetsHeight() &&
-			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
-		{
-			report.append(prefix + " border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
-		}
-
-		// barrier
-		String barrierStyle = side.getBarrierStyle();
-		boolean fence = state.barrierStyle.startsWith("fence");
-		boolean walls = editorFrame.getGameType().otherBarrierStylesAreWalls();
-		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") &&
-			!(barrierStyle.equals("no barrier") && !walls) &&
-			!barrierStyle.equals("fence") && !(editorFrame.getGameType().hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
-		{
-			if (walls)
-				report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall\n");
-			else
-				report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before\n");
-		}
-		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
-		{
-			report.append(prefix + " barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
-		}
-		if (state.barrierStyle.equals("no barrier") && !Double.isNaN(side.getBarrierHeight()) && side.getBarrierHeight() != 0)
-		{
-			report.append(prefix + " barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)\n");
-		}
-
-		if (previousSegment == null)
-			return;
-
-		// a new style takes its size from the previous segment unless it is set
-		GameSides.State previous = GameSides.of(previousSegment, right, editorFrame);
-		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
-		{
-			report.append(prefix + " border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")\n");
-		}
-		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
-		{
-			report.append(prefix + " barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")\n");
-		}
-		// CSR's track loader takes a missing barrier style from a list that has no
-		// "no barrier", so after one it reads past the end of the list (once per run
-		// of segments: reported where the run starts)
-		SegmentSide previousSide = right ? previousSegment.getRight() : previousSegment.getLeft();
-		if (editorFrame.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
-			(barrierStyle == null || barrierStyle.isEmpty()))
-		{
-			report.append(prefix + " follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash\n");
-		}
+		for (GameSides.Problem problem : GameSides.problems(segment, previousSegment, right, editorFrame))
+			report.append(prefix + " " + problem.text + "\n");
 	}
 
 	/**
@@ -1000,11 +971,8 @@ public class CheckDialog extends JDialog
 	}
 
 	/**
-	 * Checks where To Start puts a camera, as the game reads it: in the unit the
-	 * file gives (deg becomes rad, ft becomes m), then as a length along a
-	 * straight or as an angle in radians round a curve. Past the end of a
-	 * straight is still on its line, and often meant; past the end of a curve
-	 * goes on round its circle, away from the road.
+	 * Checks where To Start puts a camera, as the game reads it: the camera's
+	 * tab shows the same (CameraProperties.toStartProblem).
 	 */
 	private void checkCameraPlace(utils.circuit.Camera camera, SegmentVector segments)
 	{
@@ -1015,54 +983,9 @@ public class CheckDialog extends JDialog
 		boolean curve = !segment.getType().equals("str");
 		// a camera made here is saved in degrees on a curve and without a unit on a straight
 		String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : curve ? "deg" : null;
-		boolean angle = "deg".equals(units) || "rad".equals(units);
-		boolean length = units != null && !units.isEmpty() && !angle;
-		double read = units == null || units.isEmpty() ? value
-			: plugin.torcs.GfParmNumbers.toSI(units, value, editorFrame.getGameType(), null);
-		String name = "Camera " + camera.getName() + ": ";
-		String given = format(value) + (length || angle ? " " + units : "");
-		if (curve && length)
-		{
-			report.append(name + "to start " + given + " is a length on curve " + segment.getName()
-				+ ": the game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
-				+ " deg) round the curve, so the camera is far from where it should be\n");
-			return;
-		}
-		if (!curve && angle && value != 0)
-		{
-			report.append(name + "to start " + given + " is an angle on straight " + segment.getName()
-				+ ": the game reads it as " + format(read) + " m along it\n");
-			return;
-		}
-		if (curve)
-		{
-			double arc = ((Curve) segment).getArcRad();
-			if (Double.isNaN(arc))
-				return;
-			double past = read > arc ? read - arc : read < 0 ? -read : 0;
-			if (past <= Math.toRadians(1))
-				return;
-			boolean bare = units == null || units.isEmpty();
-			String text = name + "to start " + given + (bare ? " (radians, " + format(Math.toDegrees(read)) + " deg)" : "");
-			if (Math.abs(read) >= 2 * Math.PI)
-			{
-				// round and round the same circle
-				double turned = Math.toDegrees(read) % 360;
-				if (turned < 0)
-					turned += 360;
-				text += " is more than a full turn round curve " + segment.getName() + " (" + format(Math.toDegrees(arc))
-					+ " deg): the game puts the camera " + format(turned) + " deg round its circle from its start";
-			}
-			else
-				text += " is " + (read < 0 ? "before the start" : "past the end") + " of curve " + segment.getName() + " ("
-					+ format(Math.toDegrees(arc)) + " deg): the game puts the camera " + format(Math.toDegrees(past)) + " deg "
-					+ (read < 0 ? "before it" : "past it") + ", on the same circle";
-			// more than a turn without a unit: most likely meant as meters along the curve
-			double radius = ((Curve) segment).getRadiusStart();
-			if (bare && Math.abs(read) > 2 * Math.PI && !Double.isNaN(radius) && radius > 0)
-				text += "; if " + format(value) + " was meant as meters along it, that is " + format(Math.toDegrees(value / radius)) + " deg";
-			report.append(text + "\n");
-		}
+		String problem = gui.properties.CameraProperties.toStartProblem(segment, value, units, editorFrame.getGameType());
+		if (problem != null)
+			report.append("Camera " + camera.getName() + ": " + problem + "\n");
 	}
 
 	/** @return a number with at most 2 decimals, and none when it is whole */
@@ -1483,6 +1406,49 @@ public class CheckDialog extends JDialog
 			previousHeightEndLeft = heightEndLeft;
 			previousHeightEndRight = heightEndRight;
 		}
+		checkTrackEndHeight(segments);
+	}
+
+	/**
+	 * The end of the last segment meets the start of the first. When the file
+	 * gives both heights, checkTrackHeight compares them; otherwise the missing
+	 * one is worked out as the game does: from the last grade, or kept from the
+	 * segment before, and the track starts at 0.
+	 */
+	private void checkTrackEndHeight(SegmentVector segments)
+	{
+		if (segments.isEmpty())
+			return;
+		Segment first = segments.get(0);
+		Segment last = segments.get(segments.size() - 1);
+		boolean lastGiven = last.hasHeightEnd() || (last.hasHeightEndLeft() && last.hasHeightEndRight());
+		boolean firstGiven = first.hasHeightStart() || first.hasHeightStartLeft() || first.hasHeightStartRight();
+		if (lastGiven && firstGiven)
+			return;
+
+		trackData.calculateSegmentValues();
+		double endLeft = last.getCalculatedHeightEndLeft();
+		double endRight = last.getCalculatedHeightEndRight();
+		double startLeft = first.getCalculatedHeightStartLeft();
+		double startRight = first.getCalculatedHeightStartRight();
+		// a millimetre: the heights worked out add up lengths and grades
+		double tolerance = 0.001;
+		if (Double.isNaN(endLeft) || Double.isNaN(endRight) || Double.isNaN(startLeft) || Double.isNaN(startRight)
+			|| (Math.abs(endLeft - startLeft) <= tolerance && Math.abs(endRight - startRight) <= tolerance))
+			return;
+
+		report.append("Segment " + last.getName() + " : height end " + heights(endLeft, endRight)
+			+ (lastGiven ? "" : " (worked out: no height end is given)") + " doesn't match the start of first segment "
+			+ first.getName() + " " + heights(startLeft, startRight)
+			+ (firstGiven ? "" : " (no height start is given, so it starts at 0)") + "\n", segment(last));
+	}
+
+	/** @return one height when both sides have it, else left and right */
+	private static String heights(double left, double right)
+	{
+		if (Math.abs(left - right) <= 0.001)
+			return format((left + right) / 2);
+		return "left " + format(left) + " right " + format(right);
 	}
 
 	private void checkGraphic()
@@ -2555,12 +2521,12 @@ public class CheckDialog extends JDialog
 			Segment segment = trackData.getSegments().get(i);
 
 			checkSurface(segment.getSurface(), "Segment " + segment.getName() + " Track", segment(segment));
-			checkSurface(segment.getLeft().getBorderSurface(), "Segment " + segment.getName() + " Left Border", segment(segment));
-			checkSurface(segment.getLeft().getSideSurface(), "Segment " + segment.getName() + " Left Side", segment(segment));
-			checkSurface(segment.getLeft().getBarrierSurface(), "Segment " + segment.getName() + " Left Barrier", segment(segment));
-			checkSurface(segment.getRight().getBorderSurface(), "Segment " + segment.getName() + " Right Border", segment(segment));
-			checkSurface(segment.getRight().getSideSurface(), "Segment " + segment.getName() + " Right Side", segment(segment));
-			checkSurface(segment.getRight().getBarrierSurface(), "Segment " + segment.getName() + " Right Barrier", segment(segment));
+			checkSurface(segment.getLeft().getBorderSurface(), "Segment " + segment.getName() + " Left Border", segment(segment, "Left"));
+			checkSurface(segment.getLeft().getSideSurface(), "Segment " + segment.getName() + " Left Side", segment(segment, "Left"));
+			checkSurface(segment.getLeft().getBarrierSurface(), "Segment " + segment.getName() + " Left Barrier", segment(segment, "Left"));
+			checkSurface(segment.getRight().getBorderSurface(), "Segment " + segment.getName() + " Right Border", segment(segment, "Right"));
+			checkSurface(segment.getRight().getSideSurface(), "Segment " + segment.getName() + " Right Side", segment(segment, "Right"));
+			checkSurface(segment.getRight().getBarrierSurface(), "Segment " + segment.getName() + " Right Barrier", segment(segment, "Right"));
 		}
 		checkSurface(trackData.getGraphic().getTerrainGeneration().getSurface(), "Terrain", properties("Terrain"));
 	}

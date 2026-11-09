@@ -190,4 +190,92 @@ public final class GameSides
 	{
 		return value == null || value.isEmpty() ? inherited : value;
 	}
+
+	/** What the game makes differently of a side's own value: the field is the value's name */
+	public static final class Problem
+	{
+		/** border style, border height, barrier style, barrier width or barrier height */
+		public final String	field;
+		/** what the game does, starting with the field's name */
+		public final String	text;
+
+		Problem(String field, String text)
+		{
+			this.field = field;
+			this.text = text;
+		}
+	}
+
+	/**
+	 * @param previousSegment the segment before, null for the first one
+	 * @return the values the side has that the game ignores or reads differently,
+	 *         as Check and the segment dialog show them
+	 */
+	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, EditorFrame editorFrame)
+	{
+		java.util.List<Problem> problems = new ArrayList<Problem>();
+		SegmentSide side = right ? segment.getRight() : segment.getLeft();
+		State state = of(segment, right, editorFrame);
+		EditorFrame.GameType game = editorFrame.getGameType();
+
+		// border
+		String borderStyle = side.getBorderStyle();
+		if (borderStyle != null && !borderStyle.isEmpty() &&
+			!borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
+		{
+			problems.add(new Problem("border style", "border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall"));
+		}
+		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
+		if (game.planBorderResetsHeight() &&
+			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
+		{
+			problems.add(new Problem("border height", "border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height"));
+		}
+
+		// barrier
+		String barrierStyle = side.getBarrierStyle();
+		boolean fence = state.barrierStyle.startsWith("fence");
+		boolean walls = game.otherBarrierStylesAreWalls();
+		if (barrierStyle != null && !barrierStyle.isEmpty() && !barrierStyle.equals("wall") &&
+			!(barrierStyle.equals("no barrier") && !walls) &&
+			!barrierStyle.equals("fence") && !(game.hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
+		{
+			if (walls)
+				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall"));
+			else
+				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before"));
+		}
+		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
+		{
+			problems.add(new Problem("barrier width", "barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width"));
+		}
+		if (state.barrierStyle.equals("no barrier") && !Double.isNaN(side.getBarrierHeight()) && side.getBarrierHeight() != 0)
+		{
+			problems.add(new Problem("barrier height", "barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)"));
+		}
+
+		if (previousSegment == null)
+			return problems;
+
+		// a new style takes its size from the previous segment unless it is set
+		State previous = of(previousSegment, right, editorFrame);
+		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
+		{
+			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")"));
+		}
+		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
+		{
+			problems.add(new Problem("barrier width", "barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")"));
+		}
+		// CSR's track loader takes a missing barrier style from a list that has no
+		// "no barrier", so after one it reads past the end of the list (once per run
+		// of segments: reported where the run starts)
+		SegmentSide previousSide = right ? previousSegment.getRight() : previousSegment.getLeft();
+		if (editorFrame.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
+			(barrierStyle == null || barrierStyle.isEmpty()))
+		{
+			problems.add(new Problem("barrier style", "follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash"));
+		}
+		return problems;
+	}
 }

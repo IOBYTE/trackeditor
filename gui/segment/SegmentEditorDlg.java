@@ -257,6 +257,14 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		}
 		return jTabbedPane;
 	}
+
+	/** Shows the tab with the title: Left, Center or Right */
+	public void showTab(String title)
+	{
+		int i = getJTabbedPane().indexOfTab(title);
+		if (i >= 0)
+			getJTabbedPane().setSelectedIndex(i);
+	}
 	/**
 	 * This method initializes centerPanel
 	 *
@@ -1188,6 +1196,16 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		}
 		changed();
 		dirty = true;
+		showSideProblems();
+	}
+
+	/** Shows what the game makes differently of the sides as they are now (see SegmentSideProperties.showProblems) */
+	private void showSideProblems()
+	{
+		if (leftPanel != null)
+			leftPanel.showProblems();
+		if (rightPanel != null)
+			rightPanel.showProblems();
 	}
 	/**
 	 * This method initializes rightPanel
@@ -1226,6 +1244,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		view.redrawCircuit();
 		changed();
 		dirty = true;
+		showSideProblems();
 	}
 	/**
 	 * This method initializes groupButton

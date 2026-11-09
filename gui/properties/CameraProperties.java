@@ -171,6 +171,75 @@ public class CameraProperties extends PropertyPanel
 		return tabbedPane;
 	}
 
+	/**
+	 * Says where To Start puts a camera when it isn't likely where it was meant,
+	 * as the game reads it: in the unit the file gives (deg becomes rad, ft
+	 * becomes m), then as a length along a straight or as an angle in radians
+	 * round a curve. Past the end of a straight is still on its line, and often
+	 * meant; past the end of a curve goes on round its circle, away from the
+	 * road. Check and the camera's tab both say it.
+	 *
+	 * @param units the unit To Start is saved in, null or empty for none
+	 * @return the problem, starting "to start", or null
+	 */
+	public static String toStartProblem(Segment segment, double value, String units, EditorFrame.GameType game)
+	{
+		if (segment == null || Double.isNaN(value))
+			return null;
+		boolean curve = !segment.getType().equals("str");
+		boolean angle = "deg".equals(units) || "rad".equals(units);
+		boolean length = units != null && !units.isEmpty() && !angle;
+		double read = units == null || units.isEmpty() ? value
+			: plugin.torcs.GfParmNumbers.toSI(units, value, game, null);
+		String given = format(value) + (length || angle ? " " + units : "");
+		if (curve && length)
+		{
+			return "to start " + given + " is a length on curve " + segment.getName()
+				+ ": the game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
+				+ " deg) round the curve, so the camera is far from where it should be";
+		}
+		if (!curve && angle && value != 0)
+		{
+			return "to start " + given + " is an angle on straight " + segment.getName()
+				+ ": the game reads it as " + format(read) + " m along it";
+		}
+		if (!curve)
+			return null;
+		double arc = ((Curve) segment).getArcRad();
+		if (Double.isNaN(arc))
+			return null;
+		double past = read > arc ? read - arc : read < 0 ? -read : 0;
+		if (past <= Math.toRadians(1))
+			return null;
+		boolean bare = units == null || units.isEmpty();
+		String text = "to start " + given + (bare ? " (radians, " + format(Math.toDegrees(read)) + " deg)" : "");
+		if (Math.abs(read) >= 2 * Math.PI)
+		{
+			// round and round the same circle
+			double turned = Math.toDegrees(read) % 360;
+			if (turned < 0)
+				turned += 360;
+			text += " is more than a full turn round curve " + segment.getName() + " (" + format(Math.toDegrees(arc))
+				+ " deg): the game puts the camera " + format(turned) + " deg round its circle from its start";
+		}
+		else
+			text += " is " + (read < 0 ? "before the start" : "past the end") + " of curve " + segment.getName() + " ("
+				+ format(Math.toDegrees(arc)) + " deg): the game puts the camera " + format(Math.toDegrees(past)) + " deg "
+				+ (read < 0 ? "before it" : "past it") + ", on the same circle";
+		// more than a turn without a unit: most likely meant as meters along the curve
+		double radius = ((Curve) segment).getRadiusStart();
+		if (bare && Math.abs(read) > 2 * Math.PI && !Double.isNaN(radius) && radius > 0)
+			text += "; if " + format(value) + " was meant as meters along it, that is " + format(Math.toDegrees(value / radius)) + " deg";
+		return text;
+	}
+
+	/** @return a number with at most 2 decimals, and none when it is whole */
+	private static String format(double value)
+	{
+		String text = String.format(java.util.Locale.US, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+		return "-0".equals(text) ? "0" : text;
+	}
+
 	private class CameraPanel extends JPanel
 	{
 		private final Camera	item;	// what this tab shows and Ok changes
@@ -463,10 +532,19 @@ public class CameraProperties extends PropertyPanel
 			return "-0".equals(text) ? "0" : text;
 		}
 
-		/** Explains a field, on it and on its label. */
+		/** @return the text with the characters HTML gives a meaning escaped */
+		private String escape(String text)
+		{
+			return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+		}
+
+		/** Explains a field, on it and on its label: a long line, like a warning, wraps. */
 		private void tip(JLabel label, JTextField field, String... lines)
 		{
-			String text = "<html>" + String.join("<br>", lines) + "</html>";
+			boolean longLine = false;
+			for (String line : lines)
+				longLine |= line.replaceAll("<[^>]*>", "").length() > 100;
+			String text = (longLine ? "<html><body style='width: 450px'>" : "<html>") + String.join("<br>", lines) + "</html>";
 			for (JComponent c : new JComponent[] { label, field })
 				c.setToolTipText(text);
 		}
@@ -485,6 +563,9 @@ public class CameraProperties extends PropertyPanel
 			Segment segment = getEditorFrame().getSegment(segmentTextField.getText().trim());
 			String units = savedUnits(segment);
 			String text, tip = null;
+			// what Check says, and whether Fix has something to offer for it
+			String warning = null;
+			boolean fixable = false;
 			if (segment == null)
 				text = unitsKnown && units != null ? units : "m or deg";
 			else
@@ -501,9 +582,13 @@ public class CameraProperties extends PropertyPanel
 						+ " is turned into radians and read as meters";
 				else if (curve && Math.abs(read(value, units)) >= 2 * Math.PI)
 					tip = "This is more than a full turn round the curve: the game puts the camera round and round its circle";
+				fixable = tip != null;
+				warning = toStartProblem(segment, value, units, getEditorFrame().getGameType());
 			}
+			boolean problem = fixable || warning != null;
 			toStartLabel.setText("To Start (" + text + ")");
-			toStartLabel.setForeground(tip != null ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
+			toStartLabel.setForeground(problem ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
+			toStartTextField.setForeground(problem ? java.awt.Color.RED : UIManager.getColor("TextField.foreground"));
 			String[] lines;
 			if (segment == null)
 				lines = new String[] { "How far along the segment from its start.",
@@ -521,15 +606,25 @@ public class CameraProperties extends PropertyPanel
 					"the further along the road the same angle is.",
 					"More than the curve's arc puts the camera past its end, on the same circle.",
 					"Empty is 0, the segment's start." };
-			if (tip != null)
+			if (problem)
 			{
-				lines = java.util.Arrays.copyOf(lines, lines.length + 2);
-				lines[lines.length - 2] = "<font color=red>" + tip + ".</font>";
-				lines[lines.length - 1] = "<font color=red>Fix offers what was most likely meant, or the same place in a unit that fits.</font>";
+				// the warning Check gives, then why and what Fix offers
+				java.util.List<String> more = new java.util.ArrayList<String>(java.util.Arrays.asList(lines));
+				more.add("");
+				if (warning != null)
+					more.add("<font color=red><b>Warning:</b> " + escape(Character.toUpperCase(warning.charAt(0)) + warning.substring(1)) + ".</font>");
+				if (fixable)
+				{
+					// the warning says it already
+					if (warning == null)
+						more.add("<font color=red>" + tip + ".</font>");
+					more.add("<font color=red>Fix offers what was most likely meant, or the same place in a unit that fits.</font>");
+				}
+				lines = more.toArray(new String[0]);
 			}
 			tip(toStartLabel, toStartTextField, lines);
-			fixButton.setVisible(tip != null);
-			toStartProblem = tip != null;
+			fixButton.setVisible(fixable);
+			toStartProblem = problem;
 			showTabProblem();
 		}
 	}

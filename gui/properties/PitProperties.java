@@ -374,6 +374,8 @@ public class PitProperties extends PropertyPanel
 		if (fitButton == null)
 		{
 			fitButton = new JButton("Fit Segments");
+			// it only shows when there is a problem to fix
+			fitButton.setForeground(java.awt.Color.RED);
 			fitButton.setVisible(false);
 			fitButton.addActionListener(new ActionListener()
 			{

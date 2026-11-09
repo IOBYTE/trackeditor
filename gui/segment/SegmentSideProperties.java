@@ -85,6 +85,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private boolean				updatingBarrierStyle	= false;
 	// true while setSide fills in the controls: that isn't an edit
 	private boolean				filling					= false;
+	// the segment the side belongs to, for its problems
+	private Segment				segment					= null;
 	private String[]			barrierSurfaceItems		=
 														{"barrier", "barrier2", "barrier-turn", "barrier-grille",
 			"wall", "wall2", "tire-wall", "asphalt-lines", "asphalt-l-left", "asphalt-l-right", "asphalt-l-both",
@@ -239,6 +241,21 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel.add(getSideEndWidthSlider(), null);
 			panel.add(getBarrierWidthSlider(), null);
 			panel.add(getBorderHeightSlider(), null);
+
+			// laid out as the track is seen from above: the left side goes barrier,
+			// side, border towards the track, and the right side border, side,
+			// barrier away from it
+			if (side.isRight())
+			{
+				// the barrier and border columns are the same distance from the side
+				int shift = getBorderSurfaceComboBox().getX() - getBarrierSurfaceComboBox().getX();
+				for (java.awt.Component c : new java.awt.Component[] { barrierLabel, barrierSurfaceLabel, barrierStyleLabel,
+					getBarrierSurfaceComboBox(), getBarrierStyleComboBox(), getBarrierHeightSlider(), getBarrierWidthSlider() })
+					c.setLocation(c.getX() + shift, c.getY());
+				for (java.awt.Component c : new java.awt.Component[] { borderLabel, borderSurfaceLabel, borderStyleLabel,
+					getBorderSurfaceComboBox(), getBorderStyleComboBox(), getBorderHeightSlider(), getBorderWidthSlider() })
+					c.setLocation(c.getX() - shift, c.getY());
+			}
 		}
 		return panel;
 	}
@@ -853,6 +870,61 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			filling = false;
 		}
+		// before the panel exists there is nothing to show them on
+		if (panel != null)
+			showProblems();
+	}
+
+	/**
+	 * Shows the side's values that the game ignores or reads differently, the ones
+	 * Check reports (GameSides.problems), in red, with why in their tool tips.
+	 */
+	public void showProblems()
+	{
+		if (segment == null || side == null)
+			return;
+		java.util.Map<String, StringBuilder> tips = new java.util.HashMap<String, StringBuilder>();
+		utils.SegmentVector segments = parent.editorFrame.getTrackData().getSegments();
+		int i = segments == null ? -1 : segments.indexOf(segment);
+		Segment previous = i > 0 ? segments.get(i - 1) : null;
+		for (utils.circuit.GameSides.Problem problem : utils.circuit.GameSides.problems(segment, previous, side.isRight(), parent.editorFrame))
+		{
+			StringBuilder tip = tips.get(problem.field);
+			if (tip == null)
+				tips.put(problem.field, tip = new StringBuilder());
+			else
+				tip.append("<br>");
+			tip.append("<b>Warning:</b> ").append(Character.toUpperCase(problem.text.charAt(0))).append(problem.text.substring(1)
+				.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
+		}
+		getBorderHeightSlider().setProblem(tip(tips.get("border height")));
+		getBarrierWidthSlider().setProblem(tip(tips.get("barrier width")));
+		getBarrierHeightSlider().setProblem(tip(tips.get("barrier height")));
+		// a version 3 track's barrier comes from the Main Track, and says so
+		if (isVersion3())
+		{
+			for (SegmentSlider slider : new SegmentSlider[] { getBarrierWidthSlider(), getBarrierHeightSlider() })
+			{
+				if (slider.getToolTipText() == null)
+					setToolTip(slider, VERSION3_BARRIER_TIP);
+			}
+		}
+		showProblem(getBorderStyleComboBox(), borderStyleLabel, tip(tips.get("border style")));
+		showProblem(getBarrierStyleComboBox(), barrierStyleLabel, tip(tips.get("barrier style")));
+	}
+
+	/** @return the warnings as a tool tip that wraps, null for none */
+	private static String tip(StringBuilder warnings)
+	{
+		return warnings == null ? null : "<html><body style='width: 350px'><font color=red>" + warnings + "</font></body></html>";
+	}
+
+	private static void showProblem(JComboBox<String> comboBox, JLabel label, String tip)
+	{
+		comboBox.setForeground(tip != null ? java.awt.Color.RED : javax.swing.UIManager.getColor("ComboBox.foreground"));
+		comboBox.setToolTipText(tip);
+		label.setForeground(tip != null ? java.awt.Color.RED : javax.swing.UIManager.getColor("Label.foreground"));
+		label.setToolTipText(tip);
 	}
 
 	/**
@@ -883,6 +955,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private void fillSide(Segment segment, SegmentSide side, boolean fixes)
 	{
 		this.side = side;
+		this.segment = segment;
 
 		// update side
 		String surface = this.side.getSideSurface();

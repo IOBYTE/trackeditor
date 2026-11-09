@@ -333,6 +333,41 @@ public class SegmentSlider extends JPanel
 		this.sectionLabel.setText(section);
 	}
 
+	// the check box was enabled so a value with a problem can be removed
+	private boolean	problemUnlocked	= false;
+
+	/**
+	 * Shows the value in red, with why in its tool tip, or as usual again. A
+	 * value that can't be changed here (frozen: the style has no such value) can
+	 * still be removed, by unticking its check box.
+	 *
+	 * @param tip the tool tip saying what is wrong, null for none
+	 */
+	public void setProblem(String tip)
+	{
+		java.awt.Color red = java.awt.Color.RED;
+		boolean frozen = !getTextField().isEnabled();
+		if (tip != null && frozen && optional && !Double.isNaN(value))
+		{
+			checkBox.setEnabled(true);
+			problemUnlocked = true;
+			tip = tip.replace("</body></html>", "<br>Untick the box to remove it.</body></html>");
+		}
+		else if (problemUnlocked && (tip == null || !checkBox.isSelected()))
+		{
+			checkBox.setEnabled(!frozen && enabled);
+			problemUnlocked = false;
+		}
+		getTextField().setDisabledTextColor(tip != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
+		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
+		attLabel.setForeground(tip != null ? red : javax.swing.UIManager.getColor("Label.foreground"));
+		sectionLabel.setForeground(tip != null ? red : javax.swing.UIManager.getColor("Label.foreground"));
+		for (javax.swing.JComponent c : new javax.swing.JComponent[] { this, getTextField(), attLabel, sectionLabel, getSlider() })
+			c.setToolTipText(tip);
+		if (checkBox != null)
+			checkBox.setToolTipText(tip);
+	}
+
 	/**
 	 * @return Returns the attLabel.
 	 */
