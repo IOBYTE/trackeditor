@@ -126,6 +126,8 @@ public class GraphicProperties extends PropertyPanel
 		addLabel(this, 18, fovFactorLabel, "Fov Factor", 150);
 
 		addTextField(this, 0, backgroundImageTextField, getEditorFrame().getTrackData().getGraphic().getBackgroundImage(), 160, 275);
+		// shown in red when it isn't found, where Check looks for it
+		showTextureFound(backgroundImageTextField);
 
 		add(getBackgroundTypeComboBox(), null);
 

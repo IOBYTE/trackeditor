@@ -156,6 +156,17 @@ public class Graphic3DProperties extends PropertyPanel
 			addTextField(this, 21, environmentObjectsTextField, getEditorFrame().getTrackData().getGraphic().getEnvironmentObjects(), 160, 275);
 		}
 
+		// the tool tips say where the files are, or that they aren't found (in red)
+		String trackFolder = Properties.getInstance().getPath();
+		showFileFound(descriptionTextField, "in the track's folder", trackFolder);
+		if (getEditorFrame().getGameType().hasTypeObjectFiles())
+		{
+			for (JTextField field : new JTextField[] { terrainObjectsTextField, roadObjectsTextField, road2ObjectsTextField, treesObjectsTextField, buildingObjectsTextField,
+				houseObjectsTextField, carsObjectsTextField, truckObjectsTextField, tribunesObjectsTextField, pubObjectsTextField, decorsObjectsTextField, waterObjectsTextField,
+				grassObjectsTextField, sandObjectsTextField, rockObjectsTextField, curbObjectsTextField, fenceObjectsTextField, barrierObjectsTextField, wallObjectsTextField, environmentObjectsTextField })
+				showFileFound(field, "in the track's folder", trackFolder);
+		}
+
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
 			add(getTerrainObjectsButton(), null);

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
@@ -171,6 +172,8 @@ public class TrackEditor
 		} catch (Exception e)
 		{
 		}
+		// tooltips stay until the mouse leaves: some, like file paths, take a while to read
+		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
 		System.out.println("Track editor    : "+Properties.getInstance().version);
 		System.out.println("Java version    : "+System.getProperty("java.version"));
 		System.out.println("OS              : "+System.getProperty("os.name"));

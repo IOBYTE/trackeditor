@@ -360,6 +360,8 @@ public class ObjectProperties extends PropertyPanel
 			addTextField(this, 0, nameTextField, object.getName(), 120, 125);
 			markItemName(nameTextField);
 			addTextField(this, 1, objectTextField, object.getObject(), 120, 290);
+			// the tool tip says where the model is, or that it isn't found (in red)
+			showObjectFileFound(objectTextField);
 			addTextField(this, 2, commentTextField, object.getComment(), 120, 380);
 			addTextField(this, 3, colorTextField, toHexString(object.getColor()), 120, 125);
 			setHexTextField(colorTextField, object.getColor());

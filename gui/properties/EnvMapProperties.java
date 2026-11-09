@@ -184,6 +184,8 @@ public class EnvMapProperties extends PropertyPanel
 			addTextField(this, 0, nameTextField, name, 130, 100);
 			markItemName(nameTextField);
 			addTextField(this, 1, envMapTextField, environmentMap, 130, 280);
+			// shown in red when it isn't found, where Check looks for it
+			showTextureFound(envMapTextField);
 
 			add(getEnvMapButton(), null);
 		}

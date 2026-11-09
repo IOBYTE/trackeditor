@@ -59,6 +59,7 @@ import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
 import utils.circuit.GameSides;
+import utils.circuit.Graphic;
 import utils.circuit.GraphicObject;
 import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjShapeTerrain;
@@ -80,6 +81,8 @@ public class CheckDialog extends JDialog
 	// all of them, also the ones about the objects' models that are hidden
 	private final java.util.List<Message>	allMessages	= new java.util.ArrayList<Message>();
 	private final JToggleButton	objectFilesButton	= new JToggleButton();
+	private final JToggleButton	pngButton			= new JToggleButton();
+	private final JToggleButton	savingButton		= new JToggleButton();
 	private final JList<Message>	list			= new JList<Message>(messages);
 	private final Report		report			= new Report();
 	private EditorFrame			editorFrame		= null;
@@ -177,16 +180,27 @@ public class CheckDialog extends JDialog
 		// an object's model is often from elsewhere: its problems are hidden unless asked for
 		objectFilesButton.setToolTipText("Shows or hides the messages about the objects' models: their AC3D files and textures");
 		objectFilesButton.addActionListener(e -> showMessages());
+		// the game reads .rgb textures too: converting them is only a suggestion
+		pngButton.setToolTipText("Shows or hides the messages about .rgb textures that should be converted to png");
+		pngButton.addActionListener(e -> showMessages());
+		// keys the editor doesn't keep are often only left over from an older version
+		savingButton.setToolTipText("Shows or hides the messages about what the file has that saving removes");
+		savingButton.addActionListener(e -> showMessages());
 		JButton close = new JButton("Close");
 		close.addActionListener(e -> close());
 		JPanel buttons = new JPanel(new BorderLayout());
+		// the show/hide buttons have a row of their own, so the rest fits beside Close
+		JPanel shown = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		shown.add(objectFilesButton);
+		shown.add(pngButton);
+		shown.add(savingButton);
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		left.add(recheck);
 		left.add(copy);
-		left.add(objectFilesButton);
 		left.add(new JLabel("Double-click a message to show what it is about"));
 		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		right.add(close);
+		buttons.add(shown, BorderLayout.NORTH);
 		buttons.add(left, BorderLayout.CENTER);
 		buttons.add(right, BorderLayout.EAST);
 
@@ -218,6 +232,8 @@ public class CheckDialog extends JDialog
 		trackData = editorFrame.getTrackData();
 		if (trackData == null)
 			return;
+		// the game's data folder can have been set in Preferences since
+		dataDirectory = editorFrame.getDataDirectory();
 		defaultSurfaces = trackData.getHasSurfacesReference() ? editorFrame.getDefaultSurfaces() : new Vector<Surface>();
 		defaultObjects = trackData.getHasObjectsReference() ? editorFrame.getDefaultObjects() : new Vector<TrackObject>();
 
@@ -231,6 +247,7 @@ public class CheckDialog extends JDialog
 		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
 			check(properties("Lights"), this::checkTrackLights);
 		check(properties("Graphic"), this::checkGraphic);
+		check(properties("Graphic 3D"), this::checkGraphic3D);
 		check(properties("Pit"), this::checkPits);
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
@@ -242,25 +259,49 @@ public class CheckDialog extends JDialog
 		showMessages();
 	}
 
-	/** Shows the messages, without the ones about the objects' models unless they are asked for */
+	/**
+	 * Shows the messages, without the ones about the objects' models, about
+	 * converting textures to png or about what saving removes, unless they are
+	 * asked for. Each button counts the messages it would show.
+	 */
 	private void showMessages()
 	{
+		boolean showObjects = objectFilesButton.isSelected();
+		boolean showPng = pngButton.isSelected();
+		boolean showSaving = savingButton.isSelected();
 		int objectFiles = 0;
+		int png = 0;
+		int saving = 0;
 		for (Message message : allMessages)
 		{
-			if (message.objectFile)
+			boolean objectsShown = showObjects || !message.objectFile;
+			boolean pngShown = showPng || !message.png;
+			boolean savingShown = showSaving || !message.saving;
+			if (message.objectFile && pngShown && savingShown)
 				objectFiles++;
+			if (message.png && objectsShown && savingShown)
+				png++;
+			if (message.saving && objectsShown && pngShown)
+				saving++;
 		}
-		boolean show = objectFilesButton.isSelected();
-		objectFilesButton.setText((show ? "Hide" : "Show") + " object messages (" + objectFiles + ")");
-		objectFilesButton.setEnabled(objectFiles > 0 || show);
+		showCount(objectFilesButton, "object messages", objectFiles);
+		showCount(pngButton, "convert to png messages", png);
+		showCount(savingButton, "saving removes messages", saving);
 
 		messages.clear();
 		for (Message message : allMessages)
 		{
-			if (show || !message.objectFile)
+			if ((showObjects || !message.objectFile) && (showPng || !message.png) && (showSaving || !message.saving))
 				messages.addElement(message);
 		}
+	}
+
+	/** Names what a show/hide button does, with how many messages it shows */
+	private static void showCount(JToggleButton button, String what, int count)
+	{
+		boolean shown = button.isSelected();
+		button.setText((shown ? "Hide " : "Show ") + what + " (" + count + ")");
+		button.setEnabled(count > 0 || shown);
 	}
 
 	/** Runs a check whose messages are about the target unless they say otherwise */
@@ -309,6 +350,12 @@ public class CheckDialog extends JDialog
 		String show();
 	}
 
+	/** What the messages say about something in the file that saving removes */
+	private static final java.util.regex.Pattern	SAVING_MESSAGE	= java.util.regex.Pattern.compile("\\bsaving (for \\S+ )?removes (it|this one)\\b");
+
+	/** How the messages suggesting converting a texture to png end */
+	private static final String	PNG_MESSAGE	= " should be converted to png format";
+
 	/** For a message about nothing the editor can show */
 	private static final Target	NONE	= () -> null;
 
@@ -318,12 +365,18 @@ public class CheckDialog extends JDialog
 		final Target	target;
 		// about an object's model: its AC3D file or textures
 		final boolean	objectFile;
+		// only suggests converting an .rgb texture to png
+		final boolean	png;
+		// says the file has something that saving removes
+		final boolean	saving;
 
 		Message(String text, Target target, boolean objectFile)
 		{
 			this.text = text;
 			this.target = target;
 			this.objectFile = objectFile;
+			this.png = text.endsWith(PNG_MESSAGE);
+			this.saving = SAVING_MESSAGE.matcher(text).find();
 		}
 
 		@Override
@@ -1436,7 +1489,43 @@ public class CheckDialog extends JDialog
 	{
 		String image = trackData.getGraphic().getBackgroundImage();
 		if (hasText(image))
-			checkTexture("Graphic Background Image ", image);
+			checkTrackTexture("Graphic Background Image ", image);
+	}
+
+	/** The AC3D files the game shows the track with: the track's own, and CSR's for each kind of object */
+	private void checkGraphic3D()
+	{
+		Graphic graphic = trackData.getGraphic();
+		checkGraphic3DFile("Description", graphic.getDescription());
+		if (editorFrame.getGameType().hasTypeObjectFiles())
+		{
+			checkGraphic3DFile("Terrain", graphic.getTerrainObjects());
+			checkGraphic3DFile("Road", graphic.getRoadObjects());
+			checkGraphic3DFile("Road2", graphic.getRoad2Objects());
+			checkGraphic3DFile("Trees", graphic.getTreesObjects());
+			checkGraphic3DFile("Building", graphic.getBuildingObjects());
+			checkGraphic3DFile("House", graphic.getHouseObjects());
+			checkGraphic3DFile("Cars", graphic.getCarsObjects());
+			checkGraphic3DFile("Truck", graphic.getTruckObjects());
+			checkGraphic3DFile("Tribunes", graphic.getTribunesObjects());
+			checkGraphic3DFile("Pub", graphic.getPubObjects());
+			checkGraphic3DFile("Decors", graphic.getDecorsObjects());
+			checkGraphic3DFile("Water", graphic.getWaterObjects());
+			checkGraphic3DFile("Grass", graphic.getGrassObjects());
+			checkGraphic3DFile("Sand", graphic.getSandObjects());
+			checkGraphic3DFile("Rock", graphic.getRockObjects());
+			checkGraphic3DFile("Curb", graphic.getCurbObjects());
+			checkGraphic3DFile("Fence", graphic.getFenceObjects());
+			checkGraphic3DFile("Barrier", graphic.getBarrierObjects());
+			checkGraphic3DFile("Wall", graphic.getWallObjects());
+			checkGraphic3DFile("Environment", graphic.getEnvironmentObjects());
+		}
+	}
+
+	private void checkGraphic3DFile(String what, String file)
+	{
+		if (hasText(file) && gui.properties.PropertyPanel.findFile(file, Properties.getInstance().getPath()) == null)
+			report.append("Graphic 3D " + what + " file " + file + " not found\n");
 	}
 
 	private void checkTrackLights()
@@ -1448,11 +1537,57 @@ public class CheckDialog extends JDialog
 			TrackLight light = lightData.get(i);
 			report.about(properties("Lights", light.getName()));
 
-			String texture = light.getTextureOn();
-			checkTexture("Track Lights " + light.getName() + " Texture On ", texture);
+			checkLightTexture("Track Lights " + light.getName() + " Texture On", light.getTextureOn());
+			checkLightTexture("Track Lights " + light.getName() + " Texture Off", light.getTextureOff());
+		}
+	}
 
-			texture = light.getTextureOff();
-			checkTexture("Track Lights " + light.getName() + " Texture Off ", texture);
+	/**
+	 * A texture of the track's own, like an environment map or the background
+	 * image, is usually in the track's folder: one that isn't is reported even
+	 * when the game's data folder isn't set, so data/textures can't be searched.
+	 */
+	private void checkTrackTexture(String description, String texture)
+	{
+		checkTexture(description, texture);
+		if (hasText(texture) && (dataDirectory == null || dataDirectory.isEmpty())
+			&& gui.properties.PropertyPanel.findFile(texture, Properties.getInstance().getPath()) == null)
+		{
+			report.append(description + " texture " + texture
+				+ " isn't in the track's folder (set the game's data folder in Preferences to look in data/textures too)\n");
+		}
+	}
+
+	/**
+	 * @return whether .rgb textures should be converted to png: only for Speed
+	 *         Dreams and CSR, TORCS tracks use .rgb
+	 */
+	private boolean wantsPng()
+	{
+		return editorFrame.getGameType() != EditorFrame.GameType.TORCS;
+	}
+
+	/**
+	 * A light needs no texture: it has no image then. The game's tracks name
+	 * light textures from the game's data folder, like
+	 * data/textures/start-light-red.png, so a path isn't a problem here.
+	 */
+	private void checkLightTexture(String description, String texture)
+	{
+		if (!hasText(texture))
+			return;
+
+		// without the game's data folder, a texture that isn't the track's can't be found
+		if (dataDirectory != null && !dataDirectory.isEmpty()
+			&& gui.properties.PropertyPanel.findFile(texture, Properties.getInstance().getPath(), dataDirectory,
+				dataDirectory + sep + "data" + sep + "textures") == null)
+		{
+			report.append(description + " texture " + texture + " not found\n");
+		}
+
+		if (texture.endsWith(".rgb") && wantsPng())
+		{
+			report.append(description + " texture " + texture + PNG_MESSAGE + "\n");
 		}
 	}
 	private void checkEnvironmentMapping()
@@ -1463,7 +1598,7 @@ public class CheckDialog extends JDialog
 		{
 			String texture = envMaps.get(i).getEnvMapImage();
 			report.about(properties("Env Map", envMaps.get(i).getName()));
-			checkTexture("Environment Map " + envMaps.get(i).getName(), texture);
+			checkTrackTexture("Environment Map " + envMaps.get(i).getName(), texture);
 		}
 	}
 
@@ -1627,11 +1762,20 @@ public class CheckDialog extends JDialog
 
 		if (elevationFile != null && !elevationFile.isEmpty())
 		{
-			File file = new File(Properties.getInstance().getPath() + sep + elevationFile);
-
-			if (!file.exists())
+			if (gui.properties.PropertyPanel.findFile(elevationFile, Properties.getInstance().getPath()) == null)
 			{
 				report.append("Terrain Generation elevation file " + elevationFile + " not found\n");
+			}
+		}
+
+		// only Speed Dreams trackgen reads the tiled file
+		String tiledFile = trackData.getGraphic().getTerrainGeneration().getTiledFile();
+
+		if (editorFrame.getGameType().hasTiledFile() && tiledFile != null && !tiledFile.isEmpty())
+		{
+			if (gui.properties.PropertyPanel.findFile(tiledFile, Properties.getInstance().getPath()) == null)
+			{
+				report.append("Terrain Generation tiled file " + tiledFile + " not found\n");
 			}
 		}
 
@@ -2175,9 +2319,9 @@ public class CheckDialog extends JDialog
 				messages.add(" texture " + texture + " not found\n");
 			}
 
-			if (texture.endsWith(".rgb"))
+			if (texture.endsWith(".rgb") && wantsPng())
 			{
-				messages.add(" texture " + texture + " should be converted to png format\n");
+				messages.add(" texture " + texture + PNG_MESSAGE + "\n");
 			}
 
 			if (texture.contains("/") || texture.contains("\\"))

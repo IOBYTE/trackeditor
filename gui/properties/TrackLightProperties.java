@@ -255,6 +255,9 @@ public class TrackLightProperties extends PropertyPanel
 			addTextField(this, 7, bottomRightZTextField, light.getBottomRightZ(), 120, 125);
 			addTextField(this, 8, textureOnTextField, light.getTextureOn(), 120, 290);
 			addTextField(this, 9, textureOffTextField, light.getTextureOff(), 120, 290);
+			// shown in red when they aren't found, where Check looks for them
+			showLightTextureFound(textureOnTextField);
+			showLightTextureFound(textureOffTextField);
 			addTextField(this, 10, indexTextField, light.getIndex(), 120, 125);
 			addTextField(this, 11, redTextField, light.getRed(), 120, 125);
 			addTextField(this, 12, greenTextField, light.getGreen(), 120, 125);

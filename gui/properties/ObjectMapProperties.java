@@ -212,6 +212,7 @@ public class ObjectMapProperties extends PropertyPanel
 				showProblem("Couldn't read " + objectMap.getObjectMap() + " when the track was opened, so the map has no objects and saving won't overwrite the file.");
 			else
 				showProblem(null);
+			showWhereFound();
 
 			objectMapTextField.getDocument().addDocumentListener(new DocumentListener()
 			{
@@ -419,6 +420,28 @@ public class ObjectMapProperties extends PropertyPanel
 			data.addAll(rows);
 			objectTablePanel.dataChanged();
 			showProblem(problem);
+			showWhereFound();
+		}
+
+		/** Says in the Object Map field's tool tip where its image is, when there is one */
+		private void showWhereFound()
+		{
+			String fileName = objectMapTextField.getText().trim();
+			String tip = null;
+			if (!fileName.isEmpty())
+			{
+				try
+				{
+					java.nio.file.Path file = ObjectMap.imageFile(fileName);
+					if (java.nio.file.Files.isRegularFile(file))
+						tip = "Found at " + file.toAbsolutePath();
+				}
+				catch (IOException e)
+				{
+					// not a file name: the problem under the table says so
+				}
+			}
+			objectMapTextField.setToolTipText(tip);
 		}
 
 		/**

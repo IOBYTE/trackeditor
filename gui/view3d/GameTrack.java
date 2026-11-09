@@ -717,6 +717,8 @@ public class GameTrack
 		public String				nextName;
 		/** "stop buildings" (or the pit end); the pit end in TORCS */
 		public String				stopName;
+		/** Speed Dreams and CSR: whether stopName is a stop buildings segment the track sets, not the pit end used for one */
+		public boolean				stopSet	= true;
 		public boolean				torcs;
 		/** Speed Dreams and CSR: the pits go on past the end of the pit end segment, where there's no pit lane */
 		public boolean				pastPitEnd;
@@ -779,6 +781,23 @@ public class GameTrack
 			return torcs ? endName.equals(stopName) : nextName != null && nextName.equals(stopName);
 		}
 
+		/**
+		 * @return the segment the pit buildings end in, as a message names it: the stop
+		 *         buildings segment, or the pit end when the track sets none
+		 */
+		private String stopText()
+		{
+			return stopSet ? "the stop buildings segment " + stopName
+				: "the pit end " + stopName + " (no stop buildings segment is set, so the pit buildings end there)";
+		}
+
+		/** @return what to set the stop buildings segment to: the segment after the pits */
+		private String stopFix()
+		{
+			return (stopSet ? "the stop buildings segment should be " : "the stop buildings segment should be set to ") + nextName
+				+ ", the next one, cut to one step";
+		}
+
 		/** @return what's wrong with where the last pit ends, or null */
 		public String endProblem()
 		{
@@ -789,19 +808,20 @@ public class GameTrack
 				return String.format("The last pit ends %.2f m into %s (%.2f m long), not at the end of a segment", endInto, endName, endLength) + past;
 			if (pastPitEnd)
 				return String.format("The last pit ends at the end of %s", endName) + past;
+			String stop = stopText();
 			if (endsOnStopSegment())
-				return String.format("The stop buildings segment %s has %d steps: the game leaves out the barrier along all but its last, "
-					+ "so it's missing for %.2f m after the pits", stopName, stopSteps, (stopSteps - 1) * stopStepLength);
+				return String.format("%s has %d steps: the game leaves out the barrier along all but its last, "
+					+ "so it's missing for %.2f m after the pits", Character.toUpperCase(stop.charAt(0)) + stop.substring(1), stopSteps,
+					(stopSteps - 1) * stopStepLength);
 			if (torcs)
 				return String.format("The last pit ends at the end of %s, not of the pit end %s", endName, stopName);
 			// the game draws the barrier along the last step of the stop buildings segment
 			if (endName.equals(stopName))
-				return String.format("The last pit ends at the end of the stop buildings segment %s, so the game draws %s's barrier %s, "
-					+ "inside the last pit building: the stop buildings segment should be %s, the next one, cut to one step",
-					stopName, stopName, stopSteps > 1 ? String.format("along its last step (%.2f m)", stopStepLength) : "all along it, through its pits",
-					nextName);
-			return String.format("The last pit ends at the end of %s, so the stop buildings segment should be %s, the next one, cut to one step, "
-				+ "not %s: the game leaves out the barrier up to the last step of the stop buildings segment, after the pits", endName, nextName, stopName);
+				return String.format("The last pit ends at the end of %s, so the game draws %s's barrier %s, inside the last pit building: %s",
+					stop, stopName, stopSteps > 1 ? String.format("along its last step (%.2f m)", stopStepLength) : "all along it, through its pits",
+					stopFix());
+			return String.format("The last pit ends at the end of %s, so %s, not %s: the game leaves out the barrier up to the last step "
+				+ "of the stop buildings segment, after the pits", endName, stopFix(), stopSet ? stopName : "the pit end " + stopName);
 		}
 	}
 
@@ -863,6 +883,8 @@ public class GameTrack
 			if (buildingsStart == null)
 				buildingsStart = start;
 			Seg buildingsEnd = pits.getStopBuildings() == null ? null : last(pits.getStopBuildings());
+			// without one (or one the game doesn't find) the pit buildings end at the pit end
+			layout.stopSet = buildingsEnd != null;
 			if (buildingsEnd == null)
 				buildingsEnd = end;
 			int nPitSeg = pitCount(buildingsStart, buildingsEnd, layout.len, trackLength);

@@ -418,6 +418,11 @@ public class SurfaceProperties extends PropertyPanel
 			addLabel(this, row, reboundLabel, "Rebound", 180);
 			addTextField(this, row++, reboundTextField, surface.getRebound(), 190, 125);
 
+			// tool tips say where the textures are, or that they aren't found (in red)
+			showSharedTextureFound(textureNameTextField);
+			showSharedTextureFound(bumpNameTextField);
+			showSharedTextureFound(racelineNameTextField);
+
 			if (defaultSurfaces)
 			{
 				nameTextField.setEnabled(false);

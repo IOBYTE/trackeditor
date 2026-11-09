@@ -84,6 +84,8 @@ public class ImageProperties extends PropertyPanel
 		addLabel(this, 3, imageOffsetYLabel, "Image Offset Y", 80);
 
 		addTextField(this, 0, pathTextField, Properties.getInstance().getImage(), 100, 335);
+		// the tool tip says where the image is, or that it isn't found (in red)
+		showFileFound(pathTextField, "");
 		addTextField(this, 1, imageScaleTextField, Properties.getInstance().getImageScale(), 100, 125);
 		addTextField(this, 2, imageOffsetXTextField, Properties.getInstance().getImgOffset().getX(), 100, 125);
 		addTextField(this, 3, imageOffsetYTextField, Properties.getInstance().getImgOffset().getY(), 100, 125);

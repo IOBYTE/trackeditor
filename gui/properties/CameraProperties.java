@@ -20,8 +20,6 @@
  */
 package gui.properties;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -31,7 +29,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -173,34 +170,6 @@ public class CameraProperties extends PropertyPanel
 		}
 		return tabbedPane;
 	}
-
-	private static final String		LONG_TIP	= "longTip";
-	private static final int		TIP_SHOWN	= 60000;
-
-	// how long tooltips stay, everywhere: longer while over a field that explains itself
-	private static final MouseAdapter	longTip	= new MouseAdapter()
-	{
-		private int	usual	= -1;
-
-		@Override
-		public void mouseEntered(MouseEvent e)
-		{
-			ToolTipManager manager = ToolTipManager.sharedInstance();
-			if (usual < 0)
-				usual = manager.getDismissDelay();
-			manager.setDismissDelay(TIP_SHOWN);
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e)
-		{
-			if (usual >= 0)
-				ToolTipManager.sharedInstance().setDismissDelay(usual);
-			usual = -1;
-		}
-	};
-
-
 
 	private class CameraPanel extends JPanel
 	{
@@ -494,19 +463,12 @@ public class CameraProperties extends PropertyPanel
 			return "-0".equals(text) ? "0" : text;
 		}
 
-		/** Explains a field, on it and on its label, for a minute: they take a while to read. */
+		/** Explains a field, on it and on its label. */
 		private void tip(JLabel label, JTextField field, String... lines)
 		{
 			String text = "<html>" + String.join("<br>", lines) + "</html>";
 			for (JComponent c : new JComponent[] { label, field })
-			{
 				c.setToolTipText(text);
-				if (c.getClientProperty(LONG_TIP) == null)
-				{
-					c.putClientProperty(LONG_TIP, Boolean.TRUE);
-					c.addMouseListener(longTip);
-				}
-			}
 		}
 
 		/**

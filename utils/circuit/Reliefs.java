@@ -140,7 +140,11 @@ public class Reliefs
 		this.changed = changed;
 	}
 
-	private Path resolve(String name)
+	/**
+	 * @return the file a relief file name stands for: a name without a folder is
+	 *         in the track's folder
+	 */
+	public static Path resolve(String name)
 	{
 		Path filename = Paths.get(name);
 

@@ -97,6 +97,153 @@ public class PropertyPanel extends JPanel
 		};
 	}
 
+	/**
+	 * @param name    a file name
+	 * @param folders where a name is looked for, in order; null ones are skipped
+	 * @return the file the name is: the name itself when it has a folder, or
+	 *         else the first of the folders that has it; null when none has it
+	 */
+	public static java.io.File findFile(String name, String... folders)
+	{
+		if (name.contains("/") || name.contains("\\"))
+		{
+			java.io.File file = new java.io.File(name);
+			if (file.isFile())
+				return file;
+		}
+		for (String folder : folders)
+		{
+			if (folder == null)
+				continue;
+			java.io.File file = new java.io.File(folder, name);
+			if (file.isFile())
+				return file;
+		}
+		return null;
+	}
+
+	/**
+	 * Shows a file name field in red while there is no such file, with a tool
+	 * tip saying where it was looked for, and keeps it up to date as the name
+	 * changes. An empty field is never red. When the file is found, the tool tip
+	 * says where.
+	 *
+	 * @param field   the file name field
+	 * @param where   where a name is looked for, for the tool tip, such as "in
+	 *                the track's folder"
+	 * @param folders where a name is looked for, in order; a null one isn't
+	 *                known (the game's data folder isn't set), so a name that
+	 *                could be there isn't red
+	 */
+	public static void showFileFound(final JTextField field, final String where, final String... folders)
+	{
+		final Runnable show = () ->
+		{
+			String name = field.getText().trim();
+			java.io.File file = name.isEmpty() ? null : findFile(name, folders);
+			boolean unknown = java.util.Arrays.asList(folders).contains(null);
+			boolean found = name.isEmpty() || file != null || unknown;
+			field.setForeground(found ? javax.swing.UIManager.getColor("TextField.foreground") : Color.RED);
+			if (name.isEmpty())
+				field.setToolTipText(null);
+			else if (file != null)
+				field.setToolTipText("Found at " + file.getAbsolutePath());
+			else if (unknown)
+				field.setToolTipText(name + " isn't in the track's folder, and the game's data folder isn't set in Preferences to look further");
+			else
+				field.setToolTipText((name + " isn't found " + where).trim());
+		};
+		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+		});
+		show.run();
+	}
+
+	/**
+	 * Shows the name of a texture of the track's own, like an environment map
+	 * or the background image, in red while there is no such texture, where the
+	 * game looks for it: the track's folder, then the game's data/textures
+	 * folder. Until the game's data folder is set, only the track's folder is
+	 * looked in, as Check does.
+	 */
+	protected void showTextureFound(JTextField field)
+	{
+		String dataDirectory = getEditorFrame().getDataDirectory();
+		String sep = System.getProperty("file.separator");
+		if (dataDirectory == null || dataDirectory.isEmpty())
+			showFileFound(field, "in the track's folder (set the game's data folder in Preferences to look in data/textures too)",
+				utils.Properties.getInstance().getPath());
+		else
+			showFileFound(field, "in the track's folder or the game's data/textures folder",
+				utils.Properties.getInstance().getPath(), dataDirectory + sep + "data" + sep + "textures");
+	}
+
+	/**
+	 * Shows an object's model (AC3D file) name field in red while there is no
+	 * such file, where Check looks for it: the track's folder, then the game's
+	 * data/objects folder. Until the game's data folder is set, only the track's
+	 * folder is looked in, as Check does.
+	 */
+	protected void showObjectFileFound(JTextField field)
+	{
+		String dataDirectory = getEditorFrame().getDataDirectory();
+		String sep = System.getProperty("file.separator");
+		if (dataDirectory == null || dataDirectory.isEmpty())
+			showFileFound(field, "in the track's folder (set the game's data folder in Preferences to look in data/objects too)",
+				utils.Properties.getInstance().getPath());
+		else
+			showFileFound(field, "in the track's folder or the game's data/objects folder",
+				utils.Properties.getInstance().getPath(), dataDirectory + sep + "data" + sep + "objects");
+	}
+
+	/**
+	 * Shows a shared texture's name field, like a surface's texture, bump or
+	 * raceline, in red while there is no such texture, where Check looks for
+	 * it: the track's folder, then the game's data/textures folder, where most
+	 * of them are. Until the game's data folder is set, a name isn't red, and
+	 * its tool tip says why.
+	 */
+	protected void showSharedTextureFound(JTextField field)
+	{
+		String dataDirectory = getEditorFrame().getDataDirectory();
+		String sep = System.getProperty("file.separator");
+		showFileFound(field, "in the track's folder or the game's data/textures folder",
+			utils.Properties.getInstance().getPath(),
+			dataDirectory == null || dataDirectory.isEmpty() ? null : dataDirectory + sep + "data" + sep + "textures");
+	}
+
+	/**
+	 * Shows a light's texture name field in red while there is no such texture,
+	 * where Check looks for it: the track's folder, the game's data folder (the
+	 * game's tracks name them like data/textures/start-light-red.png), then
+	 * the game's data/textures folder. Until the game's data folder is set, a
+	 * name isn't red.
+	 */
+	protected void showLightTextureFound(JTextField field)
+	{
+		String dataDirectory = getEditorFrame().getDataDirectory();
+		boolean unknown = dataDirectory == null || dataDirectory.isEmpty();
+		String sep = System.getProperty("file.separator");
+		showFileFound(field, "in the track's folder or the game's data folder",
+			utils.Properties.getInstance().getPath(),
+			unknown ? null : dataDirectory,
+			unknown ? null : dataDirectory + sep + "data" + sep + "textures");
+	}
+
 	public void setTextField(JTextField field, double value)
 	{
 		if (!Double.isNaN(value))

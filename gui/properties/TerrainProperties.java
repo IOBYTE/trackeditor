@@ -197,6 +197,11 @@ public class TerrainProperties extends PropertyPanel
 		addTextField(this, 7, groupSizeTextField, getEditorFrame().getTerrainGeneration().getGroupSize(), 140, 125);
 		addTextField(this, 8, elevationMapTextField, getEditorFrame().getTerrainGeneration().getElevationMap(), 140, 295);
 		addTextField(this, 9, reliefFileTextField, getEditorFrame().getTerrainGeneration().getReliefFile(), 140, 295);
+		// files that aren't found are shown in red, where Check looks for them
+		String trackFolder = Properties.getInstance().getPath();
+		showFileFound(elevationMapTextField, "in the track's folder", trackFolder);
+		showFileFound(reliefFileTextField, "in the track's folder or the game's data/objects folder",
+			trackFolder, dataFolder("objects"));
 		addTextField(this, 12, randomSeedTextField, getEditorFrame().getTerrainGeneration().getRandomSeed(), 140, 125);
 
 		this.add(getSurfaceComboBox(), null);
@@ -213,6 +218,7 @@ public class TerrainProperties extends PropertyPanel
 		{
 			addLabel(this, 14, tiledFileLabel, "Tiled File", 120);
 			addTextField(this, 14, tiledFileTextField, getEditorFrame().getTerrainGeneration().getTiledFile(), 140, 295);
+			showFileFound(tiledFileTextField, "in the track's folder", Properties.getInstance().getPath());
 			this.add(getTiledFileButton(), null);
 		}
 		selectItem(getReliefBorderComboBox(), getEditorFrame().getTerrainGeneration().getReliefBorder());
@@ -435,6 +441,15 @@ public class TerrainProperties extends PropertyPanel
 
 	// the relief file name Delete Relief cleared, for Add Relief to put back
 	private String clearedReliefFile = null;
+
+	/** @return the game's data/folder, null when the game's data folder isn't set */
+	private String dataFolder(String folder)
+	{
+		String dataDirectory = getEditorFrame().getDataDirectory();
+		if (dataDirectory == null || dataDirectory.isEmpty())
+			return null;
+		return dataDirectory + sep + "data" + sep + folder;
+	}
 
 	/**
 	 * With every relief deleted the track no longer needs a relief file: the
