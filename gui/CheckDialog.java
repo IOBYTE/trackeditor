@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Point;
@@ -31,6 +30,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -41,6 +41,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
@@ -96,6 +97,8 @@ public class CheckDialog extends JDialog
 		// owned by the editor, so it stays in front of it while the track is edited
 		super(editorFrame);
 		this.editorFrame = editorFrame;
+		// not blocked by the Properties dialog: a message can show its tab while it is open
+		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 		// the track only has the default surfaces and objects when its Surfaces and
 		// Objects sections include &default-surfaces; and &default-objects;
 		if (editorFrame.getTrackData().getHasSurfacesReference())
@@ -126,6 +129,16 @@ public class CheckDialog extends JDialog
 		p.y = editorFrame.getProject().getCheckDialogY();
 		this.setLocation(p);
 
+		// looks like the read-only text area the dialog showed before: its font, colors
+		// and line spacing
+		JTextArea text = new JTextArea();
+		text.setEditable(false);
+		list.setFont(text.getFont());
+		list.setForeground(text.getForeground());
+		list.setBackground(text.getBackground());
+		list.setSelectionForeground(text.getSelectedTextColor());
+		list.setSelectionBackground(text.getSelectionColor());
+		list.setFixedCellHeight(text.getFontMetrics(text.getFont()).getHeight());
 		list.setCellRenderer(new MessageRenderer());
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setToolTipText("");
@@ -171,7 +184,7 @@ public class CheckDialog extends JDialog
 		left.add(recheck);
 		left.add(copy);
 		left.add(objectFilesButton);
-		left.add(new JLabel("Double-click a blue message to show what it is about"));
+		left.add(new JLabel("Double-click a message to show what it is about"));
 		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		right.add(close);
 		buttons.add(left, BorderLayout.CENTER);
@@ -382,16 +395,16 @@ public class CheckDialog extends JDialog
 		}
 	}
 
-	/** Messages that show something when double-clicked look like links */
+	/** Messages that show something when double-clicked say so in their tool tip */
 	private static class MessageRenderer extends DefaultListCellRenderer
 	{
 		@Override
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus)
 		{
 			Component component = super.getListCellRendererComponent(list, value, index, selected, focus);
+			// no room around the text, as in a text area
+			((JComponent) component).setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
 			boolean link = value instanceof Message && ((Message) value).target != null;
-			if (link && !selected)
-				component.setForeground(new Color(0, 0, 192));
 			((JComponent) component).setToolTipText(link ? "Double-click to show it" : null);
 			return component;
 		}
@@ -402,8 +415,14 @@ public class CheckDialog extends JDialog
 	{
 		if (segment == null)
 			return null;
-		return () -> editorFrame.getCircuitView().showSegment(segment) ? null
-			: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
+		return () ->
+		{
+			// it blocks the track view and the segment dialog
+			if (editorFrame.isPropertiesOpen())
+				return "Close the Properties dialog to show segment " + segment.getName();
+			return editorFrame.getCircuitView().showSegment(segment) ? null
+				: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
+		};
 	}
 
 	/** @return a target for the segment with the name, null if there is none */
@@ -1102,7 +1121,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			report.append(problem + ": Apply or Ok in the Pit properties offers to move the start of the pits\n");
+			report.append(problem + ": Fit Segments in the Pit properties moves the start of the pits (Apply and Ok offer it too)\n");
 	}
 
 
@@ -1121,7 +1140,7 @@ public class CheckDialog extends JDialog
 			return;
 		}
 		if (problem != null)
-			report.append(problem + ": Apply or Ok in the Pit properties offers to fit the segments to the pits\n");
+			report.append(problem + ": Fit Segments in the Pit properties fits the segments to the pits (Apply and Ok offer it too)\n");
 	}
 
 	/**

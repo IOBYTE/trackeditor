@@ -3795,12 +3795,28 @@ public class EditorFrame extends JFrame
 	 */
 	public void showProperties(String... tabs)
 	{
+		// already open (the Check dialog isn't blocked by it): show the tabs there
+		if (propertiesDialog != null && propertiesDialog.isVisible())
+		{
+			if (tabs.length > 0)
+				propertiesDialog.showTabs(tabs);
+			propertiesDialog.toFront();
+			return;
+		}
 		if (trackData != null)
 		{
 			PropertiesDialog properties = new PropertiesDialog(this);
 			if (tabs.length > 0)
 				properties.showTabs(tabs);
-			properties.setVisible(true);
+			propertiesDialog = properties;
+			try
+			{
+				properties.setVisible(true);
+			}
+			finally
+			{
+				propertiesDialog = null;
+			}
 			if (view.segmentParamDialog != null)
 				view.segmentParamDialog.refresh();
 
@@ -4253,6 +4269,14 @@ public class EditorFrame extends JFrame
 
 	// the open Check dialog, if there is one
 	private CheckDialog			checkDialog;
+	// the open Properties dialog, if there is one
+	private PropertiesDialog	propertiesDialog;
+
+	/** @return whether the Properties dialog is open: it blocks the other windows */
+	public boolean isPropertiesOpen()
+	{
+		return propertiesDialog != null && propertiesDialog.isVisible();
+	}
 
 	public class FinishLineAction extends AbstractAction
 	{

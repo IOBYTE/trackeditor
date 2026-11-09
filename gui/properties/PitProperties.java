@@ -130,6 +130,10 @@ public class PitProperties extends PropertyPanel
 	private JButton				applyButton			= null;
 	private JButton				undoButton			= null;
 	private JButton				redoButton			= null;
+	// shown when the pits, as typed, don't fit their segments
+	private JButton				fitButton			= null;
+	// checks that a moment after the last change, not on every key
+	private javax.swing.Timer	fitCheckTimer		= null;
 	// a "pit indicator" value the choices don't have, kept as it is
 	private int					otherIndicator		= Integer.MAX_VALUE;
 	private int					generateCount		= 0;
@@ -318,8 +322,111 @@ public class PitProperties extends PropertyPanel
 		getUndoButton().setBounds(startX + buttonWidth + 10, buttonY, buttonWidth, 25);
 		add(getRedoButton(), null);
 		getRedoButton().setBounds(startX + buttonWidth * 2 + 20, buttonY, buttonWidth, 25);
+		// beside the segment it fixes (see updateFitButton)
+		add(getFitButton(), null);
 
 		setButtonsVisible(false);
+
+		// Fit Segments follows the values typed in the tab (the pit segments, max
+		// pits, side...), but not the pit generator's tabs, which change nothing yet
+		fitCheckTimer = new javax.swing.Timer(300, e -> updateFitButton());
+		fitCheckTimer.setRepeats(false);
+		watchForFitCheck(this);
+		javax.swing.SwingUtilities.invokeLater(() -> updateFitButton());
+	}
+
+	/** Checks the fit again after a change to a field or choice in the container */
+	private void watchForFitCheck(java.awt.Container container)
+	{
+		for (java.awt.Component component : container.getComponents())
+		{
+			if (component == tabbedPane)
+				continue;
+			if (component instanceof JTextField)
+			{
+				((JTextField) component).getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+				{
+					public void insertUpdate(javax.swing.event.DocumentEvent e)
+					{
+						fitCheckTimer.restart();
+					}
+
+					public void removeUpdate(javax.swing.event.DocumentEvent e)
+					{
+						fitCheckTimer.restart();
+					}
+
+					public void changedUpdate(javax.swing.event.DocumentEvent e)
+					{
+						fitCheckTimer.restart();
+					}
+				});
+			}
+			else if (component instanceof JComboBox)
+				((JComboBox<?>) component).addActionListener(e -> fitCheckTimer.restart());
+			else if (component instanceof java.awt.Container)
+				watchForFitCheck((java.awt.Container) component);
+		}
+	}
+
+	private JButton getFitButton()
+	{
+		if (fitButton == null)
+		{
+			fitButton = new JButton("Fit Segments");
+			fitButton.setVisible(false);
+			fitButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					fitSegments();
+					updateFitButton();
+				}
+			});
+		}
+		return fitButton;
+	}
+
+	/**
+	 * Shows Fit Segments only when the pits, as typed in the dialog, don't fit
+	 * their segments (see fitSegments), with the problem as its tool tip, beside
+	 * the segment it changes: the stop buildings segment (the pit end in TORCS)
+	 * when the last pit doesn't end where it should, otherwise the start
+	 * buildings segment (the pit start in TORCS) when the pits don't line up
+	 * across the finish line.
+	 */
+	private void updateFitButton()
+	{
+		String problem = null;
+		JTextField field = null;
+		try
+		{
+			gui.view3d.GameTrack.PitLayout layout = pitLayoutOfDialog();
+			problem = layout == null ? null : layout.problem();
+			if (problem != null)
+			{
+				boolean torcs = !getEditorFrame().getGameType().hasPitOptions();
+				if (layout.endProblem() != null)
+					field = torcs ? endTextField : stopBuildingsTextField;
+				else
+					field = torcs ? startTextField : startBuildingsTextField;
+			}
+		}
+		catch (RuntimeException e)
+		{
+			// half-typed values: nothing to fit yet
+		}
+		// the field is in a segment chooser, which is what has the row's place
+		java.awt.Component row = field;
+		while (row != null && row.getParent() != this)
+			row = row.getParent();
+		if (row == null)
+			problem = null;
+		else
+			getFitButton().setBounds(row.getX() + row.getWidth() + 10, row.getY(), 110, row.getHeight());
+		getFitButton().setVisible(problem != null);
+		getFitButton().setToolTipText(problem == null ? null : "<html><body style='width: 400px'>" + problem
+			+ ".<br><br>Fits the segments to the pits.</body></html>");
 	}
 
 	private boolean isVersion3()
@@ -1331,16 +1438,25 @@ public class PitProperties extends PropertyPanel
 				entryLength = wrap(from - pos[entry], trackLength);
 			if (exit >= 0)
 				exitLength = wrap(pos[exit + 1] - to, trackLength);
+			// without a start buildings segment the game starts the buildings at the pit start
 			int startBuildings = indexOf(data, pits.getStartBuildings());
-			if (startBuildings >= 0)
-				buildingsOffset = wrap(pos[startBuildings] - from, trackLength);
+			buildingsOffset = startBuildings >= 0 ? wrap(pos[startBuildings] - from, trackLength) : 0;
 			if (buildingsOffset >= pitsLength)
 				buildingsOffset = 0;
+			// as many pits as the game places; when it places none, a number the
+			// pits can be generated with
+			int placed = placedPits();
 			int stopBuildings = indexOf(data, pits.getStopBuildings());
-			if (pits.getMaxPits() != Integer.MAX_VALUE)
+			if (placed > 0)
+				count = placed;
+			else if (pits.getMaxPits() != Integer.MAX_VALUE && pits.getMaxPits() > 0)
 				count = pits.getMaxPits();
 			else if (stopBuildings >= 0)
-				count = (int) Math.floor(wrap(pos[stopBuildings] - from - buildingsOffset, trackLength) / pitLength() + 1e-6);
+			{
+				int between = (int) Math.floor(wrap(pos[stopBuildings] - from - buildingsOffset, trackLength) / pitLength() + 1e-6);
+				if (between > 0)
+					count = between;
+			}
 		}
 		entryLengthTextField.setText(meters(entryLength));
 		pitsLengthTextField.setText(meters(pitsLength));
@@ -1351,6 +1467,20 @@ public class PitProperties extends PropertyPanel
 		getPitsOffsetComboBox().setSelectedItem(center ? CENTER_ON_LINE : OFFSET_FROM_LINE);
 		if (!center)
 			pitsOffsetTextField.setText(meters(offset));
+	}
+
+	/** @return how many pits the game places with the track's pits, 0 when it can't tell */
+	private int placedPits()
+	{
+		try
+		{
+			gui.view3d.GameTrack.PitLayout layout = pitLayout();
+			return layout == null ? 0 : layout.pits.size();
+		}
+		catch (RuntimeException e)
+		{
+			return 0;
+		}
 	}
 
 	private static int indexOf(SegmentVector data, String name)
@@ -1849,6 +1979,9 @@ public class PitProperties extends PropertyPanel
 	{
 		getUndoButton().setEnabled(generateCount > 0);
 		getRedoButton().setEnabled(undoCount > 0);
+		// adding the pits, or undoing it, changes the segments
+		if (fitCheckTimer != null)
+			fitCheckTimer.restart();
 	}
 
 	private void refreshView()
