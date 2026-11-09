@@ -38,7 +38,7 @@ public  class Properties
 	// new instance in place, and the views have to hear about its changes too
 	private static volatile Vector<ActionListener>	propertiesListeners	= new Vector<ActionListener>();
 	public final String			title					= "sd2-trackeditor";
-	public final String			version					= "1.7.6";
+	public final String			version					= "1.7.7";
 	private String				path;
 
 	private double				imageScale				= 1;
