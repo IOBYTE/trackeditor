@@ -37,8 +37,8 @@ public  class Properties
 	// shared by every instance: opening a project or importing a track puts a
 	// new instance in place, and the views have to hear about its changes too
 	private static volatile Vector<ActionListener>	propertiesListeners	= new Vector<ActionListener>();
-	public final String			title					= "sd2-trackeditor";
-	public final String			version					= "1.7.7";
+	public final String			title					= "trackeditor";
+	public final String			version					= "1.7.8";
 	private String				path;
 
 	private double				imageScale				= 1;

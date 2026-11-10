@@ -176,6 +176,9 @@ public class SurfaceProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
+					// nothing to copy when the track has no surfaces of its own
+					if (getTabbedPane().getSelectedComponent() == null)
+						return;
 					surfaceCopy = new Surface();
 					setSurfaceFromPanel(surfaceCopy, (SurfacePanel) getTabbedPane().getSelectedComponent());
 				}
@@ -360,7 +363,7 @@ public class SurfaceProperties extends PropertyPanel
 			addLabel(this, 9, textureTypeLabel, "Texture Type", 180);
 			addLabel(this, 10, textureSizeLabel, "Texture Size", 180);
 
-			addTextField(this, 0, nameTextField, surface.getName(), 190, 125);
+			addTextField(this, 0, nameTextField, surface.getName(), 190, 220);
 			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, surface.getComment(), 190, 310);
 			addTextField(this, 2, colorR1TextField, surface.getColorR1(), 190, 125);

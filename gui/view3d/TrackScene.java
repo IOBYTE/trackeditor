@@ -1275,6 +1275,32 @@ public abstract class TrackScene
 	{
 		float lmax = track.trackStep;
 		List<Float> list = new ArrayList<Float>();
+		// a step's points come every lmax along its outside edge: an outside
+		// radius of 0 or less, or more than MAX_STEP_POINTS points, means a broken
+		// length or turn, and adding them would never end
+		float outside = seg.type == GameTrack.TR_LFT ? mseg.radiusr : mseg.radiusl;
+		float along = seg.type == GameTrack.TR_STR ? seg.length : Math.abs(seg.angleZE - seg.angleZS) * outside;
+		if (!(lmax > 0) || (seg.type != GameTrack.TR_STR && !(outside > 0)) || !(along / lmax <= MAX_STEP_POINTS))
+			return new float[0];
+		// nor are a step's points worked out once the scene's would be more than
+		// MAX_SCENE_POINTS (see below): otherwise each of a broken track's steps
+		// would still add up to MAX_STEP_POINTS points only to drop them
+		if (stepPoints + along / lmax > MAX_SCENE_POINTS)
+			return new float[0];
+		// a step too small to move the float it is added to (the angle of a step
+		// on a huge radius) would never reach the end either
+		if (seg.type == GameTrack.TR_STR)
+		{
+			if (seg.length + lmax == seg.length)
+				return new float[0];
+		}
+		else
+		{
+			float step = lmax / outside;
+			if (!(step > 0) || seg.angleZS + step == seg.angleZS || seg.angleZS - step == seg.angleZS
+				|| seg.angleZE + step == seg.angleZE || seg.angleZE - step == seg.angleZE)
+				return new float[0];
+		}
 		switch (seg.type)
 		{
 		case GameTrack.TR_STR:
@@ -1298,11 +1324,24 @@ public abstract class TrackScene
 			break;
 		}
 		}
+		// and a scene with more points than MAX_SCENE_POINTS is of a broken track
+		// (a huge arc or radius in its file): the rest of it gets no points between
+		// its steps' ends, or building it would use all the memory
+		if (stepPoints + (long) list.size() > MAX_SCENE_POINTS)
+			return new float[0];
+		stepPoints += list.size();
 		float[] steps = new float[list.size()];
 		for (int i = 0; i < steps.length; i++)
 			steps[i] = list.get(i);
 		return steps;
 	}
+
+	/** the points steps() has added to this scene, and the most it adds (see there) */
+	private long				stepPoints		= 0;
+	private static final int	MAX_SCENE_POINTS	= 2000000;
+
+	/** the most points steps() adds in one step (see there) */
+	private static final int	MAX_STEP_POINTS	= 100000;
 
 	/** @return the u step between trackgen's points along a segment */
 	protected float texStep(GameTrack.Seg seg, GameTrack.Seg mseg)

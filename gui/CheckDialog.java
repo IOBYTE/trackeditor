@@ -544,6 +544,9 @@ public class CheckDialog extends JDialog
 			report.append(String.format(java.util.Locale.US, "The track is built in %,.0f steps, more than the editor's %,d: "
 				+ "it draws each segment in fewer, and the game may be slow to load it\n", trackSteps, Segment.MAX_TRACK_STEPS), NONE);
 		report.about(properties("Track"));
+		double mainWidth = trackData.getMainTrack().getWidth();
+		if (!Double.isNaN(mainWidth) && mainWidth <= 0)
+			report.append("Main Track: width " + format(mainWidth) + " m: the track needs a width greater than 0\n");
 		double mainStepsLength = trackData.getMainTrack().getProfilStepsLength();
 		if (mainStepsLength > 0 && mainStepsLength < Segment.MIN_PROFIL_STEPS_LENGTH)
 			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is shorter than the editor allows ("
@@ -633,6 +636,8 @@ public class CheckDialog extends JDialog
 				report.append(name + "radius " + format(curve.getRadiusStart()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
 			if (curve.getValidRadiusEnd() > Segment.MAX_RADIUS && curve.getValidRadiusEnd() != curve.getRadiusStart())
 				report.append(name + "end radius " + format(curve.getValidRadiusEnd()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
+			if (curve.getArcDeg() > Segment.MAX_ARC)
+				report.append(name + "arc " + format(curve.getArcDeg()) + " deg is more than the editor allows (" + format(Segment.MAX_ARC) + " deg, five turns)\n");
 			length = curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
 		}
 		if (segment.hasProfilSteps() && segment.getProfilSteps() > Segment.MAX_PROFIL_STEPS)
@@ -701,6 +706,41 @@ public class CheckDialog extends JDialog
 		else if (arc < 0)
 			report.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0, "
 				+ "the game builds it backwards or not at all\n");
+		else if (arc > 360)
+			checkFullTurns(curve, name);
+	}
+
+	/** the least a curve of more than a full turn has to climb or drop each turn to clear itself (m): a car's height with room to spare, less than a parking garage's floors */
+	private static final double	MIN_RISE_PER_TURN	= 2.5;
+
+	/**
+	 * More than a full turn is fine when the curve climbs or drops enough each turn
+	 * (a parking garage ramp winds over itself several times), or when its radius
+	 * changes by more than the road's whole width each turn (a spiral that doesn't
+	 * reach itself). Otherwise it passes through itself, almost always from a
+	 * mistyped arc.
+	 */
+	private void checkFullTurns(Curve curve, String name)
+	{
+		double turns = curve.getArcDeg() / 360;
+
+		// the road, sides, borders and barriers from one edge to the other
+		double across = trackData.getMainTrack().getValidWidth();
+		for (boolean right : new boolean[] { false, true })
+		{
+			GameSides.State side = GameSides.of(curve, right, editorFrame);
+			across += Math.max(side.sideStartWidth, side.sideEndWidth) + side.borderWidth + side.barrierWidth;
+		}
+		if (Math.abs(curve.getValidRadiusEnd() - curve.getRadiusStart()) / turns >= across)
+			return;
+
+		double rise = (curve.getCalculatedHeightEndLeft() + curve.getCalculatedHeightEndRight()
+			- curve.getCalculatedHeightStartLeft() - curve.getCalculatedHeightStartRight()) / 2;
+		double perTurn = Math.abs(rise) / turns;
+		if (!(perTurn >= MIN_RISE_PER_TURN))
+			report.append(name + "arc " + format(curve.getArcDeg()) + " deg is more than a full turn (360 deg) and the curve's height changes "
+				+ (Double.isNaN(perTurn) ? "0" : format(perTurn)) + " m a turn, less than " + format(MIN_RISE_PER_TURN)
+				+ " m: it passes through itself\n");
 	}
 
 	/**

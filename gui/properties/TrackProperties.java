@@ -37,6 +37,8 @@ import gui.EditorFrame;
 import utils.MutableDouble;
 import utils.MutableString;
 import utils.SurfaceComboBox;
+import utils.circuit.MainTrack;
+import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
 import utils.circuit.Surface;
 
@@ -174,16 +176,115 @@ public class TrackProperties extends PropertyPanel
 		addLabel(this, 6, racelineExtLabel, "Raceline Ext", 140);
 
 		addTextField(this, 0, widthTextField, getEditorFrame().getTrackData().getMainTrack().getWidth(), 150, 125);
+		listen(widthTextField, this::showWidth);
+		showWidth();
 
 		this.add(getSurfaceComboBox(), null);
 		this.add(getProfilComboBox(), null);
 
 		addTextField(this, 3, profilStepsLengthTextField, getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength(), 150, 125);
+		listen(profilStepsLengthTextField, this::showStepsLength);
+		showStepsLength();
 		addTextField(this, 4, racelineWidthscaleTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineWidthscale(), 150, 125);
 		addTextField(this, 5, racelineIntTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineInt(), 150, 125);
 		addTextField(this, 6, racelineExtTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineExt(), 150, 125);
 
 		this.add(getTabbedPane(), null);
+	}
+
+	/**
+	 * @return whether text is a width the track can't have (0 or less), so Ok
+	 *         doesn't use it
+	 */
+	private static boolean badWidth(String text)
+	{
+		try
+		{
+			return Double.parseDouble(text.trim()) <= 0;
+		}
+		catch (NumberFormatException e)
+		{
+			return false;
+		}
+	}
+
+	/** A width of 0 or less is shown in red, with why in its tool tip */
+	private void showWidth()
+	{
+		double width = getEditorFrame().getTrackData().getMainTrack().getWidth();
+		boolean keeps = !Double.isNaN(width) && width > 0;
+		showNotUsed(widthTextField, !badWidth(widthTextField.getText()) ? null
+			: "the track needs a width greater than 0. "
+			+ (keeps ? "Ok keeps the width " + width + " m." : "Type one, or clear the box for the default "
+			+ MainTrack.GAME_DEFAULT_WIDTH + " m."));
+	}
+
+	/**
+	 * @return whether text is a profil steps length the editor doesn't allow (less
+	 *         than Segment.MIN_PROFIL_STEPS_LENGTH, except 0 for none), so Ok
+	 *         doesn't use it: the segment editor refuses it too
+	 */
+	private static boolean badStepsLength(String text)
+	{
+		try
+		{
+			double value = Double.parseDouble(text.trim());
+			return value != 0 && value < Segment.MIN_PROFIL_STEPS_LENGTH;
+		}
+		catch (NumberFormatException e)
+		{
+			return false;
+		}
+	}
+
+	/** A profil steps length the editor doesn't allow is shown in red, with why in its tool tip */
+	private void showStepsLength()
+	{
+		double length = getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength();
+		boolean keeps = Double.isNaN(length) || length == 0 || length >= Segment.MIN_PROFIL_STEPS_LENGTH;
+		showNotUsed(profilStepsLengthTextField, !badStepsLength(profilStepsLengthTextField.getText()) ? null
+			: "it must be 0 (none), or at least " + Segment.MIN_PROFIL_STEPS_LENGTH
+			+ " m: a shorter one builds each segment in very many steps. "
+			+ (!keeps ? "Type one, or clear the box for none." : Double.isNaN(length) ? "Ok keeps it unset."
+			: "Ok keeps " + length + " m."));
+	}
+
+	/** Shows the field in red with why it isn't used in its tool tip, or as usual when why is null */
+	private static void showNotUsed(JTextField field, String why)
+	{
+		if (why != null)
+		{
+			field.setForeground(java.awt.Color.RED);
+			field.setToolTipText("<html><body style='width: 300px'><font color=red><b>Not used:</b> "
+				+ why + "</font></body></html>");
+		}
+		else
+		{
+			field.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
+			field.setToolTipText(null);
+		}
+	}
+
+	/** Runs show whenever the field's text changes */
+	private static void listen(JTextField field, final Runnable show)
+	{
+		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				show.run();
+			}
+		});
 	}
 
 	/**
@@ -404,33 +505,11 @@ public class TrackProperties extends PropertyPanel
 
 			// a plan border has no height and a fence no width: one the file gives
 			// shows why it shouldn't
-			onChange(borderHeightTextField, this::showPlanBorderHeight);
-			onChange(barrierWidthTextField, this::showFenceBarrierWidth);
+			listen(borderHeightTextField, this::showPlanBorderHeight);
+			listen(barrierWidthTextField, this::showFenceBarrierWidth);
 			showPlanBorderHeight();
 			showFenceBarrierWidth();
 			initialized = true;
-		}
-
-		/** Runs show whenever the field's text changes */
-		private void onChange(JTextField field, final Runnable show)
-		{
-			field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
-			{
-				public void insertUpdate(javax.swing.event.DocumentEvent e)
-				{
-					show.run();
-				}
-
-				public void removeUpdate(javax.swing.event.DocumentEvent e)
-				{
-					show.run();
-				}
-
-				public void changedUpdate(javax.swing.event.DocumentEvent e)
-				{
-					show.run();
-				}
-			});
 		}
 
 		/**
@@ -764,12 +843,13 @@ public class TrackProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 
-        if (isDifferent(widthTextField.getText(),
-            getEditorFrame().getTrackData().getMainTrack().getWidth(), doubleResult))
-        {
-            getEditorFrame().getTrackData().getMainTrack().setWidth(doubleResult.getValue());
-            getEditorFrame().documentIsModified = true;
-        }
+		// a width of 0 or less isn't used (see showWidth)
+		MainTrack mainTrack = getEditorFrame().getTrackData().getMainTrack();
+		if (!badWidth(widthTextField.getText()) && isDifferent(widthTextField.getText(), mainTrack.getWidth(), doubleResult))
+		{
+			mainTrack.setWidth(doubleResult.getValue());
+			getEditorFrame().documentIsModified = true;
+		}
 
         if (isDifferent(chosenItem(surfaceComboBox),
         	getEditorFrame().getTrackData().getMainTrack().getSurface(), stringResult))
@@ -785,7 +865,8 @@ public class TrackProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(profilStepsLengthTextField.getText(),
+		// one the editor doesn't allow isn't used (see showStepsLength)
+		if (!badStepsLength(profilStepsLengthTextField.getText()) && isDifferent(profilStepsLengthTextField.getText(),
             getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().setProfilStepsLength(doubleResult.getValue());

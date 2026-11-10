@@ -521,7 +521,14 @@ public class XmlReader
         Element mainTrack = getChildWithName(root, "Main Track");
 
         if (mainTrack == null)
+        {
+            // keep an empty track rather than none, so the editor doesn't crash (as
+            // for a Main Track without segments)
+            editorFrame.getTrackData().setSegments(new SegmentVector());
+            JOptionPane.showMessageDialog(editorFrame, "The track has no \"Main Track\" section, so it has no segments.",
+                "Read Track", JOptionPane.WARNING_MESSAGE);
             return;
+        }
 
         editorFrame.getTrackData().getMainTrack().setWidth(getAttrNumValue(mainTrack, "width", "m"));
         editorFrame.getTrackData().getMainTrack().setSurface(getAttrStrValue(mainTrack, "surface"));

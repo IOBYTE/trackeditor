@@ -277,10 +277,19 @@ public class GeneralProperties extends PropertyPanel
 		// (the category used to be compared with the track's folder here, only to print a
 		// note; it threw for a path without a folder separator, so Ok applied nothing)
 
+		// the track is saved in its folder: one that has gone (moved or deleted
+		// since the track was opened) is made again, and if it can't be, saving
+		// would fail, so say so now
 		File path = new File(tmpPath);
-		if (!path.exists())
+		if (!tmpPath.isEmpty() && !path.isDirectory())
 		{
-			path.mkdirs();
+			String problem = gui.NewProjectDialog.folderProblem(path, false);
+			if (problem != null)
+			{
+				javax.swing.JOptionPane.showMessageDialog(getEditorFrame(), problem
+					+ "\n\nThe track can't be saved until its folder can be made.", "Track Folder",
+					javax.swing.JOptionPane.WARNING_MESSAGE);
+			}
 		}
 
 		if (extensions && isDifferent((String) getSubcategoryComboBox().getSelectedItem(),

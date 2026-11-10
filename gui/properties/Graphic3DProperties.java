@@ -129,11 +129,11 @@ public class Graphic3DProperties extends PropertyPanel
 			addLabel(this, 21, environmentObjectsLabel, "Environment", 150);
 		}
 
-		addTextField(this, 0, descriptionTextField, getEditorFrame().getTrackData().getGraphic().getDescription(), 160, 200);
+		addTextField(this, 0, descriptionTextField, getEditorFrame().getTrackData().getGraphic().getDescription(), 160, 275);
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
-			addTextField(this, 1, separateObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), 160, 200);
+			addTextField(this, 1, separateObjectsTextField, getEditorFrame().getTrackData().getGraphic().getSeparateObjects(), 160, 220);
 			addTextField(this, 2, terrainObjectsTextField, getEditorFrame().getTrackData().getGraphic().getTerrainObjects(), 160, 275);
 			addTextField(this, 3, roadObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoadObjects(), 160, 275);
 			addTextField(this, 4, road2ObjectsTextField, getEditorFrame().getTrackData().getGraphic().getRoad2Objects(), 160, 275);

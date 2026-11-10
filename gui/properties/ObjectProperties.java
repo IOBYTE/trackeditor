@@ -188,6 +188,9 @@ public class ObjectProperties extends PropertyPanel
 			{
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
+					// nothing to copy when the track has no objects of its own
+					if (getTabbedPane().getSelectedComponent() == null)
+						return;
 					objectCopy = new TrackObject();
 					setObjectFromPanel(objectCopy, (ObjectPanel) getTabbedPane().getSelectedComponent());
 				}
@@ -357,7 +360,7 @@ public class ObjectProperties extends PropertyPanel
 			addLabel(this, 3, colorLabel, "Color", 160);
 			addLabel(this, 4, orientationTypeLabel, "Orientation Type", 160);
 
-			addTextField(this, 0, nameTextField, object.getName(), 120, 125);
+			addTextField(this, 0, nameTextField, object.getName(), 120, 220);
 			markItemName(nameTextField);
 			addTextField(this, 1, objectTextField, object.getObject(), 120, 290);
 			// the tool tip says where the model is, or that it isn't found (in red)

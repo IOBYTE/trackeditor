@@ -541,7 +541,7 @@ public class NewProjectDialog extends JDialog
 
 		// the track is saved there, so it must be a folder the editor can write in:
 		// otherwise New would go ahead and only the first save would fail
-		String problem = folderProblem(projectPath);
+		String problem = folderProblem(projectPath, true);
 		if (problem != null)
 		{
 			JOptionPane.showMessageDialog(this, problem, "New Project", JOptionPane.ERROR_MESSAGE);
@@ -568,14 +568,16 @@ public class NewProjectDialog extends JDialog
 	 * Makes the project's folder when it isn't there yet, and tries writing a file
 	 * in it.
 	 *
+	 * @param choosing whether the path can be changed, so the message says to
+	 *            choose another
 	 * @return why the track can't be saved in the folder, null when it can
 	 */
-	private static String folderProblem(File folder)
+	public static String folderProblem(File folder, boolean choosing)
 	{
 		if (folder.exists() && !folder.isDirectory())
 			return "Can't make the folder " + folder + ":\nthere is a file with that name.";
 		if (!folder.isDirectory() && !folder.mkdirs() && !folder.isDirectory())
-			return "Can't make the folder " + folder + ".\nChoose a path where you can make folders.";
+			return "Can't make the folder " + folder + "." + (choosing ? "\nChoose a path where you can make folders." : "");
 		try
 		{
 			java.nio.file.Path test = java.nio.file.Files.createTempFile(folder.toPath(), "trackeditor", ".tmp");
@@ -592,7 +594,7 @@ public class NewProjectDialog extends JDialog
 			else
 				reason = e.getLocalizedMessage();
 			return "Can't save files in " + folder + (reason == null || reason.isEmpty() ? "." : ":\n" + reason + ".")
-				+ "\nChoose a path where you can save files.";
+				+ (choosing ? "\nChoose a path where you can save files." : "");
 		}
 		return null;
 	}

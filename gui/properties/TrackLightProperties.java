@@ -241,7 +241,7 @@ public class TrackLightProperties extends PropertyPanel
 			addLabel(this, 12, greenLabel, "Green", 160);
 			addLabel(this, 13, blueLabel, "Blue", 160);
 
-			addTextField(this, 0, nameTextField, light.getName(), 120, 125);
+			addTextField(this, 0, nameTextField, light.getName(), 120, 220);
 			markItemName(nameTextField);
 			addTextField(this, 1, roleTextField, light.getRole(), 120, 125);
 			roleTextField.setToolTipText("<html>st_red: on during the countdown (index / 10 s before the start), out at the start<br>"

@@ -60,6 +60,9 @@ public class RaceLine
 		return (lane[length1] * (1.0 - rem) + lane[length2] * rem) - 0.5;
 	}
 
+	/** the most pieces a racing line is worked out for: far more than any real track has */
+	private static final int	MAX_SEGMENTS	= 200000;
+
 	private void splitTrack(GameTrack track)
 	{
 		double length = 0;
@@ -67,7 +70,10 @@ public class RaceLine
 			length += seg.length;
 		Seg first = track.segs.get(0);
 		trackWidth = first.width;
-		nSegments = (int) Math.floor(length / SEG_LENGTH);
+		// a track too long to be one (a broken length or radius in its file) gets
+		// no racing line: smoothing that many pieces would never end
+		double pieces = Math.floor(length / SEG_LENGTH);
+		nSegments = pieces <= MAX_SEGMENTS ? (int) pieces : 0;
 		if (nSegments < 4)
 			return;
 		lx = new double[nSegments];

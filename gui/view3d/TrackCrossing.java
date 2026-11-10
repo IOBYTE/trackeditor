@@ -322,9 +322,15 @@ public class TrackCrossing
 		return point;
 	}
 
+	/**
+	 * @return the direction along the track toStart into the segment, from the
+	 *         loader's heading as trackgen has it (Seg.headingZS): a crossing of
+	 *         two nearly parallel roads (a figure eight that passes its start
+	 *         three times) is built or not by its rounding, as in trackgen
+	 */
 	private static PlanPoint getTrackTangent(Seg segment, double toStart)
 	{
-		double angle = segment.angleZS;
+		double angle = segment.headingZS;
 		if (segment.type == GameTrack.TR_LFT)
 			angle += toStart;
 		else if (segment.type == GameTrack.TR_RGT)
@@ -488,6 +494,16 @@ public class TrackCrossing
 		return first.secondToStart < second.secondToStart ? -1 : first.secondToStart > second.secondToStart ? 1 : 0;
 	}
 
+	/**
+	 * The most pairs of steps whose boxes overlap, and the most crossings, the search
+	 * goes through: a real track has about one pair a step (its neighbors) and a
+	 * few crossings, but a broken one (a huge arc in its file) has nearly every
+	 * step overlap every other, and searching it would never end. Past either, the
+	 * track gets no crossings.
+	 */
+	private static final long	MAX_CROSSING_PAIRS		= 5000000;
+	private static final int	MAX_CROSSING_CANDIDATES	= 10000;
+
 	private void findCrossingCandidates(List<CrossingSegment> segments, List<Candidate> candidates)
 	{
 		List<Candidate> rawCandidates = new ArrayList<Candidate>();
@@ -537,6 +553,7 @@ public class TrackCrossing
 		// as trackgen's pairs are (the candidates are sorted afterward)
 		List<CrossingSegment> byX = new ArrayList<CrossingSegment>(segments);
 		Collections.sort(byX, (a, b) -> Double.compare(a.minX, b.minX));
+		long pairs = 0;
 		for (int i = 0; i < byX.size(); i++)
 		{
 			CrossingSegment a = byX.get(i);
@@ -545,6 +562,8 @@ public class TrackCrossing
 				CrossingSegment b = byX.get(j);
 				if (a.maxY < b.minY || b.maxY < a.minY)
 					continue;
+				if (++pairs > MAX_CROSSING_PAIRS || rawCandidates.size() > MAX_CROSSING_CANDIDATES)
+					return;
 				CrossingSegment first = a.index < b.index ? a : b;
 				CrossingSegment second = a.index < b.index ? b : a;
 				if (segmentIndicesAreAdjacent(first.index, second.index, segments.size()))

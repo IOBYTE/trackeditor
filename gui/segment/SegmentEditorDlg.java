@@ -477,7 +477,10 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				arcSlider.setMethod("ArcDeg");
 			}
 			arcSlider.addSliderListener(this);
-			limit(arcSlider, Double.NaN, Double.NaN, false);
+			// a curve needs an arc: 0 has no length (and a spiral's points can't be
+			// worked out), and less than 0 a length below 0; more than five turns is
+			// only ever a mistyped arc
+			limit(arcSlider, 0.001, Segment.MAX_ARC, false);
 		}
 		return arcSlider;
 	}

@@ -102,6 +102,14 @@ public class GameTrack
 		public float		radius, radiusr, radiusl, arc;
 		public float		centerX, centerY;
 		public float		angleZS, angleZE, angleXS, angleXE;
+		/**
+		 * The heading at the start as TORCS' track loader has it (track4.cpp's alf):
+		 * added up step by step in floats from 0 and never wrapped. angleZS is the
+		 * same heading worked out from the corners; the two differ only by whole
+		 * turns and rounding, but trackgen's crossings test that rounding (see
+		 * TrackCrossing.getTrackTangent).
+		 */
+		public float		headingZS;
 		public float		Kzl, Kzw, Kyl;
 		/** corners: TR_SL, TR_SR, TR_EL, TR_ER; x, y, z */
 		public final float[][]	vertex	= new float[4][3];
@@ -156,6 +164,8 @@ public class GameTrack
 		// a side follows the track's banking unless its banking type is "level" (the default)
 		int[] bankType = { bankType(mainTrack.getRight().getSideBankingType()), bankType(mainTrack.getLeft().getSideBankingType()) };
 		float fromStart = 0;
+		// the loader's heading (see Seg.headingZS)
+		float alf = 0;
 
 		for (Segment segment : editorFrame.getTrackData().getSegments())
 		{
@@ -163,6 +173,33 @@ public class GameTrack
 			int steps = segment.nbSteps;
 			if (points == null || steps <= 0)
 				continue;
+			// a curve's turn each step, in floats as the loader works it out: its arc
+			// read in degrees and made radians with a float factor, and a spiral's from
+			// its step length and a radius that changes each step
+			float loaderRadius = 0, loaderDradius = 0, loaderCurArc = 0, loaderCurLength = 0;
+			if (segment instanceof Curve)
+			{
+				Curve curve = (Curve) segment;
+				float arc = (float) curve.getArcDeg() * (float) (Math.PI / 180.0);
+				loaderRadius = (float) curve.getRadiusStart();
+				float radiusEnd = (float) curve.getValidRadiusEnd();
+				float length = (float) ((double) (loaderRadius + radiusEnd) / 2.0 * arc);
+				loaderCurArc = arc / (float) steps;
+				loaderCurLength = length / (float) steps;
+				loaderDradius = (radiusEnd - loaderRadius) / (float) steps;
+				if (radiusEnd != loaderRadius && steps != 1)
+				{
+					loaderDradius = (radiusEnd - loaderRadius) / (float) (steps - 1);
+					float tmpAngle = 0;
+					float tmpRadius = loaderRadius;
+					for (int curStep = 0; curStep < steps; curStep++)
+					{
+						tmpAngle += loaderCurLength / tmpRadius;
+						tmpRadius += loaderDradius;
+					}
+					loaderCurLength *= arc / tmpAngle;
+				}
+			}
 			int stride = points.length / steps;
 			int type = segment instanceof Curve ? ("lft".equals(segment.getType()) ? TR_LFT : TR_RGT) : TR_STR;
 			GameSides.State[] sides = { GameSides.of(segment, true, editorFrame), GameSides.of(segment, false, editorFrame) };
@@ -173,6 +210,14 @@ public class GameTrack
 			{
 				int o = step * stride;
 				Seg m = new Seg();
+				m.headingZS = alf;
+				if (type != TR_STR)
+				{
+					if (loaderDradius != 0)
+						loaderCurArc = loaderCurLength / loaderRadius;
+					alf = type == TR_LFT ? alf + loaderCurArc : alf - loaderCurArc;
+					loaderRadius += loaderDradius;
+				}
 				m.name = segment.getName();
 				m.id = segs.size();
 				m.type = type;
@@ -204,6 +249,12 @@ public class GameTrack
 					double dradius = re == rs ? 0 : steps != 1 ? (re - rs) / (steps - 1) : re - rs;
 					double radius = rs + step * dradius;
 					double arc = stepLength / radius;
+					// a radius of 0 or less (an end radius of 0 reaches it on the last
+					// step, whose length then rounds to a few 1e-15 m) turns without
+					// limit: such a step doesn't turn, or the 3D build never ends (Check
+					// reports the radius)
+					if (!(radius > 0) || Double.isNaN(arc) || Double.isInfinite(arc))
+						arc = 0;
 					m.arc = (float) arc;
 					m.angleZE = (float) (type == TR_LFT ? zs + arc : zs - arc);
 					m.radius = (float) radius;

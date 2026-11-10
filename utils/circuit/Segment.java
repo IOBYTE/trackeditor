@@ -56,6 +56,8 @@ public class Segment implements Cloneable
 	public static final double	MAX_LENGTH				= 10000;
 	/** the largest radius, in m */
 	public static final double	MAX_RADIUS				= 10000;
+	/** the largest arc, in degrees: five full turns */
+	public static final double	MAX_ARC					= 1800;
 	/**
 	 * the most steps the editor builds the whole track in: each takes about 2 KB,
 	 * so this is about 230 MB, and many times the steps of a real track
