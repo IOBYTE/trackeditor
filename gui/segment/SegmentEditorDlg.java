@@ -258,6 +258,76 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		return jTabbedPane;
 	}
 
+	/**
+	 * Values outside lowest and highest (NaN for no limit) aren't used, and nor is
+	 * one that builds the segment in more steps than the editor allows: the box
+	 * says why (see SegmentSlider.setLimits).
+	 */
+	private void limit(final SegmentSlider slider, double lowest, double highest, boolean zeroAllowed)
+	{
+		slider.setLimits(lowest, highest, zeroAllowed);
+		slider.setValidator(v -> tooManySteps(slider, v));
+	}
+
+	/**
+	 * @return why a curve can't have the radius: it must be at least half the
+	 *         track's width, or the inside edge of the road crosses the curve's
+	 *         centre; null when it can
+	 */
+	private String radiusProblem(double radius)
+	{
+		double half = editorFrame.getTrackData().getMainTrack().getValidWidth() / 2;
+		if (radius < half)
+			return String.format(java.util.Locale.US, "it must be at least half the track's width, %s m", formatMeters(half));
+		return null;
+	}
+
+	private static String formatMeters(double value)
+	{
+		String text = String.format(java.util.Locale.US, "%.3f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+		return "-0".equals(text) ? "0" : text;
+	}
+
+	/**
+	 * @return why the slider's value would build the segment in more steps than
+	 *         the editor allows (Segment.MAX_STEPS), null when it wouldn't
+	 */
+	private String tooManySteps(SegmentSlider slider, double v)
+	{
+		String method = slider.getMethod();
+		if (shape == null || method == null || method.isEmpty())
+			return null;
+		try
+		{
+			// tried on the segment, then put back
+			java.lang.reflect.Method getter = shape.getClass().getMethod("get" + method);
+			Class<?> type = getter.getReturnType();
+			java.lang.reflect.Method setter = shape.getClass().getMethod("set" + method, type);
+			Object old = getter.invoke(shape);
+			double steps;
+			double trackSteps;
+			try
+			{
+				setter.invoke(shape, type == int.class ? (Object) (int) Math.min(v, Integer.MAX_VALUE - 1) : (Object) v);
+				steps = shape.getGameSteps(editorFrame, shape.getFormulaLength());
+				trackSteps = Segment.getTrackSteps(editorFrame);
+			}
+			finally
+			{
+				setter.invoke(shape, old);
+			}
+			if (steps > Segment.MAX_STEPS)
+				return String.format(java.util.Locale.US, "the segment would be built in %,.0f steps, and the editor allows at most %,d", steps, Segment.MAX_STEPS);
+			if (trackSteps > Segment.MAX_TRACK_STEPS)
+				return String.format(java.util.Locale.US, "the track would be built in %,.0f steps, and the editor allows at most %,d", trackSteps, Segment.MAX_TRACK_STEPS);
+		}
+		catch (ReflectiveOperationException e)
+		{
+			// nothing to check this with
+		}
+		return null;
+	}
+
 	/** Shows the tab with the title: Left, Center or Right */
 	public void showTab(String title)
 	{
@@ -359,6 +429,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				radiusStartSlider.setMethod("RadiusStart");
 			}
 			radiusStartSlider.addSliderListener(this);
+			limit(radiusStartSlider, 0.001, Segment.MAX_RADIUS, false);
+			final SegmentSlider radiusStartSliderFinal = radiusStartSlider;
+			radiusStartSlider.setValidator(v -> radiusProblem(v) != null ? radiusProblem(v) : tooManySteps(radiusStartSliderFinal, v));
 		}
 		return radiusStartSlider;
 	}
@@ -380,6 +453,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				radiusEndSlider.setMethod("RadiusEnd");
 			}
 			radiusEndSlider.addSliderListener(this);
+			limit(radiusEndSlider, 0.001, Segment.MAX_RADIUS, false);
+			final SegmentSlider radiusEndSliderFinal = radiusEndSlider;
+			radiusEndSlider.setValidator(v -> radiusProblem(v) != null ? radiusProblem(v) : tooManySteps(radiusEndSliderFinal, v));
 		}
 		return radiusEndSlider;
 	}
@@ -401,6 +477,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				arcSlider.setMethod("ArcDeg");
 			}
 			arcSlider.addSliderListener(this);
+			limit(arcSlider, Double.NaN, Double.NaN, false);
 		}
 		return arcSlider;
 	}
@@ -416,6 +493,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			lengthSlider = new SegmentSlider(0.001, 1000, 0.001, 0.001, shape.getLength(), "Length", "", "Length", false, false);
 			lengthSlider.setBounds(5, 64, 50, 390);
 			lengthSlider.addSliderListener(this);
+			limit(lengthSlider, 0.001, Segment.MAX_LENGTH, false);
 		}
 		return lengthSlider;
 	}
@@ -539,6 +617,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			profilStepsSlider = new SegmentSlider(minSteps, 100, Double.NaN, 1, shape.getProfilSteps(), "Steps", "", "ProfilSteps", true, true);
 			profilStepsSlider.setBounds(610, 64, 50, 390);
 			profilStepsSlider.addSliderListener(this);
+			limit(profilStepsSlider, minSteps, Segment.MAX_PROFIL_STEPS, false);
 		}
 		return profilStepsSlider;
 	}
@@ -554,6 +633,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			profilStepsLengthSlider = new SegmentSlider(0, 100, 0, 0.001, shape.getProfilStepsLength(), "Steps", "Len", "ProfilStepsLength", true, false);
 			profilStepsLengthSlider.setBounds(665, 64, 50, 390);
 			profilStepsLengthSlider.addSliderListener(this);
+			// 0 is none: the segment is one step
+			limit(profilStepsLengthSlider, Segment.MIN_PROFIL_STEPS_LENGTH, Double.NaN, true);
 		}
 		return profilStepsLengthSlider;
 	}
@@ -1605,6 +1686,16 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				shape.setProfilStepsLength(Double.NaN);
 				profilStepsLengthSlider.setValue(shape.getProfilStepsLength());
 			}
+		}
+
+		// ticking sets the value straight on the segment (and clears the ones it
+		// replaces), and the slider then has no new value to report: it is an edit
+		// all the same, to undo, save and draw
+		if (slider.isCheckBoxSelected())
+		{
+			view.redrawCircuit();
+			changed();
+			dirty = true;
 		}
 	}
 

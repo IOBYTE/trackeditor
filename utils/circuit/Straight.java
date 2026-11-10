@@ -157,7 +157,7 @@ public class Straight extends Segment
 		double rightEndHeight = this.getCalculatedHeightEndRight();
 
 		// same step count as the game's track loader
-		nbSteps = getValidSteps(editorFrame, length);
+		nbSteps = getBuiltSteps(editorFrame, length);
 		stepLength = length / nbSteps;
 
 		if (points == null || points.length != 4 * (7 + (showArrows > 0.0 ? 1 : 0)) * nbSteps)

@@ -216,23 +216,30 @@ public class SegmentSlider extends JPanel
 							try
 							{
 								String s = document.getText(0, document.getLength());
+								// cleared, or only a minus so far: the number is still being
+								// typed, so the value stays as it is (writing the default in
+								// would change the segment and the text being typed); leaving
+								// the field puts the value back (see the focus listener)
 								if (s.equals("-") || s.equals(""))
 								{
-									double oldValue = value;
-									setValueInternal(defaultValue);
-									if (Math.abs(oldValue - value) >= resolution)
-									{
-										valueChanged();
-									}
+									return;
 								}
-								else if (!s.equals(""))
+								else
 								{
 									try
 									{
 										double oldValue = value;
 										double tmp = Double.parseDouble(getTextField().getText());
+										// a value outside the limits isn't used: the box says why,
+										// and leaving it puts the value back
+										String refused = refused(tmp);
+										showRefused(refused);
+										if (refused != null)
+											return;
 										setValueInternal(tmp);
-										if (Math.abs(oldValue - value) >= resolution)
+										// any change typed is the segment's, even one finer than
+										// the slider's steps: the box shows it, so it must apply
+										if (Double.compare(oldValue, value) != 0)
 										{
 											valueChanged();
 										}
@@ -251,6 +258,18 @@ public class SegmentSlider extends JPanel
 						}
 					};
 					SwingUtilities.invokeLater(doHighlight);
+				}
+			});
+			// left cleared or with only a minus: show the value it still has
+			textField.addFocusListener(new java.awt.event.FocusAdapter()
+			{
+				@Override
+				public void focusLost(java.awt.event.FocusEvent e)
+				{
+					String s = textField.getText();
+					if ((s.equals("") || s.equals("-") || refusedText != null) && !Double.isNaN(value) && textField.isEnabled())
+						setTextQuietly(nf.format(value));
+					showRefused(null);
 				}
 			});
 			textField.addKeyListener(new KeyAdapter()
@@ -358,14 +377,81 @@ public class SegmentSlider extends JPanel
 			checkBox.setEnabled(!frozen && enabled);
 			problemUnlocked = false;
 		}
-		getTextField().setDisabledTextColor(tip != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
-		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
+		problemTip = tip;
 		attLabel.setForeground(tip != null ? red : javax.swing.UIManager.getColor("Label.foreground"));
 		sectionLabel.setForeground(tip != null ? red : javax.swing.UIManager.getColor("Label.foreground"));
-		for (javax.swing.JComponent c : new javax.swing.JComponent[] { this, getTextField(), attLabel, sectionLabel, getSlider() })
+		for (javax.swing.JComponent c : new javax.swing.JComponent[] { this, attLabel, sectionLabel, getSlider() })
 			c.setToolTipText(tip);
 		if (checkBox != null)
 			checkBox.setToolTipText(tip);
+		showText();
+	}
+
+	// the warning setProblem shows, and why a typed value isn't used: the box shows
+	// the second while there is one
+	private String	problemTip	= null;
+	private String	refusedText	= null;
+
+	// the limits on values typed or dragged (NaN for none), and whether 0 is
+	// allowed below the lowest (it means none, as for a steps length)
+	private double	lowest		= Double.NaN;
+	private double	highest		= Double.NaN;
+	private boolean	zeroAllowed	= false;
+	// what else makes a value unusable, null for nothing
+	private java.util.function.DoubleFunction<String>	validator	= null;
+
+	/**
+	 * Values outside these aren't used: the box turns red and says why, and the
+	 * value stays as it was. The slider's own range is only what it can be dragged
+	 * over, and grows to show a value read from a file.
+	 *
+	 * @param zeroAllowed whether 0 is allowed below lowest
+	 */
+	public void setLimits(double lowest, double highest, boolean zeroAllowed)
+	{
+		this.lowest = lowest;
+		this.highest = highest;
+		this.zeroAllowed = zeroAllowed;
+	}
+
+	/** @param validator says why a value can't be used, or null when it can */
+	public void setValidator(java.util.function.DoubleFunction<String> validator)
+	{
+		this.validator = validator;
+	}
+
+	/** @return why the value can't be used, null when it can */
+	private String refused(double v)
+	{
+		boolean belowLowest = !Double.isNaN(lowest) && v < lowest && !(zeroAllowed && v == 0);
+		boolean aboveHighest = !Double.isNaN(highest) && v > highest;
+		if (belowLowest || aboveHighest)
+		{
+			String range = Double.isNaN(highest) ? "at least " + nf.format(lowest)
+				: Double.isNaN(lowest) ? "at most " + nf.format(highest)
+				: "from " + nf.format(lowest) + " to " + nf.format(highest);
+			return (zeroAllowed ? "it must be 0 (none), or " : "it must be ") + range;
+		}
+		return validator == null ? null : validator.apply(v);
+	}
+
+	private void showRefused(String why)
+	{
+		if (java.util.Objects.equals(why, refusedText))
+			return;
+		refusedText = why;
+		showText();
+	}
+
+	/** Shows the text in red, with why in its tool tip, when it is refused or has a warning */
+	private void showText()
+	{
+		java.awt.Color red = java.awt.Color.RED;
+		String tip = refusedText != null ? "<html><body style='width: 300px'><font color=red><b>Not used:</b> "
+			+ refusedText + ".<br>Leaving the box puts the value back.</font></body></html>" : problemTip;
+		getTextField().setDisabledTextColor(problemTip != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
+		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
+		getTextField().setToolTipText(tip);
 	}
 
 	/**
@@ -494,6 +580,8 @@ public class SegmentSlider extends JPanel
 	 */
 	public void setValue(double val)
 	{
+		// a new value to show: what was refused before no longer applies
+		showRefused(null);
 		if (integerFormat && val == Integer.MAX_VALUE)
 		{
 			value = Double.NaN;
@@ -728,7 +816,11 @@ public class SegmentSlider extends JPanel
 					double tmp2 = Double.parseDouble(getTextField().getText());
 					if (tmp1 != tmp2 && !(tmp2 >= tmp1 && tmp2 < (tmp1 + resolution)))
 					{
-						setValueInternal(tmp1);
+						// dragged past a limit: not used, and the box says why
+						String refused = refused(tmp1);
+						showRefused(refused);
+						if (refused == null)
+							setValueInternal(tmp1);
 					}
 				}
 				catch (Exception e)

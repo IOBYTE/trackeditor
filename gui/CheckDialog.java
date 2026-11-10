@@ -537,7 +537,17 @@ public class CheckDialog extends JDialog
 		{
 			report.about(segment(segment));
 			checkSegmentSize(segment);
+			checkSegmentLimits(segment);
 		}
+		double trackSteps = Segment.getTrackSteps(editorFrame);
+		if (trackSteps > Segment.MAX_TRACK_STEPS)
+			report.append(String.format(java.util.Locale.US, "The track is built in %,.0f steps, more than the editor's %,d: "
+				+ "it draws each segment in fewer, and the game may be slow to load it\n", trackSteps, Segment.MAX_TRACK_STEPS), NONE);
+		report.about(properties("Track"));
+		double mainStepsLength = trackData.getMainTrack().getProfilStepsLength();
+		if (mainStepsLength > 0 && mainStepsLength < Segment.MIN_PROFIL_STEPS_LENGTH)
+			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is shorter than the editor allows ("
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m), so a segment with it is built in very many steps\n");
 		report.about(null);
 
 		for (int i = 0; i < segments.size(); i++)
@@ -602,6 +612,41 @@ public class CheckDialog extends JDialog
 	}
 
 	/**
+	 * Values the segment dialog doesn't accept (see the limits in Segment): a
+	 * track read from a file can have them, and the editor builds such a segment
+	 * in at most Segment.MAX_STEPS steps.
+	 */
+	private void checkSegmentLimits(Segment segment)
+	{
+		String name = "Segment " + segment.getName() + ": ";
+		double length;
+		if (segment.getType().equals("str"))
+		{
+			length = segment.getLength();
+			if (length > Segment.MAX_LENGTH)
+				report.append(name + "length " + format(length) + " m is longer than the editor allows (" + format(Segment.MAX_LENGTH) + " m)\n");
+		}
+		else
+		{
+			Curve curve = (Curve) segment;
+			if (curve.getRadiusStart() > Segment.MAX_RADIUS)
+				report.append(name + "radius " + format(curve.getRadiusStart()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
+			if (curve.getValidRadiusEnd() > Segment.MAX_RADIUS && curve.getValidRadiusEnd() != curve.getRadiusStart())
+				report.append(name + "end radius " + format(curve.getValidRadiusEnd()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
+			length = curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
+		}
+		if (segment.hasProfilSteps() && segment.getProfilSteps() > Segment.MAX_PROFIL_STEPS)
+			report.append(name + "steps " + segment.getProfilSteps() + " is more than the editor allows (" + Segment.MAX_PROFIL_STEPS + ")\n");
+		if (segment.hasProfilStepsLength() && segment.getProfilStepsLength() > 0 && segment.getProfilStepsLength() < Segment.MIN_PROFIL_STEPS_LENGTH)
+			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is shorter than the editor allows ("
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m)\n");
+		double steps = segment.getGameSteps(editorFrame, length);
+		if (steps > Segment.MAX_STEPS)
+			report.append(name + String.format(java.util.Locale.US, "the game builds it in %,.0f steps, more than the editor's %,d: "
+				+ "the editor draws it in %,d, and the game may be slow to load it\n", steps, Segment.MAX_STEPS, Segment.MAX_STEPS));
+	}
+
+	/**
 	 * A straight needs a length, and a curve a radius and an arc, greater than 0.
 	 * The games read a missing one as 0, and build each segment in steps of the
 	 * profile step length: with 0 a straight or an arc has no length (a curve with
@@ -637,6 +682,16 @@ public class CheckDialog extends JDialog
 		double end = curve.getValidRadiusEnd();
 		if (!Double.isNaN(end) && end <= 0 && end != radius)
 			report.append(name + "end radius " + format(end) + " m: a curve needs a radius greater than 0\n");
+
+		// less than half the width: the road's inside edge crosses the curve's centre
+		// (the segment dialog doesn't allow it)
+		double half = trackData.getMainTrack().getValidWidth() / 2;
+		if (radius > 0 && radius < half)
+			report.append(name + "radius " + format(radius) + " m is less than half the track's width (" + format(half)
+				+ " m): the inside edge of the road crosses the curve's centre\n");
+		if (end > 0 && end < half && end != radius)
+			report.append(name + "end radius " + format(end) + " m is less than half the track's width (" + format(half)
+				+ " m): the inside edge of the road crosses the curve's centre\n");
 
 		double arc = curve.getArcDeg();
 		if (Double.isNaN(arc))

@@ -5357,13 +5357,18 @@ public class EditorFrame extends JFrame
 		return set;
 	}
 
+	/**
+	 * @return the color of the track's or the default object with the name, the
+	 *         track's first; 0 when there is none
+	 */
 	public int getObjectColor(String name)
 	{
 		Vector<TrackObject>	trackObjects = trackData.getTrackObjects();
 
+		// compared by text: a name typed or read from a file is another string
 		for (int i = 0; i < trackObjects.size(); i++)
 		{
-			if (trackObjects.get(i).getName() == name)
+			if (java.util.Objects.equals(trackObjects.get(i).getName(), name))
 			{
 				return trackObjects.get(i).getColor();
 			}
@@ -5371,7 +5376,7 @@ public class EditorFrame extends JFrame
 
 		for (int i = 0; i < defaultObjects.size(); i++)
 		{
-			if (defaultObjects.get(i).getName() == name)
+			if (java.util.Objects.equals(defaultObjects.get(i).getName(), name))
 			{
 				return defaultObjects.get(i).getColor();
 			}

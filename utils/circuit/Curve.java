@@ -180,7 +180,7 @@ public class Curve extends Segment
 		double endRadius = getValidRadiusEnd();
 		length = arc * (radiusStart + endRadius) / 2;
 		// same step count as the game's track loader
-		nbSteps = getValidSteps(editorFrame, length);
+		nbSteps = getBuiltSteps(editorFrame, length);
 
 		trackStartDist += length;
 		stepLength = length / nbSteps;

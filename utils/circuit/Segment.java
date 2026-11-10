@@ -42,6 +42,26 @@ import utils.MutableDouble;
 
 public class Segment implements Cloneable
 {
+	// what the segment dialog accepts, many times what real tracks use (their
+	// steps are 1 m or longer, at most 50 of them, and their segments at most
+	// about 1 km long): more steps than this make the editor slow or run out of
+	// memory, as it builds every step
+	/** the shortest steps length, other than 0 (none) */
+	public static final double	MIN_PROFIL_STEPS_LENGTH	= 0.1;
+	/** the most steps the Steps value can ask for */
+	public static final int		MAX_PROFIL_STEPS		= 1000;
+	/** the most steps the editor builds a segment in, whatever asks for them */
+	public static final int		MAX_STEPS				= 10000;
+	/** the longest straight, in m */
+	public static final double	MAX_LENGTH				= 10000;
+	/** the largest radius, in m */
+	public static final double	MAX_RADIUS				= 10000;
+	/**
+	 * the most steps the editor builds the whole track in: each takes about 2 KB,
+	 * so this is about 230 MB, and many times the steps of a real track
+	 */
+	public static final int		MAX_TRACK_STEPS			= 100000;
+
 	public enum Where { LEFT, CENTER, RIGHT }
 
 	private Vector<SegmentSideListener>	segmentListeners	= new Vector<SegmentSideListener>();
@@ -1296,6 +1316,55 @@ public class Segment implements Cloneable
 	 */
 	public int getValidSteps(EditorFrame editorFrame, double length)
 	{
+		// the editor builds at most MAX_STEPS (a value read from a file can ask
+		// for many more: Check reports it), and always at least one
+		double steps = getGameSteps(editorFrame, length);
+		return (int) Math.max(1, Math.min(MAX_STEPS, steps));
+	}
+
+	/**
+	 * @return the steps the editor builds the segment in: getValidSteps, and
+	 *         fewer when the whole track would need more than MAX_TRACK_STEPS
+	 *         (each segment then gets its share)
+	 */
+	public int getBuiltSteps(EditorFrame editorFrame, double length)
+	{
+		int steps = getValidSteps(editorFrame, length);
+		double total = getTrackSteps(editorFrame);
+		if (total <= MAX_TRACK_STEPS)
+			return steps;
+		return (int) Math.max(1, Math.floor(steps * MAX_TRACK_STEPS / total));
+	}
+
+	/**
+	 * @return the steps the whole track is built in, each segment at most
+	 *         MAX_STEPS (getValidSteps)
+	 */
+	public static double getTrackSteps(EditorFrame editorFrame)
+	{
+		double total = 0;
+		if (editorFrame == null || editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null)
+			return total;
+		for (Segment segment : editorFrame.getTrackData().getSegments())
+			total += segment.getValidSteps(editorFrame, segment.getFormulaLength());
+		return total;
+	}
+
+	/** @return the segment's length as the game works it out: a curve's from its arc and radii */
+	public double getFormulaLength()
+	{
+		if (getType().equals("str"))
+			return getLength();
+		Curve curve = (Curve) this;
+		return curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
+	}
+
+	/**
+	 * @return the steps the game builds the segment in, without the editor's
+	 *         limit; a double, so a huge count doesn't overflow
+	 */
+	public double getGameSteps(EditorFrame editorFrame, double length)
+	{
 		if (!isSpline())
 			return 1;
 
@@ -1304,7 +1373,7 @@ public class Segment implements Cloneable
 
 		double profilStepsLength = getValidProfilStepsLength(editorFrame);
 		if (profilStepsLength > 0)
-			return (int) (length / profilStepsLength) + 1;
+			return Math.floor(length / profilStepsLength) + 1;
 
 		return 1;
 	}

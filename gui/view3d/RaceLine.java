@@ -152,6 +152,10 @@ public class RaceLine
 		double n2 = x2 * x2 + y2 * y2;
 		double n3 = x3 * x3 + y3 * y3;
 		double nnn = Math.sqrt(n1 * n2 * n3);
+		// two of the points are the same (a track of a few pieces wraps onto itself):
+		// trackgen gets 0 / 0 there, a straight line is what's meant
+		if (nnn == 0)
+			return 0;
 		return 2 * det / nnn;
 	}
 
@@ -167,6 +171,9 @@ public class RaceLine
 		// start by aligning points for a reasonable initial lane
 		lane[i] = (-(ty[next] - ty[prev]) * (lx[i] - tx[prev]) + (tx[next] - tx[prev]) * (ly[i] - ty[prev])) /
 			((ty[next] - ty[prev]) * (rx[i] - lx[i]) - (tx[next] - tx[prev]) * (ry[i] - ly[i]));
+		// the three points in a line across the road (0 / 0): keep the lane it had
+		if (Double.isNaN(lane[i]))
+			lane[i] = oldLane;
 		if (lane[i] < -0.2)
 			lane[i] = -0.2;
 		else if (lane[i] > 1.2)
@@ -207,6 +214,8 @@ public class RaceLine
 					lane[i] = 1 - intLane;
 			}
 		}
+		if (Double.isNaN(lane[i]))
+			lane[i] = oldLane;
 		updateTxTy(i);
 	}
 
@@ -219,6 +228,10 @@ public class RaceLine
 		int prevprev = prev - step;
 		int next = step;
 		int nextnext = next + step;
+		// as at the end of each piece below: trackgen leaves it out for the first, and
+		// so reads past the last piece when there are fewer than three steps of them
+		if (nextnext > nSegments - step)
+			nextnext = 0;
 		for (int i = 0; i <= nSegments - step; i += step)
 		{
 			double ri0 = rInverse(prevprev, tx[prev], ty[prev], i);

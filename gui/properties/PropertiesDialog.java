@@ -548,9 +548,11 @@ public class PropertiesDialog extends JDialog
 	 */
 	protected void exit()
 	{
-		// the pit segments have to exist, and the pits should end where they should
+		// the pit segments have to exist, and the pits should end where they should:
+		// fitting the segments is an interactive fix, offered only when those are
+		// on in Preferences (Check reports the problem either way)
 		if (!this.pitProperties.checkSegmentNames(this) || !this.pitProperties.checkOrder(this)
-			|| !this.pitProperties.checkBuildingsEnd(this))
+			|| (editorFrame.getInteractiveFixes() && !this.pitProperties.checkBuildingsEnd(this)))
 		{
 			getTabbedPane().setSelectedComponent(this.pitProperties);
 			return;
@@ -584,8 +586,9 @@ public class PropertiesDialog extends JDialog
 		}
 		if (!this.imageProperties.checkScale(this, getTabbedPane()))
 			return;
-		// cameras on segments that aren't there
-		if (!this.cameraProperties.checkSegments(this, getTabbedPane()))
+		// cameras on segments that aren't there: picking them is an interactive fix,
+		// offered only when those are on in Preferences (Check reports them either way)
+		if (editorFrame.getInteractiveFixes() && !this.cameraProperties.checkSegments(this, getTabbedPane()))
 			return;
 		String georeferenceProblem = this.georeferenceProperties == null ? null : this.georeferenceProperties.problem();
 		if (georeferenceProblem != null)

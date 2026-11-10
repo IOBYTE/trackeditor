@@ -539,9 +539,14 @@ public class NewProjectDialog extends JDialog
 			}
 		}
 
-		if (!projectPath.exists())
+		// the track is saved there, so it must be a folder the editor can write in:
+		// otherwise New would go ahead and only the first save would fail
+		String problem = folderProblem(projectPath);
+		if (problem != null)
 		{
-			projectPath.mkdirs();
+			JOptionPane.showMessageDialog(this, problem, "New Project", JOptionPane.ERROR_MESSAGE);
+			getPathTextField().requestFocusInWindow();
+			return;
 		}
 
 		newProjectInfo.name = tmpName;
@@ -559,6 +564,39 @@ public class NewProjectDialog extends JDialog
 		APPROVE = true;
 		cancel();
 	}
+	/**
+	 * Makes the project's folder when it isn't there yet, and tries writing a file
+	 * in it.
+	 *
+	 * @return why the track can't be saved in the folder, null when it can
+	 */
+	private static String folderProblem(File folder)
+	{
+		if (folder.exists() && !folder.isDirectory())
+			return "Can't make the folder " + folder + ":\nthere is a file with that name.";
+		if (!folder.isDirectory() && !folder.mkdirs() && !folder.isDirectory())
+			return "Can't make the folder " + folder + ".\nChoose a path where you can make folders.";
+		try
+		{
+			java.nio.file.Path test = java.nio.file.Files.createTempFile(folder.toPath(), "trackeditor", ".tmp");
+			java.nio.file.Files.delete(test);
+		}
+		catch (java.io.IOException | SecurityException e)
+		{
+			// a file system exception's message is only the file's name
+			String reason;
+			if (e instanceof java.nio.file.AccessDeniedException || e instanceof SecurityException)
+				reason = "access denied";
+			else if (e instanceof java.nio.file.FileSystemException)
+				reason = ((java.nio.file.FileSystemException) e).getReason();
+			else
+				reason = e.getLocalizedMessage();
+			return "Can't save files in " + folder + (reason == null || reason.isEmpty() ? "." : ":\n" + reason + ".")
+				+ "\nChoose a path where you can save files.";
+		}
+		return null;
+	}
+
 	/**
 	 *  
 	 */
