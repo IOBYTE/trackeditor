@@ -443,7 +443,7 @@ public class ObjectMapProperties extends PropertyPanel
 			}
 		}
 
-		private static String reason(IOException e)
+		private String reason(IOException e)
 		{
 			String reason = e.getLocalizedMessage();
 			return reason == null || reason.isEmpty() ? e.toString() : reason;
