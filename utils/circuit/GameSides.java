@@ -194,7 +194,7 @@ public final class GameSides
 	/** What the game makes differently of a side's own value: the field is the value's name */
 	public static final class Problem
 	{
-		/** border style, border height, barrier style, barrier width or barrier height */
+		/** side start width, side end width, border style, border height, barrier style, barrier width or barrier height */
 		public final String	field;
 		/** what the game does, starting with the field's name */
 		public final String	text;
@@ -211,6 +211,64 @@ public final class GameSides
 	 * @return the values the side has that the game ignores or reads differently,
 	 *         as Check and the segment dialog show them
 	 */
+	/**
+	 * On the inside of a curve, the side, its border and a wall barrier can reach
+	 * past the curve's center: the game then builds them with a negative radius,
+	 * so they cross over the center and fold over, the barrier inside out.
+	 */
+	private static void insideCurve(java.util.List<Problem> problems, Segment segment, boolean right, State state, EditorFrame editorFrame)
+	{
+		if (!(segment instanceof Curve) || right != segment.getType().equals("rgt"))
+			return;
+		Curve curve = (Curve) segment;
+		double toBorder = editorFrame.getTrackData().getMainTrack().getValidWidth() / 2 + state.borderWidth;
+		// the games whose segments can have no barrier (version 3 tracks take the barrier from the Main Track)
+		boolean noBarrier = !editorFrame.getGameType().otherBarrierStylesAreWalls()
+			&& editorFrame.getTrackData().getHeader().getVersion() != 3;
+		String[] ends = { "start", "end" };
+		double[] radii = { curve.getRadiusStart(), curve.getValidRadiusEnd() };
+		double[] sides = { state.sideStartWidth, state.sideEndWidth };
+		for (int i = 0; i < 2; i++)
+		{
+			// the same radius at both ends is reported once, at the end that is wider
+			if (i == 0 && radii[0] == radii[1] && sides[1] >= sides[0])
+				continue;
+			if (i == 1 && radii[0] == radii[1] && sides[0] > sides[1])
+				continue;
+			double side = toBorder + sides[i];
+			double reach = side + state.barrierWidth;
+			if (!(reach > radii[i]))
+				continue;
+			boolean sideReaches = side > radii[i];
+			String at = radii[0] == radii[1] ? "" : " at its " + ends[i];
+			String radius = radii[0] == radii[1] ? "radius" : ends[i] + " radius";
+			String sideField = "the side" + (sides[0] == sides[1] ? "" : "'s " + ends[i] + " width") + " (or its border)";
+			String fix;
+			if (noBarrier && !state.barrierStyle.equals("no barrier"))
+			{
+				// a side that ends at the center leaves its barrier no length: the style for that is no barrier
+				fix = sideReaches
+					? String.format(java.util.Locale.US, "make %s at least %.2f m narrower and its barrier style no barrier (a barrier at the center has no length), or the %s larger",
+						sideField, side - radii[i], radius)
+					: String.format(java.util.Locale.US, "set its barrier style to no barrier, or make the barrier, the side or its border at least %.2f m narrower, or the %s larger",
+						reach - radii[i], radius);
+			}
+			else
+			{
+				fix = String.format(java.util.Locale.US, "make %s at least %.2f m narrower, or the %s larger",
+					sideReaches ? sideField : "the barrier, the side or its border", reach - radii[i], radius);
+			}
+			String text = String.format(java.util.Locale.US, "%s %.2f m in from the middle of the track%s, past the curve's center "
+				+ "(%s %.2f m), so the game folds the side and its barrier over: %s",
+				!sideReaches ? "wall barrier reaches" : state.barrierWidth > 0 ? "side and its wall barrier reach" : "side reaches",
+				reach, at, radius, radii[i], fix);
+			// the same width at both ends shows on the one the segment sets
+			SegmentSide own = right ? segment.getRight() : segment.getLeft();
+			String field = sides[0] != sides[1] ? ends[i] : !Double.isNaN(own.getSideStartWidth()) || Double.isNaN(own.getSideEndWidth()) ? "start" : "end";
+			problems.add(new Problem(sideReaches ? "side " + field + " width" : "barrier width", text));
+		}
+	}
+
 	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, EditorFrame editorFrame)
 	{
 		java.util.List<Problem> problems = new ArrayList<Problem>();
@@ -253,6 +311,8 @@ public final class GameSides
 		{
 			problems.add(new Problem("barrier height", "barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)"));
 		}
+
+		insideCurve(problems, segment, right, state, editorFrame);
 
 		if (previousSegment == null)
 			return problems;

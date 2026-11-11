@@ -611,45 +611,7 @@ public class CheckDialog extends JDialog
 				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and a segment with it is built in one step\n");
 		report.about(null);
 
-		for (int i = 0; i < segments.size(); i++)
-		{
-			Segment segment = segments.get(i);
-
-			if (!segment.getType().equals("str"))
-			{
-				Curve curve = (Curve) segment;
-				double startWidth = trackData.getMainTrack().getValidWidth() / 2.0;
-				double endWidth = startWidth;
-				// the side on the inside of the curve, whose border and side reach its centre
-				String inside = segment.getType().equals("rgt") ? "Right" : "Left";
-
-				if (segment.getType().equals("rgt"))
-				{
-					startWidth += curve.getValidRightBorderWidth(editorFrame);
-					endWidth = startWidth;
-
-					startWidth += curve.getValidRightSideStartWidth(editorFrame);
-					endWidth += curve.getValidRightSideEndWidth(editorFrame);
-				}
-				else
-				{
-					startWidth += curve.getValidLeftBorderWidth(editorFrame);
-					endWidth = startWidth;
-
-					startWidth += curve.getValidLeftSideStartWidth(editorFrame);
-					endWidth += curve.getValidLeftSideEndWidth(editorFrame);
-				}
-
-				if (startWidth > curve.getRadiusStart())
-				{
-					report.append("Segment " + curve.getName() + " Distance to barrier: " + startWidth + " greater than start radius: " + curve.getRadiusStart() + "\n", segment(curve, inside));
-				}
-				if (endWidth > curve.getValidRadiusEnd())
-				{
-					report.append("Segment " + curve.getName() + " Distance to barrier: " + endWidth + " greater than end radius: " + curve.getValidRadiusEnd() + "\n", segment(curve, inside));
-				}
-			}
-		}
+		// a side reaching past a curve's center: GameSides.problems, in checkSide
 
 		report.about(properties("Track", "Left"));
 		checkMainTrackSide(trackData.getMainTrack().getLeft(), "Left");

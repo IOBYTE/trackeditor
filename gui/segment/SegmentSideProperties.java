@@ -897,6 +897,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			tip.append("<b>Warning:</b> ").append(Character.toUpperCase(problem.text.charAt(0))).append(problem.text.substring(1)
 				.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
 		}
+		getSideStartWidthSlider().setProblem(tip(tips.get("side start width")));
+		getSideEndWidthSlider().setProblem(tip(tips.get("side end width")));
 		getBorderHeightSlider().setProblem(tip(tips.get("border height")));
 		getBarrierWidthSlider().setProblem(tip(tips.get("barrier width")));
 		getBarrierHeightSlider().setProblem(tip(tips.get("barrier height")));
