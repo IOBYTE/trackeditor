@@ -242,21 +242,20 @@ public final class GameSides
 			boolean sideReaches = side > radii[i];
 			String at = radii[0] == radii[1] ? "" : " at its " + ends[i];
 			String radius = radii[0] == radii[1] ? "radius" : ends[i] + " radius";
-			String sideField = "the side" + (sides[0] == sides[1] ? "" : "'s " + ends[i] + " width") + " (or its border)";
+			String widthName = "the side's " + (sides[0] == sides[1] ? "" : ends[i] + " ") + "width";
 			String fix;
 			if (noBarrier && !state.barrierStyle.equals("no barrier"))
 			{
 				// a side that ends at the center leaves its barrier no length: the style for that is no barrier
 				fix = sideReaches
-					? String.format(java.util.Locale.US, "make %s at least %.2f m narrower and its barrier style no barrier (a barrier at the center has no length), or the %s larger",
-						sideField, side - radii[i], radius)
-					: String.format(java.util.Locale.US, "set its barrier style to no barrier, or make the barrier, the side or its border at least %.2f m narrower, or the %s larger",
-						reach - radii[i], radius);
+					? narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder) + " and its barrier style to no barrier (a barrier at the center has no length), "
+						+ larger(radius, reach)
+					: "set its barrier style to no barrier, or " + narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder - state.barrierWidth)
+						+ ", " + larger(radius, reach);
 			}
 			else
 			{
-				fix = String.format(java.util.Locale.US, "make %s at least %.2f m narrower, or the %s larger",
-					sideReaches ? sideField : "the barrier, the side or its border", reach - radii[i], radius);
+				fix = narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder - state.barrierWidth) + ", " + larger(radius, reach);
 			}
 			String text = String.format(java.util.Locale.US, "%s %.2f m in from the middle of the track%s, past the curve's center "
 				+ "(%s %.2f m), so the game folds the side and its barrier over: %s",
@@ -267,6 +266,27 @@ public final class GameSides
 			String field = sides[0] != sides[1] ? ends[i] : !Double.isNaN(own.getSideStartWidth()) || Double.isNaN(own.getSideEndWidth()) ? "start" : "end";
 			problems.add(new Problem(sideReaches ? "side " + field + " width" : "barrier width", text));
 		}
+	}
+
+	/**
+	 * @return how to make the side room wide at most, or its border narrower when
+	 *         the side alone can't be (room is less than 0)
+	 */
+	private static String narrower(String widthName, double sideWidth, double borderWidth, double room)
+	{
+		if (room >= 0)
+			return String.format(java.util.Locale.US, "set %s to %.2f m or less (it is %.2f m)", widthName, room, sideWidth);
+		double border = borderWidth + room;
+		if (border >= 0)
+			return String.format(java.util.Locale.US, "set %s to 0 and its border's width to %.2f m or less (it is %.2f m)", widthName, border, borderWidth);
+		// the track itself reaches past the center
+		return "make the track narrower";
+	}
+
+	/** @return the radius that leaves room for what reaches that far in */
+	private static String larger(String radius, double reach)
+	{
+		return String.format(java.util.Locale.US, "or set the %s to %.2f m or more", radius, reach);
 	}
 
 	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, EditorFrame editorFrame)

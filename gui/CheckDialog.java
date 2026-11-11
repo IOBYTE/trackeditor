@@ -82,11 +82,12 @@ public class CheckDialog extends JDialog
 	private final DefaultListModel<Message>	messages	= new DefaultListModel<Message>();
 	// all of them, also the ones about the objects' models that are hidden
 	private final java.util.List<Message>	allMessages	= new java.util.ArrayList<Message>();
-	private final JToggleButton	objectFilesButton	= new JToggleButton();
-	private final JToggleButton	pngButton			= new JToggleButton();
-	private final JToggleButton	savingButton		= new JToggleButton();
+	// show/hide buttons: each says what clicking it does, so all look alike, on or off
+	private final JButton		objectFilesButton	= showHideButton(false);
+	private final JButton		pngButton			= showHideButton(false);
+	private final JButton		savingButton		= showHideButton(false);
 	// shown at first: a missing texture is a real problem, unless the data folder isn't set
-	private final JToggleButton	textureButton		= new JToggleButton(null, null, true);
+	private final JButton		textureButton		= showHideButton(true);
 	private final JList<Message>	list			= new JList<Message>(messages);
 	private final Report		report			= new Report();
 	private EditorFrame			editorFrame		= null;
@@ -316,7 +317,7 @@ public class CheckDialog extends JDialog
 	 */
 	private void showMessages()
 	{
-		JToggleButton[] buttons = { objectFilesButton, pngButton, savingButton, textureButton };
+		JButton[] buttons = { objectFilesButton, pngButton, savingButton, textureButton };
 		String[] names = { "object messages", "convert to png messages", "saving removes messages", "texture not found messages" };
 		int[] counts = new int[buttons.length];
 		messages.clear();
@@ -347,12 +348,27 @@ public class CheckDialog extends JDialog
 			showCount(buttons[i], names[i], counts[i]);
 	}
 
-	/** Names what a show/hide button does, with how many messages it shows */
-	private static void showCount(JToggleButton button, String what, int count)
+	/**
+	 * Names what a show/hide button does, with how many messages it shows or
+	 * hides; with none it has nothing to do, shown or not
+	 */
+	private static void showCount(JButton button, String what, int count)
 	{
 		boolean shown = button.isSelected();
 		button.setText((shown ? "Hide " : "Show ") + what + " (" + count + ")");
-		button.setEnabled(count > 0 || shown);
+		button.setEnabled(count > 0);
+	}
+
+	/**
+	 * @return a button that stays on or off like a toggle button, but isn't drawn
+	 *         pressed while on: its text says whether it shows or hides
+	 */
+	private static JButton showHideButton(boolean shown)
+	{
+		JButton button = new JButton();
+		button.setModel(new JToggleButton.ToggleButtonModel());
+		button.setSelected(shown);
+		return button;
 	}
 
 	/** Runs a check whose messages are about the target unless they say otherwise */
