@@ -606,6 +606,9 @@ public class CheckDialog extends JDialog
 		if (mainStepsLength > 0 && mainStepsLength < Segment.MIN_PROFIL_STEPS_LENGTH)
 			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is shorter than the editor allows ("
 				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m), so a segment with it is built in very many steps\n");
+		else if (mainStepsLength < 0)
+			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is negative: it must be 0 (none) or at least "
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and a segment with it is built in one step\n");
 		report.about(null);
 
 		for (int i = 0; i < segments.size(); i++)
@@ -700,6 +703,9 @@ public class CheckDialog extends JDialog
 		if (segment.hasProfilStepsLength() && segment.getProfilStepsLength() > 0 && segment.getProfilStepsLength() < Segment.MIN_PROFIL_STEPS_LENGTH)
 			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is shorter than the editor allows ("
 				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m)\n");
+		else if (segment.hasProfilStepsLength() && segment.getProfilStepsLength() < 0)
+			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is negative: it must be 0 (none) or at least "
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and the segment is built in one step\n");
 		double steps = segment.getGameSteps(editorFrame, length);
 		if (steps > Segment.MAX_STEPS)
 			report.append(name + String.format(java.util.Locale.US, "the game builds it in %,.0f steps, more than the editor's %,d: "
@@ -917,10 +923,21 @@ public class CheckDialog extends JDialog
 			duplicated.add(path);
 			int slash = path.lastIndexOf('/');
 			String parent = slash < 0 ? "" : path.substring(0, slash);
+			String name = path.substring(slash + 1);
+			// a name with a / is in one of the lists all the same: "Cameras/a/b" is camera a/b
+			for (String list : LISTS)
+			{
+				if (parent.startsWith(list + "/"))
+				{
+					name = path.substring(list.length() + 1);
+					parent = list;
+					break;
+				}
+			}
 			String[] kind = sectionKind(parent);
-			report.append(kind[0] + " name \"" + path.substring(slash + 1) + "\" is used " + entry.getValue()
+			report.append(kind[0] + " name \"" + name + "\" is used " + entry.getValue()
 				+ " times: the game can't load a track file with two sections of the same name (" + path
-				+ "), so rename all but one of the " + kind[1] + "s\n", sectionTarget(parent, path.substring(slash + 1)));
+				+ "), so rename all but one of the " + kind[1] + "s\n", sectionTarget(parent, name));
 		}
 		for (String[] slash : slashes)
 		{
@@ -955,6 +972,11 @@ public class CheckDialog extends JDialog
 		}
 		return false;
 	}
+
+	// the sections that are lists of the editor's named items (sectionTarget, sectionKind)
+	private static final String[] LISTS = { "Main Track/Track Segments", "Main Track/segments", "Surfaces/List", "Surfaces", "Objects",
+		"Cameras/list", "Cameras", "Track Lights", "Sectors", "Graphic/Environment Mapping", "Graphic/Terrain Generation/Object Maps",
+		"Graphic/Terrain Generation/Objects" };
 
 	/**
 	 * @return where a section in the parent section is edited: the first segment with
@@ -2701,6 +2723,13 @@ public class CheckDialog extends JDialog
 			checkSurface(segment.getRight().getBarrierSurface(), "Segment " + segment.getName() + " Right Barrier", segment(segment, "Right"));
 		}
 		checkSurface(trackData.getGraphic().getTerrainGeneration().getSurface(), "Terrain", properties("Terrain"));
+		// the surfaces of the bridges where the track crosses itself: unset is the default
+		if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+		{
+			for (int i = 0; i < TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
+				checkSurface(trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSurface(i),
+					"Terrain Bridges " + TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i], properties("Terrain", "Bridges"));
+		}
 	}
 
 	protected void processWindowEvent(WindowEvent e)
