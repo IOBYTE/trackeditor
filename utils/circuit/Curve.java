@@ -20,6 +20,12 @@
  */
 package utils.circuit;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.io.PrintStream;
 
@@ -43,8 +49,14 @@ public class Curve extends Segment
 	protected double 		radiusEnd	= Double.NaN;
 
 	public Point2D.Double	center = new Point2D.Double();
-	// rotation center of each step, for the bounds
+	// rotation center of each step, for the bounds and drawing
 	private double[]		stepCenters = new double[0];
+	// each step's turn in radians, to the left positive: it can be more than half a turn
+	private double[]		stepArcs = new double[0];
+	// the most degrees of a step drawn as one straight line
+	private static final double	DEGREES_PER_PIECE	= 2;
+	// the quads of a step that follow its arc: the track, borders, sides and barriers, not the arrow
+	private static final int	ARC_QUADS			= 7;
 
 	protected String		marks;
 
@@ -85,7 +97,102 @@ public class Curve extends Segment
 		if (!selectionRectangle.contains(point.x, point.y))
 			return false;
 
-		return super.contains(point);
+		if (super.contains(point))
+			return true;
+		// and the bulge of each step's arc beyond the straight line between its ends
+		if (!hasStepArcs())
+			return false;
+		int stride = points.length / nbSteps;
+		for (int i = 0; i < points.length; i += 4)
+		{
+			if ((i % stride) / 4 < ARC_QUADS && quadPath(i, i / stride).contains(point.x, point.y))
+				return true;
+		}
+		return false;
+	}
+
+	/** @return whether the steps' centers and arcs are known for the points */
+	private boolean hasStepArcs()
+	{
+		return points != null && nbSteps > 0 && points.length % nbSteps == 0
+			&& stepCenters.length >= 2 * nbSteps && stepArcs.length >= nbSteps;
+	}
+
+	/**
+	 * Draws each step as the game builds it: its long sides are arcs around the
+	 * step's center (or spirals where a side's width changes), not the straight
+	 * lines between its ends, which a step of a whole curve would show as a chord.
+	 */
+	@Override
+	public void draw(Graphics g, AffineTransform affineTransform)
+	{
+		if (!hasStepArcs() || !(g instanceof Graphics2D))
+		{
+			super.draw(g, affineTransform);
+			return;
+		}
+		affineTransform.transform(points, 0, trPoints, 0, points.length);
+		Graphics2D g2 = (Graphics2D) g;
+		Rectangle clipBound = g.getClipBounds();
+		int stride = points.length / nbSteps;
+		for (int i = 0; i < points.length; i += 4)
+		{
+			Shape shape = affineTransform.createTransformedShape((i % stride) / 4 < ARC_QUADS ? quadPath(i, i / stride) : quadPath(i, -1));
+			if (clipBound == null || shape.getBounds().intersects(clipBound))
+				g2.draw(shape);
+		}
+	}
+
+	/**
+	 * @return the quad of points from first: start, end, end, start, with the
+	 *         lines along the step following its arc, or straight when step is -1
+	 */
+	private Path2D.Double quadPath(int first, int step)
+	{
+		Path2D.Double path = new Path2D.Double();
+		path.moveTo(points[first].x, points[first].y);
+		if (step < 0)
+		{
+			for (int j = 1; j < 4; j++)
+				path.lineTo(points[first + j].x, points[first + j].y);
+		}
+		else
+		{
+			arcTo(path, step, points[first], points[first + 1], false);
+			path.lineTo(points[first + 2].x, points[first + 2].y);
+			arcTo(path, step, points[first + 3], points[first + 2], true);
+		}
+		path.closePath();
+		return path;
+	}
+
+	/** Adds the step's arc from start to end, or back from end to start, without its first point */
+	private void arcTo(Path2D.Double path, int step, Point3D start, Point3D end, boolean back)
+	{
+		double cx = stepCenters[2 * step], cy = stepCenters[2 * step + 1];
+		double arc = stepArcs[step];
+		double r0 = Math.hypot(start.x - cx, start.y - cy), r1 = Math.hypot(end.x - cx, end.y - cy);
+		int pieces = (int) Math.min(3600, Math.max(1, Math.ceil(Math.abs(Math.toDegrees(arc)) / DEGREES_PER_PIECE)));
+		if (pieces == 1 || r0 < 1e-9 || r1 < 1e-9)
+		{
+			Point3D to = back ? start : end;
+			path.lineTo(to.x, to.y);
+			return;
+		}
+		double a0 = Math.atan2(start.y - cy, start.x - cx);
+		for (int k = 1; k <= pieces; k++)
+		{
+			double t = back ? 1 - (double) k / pieces : (double) k / pieces;
+			if (k == pieces)
+			{
+				// exactly the end point
+				Point3D to = back ? start : end;
+				path.lineTo(to.x, to.y);
+				break;
+			}
+			double a = a0 + arc * t, r = r0 + (r1 - r0) * t;
+			path.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+		}
 	}
 
 	protected void setBounds()
@@ -136,6 +243,9 @@ public class Curve extends Segment
 					da -= 2 * Math.PI;
 				while (da < -Math.PI)
 					da += 2 * Math.PI;
+				// a step of more than half a turn
+				if (stepArcs.length > n)
+					da = stepArcs[n];
 
 				for (int j = 1; j < 36; j++)
 				{
@@ -280,6 +390,9 @@ public class Curve extends Segment
 			}
 			stepCenters[2 * nStep] = xCenter;
 			stepCenters[2 * nStep + 1] = yCenter;
+			if (stepArcs.length != nbSteps)
+				stepArcs = new double[nbSteps];
+			stepArcs[nStep] = thisStepArc;
 
 			double cos = Math.cos(thisStepArc);
 			double sin = Math.sin(thisStepArc);
@@ -593,6 +706,7 @@ public class Curve extends Segment
 		s.radiusEnd = this.radiusEnd;
 		s.marks = this.marks;
 		s.stepCenters = this.stepCenters.clone();
+		s.stepArcs = this.stepArcs.clone();
 		s.center = (Point2D.Double) this.center.clone();
 
 		return s; // return the clone
