@@ -138,6 +138,8 @@ public class XmlReader
     {
     	this.filename = filename;
 		warnings.clear();
+		warningPaths.clear();
+		warningTexts.clear();
 		duplicateWarnings.clear();
 		reportedDuplicates.clear();
 
@@ -1610,12 +1612,42 @@ public class XmlReader
         return values;
     }
 
+    // where each warning is from: its key's path in the file (as getKeyPaths has
+    // it), and for a value the game reads as another number, the text the file has
+    private final java.util.Map<String, String>	warningPaths	= new java.util.HashMap<String, String>();
+    private final java.util.Map<String, String>	warningTexts	= new java.util.HashMap<String, String>();
+
+    /** @return the path in the file of the key the warning is about, null if none */
+    public String getWarningPath(String warning)
+    {
+        return warningPaths.get(warning);
+    }
+
+    /**
+     * @return the text the file has for the value the warning is about, when the
+     *         game reads it as another number; null for other warnings
+     */
+    public String getWarningText(String warning)
+    {
+        return warningTexts.get(warning);
+    }
+
+    /** @return the key's path in the file, as getKeyPaths has it */
+    private static String pathOf(Element e)
+    {
+        String path = e.getAttributeValue("name");
+        for (Element parent = e.getParentElement(); parent != null && parent.getParentElement() != null; parent = parent.getParentElement())
+            path = parent.getAttributeValue("name") + "/" + path;
+        return path;
+    }
+
     /** @return the warning, which is also added to the warnings */
     private String warn(Element e, String message)
     {
         String where = lineOf(e) > 0 ? "line " + lineOf(e) + ": " : "";
         String warning = where + "\"" + e.getAttributeValue("name") + "\" " + message;
         warnings.add(warning);
+        warningPaths.put(warning, pathOf(e));
         return warning;
     }
 
@@ -1631,8 +1663,9 @@ public class XmlReader
 
         if (!clean[0])
         {
-            warn(e, "has the value \"" + (text == null ? "" : text) + "\", which the game reads as " + format(value) +
+            String warning = warn(e, "has the value \"" + (text == null ? "" : text) + "\", which the game reads as " + format(value) +
                 ". It is saved as " + format(value) + ".");
+            warningTexts.put(warning, text == null ? "" : text);
         }
 
         return value;

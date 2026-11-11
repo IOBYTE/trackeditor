@@ -4416,6 +4416,10 @@ public class EditorFrame extends JFrame
 		try
 		{
 			xmlWriter.writeXml(fileName, trackName);
+			// the file has the numbers now, not the text the game read differently
+			trackData.clearFileTexts();
+			if (view.segmentParamDialog != null)
+				view.segmentParamDialog.showFileTexts();
 			return true;
 		}
 		catch (XmlWriter.ReferencedFileException e)
@@ -4783,20 +4787,26 @@ public class EditorFrame extends JFrame
 	 *         the ones it reads that it doesn't write for this game (the game doesn't
 	 *         use them)
 	 */
-	private List<String> findUnusedKeys(XmlReader xmlReader)
+	/**
+	 * @param paths gets the path in the file of what each message is about
+	 */
+	private List<String> findUnusedKeys(XmlReader xmlReader, java.util.Map<String, String> paths)
 	{
 		List<String> messages = new ArrayList<String>();
 		for (XmlReader.FileKey key : xmlReader.getUnreadKeys())
 		{
 			String what = key.section ? "section " + key.path + " (" + key.keys + (key.keys == 1 ? " key" : " keys") + ")" : key.path;
+			String message;
 			if ("attstr".equals(key.wrongType))
-				messages.add(lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it");
+				message = lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it";
 			else if ("attnum".equals(key.wrongType))
-				messages.add(lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it");
+				message = lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it";
 			else if (key.reason != null)
-				messages.add(lineText(key) + what + ": " + key.reason);
+				message = lineText(key) + what + ": " + key.reason;
 			else
-				messages.add(lineText(key) + what + ": the editor doesn't read it, so saving removes it");
+				message = lineText(key) + what + ": the editor doesn't read it, so saving removes it";
+			messages.add(message);
+			paths.put(message, key.path);
 		}
 		try
 		{
@@ -4804,8 +4814,12 @@ public class EditorFrame extends JFrame
 			for (XmlReader.FileKey key : xmlReader.getReadKeys())
 			{
 				if (!written.contains(key.path) && !writtenAsOther(key.path, written))
-					messages.add(lineText(key) + key.path + ": " + gameType.getName() + " doesn't use it, so saving for " +
-						gameType.getShortName() + " removes it");
+				{
+					String message = lineText(key) + key.path + ": " + gameType.getName() + " doesn't use it, so saving for " +
+						gameType.getShortName() + " removes it";
+					messages.add(message);
+					paths.put(message, key.path);
+				}
 			}
 		}
 		catch (Exception e)
@@ -4856,6 +4870,37 @@ public class EditorFrame extends JFrame
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Keeps a value the file has as text the game reads as another number, for the
+	 * segment dialog to show (see TrackData.FileText).
+	 */
+	private void addFileText(XmlReader xmlReader, String warning)
+	{
+		String text = xmlReader.getWarningText(warning);
+		String[] place = TrackData.segmentPlace(xmlReader.getWarningPath(warning));
+		if (text == null || place == null || place.length < 3)
+			return;
+		Segment segment = trackData.getSegments().getSegmentFromName(place[0]);
+		if (segment == null)
+			return;
+		String message = warning.replaceFirst("^line \\d+: ", "");
+		for (int i = 2; i < place.length; i++)
+		{
+			String field = place[i];
+			int slash = field.indexOf('/');
+			Object owner = slash < 0 ? segment : field.startsWith("Left/") ? segment.getLeft() : segment.getRight();
+			try
+			{
+				Object value = owner.getClass().getMethod("get" + field.substring(slash + 1)).invoke(owner);
+				trackData.addFileText(segment, field, new TrackData.FileText(text, ((Number) value).doubleValue(), message));
+			}
+			catch (Exception e)
+			{
+				// a field the segment doesn't have (an arc on a straight)
+			}
+		}
 	}
 
 	private static String lineText(XmlReader.FileKey key)
@@ -4962,11 +5007,20 @@ public class EditorFrame extends JFrame
 
 			// what saving won't keep from the file, and the values it changes (shown
 			// when the track was read too), for the Check dialog, in file order
-			List<String> unusedKeys = findUnusedKeys(xmlReader);
+			// with where each message is from, so the Check dialog can show it
+			java.util.Map<String, String> paths = new java.util.HashMap<String, String>();
+			List<String> unusedKeys = findUnusedKeys(xmlReader, paths);
 			for (String warning : xmlReader.getValueWarnings())
-				unusedKeys.add(warning.startsWith("line ") ? "Line " + warning.substring("line ".length()) : warning);
+			{
+				String message = warning.startsWith("line ") ? "Line " + warning.substring("line ".length()) : warning;
+				unusedKeys.add(message);
+				if (xmlReader.getWarningPath(warning) != null)
+					paths.put(message, xmlReader.getWarningPath(warning));
+				addFileText(xmlReader, warning);
+			}
 			Collections.sort(unusedKeys, Comparator.comparingInt(EditorFrame::messageLine));
 			trackData.setUnusedKeys(unusedKeys);
+			trackData.setUnusedKeyPaths(paths);
 		}
 		catch (Exception e)
 		{

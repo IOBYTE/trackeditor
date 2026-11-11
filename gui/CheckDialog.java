@@ -38,8 +38,10 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
@@ -145,10 +147,45 @@ public class CheckDialog extends JDialog
 		list.setSelectionBackground(text.getSelectionColor());
 		list.setFixedCellHeight(text.getFontMetrics(text.getFont()).getHeight());
 		list.setCellRenderer(new MessageRenderer());
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		// lines are copied as the text area's were: one or more selected (shift or
+		// ctrl click), with ctrl C or the right-click menu
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		list.setToolTipText("");
+		JPopupMenu menu = new JPopupMenu();
+		JMenuItem copyLines = new JMenuItem("Copy");
+		copyLines.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
+		copyLines.addActionListener(e -> copySelected());
+		JMenuItem copyAll = new JMenuItem("Copy All");
+		copyAll.addActionListener(e -> copy());
+		menu.add(copyLines);
+		menu.add(copyAll);
 		list.addMouseListener(new MouseAdapter()
 		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				popup(e);
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e)
+			{
+				popup(e);
+			}
+
+			/** shows the menu, for the line clicked on unless it is one of those selected */
+			private void popup(MouseEvent e)
+			{
+				if (!e.isPopupTrigger())
+					return;
+				int index = list.locationToIndex(e.getPoint());
+				if (index >= 0 && list.getCellBounds(index, index).contains(e.getPoint()) && !list.isSelectedIndex(index))
+					list.setSelectedIndex(index);
+				copyLines.setEnabled(!list.isSelectionEmpty());
+				copyAll.setEnabled(!messages.isEmpty());
+				menu.show(list, e.getX(), e.getY());
+			}
+
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
@@ -161,6 +198,14 @@ public class CheckDialog extends JDialog
 			}
 		});
 		list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "show");
+		// the lines as Copy All has them, with the system's line ends
+		list.getActionMap().put("copy", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				copySelected();
+			}
+		});
 		list.getActionMap().put("show", new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -202,7 +247,7 @@ public class CheckDialog extends JDialog
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		left.add(recheck);
 		left.add(copy);
-		left.add(new JLabel("Double-click a message to show what it is about"));
+		left.add(new JLabel("Double-click a message to show what it is about, right-click to copy it"));
 		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		right.add(close);
 		buttons.add(shown, BorderLayout.NORTH);
@@ -332,6 +377,16 @@ public class CheckDialog extends JDialog
 		String problem = message.target.show();
 		if (problem != null)
 			JOptionPane.showMessageDialog(this, problem, "Check Track", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/** Copies the selected messages, one per line */
+	private void copySelected()
+	{
+		StringBuilder text = new StringBuilder();
+		for (Message message : list.getSelectedValuesList())
+			text.append(message.text).append(System.lineSeparator());
+		if (text.length() > 0)
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text.toString()), null);
 	}
 
 	/** Copies all the messages, one per line */
@@ -975,7 +1030,12 @@ public class CheckDialog extends JDialog
 	private void checkUnusedKeys()
 	{
 		for (String message : trackData.getUnusedKeys())
-			report.append(message + "\n");
+		{
+			// a key in a segment shows the segment, on the dialog's tab with it
+			String[] place = TrackData.segmentPlace(trackData.getUnusedKeyPath(message));
+			Target target = place == null ? null : segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
+			report.append(message + "\n", target);
+		}
 	}
 
 	public void checkHeader()

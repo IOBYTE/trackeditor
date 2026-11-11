@@ -84,6 +84,142 @@ public final class TrackData
 		this.unusedKeys = unusedKeys;
 	}
 
+	// where each of the unused keys' messages is from: the key's path in the file
+	private java.util.Map<String, String>	unusedKeyPaths	= new java.util.HashMap<String, String>();
+
+	/** @return the path in the file of what the message from getUnusedKeys is about, null if none */
+	public String getUnusedKeyPath(String message)
+	{
+		return unusedKeyPaths.get(message);
+	}
+
+	public void setUnusedKeyPaths(java.util.Map<String, String> unusedKeyPaths)
+	{
+		this.unusedKeyPaths = unusedKeyPaths;
+	}
+
+	/**
+	 * A value the file has as text the game reads as another number ("*2.5" read
+	 * as 0): the segment dialog shows the text in red while the segment still has
+	 * the value read, until the track is saved, which writes the number.
+	 */
+	public static class FileText
+	{
+		public final String	text;
+		public final double	value;
+		public final String	message;
+
+		public FileText(String text, double value, String message)
+		{
+			this.text = text;
+			this.value = value;
+			this.message = message;
+		}
+	}
+
+	// by segment, and in it by the segment dialog's field: its side ("Left/" or
+	// "Right/", none for the segment's own) and the method it sets
+	private final java.util.Map<Segment, java.util.Map<String, FileText>>	fileTexts	=
+		new java.util.IdentityHashMap<Segment, java.util.Map<String, FileText>>();
+
+	/** @return the segment's values the file has as such text, by field (see fileTexts) */
+	public java.util.Map<String, FileText> getFileTexts(Segment segment)
+	{
+		java.util.Map<String, FileText> texts = fileTexts.get(segment);
+		return texts != null ? texts : java.util.Collections.<String, FileText> emptyMap();
+	}
+
+	public void addFileText(Segment segment, String field, FileText text)
+	{
+		fileTexts.computeIfAbsent(segment, s -> new java.util.HashMap<String, FileText>()).put(field, text);
+	}
+
+	/** Forgets the file's text: once the track is saved the file has the numbers */
+	public void clearFileTexts()
+	{
+		fileTexts.clear();
+	}
+
+	// the segment dialog's fields set by a segment's keys, by the key's name
+	private static final java.util.Map<String, String>	SEGMENT_FIELDS	= new java.util.HashMap<String, String>();
+	static
+	{
+		String[][] fields = { { "lg", "Length" }, { "arc", "ArcDeg" }, { "radius", "RadiusStart" }, { "end radius", "RadiusEnd" },
+			{ "z start", "HeightStart" }, { "z start left", "HeightStartLeft" }, { "z start right", "HeightStartRight" },
+			{ "z end", "HeightEnd" }, { "z end left", "HeightEndLeft" }, { "z end right", "HeightEndRight" },
+			{ "grade", "Grade" }, { "banking start", "BankingStart" }, { "banking end", "BankingEnd" },
+			{ "profil steps", "ProfilSteps" }, { "profil steps length", "ProfilStepsLength" },
+			{ "profil start tangent", "ProfilStartTangent" }, { "profil start tangent left", "ProfilStartTangentLeft" },
+			{ "profil start tangent right", "ProfilStartTangentRight" }, { "profil end tangent", "ProfilEndTangent" },
+			{ "profil end tangent left", "ProfilEndTangentLeft" }, { "profil end tangent right", "ProfilEndTangentRight" } };
+		for (String[] field : fields)
+			SEGMENT_FIELDS.put(field[0], field[1]);
+	}
+
+	/**
+	 * Where a key in the file is in the segment dialog.
+	 *
+	 * @param path the key's path in the file, as XmlReader.getKeyPaths has it
+	 * @return null when it isn't in a segment; else the segment's name, the
+	 *         dialog's tab (Left, Center or Right), and the fields it sets (see
+	 *         fileTexts; none when it sets no number field)
+	 */
+	public static String[] segmentPlace(String path)
+	{
+		if (path == null)
+			return null;
+		String[] parts = path.split("/", -1);
+		if (parts.length < 3 || !"Main Track".equals(parts[0]) || !("Track Segments".equals(parts[1]) || "segments".equals(parts[1])))
+			return null;
+		String segment = parts[2];
+		if (parts.length == 3)
+			return new String[] { segment, "Center" };
+		String side = null, part = null, key;
+		if (parts.length == 4)
+		{
+			// version 3 has the sides' keys in the segment: lside start width, rborder height
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^([lr])(side|border|barrier) (.+)$").matcher(parts[3]);
+			if (matcher.matches())
+			{
+				side = matcher.group(1).equals("l") ? "Left" : "Right";
+				part = matcher.group(2);
+				key = matcher.group(3);
+			}
+			else
+			{
+				String field = SEGMENT_FIELDS.get(parts[3]);
+				return field == null ? new String[] { segment, "Center" } : new String[] { segment, "Center", field };
+			}
+		}
+		else
+		{
+			// version 4 has them in sections: Left Side, Right Border, Left Barrier
+			String[] words = parts[3].split(" ");
+			if (words.length != 2 || !(words[0].equals("Left") || words[0].equals("Right")))
+				return new String[] { segment, "Center" };
+			side = words[0];
+			part = words[1].toLowerCase();
+			key = parts[4];
+		}
+		String[] fields;
+		if (part.equals("side"))
+			fields = key.equals("start width") ? new String[] { "SideStartWidth" } : key.equals("end width") ? new String[] { "SideEndWidth" }
+				: key.equals("width") ? new String[] { "SideStartWidth", "SideEndWidth" } : new String[0];
+		else if (part.equals("border") || part.equals("barrier"))
+		{
+			String name = part.equals("border") ? "Border" : "Barrier";
+			fields = key.equals("width") ? new String[] { name + "Width" } : key.equals("height") ? new String[] { name + "Height" } : new String[0];
+		}
+		else
+			fields = new String[0];
+		String[] place = new String[2 + fields.length];
+		place[0] = segment;
+		place[1] = side;
+		for (int i = 0; i < fields.length; i++)
+			place[2 + i] = side + "/" + fields[i];
+		return place;
+	}
+
 	/**
 	 * @return Returns the header.
 	 */

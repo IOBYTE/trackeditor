@@ -162,6 +162,8 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			setShape(shape);
 
 			initialize();
+			// the fields are only in the dialog now
+			showFileTexts();
 			//			pack();
 			this.setVisible(true);
 		} catch (Exception ex)
@@ -1126,10 +1128,43 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 		try
 		{
 			fillFields(shape, fixes);
+			showFileTexts();
 		}
 		finally
 		{
 			filling = false;
+		}
+	}
+
+	/**
+	 * Shows in red, in place of their values, what the file has for the segment's
+	 * values that the game reads as other numbers (see TrackData.FileText).
+	 */
+	public void showFileTexts()
+	{
+		java.util.Map<String, utils.TrackData.FileText> texts = editorFrame.getTrackData() == null || shape == null
+			? java.util.Collections.<String, utils.TrackData.FileText> emptyMap() : editorFrame.getTrackData().getFileTexts(shape);
+		java.util.List<SegmentSlider> sliders = new java.util.ArrayList<SegmentSlider>();
+		collectSliders(getContentPane(), sliders);
+		for (SegmentSlider slider : sliders)
+		{
+			if (slider.getMethod() == null)
+				continue;
+			java.awt.Component side = javax.swing.SwingUtilities.getAncestorOfClass(SegmentSideProperties.class, slider);
+			String field = side == null ? slider.getMethod() : (side == leftPanel ? "Left/" : "Right/") + slider.getMethod();
+			utils.TrackData.FileText text = texts.get(field);
+			slider.setFileText(text == null ? null : text.text, text == null ? Double.NaN : text.value, text == null ? null : text.message);
+		}
+	}
+
+	private static void collectSliders(java.awt.Container container, java.util.List<SegmentSlider> sliders)
+	{
+		for (java.awt.Component component : container.getComponents())
+		{
+			if (component instanceof SegmentSlider)
+				sliders.add((SegmentSlider) component);
+			if (component instanceof java.awt.Container)
+				collectSliders((java.awt.Container) component, sliders);
 		}
 	}
 

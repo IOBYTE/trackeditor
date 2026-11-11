@@ -206,6 +206,12 @@ public class SegmentSlider extends JPanel
 					// or clearing it when disabled) must not be written back to the track
 					if (settingText > 0)
 						return;
+					// a value typed replaces the text the file had
+					if (fileText != null)
+					{
+						fileText = null;
+						showText();
+					}
 
 					Runnable doHighlight = new Runnable()
 					{
@@ -443,13 +449,57 @@ public class SegmentSlider extends JPanel
 		showText();
 	}
 
+	// what the file has for the value when the game reads it as another number
+	// ("*2.5" read as 0), shown in red instead of the value while it is the one
+	// read (see setFileText)
+	private String	fileText	= null;
+	private double	fileValue	= Double.NaN;
+	private String	fileTip		= null;
+
+	/**
+	 * Shows the text the file has instead of the value, in red with the message in
+	 * its tool tip, while the value is the one read from it: typing or dragging a
+	 * value replaces it.
+	 *
+	 * @param text the file's text, null for none
+	 * @param readValue the value the game reads it as
+	 * @param message what is wrong with it
+	 */
+	public void setFileText(String text, double readValue, String message)
+	{
+		boolean shown = showsFileText();
+		fileText = text;
+		fileValue = readValue;
+		fileTip = message;
+		if (shown || showsFileText())
+		{
+			setTextQuietly(valueText());
+			getTextField().setCaretPosition(0);
+		}
+		showText();
+	}
+
+	private boolean showsFileText()
+	{
+		return fileText != null && Double.compare(value, fileValue) == 0;
+	}
+
+	/** @return the text the box shows for the value */
+	private String valueText()
+	{
+		return showsFileText() ? fileText : Double.isNaN(value) ? "" : nf.format(value);
+	}
+
 	/** Shows the text in red, with why in its tool tip, when it is refused or has a warning */
 	private void showText()
 	{
 		java.awt.Color red = java.awt.Color.RED;
+		String fileTipText = showsFileText() ? "<html><body style='width: 300px'><font color=red>"
+			+ fileTip.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+			+ "</font><br>Typing a value replaces it.</body></html>" : null;
 		String tip = refusedText != null ? "<html><body style='width: 300px'><font color=red><b>Not used:</b> "
-			+ refusedText + ".<br>Leaving the box puts the value back.</font></body></html>" : problemTip;
-		getTextField().setDisabledTextColor(problemTip != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
+			+ refusedText + ".<br>Leaving the box puts the value back.</font></body></html>" : problemTip != null ? problemTip : fileTipText;
+		getTextField().setDisabledTextColor(problemTip != null || fileTipText != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
 		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
 		getTextField().setToolTipText(tip);
 	}
@@ -614,7 +664,7 @@ public class SegmentSlider extends JPanel
 				System.out.println("Increasing slider minimum to " + newMinimum + " was " + getMin());
 				setMin(newMinimum);
 			}
-			setTextQuietly(nf.format(value));
+			setTextQuietly(valueText());
 			getTextField().setCaretPosition(0);
 			if (isEnabled())
 			{
@@ -661,7 +711,7 @@ public class SegmentSlider extends JPanel
 				System.out.println("Increasing slider minimum to " + newMinimum + " was " + getMin());
 				setMin(newMinimum);
 			}
-			setTextQuietly(nf.format(value));
+			setTextQuietly(valueText());
 			getTextField().setCaretPosition(0);
 			if (isEnabled())
 			{
@@ -674,8 +724,20 @@ public class SegmentSlider extends JPanel
 
 	private void setValueInternal(double val)
 	{
+		double before = value;
 		value = val;
 		setSliderValue(value);
+		if (fileText != null && Double.compare(value, fileValue) != 0)
+		{
+			// a new value (dragged): the text the file had is no longer what it has
+			fileText = null;
+			showText();
+			setTextQuietly(nf.format(value));
+			getTextField().setCaretPosition(0);
+			if (Double.compare(before, value) != 0)
+				valueChanged();
+			return;
+		}
 		double textValue = 0;
 		if (!getTextField().getText().equals("") && !getTextField().getText().equals("-"))
 		{
