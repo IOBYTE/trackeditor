@@ -73,6 +73,9 @@ public class PropertiesDialog extends JDialog
 	private java.util.List<Boolean>	tabShown				= new java.util.ArrayList<Boolean>();
 	// TORCS only
 	private GeoreferenceProperties	georeferenceProperties	= null;
+	// keeps the tabs with something in red in red, while the dialog is open
+	private javax.swing.Timer		tabProblemsTimer		= null;
+	private static final String		TAB_PROBLEM_TIP			= "Something on this tab has a problem: see the red text";
 
 	/**
 	 *
@@ -109,6 +112,66 @@ public class PropertiesDialog extends JDialog
 		});
 		this.setResizable(false);
 		this.setTitle("Properties");
+
+		// a field turns red, or back, as it is typed in: checked a few times a second
+		showTabProblems(getTabbedPane());
+		tabProblemsTimer = new javax.swing.Timer(300, e -> showTabProblems(getTabbedPane()));
+		tabProblemsTimer.start();
+	}
+
+	@Override
+	public void dispose()
+	{
+		if (tabProblemsTimer != null)
+			tabProblemsTimer.stop();
+		super.dispose();
+	}
+
+	/**
+	 * Shows each tab, and each tab in a tab, in red while something on it is
+	 * red, the way a field, label or list shows a problem.
+	 * @return whether something in component is red
+	 */
+	private static boolean showTabProblems(java.awt.Component component)
+	{
+		if (component instanceof JTabbedPane)
+		{
+			JTabbedPane tabs = (JTabbedPane) component;
+			boolean any = false;
+			for (int i = 0; i < tabs.getTabCount(); i++)
+			{
+				// a tab that isn't selected is hidden, but its problems are there
+				java.awt.Component tab = tabs.getComponentAt(i);
+				boolean problem = tab != null && hasProblem(tab);
+				any |= problem;
+				java.awt.Color color = problem ? java.awt.Color.RED : null;
+				if (!java.util.Objects.equals(tabs.getForegroundAt(i), color))
+					tabs.setForegroundAt(i, color);
+				// a tip of the tab's own, like a camera's, is kept
+				String tip = tabs.getToolTipTextAt(i);
+				if (problem && tip == null)
+					tabs.setToolTipTextAt(i, TAB_PROBLEM_TIP);
+				else if (!problem && TAB_PROBLEM_TIP.equals(tip))
+					tabs.setToolTipTextAt(i, null);
+			}
+			return any;
+		}
+		return component.isVisible() && hasProblem(component);
+	}
+
+	/** @return whether component, shown or not, or something in it is red */
+	private static boolean hasProblem(java.awt.Component component)
+	{
+		if (component instanceof JTabbedPane)
+			return showTabProblems(component);
+		boolean any = java.awt.Color.RED.equals(component.getForeground()) && !(component instanceof javax.swing.JPanel);
+		if (component instanceof java.awt.Container)
+		{
+			// every tab in it is shown, so none stops at the first problem
+			for (java.awt.Component child : ((java.awt.Container) component).getComponents())
+				any |= showTabProblems(child);
+		}
+		return any;
 	}
 	/**
 	 * This method initializes tabbedPane

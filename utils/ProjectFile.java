@@ -66,6 +66,16 @@ public class ProjectFile
 		Object object;
 		try (XMLDecoder decoder = new XMLDecoder(new ByteArrayInputStream(content)))
 		{
+			// a property the editor no longer has (author, category, track name, the
+			// pits: they are in the track's file now) is left out quietly; anything
+			// else is reported as XMLDecoder does
+			decoder.setExceptionListener(e ->
+			{
+				if (e instanceof NoSuchMethodException && String.valueOf(e.getMessage()).contains("Properties.set"))
+					return;
+				System.err.println(e);
+				System.err.println("Continuing ...");
+			});
 			object = decoder.readObject();
 		}
 		catch (ArrayIndexOutOfBoundsException e)

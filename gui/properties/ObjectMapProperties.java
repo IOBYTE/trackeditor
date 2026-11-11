@@ -148,7 +148,6 @@ public class ObjectMapProperties extends PropertyPanel
 		private final int 			TRACK_Y_INDEX			= 6;
 		// the table's height, and how much of it a problem reading the image takes
 		private static final int	TABLE_HEIGHT			= 210;
-		private static final int	PROBLEM_HEIGHT			= 34;
 
 		private JLabel				nameLabel				= new JLabel();
 		private JTextField 			nameTextField			= new JTextField();
@@ -157,8 +156,6 @@ public class ObjectMapProperties extends PropertyPanel
 		private JButton				objectMapCreateButton 	= null;
 		private JButton				objectMapButton			= null;
 		private ObjectTablePanel	objectTablePanel		= null;
-		// why the image the Object Map field names can't be read; hidden when it can
-		private JLabel				problemLabel			= new JLabel();
 		private ObjectMap			objectMap				= null;
 
 		private Vector<ObjectData> data = new Vector<ObjectData>();
@@ -201,18 +198,15 @@ public class ObjectMapProperties extends PropertyPanel
 			add(getObjectMapCreateButton(), null);
 			add(getObjectMapButton(), null);
 			add(getObjectTablePanel(objectMap), null);
-			problemLabel.setForeground(Color.RED);
-			problemLabel.setVerticalAlignment(JLabel.TOP);
-			add(problemLabel, null);
 
 			objectMapCreateButton.setEnabled(objectMap.getObjectMap() == null || objectMap.getObjectMap().isEmpty());
 
 			// the map's image couldn't be read when the track was opened
 			if (objectMap.getObjectMap() != null && !objectMap.getObjectMap().isEmpty() && objectMap.getImageWidth() <= 0)
-				showProblem("Couldn't read " + objectMap.getObjectMap() + " when the track was opened, so the map has no objects and saving won't overwrite the file.");
+				showProblem(cantRead(objectMap.getObjectMap(), "when the track was opened")
+					+ " The map has no objects and saving won't overwrite the file.");
 			else
 				showProblem(null);
-			showWhereFound();
 
 			objectMapTextField.getDocument().addDocumentListener(new DocumentListener()
 			{
@@ -403,10 +397,7 @@ public class ObjectMapProperties extends PropertyPanel
 				}
 				catch (IOException e)
 				{
-					String reason = e.getLocalizedMessage();
-					if (reason == null || reason.isEmpty())
-						reason = e.toString();
-					problem = "Can't read " + fileName + ": " + reason + ". Ok would leave the map without objects.";
+					problem = cantRead(fileName, null) + " Ok would leave the map without objects.";
 					rows.clear();
 					width = 0;
 					height = 0;
@@ -420,53 +411,71 @@ public class ObjectMapProperties extends PropertyPanel
 			data.addAll(rows);
 			objectTablePanel.dataChanged();
 			showProblem(problem);
-			showWhereFound();
-		}
-
-		/** Says in the Object Map field's tool tip where its image is, when there is one */
-		private void showWhereFound()
-		{
-			String fileName = objectMapTextField.getText().trim();
-			String tip = null;
-			if (!fileName.isEmpty())
-			{
-				try
-				{
-					java.nio.file.Path file = ObjectMap.imageFile(fileName);
-					if (java.nio.file.Files.isRegularFile(file))
-						tip = "Found at " + file.toAbsolutePath();
-				}
-				catch (IOException e)
-				{
-					// not a file name: the problem under the table says so
-				}
-			}
-			objectMapTextField.setToolTipText(tip);
 		}
 
 		/**
-		 * Shows why the image can't be read under the table, which makes room
-		 * for it, or hides it when problem is null.
+		 * Says why the image fileName names can't be read now, as the Check
+		 * dialog does: "not found" with where it was looked for when there is
+		 * no such file. when, if not null, says when it couldn't be read.
+		 */
+		private String cantRead(String fileName, String when)
+		{
+			java.nio.file.Path file;
+			try
+			{
+				file = ObjectMap.imageFile(fileName);
+			}
+			catch (IOException e)
+			{
+				return "Can't read " + fileName + ": " + reason(e) + ".";
+			}
+			if (!java.nio.file.Files.isRegularFile(file))
+				return fileName + " not found: there is no file " + file.toAbsolutePath() + ".";
+			try
+			{
+				ObjectMap.readImageFile(file);
+				// it can be read now, but couldn't then
+				return "Couldn't read " + fileName + (when == null ? "" : " " + when) + ".";
+			}
+			catch (IOException e)
+			{
+				return "Can't read " + file.toAbsolutePath() + ": " + reason(e) + ".";
+			}
+		}
+
+		private static String reason(IOException e)
+		{
+			String reason = e.getLocalizedMessage();
+			return reason == null || reason.isEmpty() ? e.toString() : reason;
+		}
+
+		/**
+		 * Shows the Object Map field's text in red with why its image can't be
+		 * read in the tool tip, or, when problem is null, in the usual color
+		 * with where the image is found.
 		 */
 		private void showProblem(String problem)
 		{
+			String tip = problem;
 			if (problem == null)
 			{
-				problemLabel.setVisible(false);
-				problemLabel.setText("");
-				objectTablePanel.setBounds(10, 64, 465, TABLE_HEIGHT);
+				String fileName = objectMapTextField.getText().trim();
+				if (!fileName.isEmpty())
+				{
+					try
+					{
+						java.nio.file.Path file = ObjectMap.imageFile(fileName);
+						if (java.nio.file.Files.isRegularFile(file))
+							tip = "Found at " + file.toAbsolutePath();
+					}
+					catch (IOException e)
+					{
+						// not a file name: reading it says so
+					}
+				}
 			}
-			else
-			{
-				// html, so a long reason wraps
-				problemLabel.setText("<html>" + problem.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</html>");
-				problemLabel.setToolTipText(problem);
-				problemLabel.setBounds(10, 64 + TABLE_HEIGHT - PROBLEM_HEIGHT, 465, PROBLEM_HEIGHT);
-				problemLabel.setVisible(true);
-				objectTablePanel.setBounds(10, 64, 465, TABLE_HEIGHT - PROBLEM_HEIGHT - 4);
-			}
-			objectTablePanel.revalidate();
-			repaint();
+			objectMapTextField.setForeground(problem == null ? UIManager.getColor("TextField.foreground") : Color.RED);
+			objectMapTextField.setToolTipText(tip);
 		}
 
     	public void getDataFromObjectMap(ObjectMap objectMap)

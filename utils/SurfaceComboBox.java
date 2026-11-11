@@ -48,32 +48,73 @@ public class SurfaceComboBox extends JComboBox<String>
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (getSelectedIndex() != -1)
+				showSelected();
+			}
+		});
+		showSelected();
+	}
+
+	/**
+	 * Shows the chosen surface's texture in the tool tip, or in red why it is a
+	 * problem when it isn't one of the track's surfaces or a default one.
+	 */
+	private void showSelected()
+	{
+		String tooltipText = null;
+		boolean problem = false;
+		if (getSelectedIndex() != -1 && getSelectedItem() != null)
+		{
+			String surfaceName = surfaceOf(getSelectedItem().toString());
+			if (surfaceName != null && !surfaceName.isEmpty())
+			{
+				Vector<Surface> defaultSurfaces = editorFrame.getDefaultSurfaces();
+				Vector<Surface>	surfaces = editorFrame.getTrackData().getSurfaces();
+
+				if (!isSurface(surfaceName, surfaces) && !isSurface(surfaceName, defaultSurfaces))
 				{
-					String surfaceName = surfaceOf(getSelectedItem().toString());
-					if (surfaceName != null && !surfaceName.isEmpty())
+					tooltipText = notFound(surfaceName);
+					problem = true;
+				}
+				else
+				{
+					// look for texture in track directory first
+					tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
+
+					if (tooltipText == null && editorFrame.getDataDirectory() != null)
 					{
-						String tooltipText = null;
-						Vector<Surface> defaultSurfaces = editorFrame.getDefaultSurfaces();
-						Vector<Surface>	surfaces = editorFrame.getTrackData().getSurfaces();
-
-						// look for texture in track directory first
-						tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
-
-						if (tooltipText == null && editorFrame.getDataDirectory() != null)
-						{
-							// look for texture in default textures directory if available
-							tooltipText = getTextureName(surfaceName, defaultSurfaces, editorFrame.getDataDirectory() + sep + "data" + sep + "textures");
-						}
-						if (tooltipText == null)
-						{
-							tooltipText = textureNotFound(surfaceName, surfaces, defaultSurfaces);
-						}
-						setToolTipText(tooltipText);
+						// look for texture in default textures directory if available
+						tooltipText = getTextureName(surfaceName, defaultSurfaces, editorFrame.getDataDirectory() + sep + "data" + sep + "textures");
+					}
+					if (tooltipText == null)
+					{
+						tooltipText = textureNotFound(surfaceName, surfaces, defaultSurfaces);
 					}
 				}
 			}
-		});
+		}
+		setToolTipText(tooltipText);
+		setForeground(problem ? java.awt.Color.RED : javax.swing.UIManager.getColor("ComboBox.foreground"));
+	}
+
+	private static boolean isSurface(String surfaceName, Vector<Surface> surfaces)
+	{
+		for (Surface surface : surfaces)
+			if (surfaceName.equals(surface.getName()))
+				return true;
+		return false;
+	}
+
+	/** @return why a surface that isn't the track's or a default one is a problem, for a tool tip */
+	private static String notFound(String surfaceName)
+	{
+		return "<html><body style='width: 300px'><font color=red><b>" + escape(surfaceName) + "</b> isn't one of the track's surfaces"
+			+ " or a default surface.</font><br>The game drives on it with default values (friction 0.8, rolling resistance"
+			+ " 0.001, no roughness) and it has no texture: choose another, or add it on the Surfaces tab.</body></html>";
+	}
+
+	private static String escape(String text)
+	{
+		return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	/** @return the surface a choice is: the game's default for "none (default)" */
@@ -99,6 +140,17 @@ public class SurfaceComboBox extends JComboBox<String>
 			{
 				list.setToolTipText(tooltips.get(index));
 			}
+			// a surface that isn't the track's or a default one is red in the list too;
+			// the others are in the usual colour, not the list's: the popup's list takes
+			// the box's colour, which is red while such a surface is the choice (the box
+			// itself is drawn in its own colour, see showSelected)
+			String surfaceName = value == null ? null : surfaceOf(value.toString());
+			boolean unknown = surfaceName != null && !surfaceName.isEmpty()
+				&& !isSurface(surfaceName, editorFrame.getTrackData().getSurfaces()) && !isSurface(surfaceName, editorFrame.getDefaultSurfaces());
+			if (!isSelected)
+				comp.setForeground(unknown ? java.awt.Color.RED : javax.swing.UIManager.getColor("ComboBox.foreground"));
+			if (unknown && index >= 0)
+				list.setToolTipText(notFound(surfaceName));
 			return comp;
 		}
 

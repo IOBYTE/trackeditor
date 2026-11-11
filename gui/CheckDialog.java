@@ -2203,6 +2203,9 @@ public class CheckDialog extends JDialog
 	/** Checks an object's model: its AC3D file and textures (hidden unless asked for) */
 	private void checkTrackObject(TrackObject trackObject, String type)
 	{
+		// a model that isn't there isn't a problem in the model: always shown
+		if (!checkModelFound(trackObject, type))
+			return;
 		report.objectFile = true;
 		try
 		{
@@ -2214,6 +2217,26 @@ public class CheckDialog extends JDialog
 		}
 	}
 
+	/**
+	 * Reports an object without a model, or whose model isn't found.
+	 * @return whether its model is found
+	 */
+	private boolean checkModelFound(TrackObject trackObject, String type)
+	{
+		String object = trackObject.getObject();
+		if (!hasText(object))
+		{
+			report.append(type + " object " + trackObject.getName() + " missing model\n");
+			return false;
+		}
+		if (findObjectFile(object) == null)
+		{
+			report.append(type + " object " + trackObject.getName() + " model " + object + " not found\n");
+			return false;
+		}
+		return true;
+	}
+
 	private void checkTrackObjectModel(TrackObject trackObject, String type)
 	{
 		doubleSided = false;
@@ -2221,20 +2244,7 @@ public class CheckDialog extends JDialog
 		textures.clear();
 
 		String	object = trackObject.getObject();
-
-		if (!hasText(object))
-		{
-			report.append(type + " object " + object + " missing model\n");
-			return;
-		}
-
-		File file = findObjectFile(object);
-
-		if (file == null)
-		{
-			report.append(type + " object " + trackObject.getName() + " model " + object + " not found\n");
-			return;
-		}
+		File	file = findObjectFile(object);
 
 		try (BufferedReader br = new BufferedReader(new FileReader(file)))
 		{
@@ -2511,14 +2521,21 @@ public class CheckDialog extends JDialog
 			}
 		}
 
-		// the models only of the objects the track places: trackgen only loads those
+		// the models of the objects the track places: trackgen only loads those
 		Set<Integer> used = usedObjectColors();
 		for (int i = 0; i < trackData.getObjects().size(); i++)
 		{
-			if (isUsed(trackData.getObjects().get(i), used))
+			TrackObject trackObject = trackData.getObjects().get(i);
+			report.about(properties("Objects", trackObject.getName()));
+			if (isUsed(trackObject, used))
 			{
-				report.about(properties("Objects", trackData.getObjects().get(i).getName()));
-				checkTrackObject(trackData.getObjects().get(i), "Track");
+				checkTrackObject(trackObject, "Track");
+			}
+			// one the track doesn't place, as when its object map is missing,
+			// still needs its model when it is placed
+			else
+			{
+				checkModelFound(trackObject, "Track");
 			}
 		}
 
