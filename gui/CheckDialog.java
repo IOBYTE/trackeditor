@@ -800,6 +800,12 @@ public class CheckDialog extends JDialog
 	 * The games build each segment on from the end of the one before and don't
 	 * join the last one to the first, so a track whose end isn't where it starts,
 	 * in the same direction, overlaps itself or leaves a gap at the start line.
+	 * A gap or turn under 1 cm or 0.01 degrees is reported when trackgen's deltas,
+	 * from the Delta's dialog when the track hasn't changed since, are over the closure
+	 * targets that its Auto closes a track to, or on a big track trackgen's rounding:
+	 * the editor's shape can be a few millimeters out from trackgen's, which adds up
+	 * the segments in floats.
+	 * Without trackgen's deltas it says so, so they can be calculated.
 	 */
 	private void checkTrackCloses(SegmentVector segments)
 	{
@@ -814,7 +820,37 @@ public class CheckDialog extends JDialog
 		double gap = Math.hypot(dx, dy);
 		double turn = Math.toDegrees(Math.IEEEremainder(last.endTrackAlpha - first.startTrackAlpha, 2 * Math.PI));
 		if (gap < 0.01 && Math.abs(turn) < 0.01)
+		{
+			DeltaPanel.Closure closure = DeltaPanel.lastClosure(editorFrame);
+			if (closure == null)
+			{
+				report.append("Closure not checked against trackgen's targets: double-click to run Calc in the Delta's dialog\n", () ->
+				{
+					DeltaPanel.showAndCalculate(editorFrame);
+					return null;
+				});
+				return;
+			}
+			java.util.List<String> off = new java.util.ArrayList<String>();
+			// within trackgen's rounding on a big track is as close as it gets
+			if (Math.abs(closure.dX) > DeltaPanel.allowed(DeltaPanel.TARGET_DX, closure.size))
+				off.add("Delta X " + closure.dX + " (target \u00b1" + DeltaPanel.plain(DeltaPanel.TARGET_DX) + " m)");
+			if (Math.abs(closure.dY) > DeltaPanel.allowed(DeltaPanel.TARGET_DY, closure.size))
+				off.add("Delta Y " + closure.dY + " (target \u00b1" + DeltaPanel.plain(DeltaPanel.TARGET_DY) + " m)");
+			if (Math.abs(closure.dZ) > DeltaPanel.TARGET_DZ)
+				off.add("Delta Z " + closure.dZ + " (target \u00b1" + DeltaPanel.plain(DeltaPanel.TARGET_DZ) + " m)");
+			if (Math.abs(closure.angle) > DeltaPanel.TARGET_ANGLE)
+				off.add("Delta Ang " + closure.angle + " (target \u00b1" + DeltaPanel.plain(DeltaPanel.TARGET_ANGLE) + " degrees)");
+			if (off.isEmpty())
+				return;
+			report.append("Track doesn't close exactly: trackgen's " + String.join(", ", off)
+				+ ": Auto in the Delta's dialog closes it\n", () ->
+				{
+					DeltaPanel.showLastClosure(editorFrame);
+					return null;
+				});
 			return;
+		}
 
 		// how far the end is ahead of the start, along the start's direction, and to its left
 		double along = dx * Math.cos(first.startTrackAlpha) + dy * Math.sin(first.startTrackAlpha);

@@ -49,6 +49,8 @@ public class Project
 	private int checkDialogY = 0;
 	private int checkDialogWidth = 0;
 	private int checkDialogHeight = 0;
+	private int deltaDialogX = 0;
+	private int deltaDialogY = 0;
 	private int propertiesEditorSurfaceTab = 0;
 	private int propertiesEditorObjectTab = 0;
 	private int propertiesEditorCameraTab = 0;
@@ -286,6 +288,26 @@ public class Project
 	public void setCheckDialogHeight(int checkDialogHeight)
 	{
 		this.checkDialogHeight = checkDialogHeight;
+	}
+
+	public int getDeltaDialogX()
+	{
+		return deltaDialogX;
+	}
+
+	public void setDeltaDialogX(int deltaDialogX)
+	{
+		this.deltaDialogX = deltaDialogX;
+	}
+
+	public int getDeltaDialogY()
+	{
+		return deltaDialogY;
+	}
+
+	public void setDeltaDialogY(int deltaDialogY)
+	{
+		this.deltaDialogY = deltaDialogY;
 	}
 
 	public int getPropertiesEditorSurfaceTab()

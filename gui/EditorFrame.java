@@ -1884,6 +1884,8 @@ public class EditorFrame extends JFrame
 		getProject().setCheckDialogY(preferences.getInt("CheckDialogY", 0));
 		getProject().setCheckDialogWidth(preferences.getInt("CheckDialogWidth", 500));
 		getProject().setCheckDialogHeight(preferences.getInt("CheckDialogHeight", 500));
+		getProject().setDeltaDialogX(preferences.getInt("DeltaDialogX", 0));
+		getProject().setDeltaDialogY(preferences.getInt("DeltaDialogY", 0));
 	}
 
 	/**
@@ -5339,6 +5341,8 @@ public class EditorFrame extends JFrame
 		preferences.putInt("CheckDialogY", getProject().getCheckDialogY());
 		preferences.putInt("CheckDialogWidth", getProject().getCheckDialogWidth());
 		preferences.putInt("CheckDialogHeight", getProject().getCheckDialogHeight());
+		preferences.putInt("DeltaDialogX", getProject().getDeltaDialogX());
+		preferences.putInt("DeltaDialogY", getProject().getDeltaDialogY());
 
 		System.exit(0);
 	}
