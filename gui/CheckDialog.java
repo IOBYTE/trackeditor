@@ -303,6 +303,7 @@ public class CheckDialog extends JDialog
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
 		check(properties("General"), this::checkHeader);
+		check(properties("Georeference"), this::checkGeoreference);
 		// lines of the file: what saving drops isn't in the editor to show
 		check(null, this::checkUnusedKeys);
 
@@ -436,6 +437,15 @@ public class CheckDialog extends JDialog
 
 	/** What the messages say about a texture that isn't found, the data folder set or not */
 	private static final java.util.regex.Pattern	TEXTURE_NOT_FOUND	= java.util.regex.Pattern.compile(" texture .+ (not found$|isn't in the track's folder)");
+
+	/**
+	 * The radius above which TORCS's track tools (torcs-audit-track-radii) flag a
+	 * curve for review: its shape depends on the track loader's floating-point
+	 * rounding. It isn't wrong, so the message says what to look at.
+	 */
+	private static final double	LARGE_RADIUS			= 4000;
+	private static final String	LARGE_RADIUS_MESSAGE	= " m is more than " + (int) LARGE_RADIUS + " m: the shape of a curve this large "
+		+ "depends on the track loader's floating-point rounding, so check it closes as expected (a straight may suit better)\n";
 
 	/** How the messages suggesting converting a texture to png end */
 	private static final String	PNG_MESSAGE	= " should be converted to png format";
@@ -670,8 +680,12 @@ public class CheckDialog extends JDialog
 			Curve curve = (Curve) segment;
 			if (curve.getRadiusStart() > Segment.MAX_RADIUS)
 				report.append(name + "radius " + format(curve.getRadiusStart()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
+			else if (curve.getRadiusStart() > LARGE_RADIUS)
+				report.append(name + "radius " + format(curve.getRadiusStart()) + LARGE_RADIUS_MESSAGE);
 			if (curve.getValidRadiusEnd() > Segment.MAX_RADIUS && curve.getValidRadiusEnd() != curve.getRadiusStart())
 				report.append(name + "end radius " + format(curve.getValidRadiusEnd()) + " m is larger than the editor allows (" + format(Segment.MAX_RADIUS) + " m)\n");
+			else if (curve.getValidRadiusEnd() > LARGE_RADIUS && curve.getValidRadiusEnd() != curve.getRadiusStart())
+				report.append(name + "end radius " + format(curve.getValidRadiusEnd()) + LARGE_RADIUS_MESSAGE);
 			if (curve.getArcDeg() > Segment.MAX_ARC)
 				report.append(name + "arc " + format(curve.getArcDeg()) + " deg is more than the editor allows (" + format(Segment.MAX_ARC) + " deg, five turns)\n");
 			length = curve.getArcRad() * (curve.getRadiusStart() + curve.getValidRadiusEnd()) / 2;
@@ -1036,6 +1050,19 @@ public class CheckDialog extends JDialog
 			Target target = place == null ? null : segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
 			report.append(message + "\n", target);
 		}
+	}
+
+	/**
+	 * The Georeference the track's file has (only TORCS reads one): the
+	 * Properties dialog checks the values typed there, but not those read.
+	 */
+	private void checkGeoreference()
+	{
+		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+			return;
+		String problem = trackData.getGeoreference().problem();
+		if (problem != null)
+			report.append("Georeference: " + problem + ": TORCS ignores the latitude and longitude\n");
 	}
 
 	public void checkHeader()
@@ -1709,6 +1736,12 @@ public class CheckDialog extends JDialog
 		if (texture.endsWith(".rgb") && wantsPng())
 		{
 			report.append(description + " texture " + texture + PNG_MESSAGE + "\n");
+		}
+
+		String format = editorFrame.getGameType().textureFormatProblem(texture);
+		if (format != null)
+		{
+			report.append(description + " texture " + texture + ": " + format + "\n");
 		}
 	}
 	private void checkEnvironmentMapping()
@@ -2455,6 +2488,13 @@ public class CheckDialog extends JDialog
 				messages.add(" texture " + texture + PNG_MESSAGE + "\n");
 			}
 
+			// a format the game can't load
+			String format = editorFrame.getGameType().textureFormatProblem(texture);
+			if (format != null)
+			{
+				messages.add(" texture " + texture + ": " + format + "\n");
+			}
+
 			if (texture.contains("/") || texture.contains("\\"))
 			{
 				messages.add(" texture " + texture + " should remove path\n");
@@ -2678,6 +2718,16 @@ public class CheckDialog extends JDialog
 							+ ": the track includes the default surfaces, and the game can't load a track file with two sections of the same name\n", properties("Surfaces", name));
 					}
 				}
+			}
+
+			// TORCS: the texture's height on crossing bridges; an invalid one is the texture size
+			double sizeV = trackData.getSurfaces().get(i).getTextureSizeV();
+			if (editorFrame.getGameType().hasTorcsTrackgenKeys() && !Double.isNaN(sizeV) && !(sizeV > 0))
+			{
+				String what = hasText(name) ? " " + name : "";
+				report.append("Track surface " + (i + 1) + what + " texture size v " + format(sizeV)
+					+ " m isn't more than 0: crossing bridges use the texture size instead\n",
+					hasText(name) ? properties("Surfaces", name) : properties("Surfaces"));
 			}
 		}
 

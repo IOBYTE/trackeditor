@@ -124,11 +124,11 @@ public class Curve extends Segment
 	 * lines between its ends, which a step of a whole curve would show as a chord.
 	 */
 	@Override
-	public void draw(Graphics g, AffineTransform affineTransform)
+	public void draw(Graphics g, AffineTransform affineTransform, boolean roadOnly)
 	{
 		if (!hasStepArcs() || !(g instanceof Graphics2D))
 		{
-			super.draw(g, affineTransform);
+			super.draw(g, affineTransform, roadOnly);
 			return;
 		}
 		affineTransform.transform(points, 0, trPoints, 0, points.length);
@@ -137,6 +137,8 @@ public class Curve extends Segment
 		int stride = points.length / nbSteps;
 		for (int i = 0; i < points.length; i += 4)
 		{
+			if (!drawsQuad(i, roadOnly))
+				continue;
 			Shape shape = affineTransform.createTransformedShape((i % stride) / 4 < ARC_QUADS ? quadPath(i, i / stride) : quadPath(i, -1));
 			if (clipBound == null || shape.getBounds().intersects(clipBound))
 				g2.draw(shape);

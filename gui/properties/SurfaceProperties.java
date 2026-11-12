@@ -302,6 +302,27 @@ public class SurfaceProperties extends PropertyPanel
 		private JTextField			textureSizeTextField			= new JTextField();
 		private JLabel				textureSizeVLabel				= new JLabel();
 		private JTextField			textureSizeVTextField			= new JTextField();
+		private static final String	TEXTURE_SIZE_V_TIP				= "Height of the texture on crossing bridges (empty = texture size)";
+
+		/** Shows a texture size v that isn't more than 0 in red: trackgen uses the texture size instead */
+		private void showTextureSizeV()
+		{
+			String text = textureSizeVTextField.getText().trim();
+			double value = Double.NaN;
+			try
+			{
+				if (!text.isEmpty())
+					value = Double.parseDouble(text);
+			}
+			catch (NumberFormatException e)
+			{
+				// not a number: what the field's own check says
+			}
+			boolean bad = !Double.isNaN(value) && !(value > 0);
+			textureSizeVTextField.setForeground(bad ? java.awt.Color.RED : javax.swing.UIManager.getColor("TextField.foreground"));
+			textureSizeVTextField.setToolTipText(bad ? "Texture size v " + text + " isn't more than 0: crossing bridges use the texture size instead"
+				: TEXTURE_SIZE_V_TIP);
+		}
 		private JLabel				textureRandomnessLabel			= new JLabel();
 		private JTextField			textureRandomnessTextField		= new JTextField();
 		private JLabel				textureLinkWithPreviousLabel	= new JLabel();
@@ -386,7 +407,26 @@ public class SurfaceProperties extends PropertyPanel
 			{
 				addLabel(this, row, textureSizeVLabel, "Texture Size V", 180);
 				addTextField(this, row++, textureSizeVTextField, surface.getTextureSizeV(), 190, 125);
-				textureSizeVTextField.setToolTipText("Height of the texture on crossing bridges (empty = texture size)");
+				textureSizeVTextField.setToolTipText(TEXTURE_SIZE_V_TIP);
+				// red while it isn't more than 0, as Check reports
+				textureSizeVTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+				{
+					public void insertUpdate(javax.swing.event.DocumentEvent e)
+					{
+						showTextureSizeV();
+					}
+
+					public void removeUpdate(javax.swing.event.DocumentEvent e)
+					{
+						showTextureSizeV();
+					}
+
+					public void changedUpdate(javax.swing.event.DocumentEvent e)
+					{
+						showTextureSizeV();
+					}
+				});
+				showTextureSizeV();
 			}
 			addLabel(this, row, textureRandomnessLabel, "Texture Randomness", 180);
 			addTextField(this, row++, textureRandomnessTextField, surface.getTextureRandomness(), 190, 125);

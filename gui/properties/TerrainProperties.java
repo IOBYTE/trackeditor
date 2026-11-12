@@ -81,6 +81,12 @@ public class TerrainProperties extends PropertyPanel
 	private JLabel				reliefBorderLabel			= new JLabel();
 	// a project setting, not the track's: trackgen -nb leaves out the start bridge
 	private JCheckBox			startBridgeCheckBox			= new JCheckBox("Start Bridge");
+	// a project setting, not the track's: trackgen -H for the stepped elevation map
+	private static final int	DEFAULT_HEIGHT_STEPS		= 30;
+	private static final String	HEIGHT_STEPS_TIP			= "Height bands in the stepped elevation map (-elv4.png) that the "
+		+ "elevation map exports make (trackgen -H; empty = " + DEFAULT_HEIGHT_STEPS + "). Saved in the project, not the track.";
+	private JLabel				heightStepsLabel			= new JLabel();
+	private JTextField			heightStepsTextField		= hintTextField(DEFAULT_HEIGHT_STEPS + " (default)");
 	private JComboBox<String>	reliefBorderComboBox		= null;
 	private JLabel				surfaceLabel				= new JLabel();
 	private SurfaceComboBox		surfaceComboBox				= null;
@@ -222,6 +228,29 @@ public class TerrainProperties extends PropertyPanel
 			startBridgeCheckBox.setBounds(290, 280, 150, 23);
 			this.add(startBridgeCheckBox, null);
 		}
+		// for the exports with a stepped elevation map: all the games' trackgen have -H
+		addLabel(this, 5, heightStepsLabel, "Height Steps", 290, 100);
+		addTextField(this, 5, heightStepsTextField, Properties.getInstance().getElevationHeightSteps() > 0
+			? Integer.toString(Properties.getInstance().getElevationHeightSteps()) : "", 395, 125);
+		heightStepsLabel.setToolTipText(HEIGHT_STEPS_TIP);
+		heightStepsTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showHeightSteps();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showHeightSteps();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showHeightSteps();
+			}
+		});
+		showHeightSteps();
 		if (speedDreams)
 			this.add(getUseObjectMaterialsComboBox(), null);
 		// only Speed Dreams trackgen reads the tiled file
@@ -241,6 +270,32 @@ public class TerrainProperties extends PropertyPanel
 	{
 		String text = borderMarginTextField.getText().trim();
 		return text.isEmpty() ? "100.0" : text;
+	}
+
+	/** @return the height steps typed, 0 when empty (the default), -1 when it isn't a whole number of 1 or more */
+	private int heightSteps()
+	{
+		String text = heightStepsTextField.getText().trim();
+		if (text.isEmpty())
+			return 0;
+		try
+		{
+			int steps = Integer.parseInt(text);
+			return steps >= 1 ? steps : -1;
+		}
+		catch (NumberFormatException e)
+		{
+			return -1;
+		}
+	}
+
+	/** Shows height steps that aren't a whole number of 1 or more in red */
+	private void showHeightSteps()
+	{
+		boolean bad = heightSteps() < 0;
+		heightStepsTextField.setForeground(bad ? java.awt.Color.RED : javax.swing.UIManager.getColor("TextField.foreground"));
+		heightStepsTextField.setToolTipText(bad ? "Height steps \"" + heightStepsTextField.getText().trim()
+			+ "\" must be a whole number of 1 or more: it isn't saved" : HEIGHT_STEPS_TIP);
 	}
 
 	/**
@@ -630,6 +685,7 @@ public class TerrainProperties extends PropertyPanel
 					selectItem(reliefBorderComboBox, TerrainGeneration.DEFAULT_RELIEF_BORDER);
 					selectItem(useObjectMaterialsComboBox, TerrainGeneration.DEFAULT_USE_OBJECT_MATERIALS);
 					startBridgeCheckBox.setSelected(true);
+					heightStepsTextField.setText("");
 				}
 			});
 		}
@@ -667,6 +723,7 @@ public class TerrainProperties extends PropertyPanel
 					selectItem(reliefBorderComboBox, null);
 					selectItem(useObjectMaterialsComboBox, null);
 					startBridgeCheckBox.setSelected(true);
+					heightStepsTextField.setText("");
 				}
 			});
 		}
@@ -906,6 +963,14 @@ public class TerrainProperties extends PropertyPanel
 			&& startBridgeCheckBox.isSelected() != Properties.getInstance().isStartBridge())
 		{
 			Properties.getInstance().setStartBridge(startBridgeCheckBox.isSelected());
+			getEditorFrame().documentIsModified = true;
+		}
+
+		// a value that isn't a whole number of 1 or more stays as it was (it is shown in red)
+		int heightSteps = heightSteps();
+		if (heightSteps >= 0 && heightSteps != Properties.getInstance().getElevationHeightSteps())
+		{
+			Properties.getInstance().setElevationHeightSteps(heightSteps);
 			getEditorFrame().documentIsModified = true;
 		}
 

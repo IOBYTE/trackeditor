@@ -137,15 +137,28 @@ public class PropertyPanel extends JPanel
 	 */
 	public static void showFileFound(final JTextField field, final String where, final String... folders)
 	{
+		showFileFound(field, where, null, folders);
+	}
+
+	/**
+	 * As showFileFound, and a file whose name's format the game can't use, as
+	 * problem says (null when it can), is shown in red too
+	 */
+	public static void showFileFound(final JTextField field, final String where,
+		final java.util.function.Function<String, String> problem, final String... folders)
+	{
 		final Runnable show = () ->
 		{
 			String name = field.getText().trim();
 			java.io.File file = name.isEmpty() ? null : findFile(name, folders);
 			boolean unknown = java.util.Arrays.asList(folders).contains(null);
 			boolean found = name.isEmpty() || file != null || unknown;
-			field.setForeground(found ? javax.swing.UIManager.getColor("TextField.foreground") : Color.RED);
+			String format = name.isEmpty() || problem == null ? null : problem.apply(name);
+			field.setForeground(found && format == null ? javax.swing.UIManager.getColor("TextField.foreground") : Color.RED);
 			if (name.isEmpty())
 				field.setToolTipText(null);
+			else if (format != null && found)
+				field.setToolTipText(name + ": " + format);
 			else if (file != null)
 				field.setToolTipText("Found at " + file.getAbsolutePath());
 			else if (unknown)
@@ -186,10 +199,17 @@ public class PropertyPanel extends JPanel
 		String sep = System.getProperty("file.separator");
 		if (dataDirectory == null || dataDirectory.isEmpty())
 			showFileFound(field, "in the track's folder (set the game's data folder in Preferences to look in data/textures too)",
-				utils.Properties.getInstance().getPath());
+				textureFormat(), utils.Properties.getInstance().getPath());
 		else
 			showFileFound(field, "in the track's folder or the game's data/textures folder",
-				utils.Properties.getInstance().getPath(), dataDirectory + sep + "data" + sep + "textures");
+				textureFormat(), utils.Properties.getInstance().getPath(), dataDirectory + sep + "data" + sep + "textures");
+	}
+
+	/** @return why the game can't load a texture of a name's format, as Check reports */
+	private java.util.function.Function<String, String> textureFormat()
+	{
+		EditorFrame.GameType game = getEditorFrame().getGameType();
+		return game::textureFormatProblem;
 	}
 
 	/**
@@ -221,7 +241,7 @@ public class PropertyPanel extends JPanel
 	{
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in the track's folder or the game's data/textures folder",
+		showFileFound(field, "in the track's folder or the game's data/textures folder", textureFormat(),
 			utils.Properties.getInstance().getPath(),
 			dataDirectory == null || dataDirectory.isEmpty() ? null : dataDirectory + sep + "data" + sep + "textures");
 	}
@@ -238,7 +258,7 @@ public class PropertyPanel extends JPanel
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		boolean unknown = dataDirectory == null || dataDirectory.isEmpty();
 		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in the track's folder or the game's data folder",
+		showFileFound(field, "in the track's folder or the game's data folder", textureFormat(),
 			utils.Properties.getInstance().getPath(),
 			unknown ? null : dataDirectory,
 			unknown ? null : dataDirectory + sep + "data" + sep + "textures");

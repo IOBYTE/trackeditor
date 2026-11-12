@@ -343,6 +343,37 @@ public class EditorFrame extends JFrame
 			return this == SPEED_DREAMS;
 		}
 
+		/**
+		 * @return why the game can't load a texture with this name's format, or
+		 *         null. TORCS loads .png and .rgb; Speed Dreams and CSR load .png,
+		 *         .jpg and the SGI formats (.rgb, .rgba, .int, .inta, .bw)
+		 *         everywhere, and other formats (like .jpeg, .bmp or .dds) only in
+		 *         their OpenSceneGraph graphics, not the older ones or trackgen.
+		 */
+		public String textureFormatProblem(String texture)
+		{
+			if (texture == null)
+				return null;
+			String name = texture.trim().replace('\\', '/');
+			name = name.substring(name.lastIndexOf('/') + 1);
+			int dot = name.lastIndexOf('.');
+			if (dot < 0 || dot == name.length() - 1)
+				return null;
+			String extension = name.substring(dot + 1).toLowerCase(java.util.Locale.ROOT);
+			if (this == TORCS)
+			{
+				if (extension.equals("png") || extension.equals("rgb"))
+					return null;
+				return "TORCS only loads .png and .rgb textures";
+			}
+			if (java.util.Arrays.asList("png", "jpg", "rgb", "rgba", "int", "inta", "bw").contains(extension))
+				return null;
+			String osg = this == SPEED_DREAMS ? "osggraph" : "opengl3";
+			String old = this == SPEED_DREAMS ? "ssggraph" : "opengl1";
+			return "only " + shortName + (shortName.endsWith("s") ? "' " : "'s ") + osg + " graphics load ." + extension + " textures, not " + old
+				+ " or trackgen: use .png, .jpg or .rgb";
+		}
+
 		/** @return whether trackgen can leave out the start bridge, -nb (not TORCS') */
 		public boolean hasNoBridgeTrackgen()
 		{
@@ -1413,8 +1444,22 @@ public class EditorFrame extends JFrame
 	 */
 	private void showBackgroundImage()
 	{
-		if (view.isShowBackground())
-			view.setBackgroundImage(Properties.getInstance().getImage());
+		// as the project was saved: shown unless it was hidden
+		boolean show = Properties.getInstance().isShowBackground();
+		view.setShowBackground(show);
+		// which loads the image, when there is one and it is shown
+		if (!show || Properties.getInstance().getImage() == null)
+			view.setBackgroundImage(null);
+	}
+
+	/**
+	 * The show background button is pressed while the track's background image
+	 * is shown: not without a track or an image.
+	 */
+	public void backgroundImageChanged()
+	{
+		if (showBackgroundButton != null)
+			showBackgroundButton.setSelected(view.isShowBackground() && view.hasBackgroundImage());
 	}
 
 	/**
@@ -3048,6 +3093,8 @@ public class EditorFrame extends JFrame
 		{
 			showBackgroundButton = new JToggleButton();
 			showBackgroundButton.setAction(showBackgroundAction);
+			// pressed while an image is shown: there is none at startup
+			showBackgroundButton.setSelected(view != null && view.isShowBackground() && view.hasBackgroundImage());
 			if (showBackgroundButton.getIcon() != null)
 			{
 				showBackgroundButton.setText("");
@@ -3511,7 +3558,19 @@ public class EditorFrame extends JFrame
 
 	void toggleButtonShowBackground_actionPerformed(ActionEvent e)
 	{
-		view.setShowBackground(getShowBackgroundButton().isSelected());
+		boolean show = getShowBackgroundButton().isSelected();
+		view.setShowBackground(show);
+		backgroundImageChanged();
+		String image = Properties.getInstance().getImage();
+		// saved with the project, when there is an image to show or hide
+		if (image != null && !image.isEmpty() && show != Properties.getInstance().isShowBackground())
+		{
+			Properties.getInstance().setShowBackground(show);
+			documentIsModified = true;
+		}
+		// an image that can't be opened has said so already
+		if (show && (image == null || image.isEmpty()))
+			message("No background image", "This track has no background image: choose one in Properties > Image.");
 		view.invalidate();
 		view.repaint();
 	}
@@ -3652,6 +3711,10 @@ public class EditorFrame extends JFrame
 		// the project's choice (Properties > Terrain)
 		if (!Properties.getInstance().isStartBridge() && gameType.hasNoBridgeTrackgen())
 			newArgs = (newArgs == null ? "" : newArgs) + " -nb";
+		// the stepped elevation map's height bands, for the exports that write it (Properties > Terrain)
+		int heightSteps = Properties.getInstance().getElevationHeightSteps();
+		if (heightSteps > 0 && additionalArgs != null && (additionalArgs.contains("-E 4") || additionalArgs.contains("-E 0")))
+			newArgs = (newArgs == null ? "" : newArgs) + " -H " + heightSteps;
 		String problem = getTrackgenProblem();
 		if (problem != null)
 		{

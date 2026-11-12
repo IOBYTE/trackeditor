@@ -1914,6 +1914,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			//			Rectangle2D.Double br = boundingRectangle;
 			//			g.drawRect((int)br.x,(int)br.y,(int)br.width,(int)br.height);
 
+			// over the background image, only the road when the project says so (Properties > Image)
+			boolean roadOnly = Properties.getInstance().isRoadOnly() && showBackground && backgroundImg != null;
 			Iterator<Segment> i = editorFrame.getTrackData().getSegments().iterator();
 			while (i.hasNext())
 			{
@@ -1921,7 +1923,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 
 				if (obj != selectedShape)
 				{
-					obj.draw(g, affineTransform);
+					obj.draw(g, affineTransform, roadOnly);
 				}
 			}
 			//		}
@@ -1929,7 +1931,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			//			if (pits != null)
 			//				pits.draw(g, affineTransform);
 
-			drawPitBuildings(g);
+			// the pits aren't the road either
+			if (!roadOnly)
+				drawPitBuildings(g);
 
 			if (showCameras)
 				drawCameras(g);
@@ -1943,7 +1947,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			if (selectedShape != null)
 			{
 				g.setColor(Color.red);
-				selectedShape.draw(g, affineTransform);
+				selectedShape.draw(g, affineTransform, roadOnly);
 			}
 			
 			if (handledShape != null)
@@ -2214,8 +2218,15 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			}
 		}
 
+		editorFrame.backgroundImageChanged();
 		invalidate();
 		repaint();
+	}
+
+	/** @return whether there is a background image to show */
+	public boolean hasBackgroundImage()
+	{
+		return backgroundImg != null;
 	}
 	
 	/**
@@ -2880,6 +2891,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		handledShape = null;
 		// the background image belongs to the track that was open
 		backgroundImg = null;
+		editorFrame.backgroundImageChanged();
 
 		if (segmentParamDialog != null)
 		{

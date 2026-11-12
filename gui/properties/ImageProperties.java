@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -56,6 +57,7 @@ public class ImageProperties extends PropertyPanel
 	private JTextField	imageOffsetXTextField	= new JTextField();
 	private JLabel 		imageOffsetYLabel		= new JLabel();
 	private JTextField	imageOffsetYTextField	= new JTextField();
+	private JCheckBox	roadOnlyCheckBox		= new JCheckBox("Road Only");
 
 	// what an empty field means
 	private static final String	DEFAULT_SCALE	= "1";
@@ -91,6 +93,11 @@ public class ImageProperties extends PropertyPanel
 		addTextField(this, 3, imageOffsetYTextField, Properties.getInstance().getImgOffset().getY(), 100, 125);
 
 		this.add(getPathButton(), null);
+
+		roadOnlyCheckBox.setSelected(Properties.getInstance().isRoadOnly());
+		roadOnlyCheckBox.setToolTipText("While the background image is shown, draw only the road, not the borders, sides and barriers");
+		roadOnlyCheckBox.setBounds(6, 10 + 4 * 27, 200, 23);
+		this.add(roadOnlyCheckBox, null);
 	}
 
 	/**
@@ -215,6 +222,12 @@ public class ImageProperties extends PropertyPanel
 		MutableString stringResult = new MutableString();
 		MutableDouble doubleResult = new MutableDouble();
 		boolean reload = false;
+
+		if (roadOnlyCheckBox.isSelected() != Properties.getInstance().isRoadOnly())
+		{
+			Properties.getInstance().setRoadOnly(roadOnlyCheckBox.isSelected());
+			getEditorFrame().documentIsModified = true;
+		}
 
 		if (isDifferent(pathTextField.getText(), Properties.getInstance().getImage(), stringResult))
 		{

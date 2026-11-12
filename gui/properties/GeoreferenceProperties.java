@@ -51,6 +51,61 @@ public class GeoreferenceProperties extends PropertyPanel
 		addTextField(this, 1, longitudeTextField, georeference().getLongitude(), 170, 125);
 		addTextField(this, 2, altitudeTextField, georeference().getAltitude(), 170, 125);
 		addTextField(this, 3, headingTextField, georeference().getHeading(), 170, 125);
+
+		// red with why while TORCS can't use them, as Check reports
+		javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showProblems();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showProblems();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				showProblems();
+			}
+		};
+		latitudeTextField.getDocument().addDocumentListener(listener);
+		longitudeTextField.getDocument().addDocumentListener(listener);
+		showProblems();
+	}
+
+	/**
+	 * Shows the latitude or longitude TORCS can't use in red, with why in its
+	 * tool tip: out of range, or set without the other
+	 */
+	private void showProblems()
+	{
+		double latitude = getDouble(latitudeTextField.getText().trim());
+		double longitude = getDouble(longitudeTextField.getText().trim());
+		String latitudeProblem = null;
+		String longitudeProblem = null;
+		if (!Double.isNaN(latitude) && !(Math.abs(latitude) <= 90))
+			latitudeProblem = Georeference.problem(latitude, 0);
+		if (!Double.isNaN(longitude) && !(Math.abs(longitude) <= 180))
+			longitudeProblem = Georeference.problem(0, longitude);
+		// the one that is set is red: the other is empty
+		if (latitudeProblem == null && longitudeProblem == null && Double.isNaN(latitude) != Double.isNaN(longitude))
+		{
+			String problem = Georeference.problem(latitude, longitude);
+			if (Double.isNaN(longitude))
+				latitudeProblem = problem;
+			else
+				longitudeProblem = problem;
+		}
+		show(latitudeTextField, latitudeProblem);
+		show(longitudeTextField, longitudeProblem);
+	}
+
+	private static void show(JTextField field, String problem)
+	{
+		field.setForeground(problem == null ? javax.swing.UIManager.getColor("TextField.foreground") : java.awt.Color.RED);
+		field.setToolTipText(problem == null ? null : "TORCS ignores the latitude and longitude: " + problem);
 	}
 
 	/**
@@ -62,14 +117,9 @@ public class GeoreferenceProperties extends PropertyPanel
 		double latitude = getDouble(latitudeTextField.getText().trim());
 		double longitude = getDouble(longitudeTextField.getText().trim());
 
-		if (!Double.isNaN(latitude) && Math.abs(latitude) > 90)
-			return "Georeference: the latitude must be from -90 to 90 degrees.";
-		if (!Double.isNaN(longitude) && Math.abs(longitude) > 180)
-			return "Georeference: the longitude must be from -180 to 180 degrees.";
-		if (Double.isNaN(latitude) != Double.isNaN(longitude))
-			return "Georeference: set both the latitude and the longitude, or neither (TORCS needs both).";
-
-		return null;
+		// as Check reports one read from the file
+		String problem = Georeference.problem(latitude, longitude);
+		return problem == null ? null : "Georeference: " + problem + ".";
 	}
 
 	public void exit()

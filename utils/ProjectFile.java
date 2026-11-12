@@ -191,9 +191,10 @@ public class ProjectFile
 			}
 			else if (qName.equals("void"))
 			{
-				allow(qName, attributes, "property", "id", "idref");
+				allow(qName, attributes, "property", "id", "idref", "method");
 				String property = attributes.getValue("property");
 				String idref = attributes.getValue("idref");
+				String method = attributes.getValue("method");
 				if (property != null)
 				{
 					if (parent.type == null)
@@ -203,6 +204,18 @@ public class ProjectFile
 				else if (idref != null)
 				{
 					type = reference(idref);
+				}
+				else if (method != null)
+				{
+					// XMLEncoder writes a second setting with the same value, like two
+					// booleans that are false, as a reference to the value an earlier
+					// setting's getter returned: <void id="Boolean0" method="isRoadOnly"/>.
+					// Only a project object's getter, which reads a setting, is allowed.
+					if (parent.type == null || attributes.getValue("id") == null)
+						throw new SAXException("method " + method + " isn't allowed here");
+					type = getterClass(parent.type, method);
+					if (type == null)
+						throw new SAXException("method " + method + " isn't a project setting's getter");
 				}
 				else
 				{
@@ -267,6 +280,29 @@ public class ProjectFile
 		 *         classes, null otherwise: its value can be set but nothing
 		 *         can be done with it
 		 */
+		/** @return the type a project setting's getter of this name returns, null if it isn't one */
+		private static Class<?> getterClass(Class<?> type, String method)
+		{
+			try
+			{
+				for (PropertyDescriptor descriptor : Introspector.getBeanInfo(type).getPropertyDescriptors())
+				{
+					if (descriptor.getReadMethod() != null && descriptor.getReadMethod().getName().equals(method)
+						&& descriptor.getWriteMethod() != null)
+					{
+						// a value, or one of the project's objects
+						Class<?> c = descriptor.getPropertyType();
+						if (c.isPrimitive() || c == String.class || CLASSES.contains(c))
+							return c;
+					}
+				}
+			}
+			catch (IntrospectionException e)
+			{
+			}
+			return null;
+		}
+
 		private static Class<?> propertyClass(Class<?> type, String property)
 		{
 			try

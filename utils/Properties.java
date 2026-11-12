@@ -46,6 +46,12 @@ public  class Properties
 	private EditorPoint			imgOffset				= new EditorPoint();
 	// whether trackgen makes the start bridge (Speed Dreams and CSR can leave it out, -nb)
 	private boolean				startBridge				= true;
+	// whether the track is drawn as its road only while the background image is shown
+	private boolean				roadOnly				= false;
+	// whether the background image is shown (the Show background button)
+	private boolean				showBackground			= true;
+	// trackgen -H: height bands in the stepped elevation map (-E 4, -E 0); 0 is trackgen's default
+	private int					elevationHeightSteps	= 0;
 	private double				initx;
 	// the track view: its zoom (0 when not saved) and the point at its center
 	private double				viewZoom				= 0;
@@ -359,6 +365,42 @@ public  class Properties
     /**
      * @return Returns the imgOffset.
      */
+	/** @return the height bands in the stepped elevation map (trackgen -H), 0 for trackgen's default */
+	public int getElevationHeightSteps()
+	{
+		return elevationHeightSteps;
+	}
+
+	/** @param elevationHeightSteps the height bands in the stepped elevation map, 0 for trackgen's default */
+	public void setElevationHeightSteps(int elevationHeightSteps)
+	{
+		this.elevationHeightSteps = elevationHeightSteps;
+	}
+
+	/** @return whether the background image is shown */
+	public boolean isShowBackground()
+	{
+		return showBackground;
+	}
+
+	/** @param showBackground whether the background image is shown */
+	public void setShowBackground(boolean showBackground)
+	{
+		this.showBackground = showBackground;
+	}
+
+	/** @return whether the track is drawn as its road only while the background image is shown */
+	public boolean isRoadOnly()
+	{
+		return roadOnly;
+	}
+
+	/** @param roadOnly whether the track is drawn as its road only while the background image is shown */
+	public void setRoadOnly(boolean roadOnly)
+	{
+		this.roadOnly = roadOnly;
+	}
+
 	/** @return whether trackgen makes the start bridge */
 	public boolean isStartBridge()
 	{

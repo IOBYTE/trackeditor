@@ -494,6 +494,15 @@ public class Segment implements Cloneable
 
 	public void draw(Graphics g, AffineTransform affineTransform)
 	{
+		draw(g, affineTransform, false);
+	}
+
+	/**
+	 * Draws the segment, or with roadOnly only its road (and its arrow), not its
+	 * borders, sides and barriers.
+	 */
+	public void draw(Graphics g, AffineTransform affineTransform, boolean roadOnly)
+	{
 		if (points == null || points.length < 4)
 			return;
 		affineTransform.transform(points, 0, trPoints, 0, points.length);
@@ -503,6 +512,8 @@ public class Segment implements Cloneable
 
 		for (int i = 0; i < points.length; i += 4)
 		{
+			if (!drawsQuad(i, roadOnly))
+				continue;
 			// clip calcul
 			minX = Integer.MAX_VALUE;
 			maxX = Integer.MIN_VALUE;
@@ -534,6 +545,18 @@ public class Segment implements Cloneable
 				g.drawPolygon(xToDraw, yToDraw, 4);
 			}
 		}
+	}
+
+	/**
+	 * @return whether the quad of points from first is drawn: with roadOnly only
+	 *         a step's road and its arrow are
+	 */
+	protected boolean drawsQuad(int first, boolean roadOnly)
+	{
+		if (!roadOnly || nbSteps <= 0 || points.length % nbSteps != 0)
+			return true;
+		int quad = (first % (points.length / nbSteps)) / 4;
+		return quad == TRACK_START_LEFT / 4 || quad == ARROW_START_LEFT / 4;
 	}
 
 	public void drag(Point2D.Double dragDelta)
