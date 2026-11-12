@@ -109,6 +109,8 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/SgiReader.java
          utils/SurfaceComboBox.java
          utils/TrackData.java
+         utils/check/CheckMessage.java
+         utils/check/Subject.java
          utils/check/TrackContext.java
          utils/TrackEditor.java
          utils/ac3d/Ac3d.java

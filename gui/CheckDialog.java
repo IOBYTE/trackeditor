@@ -59,6 +59,8 @@ import utils.ac3d.Ac3dException;
 import utils.ac3d.Ac3dMaterial;
 import utils.ac3d.Ac3dObject;
 import utils.ac3d.Ac3dSurface;
+import utils.check.CheckMessage;
+import utils.check.Subject;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
 import utils.circuit.GameSides;
@@ -80,16 +82,16 @@ public class CheckDialog extends JDialog
 	private final String 		sep 			= System.getProperty("file.separator");
 	private JScrollPane			scrollPane		= null;
 	// the messages, and what each is about
-	private final DefaultListModel<Message>	messages	= new DefaultListModel<Message>();
+	private final DefaultListModel<CheckMessage>	messages	= new DefaultListModel<CheckMessage>();
 	// all of them, also the ones about the objects' models that are hidden
-	private final java.util.List<Message>	allMessages	= new java.util.ArrayList<Message>();
+	private final java.util.List<CheckMessage>	allMessages	= new java.util.ArrayList<CheckMessage>();
 	// show/hide buttons: each says what clicking it does, so all look alike, on or off
 	private final JButton		objectFilesButton	= showHideButton(false);
 	private final JButton		pngButton			= showHideButton(false);
 	private final JButton		savingButton		= showHideButton(false);
 	// shown at first: a missing texture is a real problem, unless the data folder isn't set
 	private final JButton		textureButton		= showHideButton(true);
-	private final JList<Message>	list			= new JList<Message>(messages);
+	private final JList<CheckMessage>	list			= new JList<CheckMessage>(messages);
 	private final Report		report			= new Report();
 	private EditorFrame			editorFrame		= null;
 	private Vector<Surface>		defaultSurfaces	= null;
@@ -323,9 +325,9 @@ public class CheckDialog extends JDialog
 		String[] names = { "object messages", "convert to png messages", "saving removes messages", "texture not found messages" };
 		int[] counts = new int[buttons.length];
 		messages.clear();
-		for (Message message : allMessages)
+		for (CheckMessage message : allMessages)
 		{
-			boolean[] kinds = { message.objectFile, message.png, message.saving, message.texture };
+			boolean[] kinds = { message.isObjectFile(), message.isPng(), message.isSaving(), message.isTexture() };
 			// the kinds that hide the message
 			int hiding = 0;
 			int hidden = -1;
@@ -374,7 +376,7 @@ public class CheckDialog extends JDialog
 	}
 
 	/** Runs a check whose messages are about the target unless they say otherwise */
-	private void check(Target about, Runnable check)
+	private void check(Subject about, Runnable check)
 	{
 		report.about(about);
 		try
@@ -388,21 +390,49 @@ public class CheckDialog extends JDialog
 	}
 
 	/** Shows what the message is about, or says why it can't */
-	private void show(Message message)
+	private void show(CheckMessage message)
 	{
-		if (message.target == null)
+		if (message.getSubject() == null)
 			return;
-		String problem = message.target.show();
+		String problem = show(message.getSubject());
 		if (problem != null)
 			JOptionPane.showMessageDialog(this, problem, "Check Track", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/** @return null once the subject is shown, or why it can't be */
+	private String show(Subject subject)
+	{
+		switch (subject.getKind())
+		{
+		case SEGMENT:
+		{
+			Segment segment = subject.getSegment();
+			// it blocks the track view and the segment dialog
+			if (editorFrame.isPropertiesOpen())
+				return "Close the Properties dialog to show segment " + segment.getName();
+			return editorFrame.getCircuitView().showSegment(segment, subject.getSegmentTab()) ? null
+				: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
+		}
+		case PROPERTIES:
+			editorFrame.showProperties(subject.getTabs());
+			return null;
+		case CALCULATE_CLOSURE:
+			DeltaPanel.showAndCalculate(editorFrame);
+			return null;
+		case LAST_CLOSURE:
+			DeltaPanel.showLastClosure(editorFrame);
+			return null;
+		default:
+			return null;
+		}
 	}
 
 	/** Copies the selected messages, one per line */
 	private void copySelected()
 	{
 		StringBuilder text = new StringBuilder();
-		for (Message message : list.getSelectedValuesList())
-			text.append(message.text).append(System.lineSeparator());
+		for (CheckMessage message : list.getSelectedValuesList())
+			text.append(message.getText()).append(System.lineSeparator());
 		if (text.length() > 0)
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text.toString()), null);
 	}
@@ -412,7 +442,7 @@ public class CheckDialog extends JDialog
 	{
 		StringBuilder text = new StringBuilder();
 		for (int i = 0; i < messages.size(); i++)
-			text.append(messages.get(i).text).append(System.lineSeparator());
+			text.append(messages.get(i).getText()).append(System.lineSeparator());
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text.toString()), null);
 	}
 
@@ -421,23 +451,6 @@ public class CheckDialog extends JDialog
 		storeBounds();
 		dispose();
 	}
-
-	/** What a message is about */
-	private interface Target
-	{
-		/** @return null once it is shown, or why it can't be */
-		String show();
-	}
-
-	/**
-	 * What the messages say about something in the file that saving removes: "saving
-	 * removes it", or "saving for Speed Dreams removes it" (a game's name can have
-	 * spaces)
-	 */
-	private static final java.util.regex.Pattern	SAVING_MESSAGE	= java.util.regex.Pattern.compile("\\bsaving (for .+? )?removes (it|this one)\\b");
-
-	/** What the messages say about a texture that isn't found, the data folder set or not */
-	private static final java.util.regex.Pattern	TEXTURE_NOT_FOUND	= java.util.regex.Pattern.compile(" texture .+ (not found$|isn't in the track's folder)");
 
 	/**
 	 * The radius above which TORCS's track tools (torcs-audit-track-radii) flag a
@@ -449,40 +462,10 @@ public class CheckDialog extends JDialog
 		+ "depends on the track loader's floating-point rounding, so check it closes as expected (a straight may suit better)\n";
 
 	/** How the messages suggesting converting a texture to png end */
-	private static final String	PNG_MESSAGE	= " should be converted to png format";
+	private static final String	PNG_MESSAGE	= CheckMessage.PNG_MESSAGE;
 
 	/** For a message about nothing the editor can show */
-	private static final Target	NONE	= () -> null;
-
-	private static class Message
-	{
-		final String	text;
-		final Target	target;
-		// about an object's model: its AC3D file or textures
-		final boolean	objectFile;
-		// only suggests converting an .rgb texture to png
-		final boolean	png;
-		// says the file has something that saving removes
-		final boolean	saving;
-		// says a texture isn't found
-		final boolean	texture;
-
-		Message(String text, Target target, boolean objectFile)
-		{
-			this.text = text;
-			this.target = target;
-			this.objectFile = objectFile;
-			this.png = text.endsWith(PNG_MESSAGE);
-			this.saving = SAVING_MESSAGE.matcher(text).find();
-			this.texture = TEXTURE_NOT_FOUND.matcher(text).find();
-		}
-
-		@Override
-		public String toString()
-		{
-			return text;
-		}
-	}
+	private static final Subject	NONE	= Subject.NONE;
 
 	/**
 	 * Collects the messages: text up to a new line is one message, about the
@@ -491,9 +474,9 @@ public class CheckDialog extends JDialog
 	private class Report
 	{
 		private final StringBuilder	line	= new StringBuilder();
-		private Target				lineTarget;
+		private Subject				lineTarget;
 		private boolean				lineStarted;
-		private Target				context;
+		private Subject				context;
 		// whether the messages are about an object's model: its AC3D file or textures
 		boolean						objectFile;
 		private boolean				lineObjectFile;
@@ -503,9 +486,9 @@ public class CheckDialog extends JDialog
 		 *
 		 * @return the one it replaces
 		 */
-		Target about(Target target)
+		Subject about(Subject target)
 		{
-			Target previous = context;
+			Subject previous = context;
 			context = target;
 			return previous;
 		}
@@ -515,7 +498,7 @@ public class CheckDialog extends JDialog
 			append(text, null);
 		}
 
-		void append(String text, Target target)
+		void append(String text, Subject target)
 		{
 			for (int i = 0; i < text.length(); i++)
 			{
@@ -531,7 +514,7 @@ public class CheckDialog extends JDialog
 					line.append(c);
 					continue;
 				}
-				allMessages.add(new Message(line.toString(), lineTarget == NONE ? null : lineTarget, lineObjectFile));
+				allMessages.add(new CheckMessage(line.toString(), lineTarget == NONE ? null : lineTarget, lineObjectFile));
 				line.setLength(0);
 				lineStarted = false;
 			}
@@ -555,53 +538,40 @@ public class CheckDialog extends JDialog
 			Component component = super.getListCellRendererComponent(list, value, index, selected, focus);
 			// no room around the text, as in a text area
 			((JComponent) component).setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
-			boolean link = value instanceof Message && ((Message) value).target != null;
+			boolean link = value instanceof CheckMessage && ((CheckMessage) value).getSubject() != null;
 			((JComponent) component).setToolTipText(link ? "Double-click to show it" : null);
 			return component;
 		}
 	}
 
-	/** @return a target that selects the segment in the track view and opens the segment dialog */
-	private Target segment(final Segment segment)
+	/** @return the segment, to select in the track view and open in the segment dialog */
+	private Subject segment(final Segment segment)
 	{
 		return segment(segment, null);
 	}
 
 	/**
-	 * @return a target that selects the segment in the track view and opens the
-	 *         segment dialog on the tab: Left or Right for a side, null for as it is
+	 * @return the segment, to select in the track view and open in the segment dialog
+	 *         on the tab: Left or Right for a side, null for as it is (see show)
 	 */
-	private Target segment(final Segment segment, final String tab)
+	private Subject segment(final Segment segment, final String tab)
 	{
-		if (segment == null)
-			return null;
-		return () ->
-		{
-			// it blocks the track view and the segment dialog
-			if (editorFrame.isPropertiesOpen())
-				return "Close the Properties dialog to show segment " + segment.getName();
-			return editorFrame.getCircuitView().showSegment(segment, tab) ? null
-				: "Segment " + segment.getName() + " isn't part of the track any more: Recheck to update the messages";
-		};
+		return Subject.segment(segment, tab);
 	}
 
 	/** @return a target for the segment with the name, null if there is none */
-	private Target segment(String name)
+	private Subject segment(String name)
 	{
 		return name == null ? null : segment(trackData.getSegments().getSegmentFromName(name.trim()));
 	}
 
 	/**
-	 * @return a target that opens the Properties dialog on a tab, and in it the tab
-	 *         with the next title and so on (see PropertiesDialog.showTabs)
+	 * @return a tab of the Properties dialog, and in it the tab with the next title
+	 *         and so on (see PropertiesDialog.showTabs)
 	 */
-	private Target properties(final String... tabs)
+	private Subject properties(final String... tabs)
 	{
-		return () ->
-		{
-			editorFrame.showProperties(tabs);
-			return null;
-		};
+		return Subject.properties(tabs);
 	}
 
 	private void checkTrack()
@@ -825,11 +795,8 @@ public class CheckDialog extends JDialog
 			DeltaPanel.Closure closure = DeltaPanel.lastClosure(editorFrame);
 			if (closure == null)
 			{
-				report.append("Closure not checked against trackgen's targets: double-click to run Calc in the Delta's dialog\n", () ->
-				{
-					DeltaPanel.showAndCalculate(editorFrame);
-					return null;
-				});
+				report.append("Closure not checked against trackgen's targets: double-click to run Calc in the Delta's dialog\n",
+					Subject.calculateClosure());
 				return;
 			}
 			java.util.List<String> off = new java.util.ArrayList<String>();
@@ -845,11 +812,7 @@ public class CheckDialog extends JDialog
 			if (off.isEmpty())
 				return;
 			report.append("Track doesn't close exactly: trackgen's " + String.join(", ", off)
-				+ ": Auto in the Delta's dialog closes it\n", () ->
-				{
-					DeltaPanel.showLastClosure(editorFrame);
-					return null;
-				});
+				+ ": Auto in the Delta's dialog closes it\n", Subject.lastClosure());
 			return;
 		}
 
@@ -1012,7 +975,7 @@ public class CheckDialog extends JDialog
 	 *         the name, or the Properties tab of the item; null when it isn't one of
 	 *         the editor's lists
 	 */
-	private Target sectionTarget(String parent, String name)
+	private Subject sectionTarget(String parent, String name)
 	{
 		switch (parent)
 		{
@@ -1084,7 +1047,7 @@ public class CheckDialog extends JDialog
 		{
 			// a key in a segment shows the segment, on the dialog's tab with it
 			String[] place = TrackData.segmentPlace(trackData.getUnusedKeyPath(message));
-			Target target = place == null ? null : segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
+			Subject target = place == null ? null : segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
 			report.append(message + "\n", target);
 		}
 	}
@@ -1131,7 +1094,7 @@ public class CheckDialog extends JDialog
 		int count = segments.size();
 		if (count == 0)
 			return;
-		Target cameraTab = report.about(null);
+		Subject cameraTab = report.about(null);
 		for (utils.circuit.Camera camera : cameras)
 		{
 			report.about(properties("Cameras", camera.getName()));
@@ -2682,13 +2645,13 @@ public class CheckDialog extends JDialog
 	 * @param where what uses the surface: a missing surface, or a default surface's
 	 *        textures, are about it; a track surface's textures are about the surface
 	 */
-	private void checkSurface(String surface, String description, Target where)
+	private void checkSurface(String surface, String description, Subject where)
 	{
 		if (surface == null || surface.isEmpty())
 			return;
 
 		String message = description + " surface " + surface;
-		Target outer = report.about(where);
+		Subject outer = report.about(where);
 		try
 		{
 			checkSurface(surface, message);
@@ -2706,7 +2669,7 @@ public class CheckDialog extends JDialog
 		{
 			if (trackData.getSurfaces().get(i).getName().equals(surface))
 			{
-				Target outer = report.about(properties("Surfaces", surface));
+				Subject outer = report.about(properties("Surfaces", surface));
 				String texture = trackData.getSurfaces().get(i).getTextureName();
 				checkTexture(message, texture);
 
