@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.MutableDouble;
 import utils.MutableInteger;
 import utils.MutableString;
@@ -208,7 +209,7 @@ public class PropertyPanel extends JPanel
 	/** @return why the game can't load a texture of a name's format, as Check reports */
 	private java.util.function.Function<String, String> textureFormat()
 	{
-		EditorFrame.GameType game = getEditorFrame().getGameType();
+		GameType game = getEditorFrame().getGameType();
 		return game::textureFormatProblem;
 	}
 

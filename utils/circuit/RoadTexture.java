@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
@@ -68,7 +69,7 @@ public class RoadTexture
 
 		SegmentVector segments = trackData.getSegments();
 		double width = trackData.getMainTrack().getValidWidth();
-		String defaultTexture = editorFrame.getGameType() == EditorFrame.GameType.TORCS ? DEFAULT_TORCS_TEXTURE : DEFAULT_TEXTURE;
+		String defaultTexture = editorFrame.getGameType() == GameType.TORCS ? DEFAULT_TORCS_TEXTURE : DEFAULT_TEXTURE;
 		double fromStart = 0;
 		String texture = null;
 		boolean continuous = true, link = true;

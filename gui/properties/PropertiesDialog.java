@@ -32,6 +32,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.Properties;
 import utils.undo.Undo;
 import utils.undo.UndoProperties;
@@ -204,7 +205,7 @@ public class PropertiesDialog extends JDialog
 			addTab("Lights", extensions ? getTrackLightProperties() : null);
 			addTab("Sectors", extensions ? getSectorProperties() : null);
 			addTab("Image", getImageProperties());
-			addTab("Georeference", editorFrame.getGameType() == EditorFrame.GameType.TORCS ? getGeoreferenceProperties() : null);
+			addTab("Georeference", editorFrame.getGameType() == GameType.TORCS ? getGeoreferenceProperties() : null);
 			// leaving the Pit tab: its segments have to exist
 			tabbedPane.addChangeListener(new javax.swing.event.ChangeListener()
 			{

@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
+import utils.GameType;
 
 public class PreferencesDialog extends JDialog
 {
@@ -39,18 +40,18 @@ public class PreferencesDialog extends JDialog
 	private JCheckBox			checkDefaultObjectsCheckBox	= null;
 	private JCheckBox			speedDreamsAccCheckBox		= null;
 	private JLabel				gameTypeLabel				= null;
-	private JComboBox<EditorFrame.GameType>	gameTypeComboBox	= null;
+	private JComboBox<GameType>	gameTypeComboBox			= null;
 	private JButton				okButton					= null;
 	private JButton				cancelButton				= null;
 	// each game's data, bin and lib directories, as edited in this dialog
-	private java.util.EnumMap<EditorFrame.GameType, String[]>	directories	=
-		new java.util.EnumMap<EditorFrame.GameType, String[]>(EditorFrame.GameType.class);
+	private java.util.EnumMap<GameType, String[]>	directories	=
+		new java.util.EnumMap<GameType, String[]>(GameType.class);
 
 	public PreferencesDialog(EditorFrame editorFrame)
 	{
 		super();
 		this.editorFrame = editorFrame;
-		for (EditorFrame.GameType game : EditorFrame.GameType.values())
+		for (GameType game : GameType.values())
 		{
 			directories.put(game, new String[] {
 				editorFrame.getDirectory(game, EditorFrame.DATA_DIRECTORY),
@@ -145,7 +146,7 @@ public class PreferencesDialog extends JDialog
 	{
 		int width = Math.max(recentFilesMaxLabel.getPreferredSize().width, gameTypeLabel.getPreferredSize().width);
 		// the directory labels start with the game's name, so measure them with each one
-		for (EditorFrame.GameType game : EditorFrame.GameType.values())
+		for (GameType game : GameType.values())
 		{
 			for (String kind : new String[] { " Data Directory", " Bin Directory", " Lib Directory" })
 			{
@@ -405,11 +406,11 @@ public class PreferencesDialog extends JDialog
 		return speedDreamsAccCheckBox;
 	}
 
-	private JComboBox<EditorFrame.GameType> getGameTypeComboBox()
+	private JComboBox<GameType> getGameTypeComboBox()
 	{
 		if (gameTypeComboBox == null)
 		{
-			gameTypeComboBox = new JComboBox<EditorFrame.GameType>(EditorFrame.GameType.values());
+			gameTypeComboBox = new JComboBox<GameType>(GameType.values());
 			gameTypeComboBox.setBounds(fieldX, 227, 170, 23);
 			gameTypeComboBox.setSelectedItem(editorFrame.getGameType());
 			gameTypeComboBox.addItemListener(new java.awt.event.ItemListener()
@@ -418,7 +419,7 @@ public class PreferencesDialog extends JDialog
 				{
 					// each game has its own directories: keep what was typed for the
 					// game left, and show the ones of the game chosen
-					EditorFrame.GameType game = (EditorFrame.GameType) e.getItem();
+					GameType game = (GameType) e.getItem();
 					if (e.getStateChange() == java.awt.event.ItemEvent.DESELECTED)
 					{
 						keepDirectories(game);
@@ -507,7 +508,7 @@ public class PreferencesDialog extends JDialog
 	}
 	
 	/** Remembers the directories shown as the given game's */
-	private void keepDirectories(EditorFrame.GameType game)
+	private void keepDirectories(GameType game)
 	{
 		directories.put(game, new String[] {
 			getDataDirectoryTextField().getText(),
@@ -516,7 +517,7 @@ public class PreferencesDialog extends JDialog
 	}
 
 	/** @return the game's data, bin and lib directories */
-	public String[] getDirectories(EditorFrame.GameType game)
+	public String[] getDirectories(GameType game)
 	{
 		keepDirectories(getGameType());
 		return directories.get(game).clone();
@@ -575,9 +576,9 @@ public class PreferencesDialog extends JDialog
 		return getSpeedDreamsAccCheckBox().isSelected();
 	}
 
-	public EditorFrame.GameType getGameType()
+	public GameType getGameType()
 	{
-		return (EditorFrame.GameType) getGameTypeComboBox().getSelectedItem();
+		return (GameType) getGameTypeComboBox().getSelectedItem();
 	}
 
 	protected void processWindowEvent(WindowEvent e)

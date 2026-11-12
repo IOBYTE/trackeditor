@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.TrackData;
 
 /**
@@ -47,7 +48,7 @@ public final class Version3
 		if (trackData.getHeader().getVersion() != 3)
 			return;
 
-		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
 		MainTrack mainTrack = trackData.getMainTrack();
 
 		for (SegmentSide main : new SegmentSide[] {mainTrack.getLeft(), mainTrack.getRight()})

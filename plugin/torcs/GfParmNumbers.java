@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gui.EditorFrame;
+import utils.GameType;
 
 /**
  * Reads numbers and units the way the game's parameter library does
@@ -90,7 +90,7 @@ public final class GfParmNumbers
 	 * Converts a value in the given unit to SI, like GfParmUnit2SI.
 	 * Units the game doesn't know are taken as SI; they are added to unknown.
 	 */
-	public static double toSI(String unit, double value, EditorFrame.GameType game, List<String> unknown)
+	public static double toSI(String unit, double value, GameType game, List<String> unknown)
 	{
 		return convert(unit, value, false, game, unknown);
 	}
@@ -98,7 +98,7 @@ public final class GfParmNumbers
 	/**
 	 * Converts an SI value to the given unit, like GfParmSI2Unit.
 	 */
-	public static double fromSI(String unit, double value, EditorFrame.GameType game, List<String> unknown)
+	public static double fromSI(String unit, double value, GameType game, List<String> unknown)
 	{
 		return convert(unit, value, true, game, unknown);
 	}
@@ -108,7 +108,7 @@ public final class GfParmNumbers
 	 * file uses a different unit than the one the value is read in.
 	 * A missing unit means SI, as it does for the game.
 	 */
-	public static double convert(double value, String fromUnit, String toUnit, EditorFrame.GameType game, List<String> unknown)
+	public static double convert(double value, String fromUnit, String toUnit, GameType game, List<String> unknown)
 	{
 		String from = fromUnit == null ? "" : fromUnit;
 		String to = toUnit == null ? "" : toUnit;
@@ -121,7 +121,7 @@ public final class GfParmNumbers
 
 	// GfParmUnit2SI / GfParmSI2Unit: units are separated by '.', a '/' inverts the
 	// ones after it, and a '2' squares the one before it
-	private static double convert(String unit, double value, boolean toUnit, EditorFrame.GameType game, List<String> unknown)
+	private static double convert(String unit, double value, boolean toUnit, GameType game, List<String> unknown)
 	{
 		if (unit == null || unit.isEmpty())
 			return value;
@@ -159,9 +159,9 @@ public final class GfParmNumbers
 		return dest[0];
 	}
 
-	private static void evalUnit(String unit, double[] dest, boolean invert, EditorFrame.GameType game, List<String> unknown)
+	private static void evalUnit(String unit, double[] dest, boolean invert, GameType game, List<String> unknown)
 	{
-		if (game == EditorFrame.GameType.TORCS)
+		if (game == GameType.TORCS)
 		{
 			evalTorcsUnit(unit, dest, invert, unknown);
 			return;
@@ -201,7 +201,7 @@ public final class GfParmNumbers
 
 			case "ci":
 				// Speed Dreams only
-				if (game == EditorFrame.GameType.SPEED_DREAMS)
+				if (game == GameType.SPEED_DREAMS)
 				{
 					coeff = 0.0163871;
 					break;

@@ -13,6 +13,7 @@ import java.util.List;
 
 import gui.EditorFrame;
 import plugin.torcs.GfParmNumbers;
+import utils.GameType;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.GameSides;
@@ -129,7 +130,7 @@ public class GameTrack
 		}
 	}
 
-	public final EditorFrame.GameType	game;
+	public final GameType				game;
 	public final List<Seg>				segs	= new ArrayList<Seg>();
 	public final float					width;
 	public final float					trackStep;
@@ -142,7 +143,7 @@ public class GameTrack
 		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
 		width = (float) mainTrack.getValidWidth();
 		double step = editorFrame.getTrackData().getTerrainGeneration().getTrackStep();
-		trackStep = (float) (Double.isNaN(step) || step <= 0 ? (game == EditorFrame.GameType.TORCS ? 5.0 : 10.0) : step);
+		trackStep = (float) (Double.isNaN(step) || step <= 0 ? (game == GameType.TORCS ? 5.0 : 10.0) : step);
 	}
 
 	/** @return the open track as the game builds it, or null when there is none */
@@ -318,7 +319,7 @@ public class GameTrack
 				b.height = 0;
 			setSurface(b, state.borderSurface);
 			// the CSR loader links a border back to its main segment
-			if (game == EditorFrame.GameType.CARS_SPORTS_RACING)
+			if (game == GameType.CARS_SPORTS_RACING)
 			{
 				if (right)
 					b.lside = m;
@@ -463,7 +464,7 @@ public class GameTrack
 		Seg entry = first(pits.getEntry()), exit = last(pits.getExit());
 		Seg start = first(pits.getStart()), end = last(pits.getEnd());
 
-		if (game == EditorFrame.GameType.TORCS)
+		if (game == GameType.TORCS)
 		{
 			if (entry == null || exit == null || start == null || end == null)
 				return;
@@ -906,7 +907,7 @@ public class GameTrack
 		if (entry == null || exit == null || start == null || end == null)
 			return null;
 		PitLayout layout = new PitLayout();
-		layout.torcs = game == EditorFrame.GameType.TORCS;
+		layout.torcs = game == GameType.TORCS;
 		layout.side = pits.getSide() == null || "right".equals(pits.getSide()) ? TR_RGT : TR_LFT;
 		layout.len = (float) (Double.isNaN(pits.getLength()) ? 15.0 : pits.getLength());
 		if (!(layout.len > 0))
@@ -915,7 +916,7 @@ public class GameTrack
 
 		Seg first;
 		int count;
-		if (game == EditorFrame.GameType.TORCS)
+		if (game == GameType.TORCS)
 		{
 			// as many as fit from the pit start to the pit end
 			first = start;
@@ -1183,7 +1184,7 @@ public class GameTrack
 		float lg = seg.type == TR_STR ? toStart : toStart * seg.radius;
 		float base = seg.vertex[TR_SR][2] + toStart * seg.Kzl;
 		float angle = seg.angleXS + toStart * seg.Kzw;
-		if (game == EditorFrame.GameType.TORCS)
+		if (game == GameType.TORCS)
 		{
 			float height = base + tr * (float) Math.tan(angle);
 			if (seg.style == TR_CURB)

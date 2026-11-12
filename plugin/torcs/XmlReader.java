@@ -44,6 +44,7 @@ import org.xml.sax.InputSource;
 
 import gui.EditorFrame;
 import utils.DoubleValue;
+import utils.GameType;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.ac3d.Ac3dException;
@@ -1585,8 +1586,8 @@ public class XmlReader
 	 */
 	private String unknownTypeResult()
 	{
-		EditorFrame.GameType game = editorFrame.getGameType();
-		if (game == EditorFrame.GameType.TORCS && editorFrame.getTrackData().getHeader().getVersion() >= 4)
+		GameType game = editorFrame.getGameType();
+		if (game == GameType.TORCS && editorFrame.getTrackData().getHeader().getVersion() >= 4)
 			return "TORCS stops loading the track (\"Unknown track segment type\")";
 		return game.getShortName() + " doesn't skip such a segment, but builds it with the shape of the segment before it "
 			+ "(its type, length, radius and arc)";

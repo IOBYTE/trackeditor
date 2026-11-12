@@ -46,6 +46,7 @@ import org.jdom2.util.NamespaceStack;
 
 import gui.EditorFrame;
 import utils.DoubleValue;
+import utils.GameType;
 import utils.Properties;
 import utils.TrackEditor;
 import utils.SegmentVector;
@@ -151,7 +152,7 @@ public class XmlWriter
 	{
 		Comment com;
 		Element root = getRoot(trackName);
-		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
 
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
@@ -1003,7 +1004,7 @@ public class XmlWriter
 	private synchronized Element getGrid()
 	{
 		Element element = new Element("section");
-		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
 		if (!torcs || !editorFrame.getTrackData().getStartingGrid().isEmpty())
 			element.setAttribute(new Attribute("name", "Starting Grid"));
 		addContent(element, "rows", null, editorFrame.getTrackData().getStartingGrid().getRows());
@@ -1081,7 +1082,7 @@ public class XmlWriter
 
 		// TORCS tracks leave the section out when it has nothing to say: no values,
 		// or only the values the game uses anyway
-		boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
 		if (!torcs ||
 			(!editorFrame.getTrackData().getGraphic().getTurnMarks().isEmpty() &&
 			 !editorFrame.getTrackData().getGraphic().getTurnMarks().isDefault()))

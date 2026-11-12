@@ -96,6 +96,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/CustomFileFilter.java
          utils/DoubleValue.java
          utils/EditorPoint.java
+         utils/GameType.java
          utils/GroupButtonLayout.java
          utils/MutableDouble.java
          utils/MutableInteger.java

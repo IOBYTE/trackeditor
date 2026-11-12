@@ -50,6 +50,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import utils.GameType;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
@@ -1094,7 +1095,7 @@ public class CheckDialog extends JDialog
 	 */
 	private void checkGeoreference()
 	{
-		if (editorFrame.getGameType() != EditorFrame.GameType.TORCS)
+		if (editorFrame.getGameType() != GameType.TORCS)
 			return;
 		String problem = trackData.getGeoreference().problem();
 		if (problem != null)
@@ -1748,7 +1749,7 @@ public class CheckDialog extends JDialog
 	 */
 	private boolean wantsPng()
 	{
-		return editorFrame.getGameType() != EditorFrame.GameType.TORCS;
+		return editorFrame.getGameType() != GameType.TORCS;
 	}
 
 	/**
@@ -1888,7 +1889,7 @@ public class CheckDialog extends JDialog
 					}
 
 					Ac3dObject root = ac3dFile.getRoot();
-					boolean torcs = editorFrame.getGameType() == EditorFrame.GameType.TORCS;
+					boolean torcs = editorFrame.getGameType() == GameType.TORCS;
 
 					if (root == null || countReliefLines(root, false, torcs) == 0)
 					{

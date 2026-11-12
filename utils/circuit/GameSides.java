@@ -11,6 +11,7 @@ package utils.circuit;
 import java.util.ArrayList;
 
 import gui.EditorFrame;
+import utils.GameType;
 
 /**
  * The side, border and barrier values the game uses for a segment.
@@ -62,7 +63,7 @@ public final class GameSides
 	 */
 	public static State of(Segment segment, boolean right, EditorFrame editorFrame)
 	{
-		EditorFrame.GameType game = editorFrame.getGameType();
+		GameType game = editorFrame.getGameType();
 		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
 		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
 		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game, version3);
@@ -82,7 +83,7 @@ public final class GameSides
 		return state;
 	}
 
-	private static State start(SegmentSide main, EditorFrame.GameType game, boolean version3)
+	private static State start(SegmentSide main, GameType game, boolean version3)
 	{
 		State s = new State();
 
@@ -115,7 +116,7 @@ public final class GameSides
 		return s;
 	}
 
-	private static void apply(State s, SegmentSide side, EditorFrame.GameType game, boolean version3)
+	private static void apply(State s, SegmentSide side, GameType game, boolean version3)
 	{
 		// side
 		double start = side.getSideStartWidth();
@@ -127,7 +128,7 @@ public final class GameSides
 		// border
 		s.borderWidth = number(side.getBorderWidth(), s.borderWidth);
 		// in TORCS version 3, a segment without a border height has a height of 0
-		s.borderHeight = number(side.getBorderHeight(), version3 && game == EditorFrame.GameType.TORCS ? 0.0 : s.borderHeight);
+		s.borderHeight = number(side.getBorderHeight(), version3 && game == GameType.TORCS ? 0.0 : s.borderHeight);
 		s.borderSurface = text(side.getBorderSurface(), s.borderSurface);
 		setBorderStyle(s, text(side.getBorderStyle(), s.borderStyle), game);
 
@@ -158,7 +159,7 @@ public final class GameSides
 		// any other style is ignored: everything stays as it was
 	}
 
-	private static void setBorderStyle(State s, String style, EditorFrame.GameType game)
+	private static void setBorderStyle(State s, String style, GameType game)
 	{
 		if (style.equals("plan"))
 		{
@@ -176,7 +177,7 @@ public final class GameSides
 		}
 	}
 
-	private static boolean isFence(String style, EditorFrame.GameType game)
+	private static boolean isFence(String style, GameType game)
 	{
 		return style.equals("fence") || (game.hasFence1Fence2() && (style.equals("fence1") || style.equals("fence2")));
 	}
@@ -294,7 +295,7 @@ public final class GameSides
 		java.util.List<Problem> problems = new ArrayList<Problem>();
 		SegmentSide side = right ? segment.getRight() : segment.getLeft();
 		State state = of(segment, right, editorFrame);
-		EditorFrame.GameType game = editorFrame.getGameType();
+		GameType game = editorFrame.getGameType();
 
 		// border
 		String borderStyle = side.getBorderStyle();

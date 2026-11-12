@@ -39,6 +39,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import utils.GameType;
 import utils.Properties;
 
 /**
@@ -304,7 +305,7 @@ public class TrackgenPanel extends JDialog implements Runnable
 		}
 
 		// TORCS trackgen writes its errors ("Cannot find ...") without a keyword
-		if (editorFrame.getGameType() == EditorFrame.GameType.TORCS)
+		if (editorFrame.getGameType() == GameType.TORCS)
 		{
 			if (!str.trim().isEmpty())
 				append(errorsTextArea, str);

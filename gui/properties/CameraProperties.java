@@ -34,6 +34,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.MutableDouble;
 import utils.MutableString;
 import utils.SegmentVector;
@@ -182,7 +183,7 @@ public class CameraProperties extends PropertyPanel
 	 * @param units the unit To Start is saved in, null or empty for none
 	 * @return the problem, starting "to start", or null
 	 */
-	public static String toStartProblem(Segment segment, double value, String units, EditorFrame.GameType game)
+	public static String toStartProblem(Segment segment, double value, String units, GameType game)
 	{
 		if (segment == null || Double.isNaN(value))
 			return null;

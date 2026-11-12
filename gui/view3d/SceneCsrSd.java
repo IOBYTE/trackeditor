@@ -13,6 +13,7 @@ import static gui.view3d.GameTrack.*;
 import gui.EditorFrame;
 import gui.view3d.GameTrack.Barrier;
 import gui.view3d.GameTrack.Seg;
+import utils.GameType;
 
 /**
  * The scene as Speed Dreams' and CSR's trackgen make it (tools/trackgen
@@ -32,7 +33,7 @@ public class SceneCsrSd extends TrackScene
 	SceneCsrSd(GameTrack track, EditorFrame editorFrame)
 	{
 		super(track, editorFrame);
-		sd = track.game == EditorFrame.GameType.SPEED_DREAMS;
+		sd = track.game == GameType.SPEED_DREAMS;
 	}
 
 	@Override

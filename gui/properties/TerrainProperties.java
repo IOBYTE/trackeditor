@@ -39,6 +39,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import gui.EditorFrame;
+import utils.GameType;
 import utils.Properties;
 import utils.MutableDouble;
 import utils.MutableInteger;
@@ -59,7 +60,7 @@ public class TerrainProperties extends PropertyPanel
 {
 	private JLabel				trackStepLabel				= new JLabel();
 	private JTextField			trackStepTextField			= hintTextField(() -> getEditorFrame().getGameType()
-		== EditorFrame.GameType.TORCS ? "5.0 (default)" : "10.0 (default)");
+		== GameType.TORCS ? "5.0 (default)" : "10.0 (default)");
 	private JLabel				borderMarginLabel			= new JLabel();
 	private JTextField			borderMarginTextField		= hintTextField("100.0 (default)");
 	private JLabel				borderStepLabel				= new JLabel();
@@ -345,7 +346,7 @@ public class TerrainProperties extends PropertyPanel
 		if (reliefBorderComboBox == null)
 		{
 			// TORCS trackgen doesn't read it
-			String none = getEditorFrame().getGameType() == EditorFrame.GameType.TORCS ? "none (ignored)" : "none (no)";
+			String none = getEditorFrame().getGameType() == GameType.TORCS ? "none (ignored)" : "none (no)";
 			String[] items = {none, "yes", "no"};
 			reliefBorderComboBox = new JComboBox<String>(items);
 			reliefBorderComboBox.setBounds(140, 280, 125, 23);

@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import gui.EditorFrame;
+import utils.GameType;
 import utils.Properties;
 import utils.ac3d.Ac3d;
 import utils.ac3d.Ac3dMaterial;
@@ -219,7 +220,7 @@ public abstract class TrackScene
 		GameTrack track = GameTrack.build(editorFrame);
 		if (track == null)
 			return null;
-		TrackScene scene = track.game == EditorFrame.GameType.TORCS ? new SceneTorcs(track, editorFrame) : new SceneCsrSd(track, editorFrame);
+		TrackScene scene = track.game == GameType.TORCS ? new SceneTorcs(track, editorFrame) : new SceneCsrSd(track, editorFrame);
 		scene.racelineLayer = raceline;
 		scene.generate();
 		// trackgen skips objects that aren't triangles
@@ -339,7 +340,7 @@ public abstract class TrackScene
 
 	protected boolean torcs()
 	{
-		return track.game == EditorFrame.GameType.TORCS;
+		return track.game == GameType.TORCS;
 	}
 
 	/** NEWDISPLIST: a new strip, or a new texture for an empty one; texchange asks for a new start. */
@@ -645,7 +646,7 @@ public abstract class TrackScene
 	private void startBridge()
 	{
 		part = Part.START_BRIDGE;
-		boolean sd = track.game == EditorFrame.GameType.SPEED_DREAMS;
+		boolean sd = track.game == GameType.SPEED_DREAMS;
 		checkDispList2("pylon1", "S0Bg", 0);
 		GameTrack.Seg mseg = track.segs.get(0);
 		GameTrack.Seg seg = mseg.rside == null ? mseg : mseg.rside.rside != null ? mseg.rside.rside : mseg.rside;

@@ -35,7 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
-import gui.EditorFrame;
+import utils.GameType;
 import utils.SurfaceComboBox;
 import utils.circuit.Segment;
 import utils.circuit.SegmentSide;
@@ -1110,7 +1110,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	 */
 	private boolean isKnownBarrierStyle(String style)
 	{
-		EditorFrame.GameType game = parent.editorFrame.getGameType();
+		GameType game = parent.editorFrame.getGameType();
 		return style.equals("wall") || style.equals("fence") ||
 			(game.hasFence1Fence2() && (style.equals("fence1") || style.equals("fence2"))) ||
 			(game.hasNoBarrier() && style.equals("no barrier"));
