@@ -33,6 +33,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/DefaultSurfacesDialog.java
          gui/DeltaPanel.java
          gui/EditorFrame.java
+         gui/MenuScroller.java
          gui/NewProjectDialog.java
          gui/PreferencesDialog.java
          gui/TrackgenPanel.java

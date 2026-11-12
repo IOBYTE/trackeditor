@@ -980,12 +980,11 @@ public class EditorFrame extends JFrame
 	{
 		this.recentFilesMax = Math.max(0, Math.min(RECENT_FILES_LIMIT, recentFilesMax));
 
+		// the menu is made from the list each time it opens
 		while (recentFiles.size() > this.recentFilesMax)
 		{
 			int index = recentFiles.size() - 1;
-			System.out.println("removing " + index);
 			recentFiles.remove(index);
-			recentFilesMenu.remove(index);
 			preferences.remove(RECENT_FILES_STRING+index);
 		}
 
@@ -1148,29 +1147,19 @@ public class EditorFrame extends JFrame
 				preferences.remove(RECENT_FILES_STRING+i);
 			}
 		}
-
-		for (int i = 0; i < recentFiles.size(); i++)
-		{
-			if (i < (recentFilesMenu.getItemCount() - 2))
-			{
-				if (!recentFilesMenu.getItem(i).getText().equals(recentFiles.get(i)))
-				{
-					recentFilesMenu.getItem(i).setText(recentFiles.get(i));
-				}
-			}
-			else
-			{
-				addRecentFilesMenuItem(recentFiles.get(i));
-			}
-		}
-		// a replaced entry leaves one menu item too many
-		while (recentFilesMenu.getItemCount() - 2 > recentFiles.size())
-		{
-			recentFilesMenu.remove(recentFiles.size());
-		}
+		// the menu is made from the list each time it opens
 	}
 
-	private void addRecentFilesMenuItem(String filename)
+	/** @return the recent files menu's items, newest first */
+	private List<JMenuItem> recentFilesMenuItems()
+	{
+		List<JMenuItem> items = new ArrayList<JMenuItem>();
+		for (String filename : recentFiles)
+			items.add(recentFilesMenuItem(filename));
+		return items;
+	}
+
+	private JMenuItem recentFilesMenuItem(String filename)
 	{
 		JMenuItem recentFileMenuItem = new JMenuItem(filename);
 		recentFileMenuItem.addActionListener(new ActionListener()
@@ -1187,7 +1176,7 @@ public class EditorFrame extends JFrame
 					importTrackFile(name);
 			}
 		});
-		recentFilesMenu.insert(recentFileMenuItem, recentFilesMenu.getItemCount() - 2);
+		return recentFileMenuItem;
 	}
 
 	/**
@@ -1896,22 +1885,16 @@ public class EditorFrame extends JFrame
 			recentFilesMenu = new JMenu();
 			recentFilesMenu.setAction(recentAction);
 			recentFilesMenu.setIcon(null);
-			recentFilesMenu.addSeparator();
 			JMenuItem clearHistory = new JMenuItem("Clear History");
 			clearHistory.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					int count = recentFilesMenu.getItemCount() - 2;
-					for (int i = 0; i < count; i++)
-					{
+					for (int i = 0; i < recentFiles.size(); i++)
 						preferences.remove(RECENT_FILES_STRING + i);
-						recentFilesMenu.remove(0);
-					}
 					recentFiles.clear();
 				}
 			});
-			recentFilesMenu.add(clearHistory);
 
 			int recentFilesMax = readRecentFilesMax();
 
@@ -1922,13 +1905,14 @@ public class EditorFrame extends JFrame
 				if (!file.equals(""))
 				{
 					recentFiles.add(file);
-					addRecentFilesMenuItem(file);
 				}
 				else
 				{
 					break;
 				}
 			}
+			// made from the list each time it opens, and scrolls when it is taller than the screen
+			new MenuScroller(recentFilesMenu, this::recentFilesMenuItems, new javax.swing.JPopupMenu.Separator(), clearHistory);
 		}
 		return recentFilesMenu;
 	}
