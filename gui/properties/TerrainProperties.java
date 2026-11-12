@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -78,6 +79,8 @@ public class TerrainProperties extends PropertyPanel
 	private JLabel				reliefFileLabel				= new JLabel();
 	private JTextField			reliefFileTextField			= hintTextField("none");
 	private JLabel				reliefBorderLabel			= new JLabel();
+	// a project setting, not the track's: trackgen -nb leaves out the start bridge
+	private JCheckBox			startBridgeCheckBox			= new JCheckBox("Start Bridge");
 	private JComboBox<String>	reliefBorderComboBox		= null;
 	private JLabel				surfaceLabel				= new JLabel();
 	private SurfaceComboBox		surfaceComboBox				= null;
@@ -211,6 +214,14 @@ public class TerrainProperties extends PropertyPanel
 		this.add(getElevationMapButton(), null);
 		this.add(getReliefFileButton(), null);
 		this.add(getReliefBorderComboBox(), null);
+		if (getEditorFrame().getGameType().hasNoBridgeTrackgen())
+		{
+			startBridgeCheckBox.setSelected(Properties.getInstance().isStartBridge());
+			startBridgeCheckBox.setToolTipText("Whether trackgen makes the bridge over the start line (off: trackgen -nb). "
+				+ "Saved in the project, not the track.");
+			startBridgeCheckBox.setBounds(290, 280, 150, 23);
+			this.add(startBridgeCheckBox, null);
+		}
 		if (speedDreams)
 			this.add(getUseObjectMaterialsComboBox(), null);
 		// only Speed Dreams trackgen reads the tiled file
@@ -618,6 +629,7 @@ public class TerrainProperties extends PropertyPanel
 					setTextField(randomSeedTextField, TerrainGeneration.DEFAULT_RANDOM_SEED);
 					selectItem(reliefBorderComboBox, TerrainGeneration.DEFAULT_RELIEF_BORDER);
 					selectItem(useObjectMaterialsComboBox, TerrainGeneration.DEFAULT_USE_OBJECT_MATERIALS);
+					startBridgeCheckBox.setSelected(true);
 				}
 			});
 		}
@@ -654,6 +666,7 @@ public class TerrainProperties extends PropertyPanel
 					randomSeedTextField.setText(null);
 					selectItem(reliefBorderComboBox, null);
 					selectItem(useObjectMaterialsComboBox, null);
+					startBridgeCheckBox.setSelected(true);
 				}
 			});
 		}
@@ -886,6 +899,13 @@ public class TerrainProperties extends PropertyPanel
 				String msg = stringResult.getValue() + " : " + e.getLocalizedMessage();
 				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
+			getEditorFrame().documentIsModified = true;
+		}
+
+		if (getEditorFrame().getGameType().hasNoBridgeTrackgen()
+			&& startBridgeCheckBox.isSelected() != Properties.getInstance().isStartBridge())
+		{
+			Properties.getInstance().setStartBridge(startBridgeCheckBox.isSelected());
 			getEditorFrame().documentIsModified = true;
 		}
 

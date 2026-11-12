@@ -343,6 +343,12 @@ public class EditorFrame extends JFrame
 			return this == SPEED_DREAMS;
 		}
 
+		/** @return whether trackgen can leave out the start bridge, -nb (not TORCS') */
+		public boolean hasNoBridgeTrackgen()
+		{
+			return this != TORCS;
+		}
+
 		/** @return whether trackgen has -q, quiet mode (only TORCS') */
 		public boolean hasQuietTrackgen()
 		{
@@ -3659,6 +3665,9 @@ public class EditorFrame extends JFrame
 			else
 				newArgs += " -B";
 		}
+		// the project's choice (Properties > Terrain)
+		if (!Properties.getInstance().isStartBridge() && gameType.hasNoBridgeTrackgen())
+			newArgs = (newArgs == null ? "" : newArgs) + " -nb";
 		String problem = getTrackgenProblem();
 		if (problem != null)
 		{

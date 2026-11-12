@@ -44,6 +44,8 @@ public  class Properties
 	private double				imageScale				= 1;
 	private String				image					= "";
 	private EditorPoint			imgOffset				= new EditorPoint();
+	// whether trackgen makes the start bridge (Speed Dreams and CSR can leave it out, -nb)
+	private boolean				startBridge				= true;
 	private double				initx;
 	// the track view: its zoom (0 when not saved) and the point at its center
 	private double				viewZoom				= 0;
@@ -357,6 +359,18 @@ public  class Properties
     /**
      * @return Returns the imgOffset.
      */
+	/** @return whether trackgen makes the start bridge */
+	public boolean isStartBridge()
+	{
+		return startBridge;
+	}
+
+	/** @param startBridge whether trackgen makes the start bridge */
+	public void setStartBridge(boolean startBridge)
+	{
+		this.startBridge = startBridge;
+	}
+
     public EditorPoint getImgOffset()
     {
         return imgOffset;

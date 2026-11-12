@@ -493,7 +493,9 @@ public abstract class TrackScene
 		curBackToBack = true;
 		turnMarks();
 		curBackToBack = false;
-		startBridge();
+		// as trackgen -nb, when the project leaves it out (Properties > Terrain)
+		if (Properties.getInstance().isStartBridge() || !editorFrame.getGameType().hasNoBridgeTrackgen())
+			startBridge();
 		pitBuildings();
 		pitDoors();
 		trackLights();
