@@ -10,8 +10,8 @@ package utils.circuit;
 
 import java.util.ArrayList;
 
-import gui.EditorFrame;
 import utils.GameType;
+import utils.check.TrackContext;
 
 /**
  * The side, border and barrier values the game uses for a segment.
@@ -61,7 +61,7 @@ public final class GameSides
 	/**
 	 * @return the values the game uses for this segment's right or left side
 	 */
-	public static State of(Segment segment, boolean right, EditorFrame editorFrame)
+	public static State of(Segment segment, boolean right, TrackContext editorFrame)
 	{
 		GameType game = editorFrame.getGameType();
 		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
@@ -217,7 +217,7 @@ public final class GameSides
 	 * past the curve's center: the game then builds them with a negative radius,
 	 * so they cross over the center and fold over, the barrier inside out.
 	 */
-	private static void insideCurve(java.util.List<Problem> problems, Segment segment, boolean right, State state, EditorFrame editorFrame)
+	private static void insideCurve(java.util.List<Problem> problems, Segment segment, boolean right, State state, TrackContext editorFrame)
 	{
 		if (!(segment instanceof Curve) || right != segment.getType().equals("rgt"))
 			return;
@@ -290,7 +290,7 @@ public final class GameSides
 		return String.format(java.util.Locale.US, "or set the %s to %.2f m or more", radius, reach);
 	}
 
-	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, EditorFrame editorFrame)
+	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, TrackContext editorFrame)
 	{
 		java.util.List<Problem> problems = new ArrayList<Problem>();
 		SegmentSide side = right ? segment.getRight() : segment.getLeft();

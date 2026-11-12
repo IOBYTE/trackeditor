@@ -29,9 +29,9 @@ import java.awt.geom.Rectangle2D;
 import java.io.PrintStream;
 import java.util.Vector;
 
-import gui.EditorFrame;
 import utils.Properties;
 import utils.MutableDouble;
+import utils.check.TrackContext;
 
 /**
  * @author Patrice Espie , Charalampos Alexopoulos
@@ -487,7 +487,7 @@ public class Segment implements Cloneable
 		selectionRectangle.add(boundingRectangle);
 	}
 
-	public void calcShape(EditorFrame editorFrame) throws Exception
+	public void calcShape(TrackContext editorFrame) throws Exception
 	{
 		System.out.println("Segment.calcShape : Start ...");
 	}
@@ -1289,7 +1289,7 @@ public class Segment implements Cloneable
 		this.calculatedEndTangentRight = calculatedEndTangentRight;
 	}
 
-	public String getValidSurface(EditorFrame editorFrame)
+	public String getValidSurface(TrackContext editorFrame)
 	{
 		Segment previous = this;
 		String surf;
@@ -1314,7 +1314,7 @@ public class Segment implements Cloneable
 
 	// this is not inherited, and like the game's track loader the Main Track
 	// "profil" isn't used: a segment without its own profil is a spline
-	public String getValidProfil(EditorFrame editorFrame)
+	public String getValidProfil(TrackContext editorFrame)
 	{
 		if (hasProfil())
 		{
@@ -1339,7 +1339,7 @@ public class Segment implements Cloneable
 	 *
 	 * @param length the segment's length ((start + end radius) / 2 * arc for a curve)
 	 */
-	public int getValidSteps(EditorFrame editorFrame, double length)
+	public int getValidSteps(TrackContext editorFrame, double length)
 	{
 		// the editor builds at most MAX_STEPS (a value read from a file can ask
 		// for many more: Check reports it), and always at least one
@@ -1352,7 +1352,7 @@ public class Segment implements Cloneable
 	 *         fewer when the whole track would need more than MAX_TRACK_STEPS
 	 *         (each segment then gets its share)
 	 */
-	public int getBuiltSteps(EditorFrame editorFrame, double length)
+	public int getBuiltSteps(TrackContext editorFrame, double length)
 	{
 		int steps = getValidSteps(editorFrame, length);
 		double total = getTrackSteps(editorFrame);
@@ -1365,7 +1365,7 @@ public class Segment implements Cloneable
 	 * @return the steps the whole track is built in, each segment at most
 	 *         MAX_STEPS (getValidSteps)
 	 */
-	public static double getTrackSteps(EditorFrame editorFrame)
+	public static double getTrackSteps(TrackContext editorFrame)
 	{
 		double total = 0;
 		if (editorFrame == null || editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null)
@@ -1388,7 +1388,7 @@ public class Segment implements Cloneable
 	 * @return the steps the game builds the segment in, without the editor's
 	 *         limit; a double, so a huge count doesn't overflow
 	 */
-	public double getGameSteps(EditorFrame editorFrame, double length)
+	public double getGameSteps(TrackContext editorFrame, double length)
 	{
 		if (!isSpline())
 			return 1;
@@ -1404,7 +1404,7 @@ public class Segment implements Cloneable
 	}
 
 	// this is not inherited
-	public double getValidProfilStepsLength(EditorFrame editorFrame)
+	public double getValidProfilStepsLength(TrackContext editorFrame)
 	{
 		double	length = profilStepsLength;
 		if (hasProfilStepsLength())
@@ -1417,133 +1417,133 @@ public class Segment implements Cloneable
 		return editorFrame.getTrackData().getMainTrack().getProfilStepsLength();
 	}
 
-    public double getValidLeftBarrierWidth(EditorFrame editorFrame)
+    public double getValidLeftBarrierWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).barrierWidth;
     }
 
-    public double getValidRightBarrierWidth(EditorFrame editorFrame)
+    public double getValidRightBarrierWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).barrierWidth;
     }
 
-    public double getValidLeftBarrierHeight(EditorFrame editorFrame)
+    public double getValidLeftBarrierHeight(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).barrierHeight;
     }
 
-    public double getValidRightBarrierHeight(EditorFrame editorFrame)
+    public double getValidRightBarrierHeight(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).barrierHeight;
     }
 
-    public String getValidLeftBarrierSurface(EditorFrame editorFrame)
+    public String getValidLeftBarrierSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).barrierSurface;
     }
 
-    public String getValidRightBarrierSurface(EditorFrame editorFrame)
+    public String getValidRightBarrierSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).barrierSurface;
     }
 
-    public String getValidLeftBarrierStyle(EditorFrame editorFrame)
+    public String getValidLeftBarrierStyle(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).barrierStyle;
     }
 
-    public String getValidRightBarrierStyle(EditorFrame editorFrame)
+    public String getValidRightBarrierStyle(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).barrierStyle;
     }
 
-    public double getValidLeftBorderWidth(EditorFrame editorFrame)
+    public double getValidLeftBorderWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).borderWidth;
     }
 
-    public double getValidRightBorderWidth(EditorFrame editorFrame)
+    public double getValidRightBorderWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).borderWidth;
     }
 
-    public double getValidLeftBorderHeight(EditorFrame editorFrame)
+    public double getValidLeftBorderHeight(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).borderHeight;
     }
 
-    public double getValidRightBorderHeight(EditorFrame editorFrame)
+    public double getValidRightBorderHeight(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).borderHeight;
     }
 
-    public String getValidLeftBorderSurface(EditorFrame editorFrame)
+    public String getValidLeftBorderSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).borderSurface;
     }
 
-    public String getValidRightBorderSurface(EditorFrame editorFrame)
+    public String getValidRightBorderSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).borderSurface;
     }
 
-    public String getValidLeftBorderStyle(EditorFrame editorFrame)
+    public String getValidLeftBorderStyle(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).borderStyle;
     }
 
-    public String getValidRightBorderStyle(EditorFrame editorFrame)
+    public String getValidRightBorderStyle(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).borderStyle;
     }
 
-    public double getValidLeftSideStartWidth(EditorFrame editorFrame)
+    public double getValidLeftSideStartWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).sideStartWidth;
     }
 
-    public double getValidLeftSideEndWidth(EditorFrame editorFrame)
+    public double getValidLeftSideEndWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).sideEndWidth;
     }
 
-    public double getValidRightSideStartWidth(EditorFrame editorFrame)
+    public double getValidRightSideStartWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).sideStartWidth;
     }
 
-    public double getValidRightSideEndWidth(EditorFrame editorFrame)
+    public double getValidRightSideEndWidth(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).sideEndWidth;
     }
     
-    public String getValidLeftSideSurface(EditorFrame editorFrame)
+    public String getValidLeftSideSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, false, editorFrame).sideSurface;
     }
 
-    public String getValidRightSideSurface(EditorFrame editorFrame)
+    public String getValidRightSideSurface(TrackContext editorFrame)
     {
 		// what the game uses, see GameSides
 		return GameSides.of(this, true, editorFrame).sideSurface;
@@ -1652,7 +1652,7 @@ public class Segment implements Cloneable
         return Double.NaN;
     }
 
-    public double getValidBankingStart(EditorFrame editorFrame)
+    public double getValidBankingStart(TrackContext editorFrame)
     {
     	Segment previous = this;
 
@@ -1790,7 +1790,7 @@ public class Segment implements Cloneable
 	 * @return what this segment carries on (see Carried); TrackData.calculateSegmentValues
 	 *         must be up to date
 	 */
-	public Carried getCarried(EditorFrame editorFrame)
+	public Carried getCarried(TrackContext editorFrame)
 	{
 		Carried carried = new Carried();
 		carried.surface = getValidSurface(editorFrame);
@@ -1827,7 +1827,7 @@ public class Segment implements Cloneable
 	 *
 	 * @param before what it carried before the change (getCarried)
 	 */
-	public void keep(EditorFrame editorFrame, Carried before)
+	public void keep(TrackContext editorFrame, Carried before)
 	{
 		set(editorFrame, getCarried(editorFrame), before, false);
 	}
@@ -1838,7 +1838,7 @@ public class Segment implements Cloneable
 	 * game reads are set (not the barrier in a version 3 track, which the game takes
 	 * from the Main Track). TrackData.calculateSegmentValues must be up to date.
 	 */
-	public void unoptimize(EditorFrame editorFrame)
+	public void unoptimize(TrackContext editorFrame)
 	{
 		Carried now = getCarried(editorFrame);
 		set(editorFrame, now, now, true);
@@ -1856,7 +1856,7 @@ public class Segment implements Cloneable
 	/**
 	 * Sets the carried values that differ (all of them with all), to want.
 	 */
-	private void set(EditorFrame editorFrame, Carried now, Carried want, boolean all)
+	private void set(TrackContext editorFrame, Carried now, Carried want, boolean all)
 	{
 		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
 

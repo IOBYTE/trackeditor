@@ -44,12 +44,12 @@ import org.jdom2.output.support.AbstractXMLOutputProcessor;
 import org.jdom2.output.support.FormatStack;
 import org.jdom2.util.NamespaceStack;
 
-import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.GameType;
 import utils.Properties;
 import utils.TrackEditor;
 import utils.SegmentVector;
+import utils.check.TrackContext;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
@@ -75,7 +75,7 @@ import utils.circuit.TrackObject;
  */
 public class XmlWriter
 {
-	private EditorFrame		editorFrame;
+	private TrackContext	editorFrame;
 	private List<String>	fileErrors		= new ArrayList<String>();
 	// false while only making the document (getDocument): the relief file and object
 	// maps aren't written then
@@ -100,7 +100,7 @@ public class XmlWriter
 		}
 	}
 
-	public XmlWriter(EditorFrame editorFrame)
+	public XmlWriter(TrackContext editorFrame)
 	{
 		this.editorFrame = editorFrame;
 	}

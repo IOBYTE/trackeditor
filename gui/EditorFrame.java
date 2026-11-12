@@ -95,6 +95,7 @@ import utils.ac3d.Ac3dMaterial;
 import utils.ac3d.Ac3dObject;
 import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
+import utils.check.TrackContext;
 import utils.circuit.GraphicObject;
 import utils.circuit.MainTrack;
 import utils.circuit.ObjShapeObject;
@@ -119,7 +120,7 @@ import utils.undo.UndoProperties;
  * TODO To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Style - Code Templates
  */
-public class EditorFrame extends JFrame
+public class EditorFrame extends JFrame implements TrackContext
 {
 	UndoAction					undoAction							= null;
 	RedoAction					redoAction							= null;

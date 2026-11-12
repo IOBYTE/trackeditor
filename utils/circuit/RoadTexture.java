@@ -12,10 +12,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import gui.EditorFrame;
 import utils.GameType;
 import utils.SegmentVector;
 import utils.TrackData;
+import utils.check.TrackContext;
 
 /**
  * The main track road's texture and texture coordinates, worked out as trackgen
@@ -59,7 +59,7 @@ public class RoadTexture
 	}
 
 	/** @return the texture mapping of each segment of the track, in order */
-	public static List<RoadTexture> of(EditorFrame editorFrame)
+	public static List<RoadTexture> of(TrackContext editorFrame)
 	{
 		List<RoadTexture> mappings = new ArrayList<RoadTexture>();
 		TrackData trackData = editorFrame.getTrackData();
@@ -118,7 +118,7 @@ public class RoadTexture
 	}
 
 	/** @return the track's surface with this name, or else the default one, or null */
-	public static Surface findSurface(EditorFrame editorFrame, String name)
+	public static Surface findSurface(TrackContext editorFrame, String name)
 	{
 		for (Surface surface : editorFrame.getTrackData().getSurfaces())
 		{
@@ -137,7 +137,7 @@ public class RoadTexture
 	 * @return the texture in the track's folder (or for a Speed Dreams track in its
 	 *         local folder, the installed track's) or the game's textures folder, or null
 	 */
-	public static File findTextureFile(EditorFrame editorFrame, String texture)
+	public static File findTextureFile(TrackContext editorFrame, String texture)
 	{
 		for (String folder : editorFrame.getTrackFolders())
 		{

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import gui.EditorFrame;
 import utils.GameType;
 import utils.TrackData;
+import utils.check.TrackContext;
 
 /**
  * What a version 3 track means to the games' version 3 loaders (track3.cpp) that
@@ -42,7 +42,7 @@ public final class Version3
 	 *     from surfaces.xml can't be kept: see {@link #getReboundWarnings}.</li>
 	 * </ul>
 	 */
-	public static void convertToVersion4(EditorFrame editorFrame)
+	public static void convertToVersion4(TrackContext editorFrame)
 	{
 		TrackData trackData = editorFrame.getTrackData();
 		if (trackData.getHeader().getVersion() != 3)
@@ -114,8 +114,8 @@ public final class Version3
 
 		keepBarrierRebound(editorFrame);
 
+		// (the editor marks the track modified: see EditorFrame.convertToVersion4)
 		trackData.getHeader().setVersion(4);
-		editorFrame.documentIsModified = true;
 	}
 
 	/**
@@ -123,7 +123,7 @@ public final class Version3
 	 * from surfaces.xml without one, by copying it into the track under a new name.
 	 * A barrier surface defined nowhere is defined in the track with a rebound of 1.
 	 */
-	private static void keepBarrierRebound(EditorFrame editorFrame)
+	private static void keepBarrierRebound(TrackContext editorFrame)
 	{
 		TrackData trackData = editorFrame.getTrackData();
 		if (trackData.getHasSurfacesReference() && editorFrame.getDefaultSurfaces().isEmpty())
@@ -178,7 +178,7 @@ public final class Version3
 	 *         0.5 (cars bottoming out on them), and a barrier surface can't be checked
 	 *         when surfaces.xml couldn't be read. Empty when nothing changes.
 	 */
-	public static List<String> getReboundWarnings(EditorFrame editorFrame)
+	public static List<String> getReboundWarnings(TrackContext editorFrame)
 	{
 		List<String> warnings = new ArrayList<String>();
 		TrackData trackData = editorFrame.getTrackData();
@@ -234,7 +234,7 @@ public final class Version3
 	}
 
 	/** @return the surfaces.xml surface the track reads, or null when it has none of that name */
-	private static Surface sharedSurface(EditorFrame editorFrame, String name)
+	private static Surface sharedSurface(TrackContext editorFrame, String name)
 	{
 		if (!editorFrame.getTrackData().getHasSurfacesReference())
 			return null;
@@ -253,7 +253,7 @@ public final class Version3
 		return null;
 	}
 
-	private static String uniqueName(EditorFrame editorFrame, String base)
+	private static String uniqueName(TrackContext editorFrame, String base)
 	{
 		String name = base;
 		for (int i = 2; find(editorFrame.getTrackData().getSurfaces(), name) != null || find(editorFrame.getDefaultSurfaces(), name) != null; i++)

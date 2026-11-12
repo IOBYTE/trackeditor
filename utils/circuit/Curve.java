@@ -29,8 +29,8 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.io.PrintStream;
 
-import gui.EditorFrame;
 import utils.Properties;
+import utils.check.TrackContext;
 
 import miscel.EPMath;
 
@@ -266,7 +266,7 @@ public class Curve extends Segment
 		setSelectionBounds();
 	}
 
-	public void calcShape(EditorFrame editorFrame) throws Exception
+	public void calcShape(TrackContext editorFrame) throws Exception
 	{
 		double	currentX	= Properties.getInstance().getCurrentX();
 		double	currentY	= Properties.getInstance().getCurrentY();

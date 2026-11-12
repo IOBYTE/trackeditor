@@ -9,7 +9,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import gui.EditorFrame;
+import utils.check.TrackContext;
+
 
 
 
@@ -59,7 +60,7 @@ public class ObjShapeTerrain extends Segment
 	 * line and wind backwards.</li>
 	 * </ul>
 	 */
-	public void calcShape(EditorFrame editorFrame, Rectangle2D.Double boundingRectangle)
+	public void calcShape(TrackContext editorFrame, Rectangle2D.Double boundingRectangle)
 	{
 		outers.clear();
 		holes.clear();
