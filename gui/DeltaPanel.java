@@ -42,6 +42,7 @@ import javax.swing.WindowConstants;
 
 import utils.Properties;
 import utils.SegmentVector;
+import utils.check.Closure;
 import utils.circuit.Curve;
 import utils.circuit.Pits;
 import utils.circuit.Segment;
@@ -61,22 +62,16 @@ public class DeltaPanel extends JDialog
 {
 	private final static String sep	= System.getProperty("file.separator");
 
-	// how close trackgen's deltas have to be for the track to close: the TORCS
-	// tracktools' targets (Delta Y's is just over the rounding of trackgen's floats)
-	static final double			TARGET_DX		= 0.0005;
-	static final double			TARGET_DY		= 0.001;
-	static final double			TARGET_DZ		= 0.00005;
-	static final double			TARGET_ANGLE	= 0.0001;	// degrees
+	// how close trackgen's deltas have to be for the track to close (see Closure)
+	static final double			TARGET_DX		= Closure.TARGET_DX;
+	static final double			TARGET_DY		= Closure.TARGET_DY;
+	static final double			TARGET_DZ		= Closure.TARGET_DZ;
+	static final double			TARGET_ANGLE	= Closure.TARGET_ANGLE;
 
 	private static final Color	PASS_COLOR		= new Color(0, 128, 0);
 	private static final Color	FAIL_COLOR		= new Color(204, 0, 0);
 	private static final Color	ROUNDING_COLOR	= new Color(204, 120, 0);
 
-	// How far apart trackgen's x and y can come out for a meter of the track's size:
-	// its floats hold the heading in steps of about 0.0000005 radians, so a step's
-	// difference moves the end that far for each meter it goes on, and the points
-	// round too. Closing a track closer than that is down to luck.
-	private static final double	ROUNDING_PER_METER	= 0.000001;
 	// the search's tries without getting closer after which it stops
 	private static final int	SEARCH_TRIES		= 9;
 
@@ -248,7 +243,7 @@ public class DeltaPanel extends JDialog
 
 			// don't run trackgen on an old or missing track file
 			exported[0] = editorFrame.exportTrack();
-			trackKey[0] = closureKey(editorFrame);
+			trackKey[0] = Closure.key(editorFrame);
 			if (exported[0])
 				problem[0] = editorFrame.getTrackgenProblem();
 		});
@@ -396,7 +391,7 @@ public class DeltaPanel extends JDialog
 		if (Double.isNaN(length) || Double.isNaN(dX) || Double.isNaN(dY) || Double.isNaN(angle))
 			throw new TrackgenException(trackgen[0] + " didn't report the track length and deltas" + output(otherLines));
 
-		lastClosure = new Closure(trackKey[0], dX, dY, dZ, angle, size, lines);
+		Closure.setLast(new Closure(trackKey[0], dX, dY, dZ, angle, size, lines));
     }
 
     /** @return the labels of the track data, from the top */
@@ -438,14 +433,10 @@ public class DeltaPanel extends JDialog
 		}
     }
 
-    /**
-     * @return how far Delta X or Delta Y can be from 0 and be within trackgen's
-     *         rounding on a track of a size (its largest coordinate), or the target
-     *         when that's more
-     */
-    static double allowed(double target, double size)
+    /** @return how far Delta X or Delta Y can be from 0 (see Closure.allowed) */
+    private static double allowed(double target, double size)
     {
-		return Double.isNaN(size) ? target : Math.max(target, size * ROUNDING_PER_METER);
+		return Closure.allowed(target, size);
     }
 
     /**
@@ -465,7 +456,7 @@ public class DeltaPanel extends JDialog
      */
     static void showLastClosure(EditorFrame editorFrame)
     {
-		Closure closure = lastClosure(editorFrame);
+		Closure closure = Closure.last(editorFrame);
 		DeltaPanel panel = new DeltaPanel(editorFrame, "", false);
 		panel.setVisible(true);
 		if (closure == null)
@@ -487,77 +478,6 @@ public class DeltaPanel extends JDialog
 			panel.showLine(label, closure.lines[i], target, value, allowed);
 		}
 		panel.waitLabel.setText("From the last calculation");
-    }
-
-    /** Trackgen's deltas for a track, as it was when they were calculated */
-    static class Closure
-    {
-		final String	key;
-		final double	dX;
-		final double	dY;
-		final double	dZ;
-		final double	angle;
-		// the track's largest coordinate
-		final double	size;
-		// trackgen's lines, as shown
-		final String[]	lines;
-
-		Closure(String key, double dX, double dY, double dZ, double angle, double size, String[] lines)
-		{
-			this.size = size;
-			this.lines = lines;
-			this.key = key;
-			this.dX = dX;
-			this.dY = dY;
-			this.dZ = dZ;
-			this.angle = angle;
-		}
-    }
-
-    // the deltas of the last trackgen run
-    private static volatile Closure lastClosure = null;
-
-    /**
-     * @return trackgen's deltas from the last Calc, Auto or Length, or null when the
-     *         track has changed since (or is another track), so they may be out
-     */
-    static Closure lastClosure(EditorFrame editorFrame)
-    {
-		Closure closure = lastClosure;
-		if (closure == null || editorFrame.getTrackData() == null || !closure.key.equals(closureKey(editorFrame)))
-			return null;
-		return closure;
-    }
-
-    /**
-     * @return what the deltas depend on: the track's file, the main track's width (the
-     *         deltas are between its left edges) and the segments' shapes and heights
-     */
-    private static String closureKey(EditorFrame editorFrame)
-    {
-		StringBuilder key = new StringBuilder();
-		key.append(Properties.getInstance().getPath()).append('|').append(editorFrame.getGameType())
-			.append('|').append(editorFrame.getTrackData().getMainTrack().getValidWidth());
-		for (Segment segment : editorFrame.getTrackData().getSegments())
-		{
-			key.append('|').append(segment.getName()).append(',').append(segment.getType());
-			if (segment instanceof Curve)
-			{
-				Curve curve = (Curve) segment;
-				key.append(',').append(curve.getArcDeg()).append(',').append(curve.getRadiusStart())
-					.append(',').append(curve.getRadiusEnd());
-			}
-			else
-			{
-				key.append(',').append(segment.getLength());
-			}
-			double[] values = { segment.getProfilStepsLength(), segment.getHeightStart(), segment.getHeightStartLeft(),
-				segment.getHeightStartRight(), segment.getHeightEnd(), segment.getHeightEndLeft(), segment.getHeightEndRight(),
-				segment.getGrade(), segment.getBankingStart(), segment.getBankingEnd() };
-			for (double value : values)
-				key.append(',').append(value);
-		}
-		return key.toString();
     }
 
     /**
@@ -1113,9 +1033,9 @@ public class DeltaPanel extends JDialog
 	}
 
 	/** @return the number without an exponent or trailing zeros */
-	static String plain(double value)
+	private static String plain(double value)
 	{
-		return java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
+		return Closure.plain(value);
 	}
 
 	/** @return how far the deltas are from closing, as a multiple of their targets: closed when at most 1 */

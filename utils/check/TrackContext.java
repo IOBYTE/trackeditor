@@ -59,6 +59,9 @@ public interface TrackContext
 	 */
 	String[] getTrackFolders(String... more);
 
+	/** @return why the game won't list the track where it is, or null */
+	String getTrackPlacementProblem();
+
 	/** @return the track's pits */
 	default Pits getPits()
 	{

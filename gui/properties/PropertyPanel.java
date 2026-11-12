@@ -106,21 +106,7 @@ public class PropertyPanel extends JPanel
 	 */
 	public static java.io.File findFile(String name, String... folders)
 	{
-		if (name.contains("/") || name.contains("\\"))
-		{
-			java.io.File file = new java.io.File(name);
-			if (file.isFile())
-				return file;
-		}
-		for (String folder : folders)
-		{
-			if (folder == null)
-				continue;
-			java.io.File file = new java.io.File(folder, name);
-			if (file.isFile())
-				return file;
-		}
-		return null;
+		return utils.check.TrackChecker.findFile(name, folders);
 	}
 
 	/**

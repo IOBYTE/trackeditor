@@ -11,9 +11,9 @@ package gui.view3d;
 import java.util.ArrayList;
 import java.util.List;
 
-import gui.EditorFrame;
 import plugin.torcs.GfParmNumbers;
 import utils.GameType;
+import utils.check.TrackContext;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.GameSides;
@@ -134,9 +134,9 @@ public class GameTrack
 	public final List<Seg>				segs	= new ArrayList<Seg>();
 	public final float					width;
 	public final float					trackStep;
-	private final EditorFrame			editorFrame;
+	private final TrackContext			editorFrame;
 
-	private GameTrack(EditorFrame editorFrame)
+	private GameTrack(TrackContext editorFrame)
 	{
 		this.editorFrame = editorFrame;
 		game = editorFrame.getGameType();
@@ -147,7 +147,7 @@ public class GameTrack
 	}
 
 	/** @return the open track as the game builds it, or null when there is none */
-	public static GameTrack build(EditorFrame editorFrame)
+	public static GameTrack build(TrackContext editorFrame)
 	{
 		if (editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null)
 			return null;
