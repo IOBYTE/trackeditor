@@ -32,6 +32,9 @@ public class PreferencesDialog extends JDialog
 	private JLabel				libDirectoryLabel			= null;
 	private JTextField			libDirectoryTextField		= null;
 	private JButton				libDirectoryButton			= null;
+	private JLabel				localDirectoryLabel			= null;
+	private JTextField			localDirectoryTextField		= null;
+	private JButton				localDirectoryButton		= null;
 	private JLabel				recentFilesMaxLabel			= null;
 	private JTextField			recentFilesMaxTextField		= null;
 	private JCheckBox			interactiveFixesCheckBox	= null;
@@ -43,7 +46,7 @@ public class PreferencesDialog extends JDialog
 	private JComboBox<GameType>	gameTypeComboBox			= null;
 	private JButton				okButton					= null;
 	private JButton				cancelButton				= null;
-	// each game's data, bin and lib directories, as edited in this dialog
+	// each game's data, bin, lib and local directories, as edited in this dialog
 	private java.util.EnumMap<GameType, String[]>	directories	=
 		new java.util.EnumMap<GameType, String[]>(GameType.class);
 
@@ -56,7 +59,8 @@ public class PreferencesDialog extends JDialog
 			directories.put(game, new String[] {
 				editorFrame.getDirectory(game, EditorFrame.DATA_DIRECTORY),
 				editorFrame.getDirectory(game, EditorFrame.BIN_DIRECTORY),
-				editorFrame.getDirectory(game, EditorFrame.LIB_DIRECTORY) });
+				editorFrame.getDirectory(game, EditorFrame.LIB_DIRECTORY),
+				editorFrame.getLocalDirectory(game) });
 		}
 		initialize();
 	}
@@ -73,7 +77,7 @@ public class PreferencesDialog extends JDialog
 	{
 		this.setContentPane(getJPanel());
 		// the panel's width plus the dialog's borders
-		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 356);
+		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 389);
 		this.setModal(true);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -104,11 +108,14 @@ public class PreferencesDialog extends JDialog
 			libDirectoryLabel = new JLabel();
 			libDirectoryLabel.setBounds(10, 76, 190, 23);
 			libDirectoryLabel.setText("Speed Dreams Lib Directory");
+			localDirectoryLabel = new JLabel();
+			localDirectoryLabel.setBounds(10, 109, 190, 23);
+			localDirectoryLabel.setText("Speed Dreams Local Directory");
 			recentFilesMaxLabel = new JLabel();
-			recentFilesMaxLabel.setBounds(10, 109, 190, 23);
+			recentFilesMaxLabel.setBounds(10, 142, 190, 23);
 			recentFilesMaxLabel.setText("Recent Files Maximum");
 			gameTypeLabel = new JLabel();
-			gameTypeLabel.setBounds(10, 227, 190, 23);
+			gameTypeLabel.setBounds(10, 260, 190, 23);
 			gameTypeLabel.setText("Game");
 			layOutLabels();
 			jPanel = new JPanel();
@@ -116,6 +123,7 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(dataDirectoryLabel, null);
 			jPanel.add(binDirectoryLabel, null);
 			jPanel.add(libDirectoryLabel, null);
+			jPanel.add(localDirectoryLabel, null);
 			jPanel.add(recentFilesMaxLabel, null);
 			jPanel.add(gameTypeLabel, null);
 			jPanel.add(getDataDirectoryTextField(), null);
@@ -124,6 +132,8 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(getBinDirectoryButton(), null);
 			jPanel.add(getLibDirectoryTextField(), null);
 			jPanel.add(getLibDirectoryButton(), null);
+			jPanel.add(getLocalDirectoryTextField(), null);
+			jPanel.add(getLocalDirectoryButton(), null);
 			jPanel.add(getRecentFilesMaxTextField(), null);
 			jPanel.add(getInteractiveFixesCheckBox(), null);
 			jPanel.add(getCursorCoordinatesCheckBox(), null);
@@ -148,7 +158,7 @@ public class PreferencesDialog extends JDialog
 		// the directory labels start with the game's name, so measure them with each one
 		for (GameType game : GameType.values())
 		{
-			for (String kind : new String[] { " Data Directory", " Bin Directory", " Lib Directory" })
+			for (String kind : new String[] { " Data Directory", " Bin Directory", " Lib Directory", " Local Directory" })
 			{
 				JLabel test = new JLabel(game.getShortName() + kind);
 				test.setFont(dataDirectoryLabel.getFont());
@@ -156,7 +166,7 @@ public class PreferencesDialog extends JDialog
 			}
 		}
 
-		JLabel[] labels = { dataDirectoryLabel, binDirectoryLabel, libDirectoryLabel, recentFilesMaxLabel, gameTypeLabel };
+		JLabel[] labels = { dataDirectoryLabel, binDirectoryLabel, libDirectoryLabel, localDirectoryLabel, recentFilesMaxLabel, gameTypeLabel };
 
 		for (JLabel label : labels)
 			label.setSize(width, label.getHeight());
@@ -177,6 +187,12 @@ public class PreferencesDialog extends JDialog
 		dataDirectoryLabel.setText(game + " Data Directory");
 		binDirectoryLabel.setText(game + " Bin Directory");
 		libDirectoryLabel.setText(game + " Lib Directory");
+		localDirectoryLabel.setText(game + " Local Directory");
+		// only Speed Dreams also reads tracks from the user's own folder
+		boolean local = getGameType().hasLocalTracks();
+		localDirectoryLabel.setEnabled(local);
+		getLocalDirectoryTextField().setEnabled(local);
+		getLocalDirectoryButton().setEnabled(local);
 	}
 
 	private JTextField getDataDirectoryTextField()
@@ -281,6 +297,66 @@ public class PreferencesDialog extends JDialog
 		}
 	}
 
+	private JTextField getLocalDirectoryTextField()
+	{
+		if (localDirectoryTextField == null)
+		{
+			localDirectoryTextField = new JTextField();
+			localDirectoryTextField.setBounds(fieldX, 109, FIELD_WIDTH, 23);
+			localDirectoryTextField.setText(editorFrame.getLocalDirectory(editorFrame.getGameType()));
+			localDirectoryTextField.setToolTipText("<html>Speed Dreams' user settings folder (its --localdir): it lists the tracks in its tracks folder"
+				+ "<br>as well as the data directory's. Empty: " + standardLocalDirectory() + "</html>");
+		}
+		return localDirectoryTextField;
+	}
+
+	/** @return Speed Dreams' standard local directory, for the tooltip */
+	private static String standardLocalDirectory()
+	{
+		File standard = GameType.SPEED_DREAMS.defaultLocalDirectory();
+		return standard == null ? "none" : standard.getPath();
+	}
+
+	private JButton getLocalDirectoryButton()
+	{
+		if (localDirectoryButton == null)
+		{
+			localDirectoryButton = new JButton();
+			localDirectoryButton.setBounds(fieldX + FIELD_WIDTH + 5, 109, BUTTON_WIDTH, 25);
+			localDirectoryButton.setText("Browse");
+			localDirectoryButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					selectLocalDirectory();
+				}
+			});
+		}
+		return localDirectoryButton;
+	}
+
+	protected void selectLocalDirectory()
+	{
+		JFileChooser fc = new JFileChooser();
+		fc.setSelectedFiles(null);
+		fc.setSelectedFile(null);
+		fc.rescanCurrentDirectory();
+		fc.setApproveButtonMnemonic(0);
+		fc.setDialogTitle(gameName() + " Local Directory selection");
+		fc.setFileHidingEnabled(false);
+		fc.setVisible(true);
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		String localDir = getLocalDirectoryTextField().getText();
+		if (localDir == null || localDir.isEmpty())
+			localDir = System.getProperty("user.home");
+		fc.setCurrentDirectory(new File(localDir));
+		int result = fc.showDialog(this, "Ok");
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			getLocalDirectoryTextField().setText(fc.getSelectedFile().toString());
+		}
+	}
+
 	private JTextField getLibDirectoryTextField()
 	{
 		if (libDirectoryTextField == null)
@@ -337,7 +413,7 @@ public class PreferencesDialog extends JDialog
 		if (recentFilesMaxTextField == null)
 		{
 			recentFilesMaxTextField = new JTextField();
-			recentFilesMaxTextField.setBounds(fieldX, 109, 60, 23);
+			recentFilesMaxTextField.setBounds(fieldX, 142, 60, 23);
 			recentFilesMaxTextField.setText(editorFrame.getRecentFilesMax()+"");
 		}
 		return recentFilesMaxTextField;
@@ -348,7 +424,7 @@ public class PreferencesDialog extends JDialog
 		if (interactiveFixesCheckBox == null)
 		{
 			interactiveFixesCheckBox = new JCheckBox();
-			interactiveFixesCheckBox.setBounds(fieldX, 139, 290, 23);
+			interactiveFixesCheckBox.setBounds(fieldX, 172, 290, 23);
 			interactiveFixesCheckBox.setText("Interactive Fixes");
 			interactiveFixesCheckBox.setSelected(editorFrame.getInteractiveFixes());
 		}
@@ -360,7 +436,7 @@ public class PreferencesDialog extends JDialog
 		if (cursorCoordinatesCheckBox == null)
 		{
 			cursorCoordinatesCheckBox = new JCheckBox();
-			cursorCoordinatesCheckBox.setBounds(fieldX, 161, 290, 23);
+			cursorCoordinatesCheckBox.setBounds(fieldX, 194, 290, 23);
 			cursorCoordinatesCheckBox.setText("Cursor Track Coordinates");
 			cursorCoordinatesCheckBox.setSelected(editorFrame.getCursorCoordinates());
 		}
@@ -372,7 +448,7 @@ public class PreferencesDialog extends JDialog
 		if (cursorNamesCheckBox == null)
 		{
 			cursorNamesCheckBox = new JCheckBox();
-			cursorNamesCheckBox.setBounds(fieldX, 183, 290, 23);
+			cursorNamesCheckBox.setBounds(fieldX, 216, 290, 23);
 			cursorNamesCheckBox.setText("Cursor Names");
 			cursorNamesCheckBox.setSelected(editorFrame.getCursorNames());
 		}
@@ -384,7 +460,7 @@ public class PreferencesDialog extends JDialog
 		if (checkDefaultObjectsCheckBox == null)
 		{
 			checkDefaultObjectsCheckBox = new JCheckBox();
-			checkDefaultObjectsCheckBox.setBounds(fieldX, 205, 290, 23);
+			checkDefaultObjectsCheckBox.setBounds(fieldX, 238, 290, 23);
 			checkDefaultObjectsCheckBox.setText("Check Default Objects");
 			checkDefaultObjectsCheckBox.setSelected(editorFrame.getCheckDefaultObjects());
 		}
@@ -397,7 +473,7 @@ public class PreferencesDialog extends JDialog
 		if (speedDreamsAccCheckBox == null)
 		{
 			speedDreamsAccCheckBox = new JCheckBox();
-			speedDreamsAccCheckBox.setBounds(fieldX, 249, 290, 23);
+			speedDreamsAccCheckBox.setBounds(fieldX, 282, 290, 23);
 			speedDreamsAccCheckBox.setText("Speed Dreams: make .acc files with accc");
 			speedDreamsAccCheckBox.setToolTipText("Run trackgen and then sd2-accc with the track's ACC settings " +
 				"(Properties > Terrain > ACC), like TORCS and CSR, instead of trackgen -A");
@@ -411,7 +487,7 @@ public class PreferencesDialog extends JDialog
 		if (gameTypeComboBox == null)
 		{
 			gameTypeComboBox = new JComboBox<GameType>(GameType.values());
-			gameTypeComboBox.setBounds(fieldX, 227, 170, 23);
+			gameTypeComboBox.setBounds(fieldX, 260, 170, 23);
 			gameTypeComboBox.setSelectedItem(editorFrame.getGameType());
 			gameTypeComboBox.addItemListener(new java.awt.event.ItemListener()
 			{
@@ -430,6 +506,7 @@ public class PreferencesDialog extends JDialog
 						getDataDirectoryTextField().setText(values[EditorFrame.DATA_DIRECTORY]);
 						getBinDirectoryTextField().setText(values[EditorFrame.BIN_DIRECTORY]);
 						getLibDirectoryTextField().setText(values[EditorFrame.LIB_DIRECTORY]);
+						getLocalDirectoryTextField().setText(values[EditorFrame.LOCAL_DIRECTORY]);
 						if (dataDirectoryLabel != null)
 							updateGameLabels();
 					}
@@ -446,7 +523,7 @@ public class PreferencesDialog extends JDialog
 			okButton = new JButton();
 			// Ok and Cancel centered under the fields
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			okButton.setBounds(middle - 78 - 40, 281, 78, 25);
+			okButton.setBounds(middle - 78 - 40, 314, 78, 25);
 			okButton.setText("Ok");
 			okButton.addActionListener(new ActionListener()
 			{
@@ -465,7 +542,7 @@ public class PreferencesDialog extends JDialog
 		{
 			cancelButton = new JButton();
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			cancelButton.setBounds(middle + 40, 281, 78, 25);
+			cancelButton.setBounds(middle + 40, 314, 78, 25);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new ActionListener()
 			{
@@ -513,10 +590,11 @@ public class PreferencesDialog extends JDialog
 		directories.put(game, new String[] {
 			getDataDirectoryTextField().getText(),
 			getBinDirectoryTextField().getText(),
-			getLibDirectoryTextField().getText() });
+			getLibDirectoryTextField().getText(),
+			getLocalDirectoryTextField().getText() });
 	}
 
-	/** @return the game's data, bin and lib directories */
+	/** @return the game's data, bin, lib and local directories */
 	public String[] getDirectories(GameType game)
 	{
 		keepDirectories(getGameType());

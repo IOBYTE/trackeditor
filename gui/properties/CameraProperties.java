@@ -258,10 +258,11 @@ public class CameraProperties extends PropertyPanel
 		// the unit To Start is saved in, which Fix can change
 		private boolean				unitsKnown;
 		private String				units;
-		// what is wrong with To Start's unit, and with the segment names
+		// what is wrong with To Start's unit, the segment names and the height
 		private boolean				toStartProblem;
 		private boolean				namesProblem;
-		private String[]			segmentTip, fovStartTip, fovEndTip;
+		private boolean				heightProblem;
+		private String[]			segmentTip, fovStartTip, fovEndTip, heightTip;
 		private JLabel				heightLabel			= new JLabel();
 		private JTextField			heightTextField		= hintTextField("0.0 (on the road)");
 		private JLabel				fovStartLabel		= new JLabel();
@@ -319,9 +320,9 @@ public class CameraProperties extends PropertyPanel
 				"0 is on the right edge, the road's width is on the left edge,",
 				"less than 0 is off the road on the right, more than the width is off it on the left.",
 				"Empty is 0, the right edge.");
-			tip(heightLabel, heightTextField, "How high the camera is, in meters, above the ground under it",
+			heightTip = new String[] { "How high the camera is, in meters, above the ground under it",
 				"(the road, or a border or side when it is off the road).",
-				"Empty is 0, on the ground.");
+				"Empty is 0, on the ground." };
 			fovStartTip = new String[] { "The first segment this camera films.",
 				"Fov is the stretch of track the camera covers, not a lens angle: the game zooms by itself.",
 				"The camera films from the start of Fov Start up to the start of Fov End.",
@@ -356,7 +357,7 @@ public class CameraProperties extends PropertyPanel
 					showProblems();
 				}
 			};
-			for (JTextField field : new JTextField[] { segmentTextField, toStartTextField, fovStartTextField, fovEndTextField })
+			for (JTextField field : new JTextField[] { segmentTextField, toStartTextField, heightTextField, fovStartTextField, fovEndTextField })
 				field.getDocument().addDocumentListener(changed);
 		}
 
@@ -365,6 +366,32 @@ public class CameraProperties extends PropertyPanel
 		{
 			showNameProblems();
 			showToStartUnits();
+			showHeightProblem();
+		}
+
+		/** Marks a height below 0 in red: the camera is under the ground (Check says so too). */
+		private void showHeightProblem()
+		{
+			double height = Double.NaN;
+			try
+			{
+				height = Double.parseDouble(heightTextField.getText().trim());
+			}
+			catch (NumberFormatException e)
+			{
+				// empty is 0, on the ground; other text is refused by Ok
+			}
+			heightProblem = height < 0;
+			String[] lines = heightTip;
+			if (heightProblem)
+			{
+				lines = java.util.Arrays.copyOf(lines, lines.length + 1);
+				lines[lines.length - 1] = "<font color=red>Below 0: the camera is under the ground.</font>";
+			}
+			heightLabel.setForeground(heightProblem ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
+			heightTextField.setForeground(heightProblem ? java.awt.Color.RED : UIManager.getColor("TextField.foreground"));
+			tip(heightLabel, heightTextField, lines);
+			showTabProblem();
 		}
 
 		/**
@@ -428,7 +455,7 @@ public class CameraProperties extends PropertyPanel
 			int i = tabbedPane == null ? -1 : tabbedPane.indexOfComponent(this);
 			if (i < 0)
 				return;
-			boolean problem = namesProblem || toStartProblem;
+			boolean problem = namesProblem || toStartProblem || heightProblem;
 			tabbedPane.setForegroundAt(i, problem ? java.awt.Color.RED : null);
 			tabbedPane.setToolTipTextAt(i, problem ? "This camera has a problem: see the red labels" : null);
 		}

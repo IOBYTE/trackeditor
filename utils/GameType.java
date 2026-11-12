@@ -99,6 +99,31 @@ public enum GameType
 			+ " or trackgen: use .png, .jpg or .rgb";
 	}
 
+	/**
+	 * @return whether the game also lists the tracks in the user's own folder (only
+	 *         Speed Dreams: its local directory's tracks folder, as well as its data
+	 *         directory's)
+	 */
+	public boolean hasLocalTracks()
+	{
+		return this == SPEED_DREAMS;
+	}
+
+	/**
+	 * @return the folder the game keeps the user's settings and tracks in when it isn't
+	 *         given --localdir: Speed Dreams' <Documents>\speed-dreams-2.settings on
+	 *         Windows, ~/.speed-dreams-2 elsewhere; null for the other games
+	 */
+	public java.io.File defaultLocalDirectory()
+	{
+		if (!hasLocalTracks())
+			return null;
+		String home = System.getProperty("user.home");
+		if (System.getProperty("os.name", "").startsWith("Windows"))
+			return new java.io.File(new java.io.File(home, "Documents"), "speed-dreams-2.settings");
+		return new java.io.File(home, ".speed-dreams-2");
+	}
+
 	/** @return whether trackgen can leave out the start bridge, -nb (not TORCS') */
 	public boolean hasNoBridgeTrackgen()
 	{

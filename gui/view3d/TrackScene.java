@@ -534,8 +534,8 @@ public abstract class TrackScene
 			strip.clamp = true;
 			strip.color = new float[] { (float) orDefault(light.getRed(), 1), (float) orDefault(light.getGreen(), 1), (float) orDefault(light.getBlue(), 1) };
 			// the game looks for the texture from its data folder
-			strip.texture = lightTexture(light.getTextureOn(), data);
-			strip.textureOff = lightTexture(light.getTextureOff(), data);
+			strip.texture = lightTexture(light.getTextureOn(), data, editorFrame.getTrackFolders());
+			strip.textureOff = lightTexture(light.getTextureOff(), data, editorFrame.getTrackFolders());
 			strip.lightRole = role;
 			strip.lightIndex = light.getIndex() == Integer.MAX_VALUE ? 0 : light.getIndex();
 			// as the game makes it: down the top left edge, then the bottom right one
@@ -624,9 +624,12 @@ public abstract class TrackScene
 	}
 
 	/** A start light's texture, where the game looks for it: from its data folder */
-	private static String lightTexture(String texture, String data)
+	private static String lightTexture(String texture, String data, String[] trackFolders)
 	{
-		return texture == null || texture.isEmpty() ? "" : foundTexture("track light/", texture, data, Properties.getInstance().getPath());
+		String[] folders = new String[trackFolders.length + 1];
+		folders[0] = data;
+		System.arraycopy(trackFolders, 0, folders, 1, trackFolders.length);
+		return texture == null || texture.isEmpty() ? "" : foundTexture("track light/", texture, folders);
 	}
 
 	private static double orDefault(double value, double otherwise)
@@ -1112,7 +1115,7 @@ public abstract class TrackScene
 				vScale = 1 / 0.33f;
 			}
 			else if (part.texture != null && !part.texture.isEmpty())
-				strip.texture = indicatorTexture(part.texture, dataPath);
+				strip.texture = indicatorTexture(part.texture, dataPath, editorFrame);
 			else
 				strip.texture = "";
 			for (float[] p : part.points)
@@ -1131,11 +1134,11 @@ public abstract class TrackScene
 	 *
 	 * @return its texture name
 	 */
-	private static String indicatorTexture(String texture, String dataPath)
+	private static String indicatorTexture(String texture, String dataPath, EditorFrame editorFrame)
 	{
-		return foundTexture("pit indicator/", texture, Properties.getInstance().getPath(),
+		return foundTexture("pit indicator/", texture, editorFrame.getTrackFolders(
 			dataPath == null ? null : dataPath + "objects", dataPath == null ? null : dataPath + "textures",
-			dataPath == null ? null : dataPath + "img");
+			dataPath == null ? null : dataPath + "img"));
 	}
 
 	/**

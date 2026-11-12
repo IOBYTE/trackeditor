@@ -158,7 +158,8 @@ public class Graphic3DProperties extends PropertyPanel
 
 		// the tool tips say where the files are, or that they aren't found (in red)
 		String trackFolder = Properties.getInstance().getPath();
-		showFileFound(descriptionTextField, "in the track's folder", trackFolder);
+		// the game loads the track's 3D model like its textures (see EditorFrame.getTrackFolders)
+		showFileFound(descriptionTextField, "in " + getEditorFrame().getTrackFoldersWords(), getEditorFrame().getTrackFolders());
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
 			for (JTextField field : new JTextField[] { terrainObjectsTextField, roadObjectsTextField, road2ObjectsTextField, treesObjectsTextField, buildingObjectsTextField,

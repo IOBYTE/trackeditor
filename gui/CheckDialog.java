@@ -1104,6 +1104,11 @@ public class CheckDialog extends JDialog
 
 	public void checkHeader()
 	{
+		// where the track is: the games list <tracks folder>/<category>/<name>
+		String placement = editorFrame.getTrackPlacementProblem();
+		if (placement != null)
+			report.append(placement + "\n");
+
 		// TORCS reads no subcategory
 		if (editorFrame.getGameType().hasSpeedDreamsExtensions() && trackData.getHeader().getSubcategory() != null)
 		{
@@ -1709,7 +1714,7 @@ public class CheckDialog extends JDialog
 
 	private void checkGraphic3DFile(String what, String file)
 	{
-		if (hasText(file) && gui.properties.PropertyPanel.findFile(file, Properties.getInstance().getPath()) == null)
+		if (hasText(file) && gui.properties.PropertyPanel.findFile(file, editorFrame.getTrackFolders()) == null)
 			report.append("Graphic 3D " + what + " file " + file + " not found\n");
 	}
 
@@ -1764,8 +1769,8 @@ public class CheckDialog extends JDialog
 
 		// without the game's data folder, a texture that isn't the track's can't be found
 		if (dataDirectory != null && !dataDirectory.isEmpty()
-			&& gui.properties.PropertyPanel.findFile(texture, Properties.getInstance().getPath(), dataDirectory,
-				dataDirectory + sep + "data" + sep + "textures") == null)
+			&& gui.properties.PropertyPanel.findFile(texture, editorFrame.getTrackFolders(dataDirectory,
+				dataDirectory + sep + "data" + sep + "textures")) == null)
 		{
 			report.append(description + " texture " + texture + " not found\n");
 		}
@@ -2651,7 +2656,14 @@ public class CheckDialog extends JDialog
 	}
 	private File findTextureFile(String texture)
 	{
-		File file = new File(Properties.getInstance().getPath() + sep + texture);
+		// the track's folder, and for a Speed Dreams track in its local folder the installed track's
+		File file = null;
+		for (String folder : editorFrame.getTrackFolders())
+		{
+			file = new File(folder + sep + texture);
+			if (file.exists())
+				break;
+		}
 
 		if (!file.exists())
 		{

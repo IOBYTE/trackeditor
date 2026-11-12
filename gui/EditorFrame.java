@@ -300,15 +300,18 @@ public class EditorFrame extends JFrame
 	private TrackData			trackData							= null;
 	private Vector<Surface>		defaultSurfaces						= new Vector<Surface>();
 	private Vector<TrackObject>	defaultObjects						= new Vector<TrackObject>();
-	// each game's data, bin and lib directories (null when not set)
+	// each game's data, bin, lib and local directories (null when not set)
 	private final java.util.EnumMap<GameType, String[]>	directories	= new java.util.EnumMap<GameType, String[]>(GameType.class);
 	public final static int		DATA_DIRECTORY						= 0;
 	public final static int		BIN_DIRECTORY						= 1;
 	public final static int		LIB_DIRECTORY						= 2;
+	// Speed Dreams' local directory, its user settings folder (see GameType.hasLocalTracks)
+	public final static int		LOCAL_DIRECTORY						= 3;
 	// the preferences, saved for each game as "<game>.DataDirectory" and so on; without
 	// the game they are the directories from before each game had its own, still
-	// written for the game in use so older editors keep working
-	private final static String[]	DIRECTORY_KEYS					= { "DataDirectory", "BinDirectory", "LibDirectory" };
+	// written for the game in use so older editors keep working (all but the local
+	// directory, which they didn't have)
+	private final static String[]	DIRECTORY_KEYS					= { "DataDirectory", "BinDirectory", "LibDirectory", "LocalDirectory" };
 
 	private DefaultSurfacesDialog	defaultSurfacesDialog			= null;
 	private DefaultObjectsDialog	defaultObjectsDialog			= null;
@@ -583,7 +586,7 @@ public class EditorFrame extends JFrame
 	}
 
 	/**
-	 * @param kind DATA_DIRECTORY, BIN_DIRECTORY or LIB_DIRECTORY
+	 * @param kind DATA_DIRECTORY, BIN_DIRECTORY, LIB_DIRECTORY or LOCAL_DIRECTORY
 	 * @return the game's directory, or null when not set
 	 */
 	public String getDirectory(GameType game, int kind)
@@ -595,8 +598,193 @@ public class EditorFrame extends JFrame
 	{
 		directories.get(game)[kind] = directory;
 		putOrRemove(game.name() + "." + DIRECTORY_KEYS[kind], directory);
-		if (game == gameType)
+		if (game == gameType && kind != LOCAL_DIRECTORY)
 			putOrRemove(DIRECTORY_KEYS[kind], directory);
+	}
+
+	/**
+	 * @return the game's local directory, where it keeps the user's settings and
+	 *         tracks: the one set in Preferences, or the game's standard one when that
+	 *         exists; null for a game without one (see GameType.hasLocalTracks)
+	 */
+	public String getLocalDirectory(GameType game)
+	{
+		if (!game.hasLocalTracks())
+			return null;
+		String local = getDirectory(game, LOCAL_DIRECTORY);
+		if (local != null && !local.isEmpty())
+			return local;
+		File standard = game.defaultLocalDirectory();
+		return standard != null && standard.isDirectory() ? standard.getPath() : null;
+	}
+
+	/**
+	 * @return the folders the game in use lists tracks from, as
+	 *         <folder>/<category>/<name>/<name>.xml: Speed Dreams' local tracks
+	 *         first, then the data directory's (only that for TORCS and CSR). Empty
+	 *         when no directory is set.
+	 */
+	public List<File> getTracksDirectories()
+	{
+		List<File> folders = new ArrayList<File>();
+		String local = getLocalDirectory(gameType);
+		if (local != null)
+			folders.add(new File(local, "tracks"));
+		String data = getDataDirectory();
+		if (data != null && !data.isEmpty())
+			folders.add(new File(data, "tracks"));
+		return folders;
+	}
+
+	/** @return the folder file choosers for tracks start in: the first tracks folder there is */
+	private File tracksChooserDirectory()
+	{
+		for (File folder : getTracksDirectories())
+		{
+			if (folder.isDirectory())
+				return folder;
+		}
+		String data = getDataDirectory();
+		return new File((data == null ? System.getProperty("user.dir") : data) + sep + "tracks");
+	}
+
+	/**
+	 * @return why the game in use won't list the open track where it is, or null:
+	 *         games list <tracks folder>/<category>/<name>, taking the category from
+	 *         the folder (see getTracksDirectories). Null when no directory is set.
+	 */
+	public String getTrackPlacementProblem()
+	{
+		List<File> tracks = getTracksDirectories();
+		if (tracks.isEmpty() || trackData == null)
+			return null;
+		File folder = new File(Properties.getInstance().getPath());
+		File categoryFolder = folder.getAbsoluteFile().getParentFile();
+		File tracksFolder = categoryFolder == null ? null : categoryFolder.getParentFile();
+		boolean listed = false;
+		for (File candidate : tracks)
+			listed |= tracksFolder != null && sameFile(tracksFolder, candidate);
+		if (!listed)
+		{
+			StringBuilder where = new StringBuilder();
+			for (File candidate : tracks)
+				where.append(where.length() == 0 ? "" : " or ").append(candidate.getPath());
+			return gameType.getName() + " won't list the track: it reads tracks from " + where + ", as <category>" + sep + "<name>,"
+				+ " and this track is in " + folder.getPath();
+		}
+		String category = trackData.getHeader().getCategory();
+		if (category != null && !category.isEmpty() && !category.equals(categoryFolder.getName()))
+			return "Category " + category + " isn't the folder the track is in, " + categoryFolder.getName() + ": " + gameType.getName()
+				+ " lists the track under " + categoryFolder.getName();
+		return null;
+	}
+
+	// the installed track folder found for a track path, local and data directory
+	private String	installedKey	= null;
+	private String	installedFolder	= null;
+
+	/**
+	 * @return the installed track of the same category and name as the open track,
+	 *         when it is a Speed Dreams track in the local tracks folder and there is
+	 *         one, or null. Speed Dreams' graphics look for a track's textures and 3D
+	 *         model in its local folder, then in the installed track's.
+	 */
+	public String getInstalledTrackFolder()
+	{
+		String local = getLocalDirectory(gameType);
+		String data = getDataDirectory();
+		String path = Properties.getInstance().getPath();
+		if (local == null || data == null || data.isEmpty() || path == null || path.isEmpty())
+			return null;
+		// asked for each texture: only look again when something changed
+		String key = path + "|" + local + "|" + data;
+		if (key.equals(installedKey))
+			return installedFolder;
+		String found = null;
+		File folder = new File(path).getAbsoluteFile();
+		File category = folder.getParentFile();
+		if (category != null && category.getParentFile() != null && sameFile(category.getParentFile(), new File(local, "tracks")))
+		{
+			File installed = new File(new File(new File(data, "tracks"), category.getName()), folder.getName());
+			if (installed.isDirectory() && !sameFile(installed, folder))
+				found = installed.getPath();
+		}
+		installedKey = key;
+		installedFolder = found;
+		return found;
+	}
+
+	/**
+	 * @return the folders the game finds the open track's own textures and 3D model
+	 *         in, in the order it looks: the track's folder, then the installed track's
+	 *         (see getInstalledTrackFolder), then the other folders given that aren't null
+	 */
+	public String[] getTrackFolders(String... more)
+	{
+		List<String> folders = new ArrayList<String>();
+		folders.add(Properties.getInstance().getPath());
+		String installed = getInstalledTrackFolder();
+		if (installed != null)
+			folders.add(installed);
+		for (String folder : more)
+		{
+			if (folder != null)
+				folders.add(folder);
+		}
+		return folders.toArray(new String[folders.size()]);
+	}
+
+	/** @return where the track's own files are looked for, for a tool tip: "the track's folder" and so on */
+	public String getTrackFoldersWords()
+	{
+		return getInstalledTrackFolder() == null ? "the track's folder" : "the track's folder, the installed track's folder";
+	}
+
+	private static boolean sameFile(File a, File b)
+	{
+		try
+		{
+			return Files.isSameFile(a.toPath(), b.toPath());
+		}
+		catch (IOException | SecurityException e)
+		{
+			// not the same: one of them doesn't exist
+			return false;
+		}
+	}
+
+	/**
+	 * @return why CSR's or Speed Dreams' trackgen can't read the shared surfaces or
+	 *         objects the track includes, or null. They're included as
+	 *         ../../../data/tracks/surfaces.xml and objects.xml, from the track's
+	 *         folder: the data directory's when the track is in its tracks folder.
+	 *         Speed Dreams reads them from its data directory for a track in its local
+	 *         tracks folder too.
+	 */
+	private String getSharedFilesProblem()
+	{
+		boolean surfaces = trackData.getHasSurfacesReference();
+		boolean objects = trackData.getHasObjectsReference();
+		if (!surfaces && !objects)
+			return null;
+		File folder = new File(Properties.getInstance().getPath()).getAbsoluteFile();
+		File shared = new File(folder, ".." + sep + ".." + sep + ".." + sep + "data" + sep + "tracks").toPath().normalize().toFile();
+		if ((!surfaces || new File(shared, "surfaces.xml").isFile()) && (!objects || new File(shared, "objects.xml").isFile()))
+			return null;
+		String local = getLocalDirectory(gameType);
+		File categoryFolder = folder.getParentFile();
+		File tracksFolder = categoryFolder == null ? null : categoryFolder.getParentFile();
+		if (local != null && tracksFolder != null && sameFile(tracksFolder, new File(local, "tracks")))
+			return null;
+		List<File> tracks = getTracksDirectories();
+		StringBuilder where = new StringBuilder();
+		for (File candidate : tracks)
+			where.append("\n").append(candidate.getPath()).append(sep).append(trackData.getHeader().getCategory()).append(sep)
+				.append(folder.getName());
+		return gameType.getTrackgen() + " can't read the default " + (surfaces && objects ? "surfaces and objects" : surfaces ? "surfaces" : "objects")
+			+ " this track includes: it looks for them\nthree folders up from the track, at\n" + shared.getPath() + "\n\n"
+			+ (tracks.isEmpty() ? "Set the " + gameType.getName() + " data directory in Preferences, and save the track in its tracks folder."
+				: "Save the track in a folder " + gameType.getName() + " reads tracks from:" + where);
 	}
 
 	private void putOrRemove(String key, String value)
@@ -643,7 +831,20 @@ public class EditorFrame extends JFrame
 		List<String> args = new ArrayList<String>();
 		if (gameType != GameType.TORCS)
 		{
+			// with forward slashes and as the file system spells it: Speed Dreams reads
+			// the default surfaces and objects of a track in its local directory from its
+			// data directory only when the track's path starts with the local directory
+			// as it spells it, like C:/Users/Bob/Documents/speed-dreams-2.settings/
 			String path = Properties.getInstance().getPath();
+			try
+			{
+				path = new File(path).getCanonicalPath();
+			}
+			catch (IOException | SecurityException e)
+			{
+				path = new File(path).getAbsolutePath();
+			}
+			path = path.replace(File.separatorChar, '/');
 			args.add("-i");
 			args.add(path);
 			args.add("-o");
@@ -683,12 +884,14 @@ public class EditorFrame extends JFrame
 
 	/**
 	 * @return why trackgen can't read this track, or null: TORCS trackgen only reads
-	 * tracks/<category>/<name>/<name>.xml in its data directory
+	 * tracks/<category>/<name>/<name>.xml in its data directory, and CSR's and Speed
+	 * Dreams' only find the default surfaces and objects from their tracks folders
+	 * (see getSharedFilesProblem)
 	 */
 	public String getTrackgenProblem()
 	{
 		if (gameType != GameType.TORCS)
-			return null;
+			return trackData == null ? null : getSharedFilesProblem();
 
 		String data = getDataDirectory();
 		if (data == null || data.isEmpty())
@@ -984,10 +1187,7 @@ public class EditorFrame extends JFrame
 		fc.setDialogTitle("Project path selection");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
-		String trackDir = getDataDirectory();
-		if (trackDir == null)
-			trackDir = System.getProperty("user.dir");
-		fc.setCurrentDirectory(new File(trackDir + sep + "tracks"));
+		fc.setCurrentDirectory(tracksChooserDirectory());
 		CustomFileFilter filter = new CustomFileFilter();
 		filter.addValid(".prj.xml");
 		filter.setDescription("*.prj.xml");
@@ -4551,10 +4751,7 @@ public class EditorFrame extends JFrame
 		fc.setDialogTitle("Import track from Xml");
 		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
-		String trackDir = getDataDirectory();
-		if (trackDir == null)
-			trackDir = System.getProperty("user.dir");
-		fc.setCurrentDirectory(new File(trackDir + sep + "tracks"));
+		fc.setCurrentDirectory(tracksChooserDirectory());
 		CustomFileFilter filter = new CustomFileFilter();
 
 		filter.addValid(".xml");

@@ -78,7 +78,7 @@ public class SurfaceComboBox extends JComboBox<String>
 				else
 				{
 					// look for texture in track directory first
-					tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
+					tooltipText = trackTextureName(surfaceName, surfaces);
 
 					if (tooltipText == null && editorFrame.getDataDirectory() != null)
 					{
@@ -159,6 +159,21 @@ public class SurfaceComboBox extends JComboBox<String>
 			this.tooltips = tooltips;
 		}
 	};
+
+	/**
+	 * @return the texture of a surface of the track's, from the track's folder or for
+	 *         a Speed Dreams track in its local folder the installed track's, or null
+	 */
+	private String trackTextureName(String surfaceName, Vector<Surface> surfaces)
+	{
+		for (String folder : editorFrame.getTrackFolders())
+		{
+			String name = getTextureName(surfaceName, surfaces, folder);
+			if (name != null)
+				return name;
+		}
+		return null;
+	}
 
 	private String getTextureName(String surfaceName, Vector<Surface> surfaces, String path)
 	{
@@ -289,7 +304,7 @@ public class SurfaceComboBox extends JComboBox<String>
 			}
 			if (tooltipText == null)
 			{
-				tooltipText = getTextureName(surfaceName, surfaces, Properties.getInstance().getPath());
+				tooltipText = trackTextureName(surfaceName, surfaces);
 			}
 			if (tooltipText == null)
 			{

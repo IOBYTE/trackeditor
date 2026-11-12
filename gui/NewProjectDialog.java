@@ -242,20 +242,48 @@ public class NewProjectDialog extends JDialog
 		return trackCategoryComboBox;
 	}
 	/**
-	 * When the path is the data directory's folder for the category chosen before, it
-	 * becomes the folder for the new category: the game finds the track by its category.
+	 * When the path is a tracks folder's folder for the category chosen before, it
+	 * becomes that tracks folder's folder for the new category: the game finds the
+	 * track by its category (see EditorFrame.getTracksDirectories).
 	 */
 	private void followCategory()
 	{
 		String category = (String) trackCategoryComboBox.getSelectedItem();
-		String dataDirectory = editorFrame.getDataDirectory();
-		if (pathTextField != null && lastCategory != null && dataDirectory != null && !dataDirectory.isEmpty())
+		if (pathTextField != null && lastCategory != null)
 		{
-			File tracks = new File(dataDirectory, "tracks");
-			if (new File(pathTextField.getText()).getAbsoluteFile().equals(new File(tracks, lastCategory).getAbsoluteFile()))
-				pathTextField.setText(new File(tracks, category).getAbsolutePath());
+			for (File tracks : editorFrame.getTracksDirectories())
+			{
+				if (new File(pathTextField.getText()).getAbsoluteFile().equals(new File(tracks, lastCategory).getAbsoluteFile()))
+				{
+					pathTextField.setText(new File(tracks, category).getAbsolutePath());
+					break;
+				}
+			}
 		}
 		lastCategory = category;
+	}
+
+	/**
+	 * @return the category's folder in the first tracks folder a new track can be
+	 *         saved in, or null: Speed Dreams' local tracks folder (made when the track
+	 *         is), or an existing category folder of the data directory's
+	 */
+	private String tracksCategoryFolder()
+	{
+		String category = trackCategoryComboBox.getSelectedItem().toString();
+		String local = editorFrame.getLocalDirectory(editorFrame.getGameType());
+		for (File tracks : editorFrame.getTracksDirectories())
+		{
+			File categoryDir = new File(tracks, category);
+			if (categoryDir.isDirectory() && categoryDir.canWrite())
+				return categoryDir.getAbsolutePath();
+			// the user's own folder: its tracks and category folders are made with the track's
+			if (local != null && tracks.getParentFile() != null && tracks.getParentFile().equals(new File(local))
+				&& tracks.getParentFile().isDirectory() && tracks.getParentFile().canWrite()
+				&& (!tracks.exists() || tracks.isDirectory() && tracks.canWrite()))
+				return categoryDir.getAbsolutePath();
+		}
+		return null;
 	}
 
 	/**
@@ -319,21 +347,7 @@ public class NewProjectDialog extends JDialog
 			pathTextField = new JTextField();
 			pathTextField.setBounds(95, 118, 331, 23);
 			
-			String path = null;
-			String dataDirectory = editorFrame.getDataDirectory();
-			File dataDir = new File(dataDirectory == null ? "" : dataDirectory);
-			if (dataDirectory != null && dataDir.isDirectory() && dataDir.canWrite())
-			{
-				File tracksDir = new File(dataDir.getAbsolutePath() + sep + "tracks");
-				if (tracksDir.exists() && tracksDir.isDirectory() && tracksDir.canWrite())
-				{
-					File categoryDir = new File(tracksDir.getAbsolutePath() + sep + trackCategoryComboBox.getSelectedItem().toString());
-					if (categoryDir.exists() && categoryDir.isDirectory() && categoryDir.canWrite())
-					{
-						path = categoryDir.getAbsolutePath();
-					}
-				}
-			}
+			String path = tracksCategoryFolder();
 			
 			if (path == null)
 			{

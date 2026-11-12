@@ -198,12 +198,13 @@ public class PropertyPanel extends JPanel
 	{
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		String sep = System.getProperty("file.separator");
+		String track = getEditorFrame().getTrackFoldersWords();
 		if (dataDirectory == null || dataDirectory.isEmpty())
-			showFileFound(field, "in the track's folder (set the game's data folder in Preferences to look in data/textures too)",
-				textureFormat(), utils.Properties.getInstance().getPath());
+			showFileFound(field, "in " + track + " (set the game's data folder in Preferences to look in data/textures too)",
+				textureFormat(), getEditorFrame().getTrackFolders());
 		else
-			showFileFound(field, "in the track's folder or the game's data/textures folder",
-				textureFormat(), utils.Properties.getInstance().getPath(), dataDirectory + sep + "data" + sep + "textures");
+			showFileFound(field, "in " + track + " or the game's data/textures folder",
+				textureFormat(), getEditorFrame().getTrackFolders(dataDirectory + sep + "data" + sep + "textures"));
 	}
 
 	/** @return why the game can't load a texture of a name's format, as Check reports */
@@ -242,9 +243,8 @@ public class PropertyPanel extends JPanel
 	{
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in the track's folder or the game's data/textures folder", textureFormat(),
-			utils.Properties.getInstance().getPath(),
-			dataDirectory == null || dataDirectory.isEmpty() ? null : dataDirectory + sep + "data" + sep + "textures");
+		showFileFound(field, "in " + getEditorFrame().getTrackFoldersWords() + " or the game's data/textures folder", textureFormat(),
+			getEditorFrame().getTrackFolders(dataDirectory == null || dataDirectory.isEmpty() ? null : dataDirectory + sep + "data" + sep + "textures"));
 	}
 
 	/**
@@ -259,10 +259,8 @@ public class PropertyPanel extends JPanel
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		boolean unknown = dataDirectory == null || dataDirectory.isEmpty();
 		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in the track's folder or the game's data folder", textureFormat(),
-			utils.Properties.getInstance().getPath(),
-			unknown ? null : dataDirectory,
-			unknown ? null : dataDirectory + sep + "data" + sep + "textures");
+		showFileFound(field, "in " + getEditorFrame().getTrackFoldersWords() + " or the game's data folder", textureFormat(),
+			getEditorFrame().getTrackFolders(unknown ? null : dataDirectory, unknown ? null : dataDirectory + sep + "data" + sep + "textures"));
 	}
 
 	public void setTextField(JTextField field, double value)

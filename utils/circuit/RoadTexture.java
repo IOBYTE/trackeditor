@@ -14,7 +14,6 @@ import java.util.List;
 
 import gui.EditorFrame;
 import utils.GameType;
-import utils.Properties;
 import utils.SegmentVector;
 import utils.TrackData;
 
@@ -134,16 +133,22 @@ public class RoadTexture
 		return null;
 	}
 
-	/** @return the texture in the track's folder or the game's textures folder, or null */
+	/**
+	 * @return the texture in the track's folder (or for a Speed Dreams track in its
+	 *         local folder, the installed track's) or the game's textures folder, or null
+	 */
 	public static File findTextureFile(EditorFrame editorFrame, String texture)
 	{
-		File file = new File(Properties.getInstance().getPath(), texture);
-		if (file.isFile())
-			return file;
+		for (String folder : editorFrame.getTrackFolders())
+		{
+			File file = new File(folder, texture);
+			if (file.isFile())
+				return file;
+		}
 		String data = editorFrame.getDataDirectory();
 		if (data != null && !data.isEmpty())
 		{
-			file = new File(data + File.separator + "data" + File.separator + "textures", texture);
+			File file = new File(data + File.separator + "data" + File.separator + "textures", texture);
 			if (file.isFile())
 				return file;
 		}
