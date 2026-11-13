@@ -266,22 +266,22 @@ public class Curve extends Segment
 		setSelectionBounds();
 	}
 
-	public void calcShape(TrackContext editorFrame) throws Exception
+	public void calcShape(TrackContext trackContext) throws Exception
 	{
 		double	currentX	= Properties.getInstance().getCurrentX();
 		double	currentY	= Properties.getInstance().getCurrentY();
 		double	currentA	= Properties.getInstance().getCurrentA();
 		double 	showArrows = Properties.getInstance().getShowArrows();
 		double	trackStartDist = Properties.getInstance().getTrackStartDist();
-		double	trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
-		double	leftBorderWidth = getValidLeftBorderWidth(editorFrame);
-		double	rightBorderWidth = getValidRightBorderWidth(editorFrame);
-		double	leftSideStartWidth = getValidLeftSideStartWidth(editorFrame);
-		double	leftSideEndWidth = getValidLeftSideEndWidth(editorFrame);
-		double	rightSideStartWidth = getValidRightSideStartWidth(editorFrame);
-		double	rightSideEndWidth = getValidRightSideEndWidth(editorFrame);
-		double	leftBarrierWidth = getValidLeftBarrierWidth(editorFrame);
-		double	rightBarrierWidth = getValidRightBarrierWidth(editorFrame);
+		double	trackWidth = trackContext.getTrackData().getMainTrack().getValidWidth();
+		double	leftBorderWidth = getValidLeftBorderWidth(trackContext);
+		double	rightBorderWidth = getValidRightBorderWidth(trackContext);
+		double	leftSideStartWidth = getValidLeftSideStartWidth(trackContext);
+		double	leftSideEndWidth = getValidLeftSideEndWidth(trackContext);
+		double	rightSideStartWidth = getValidRightSideStartWidth(trackContext);
+		double	rightSideEndWidth = getValidRightSideEndWidth(trackContext);
+		double	leftBarrierWidth = getValidLeftBarrierWidth(trackContext);
+		double	rightBarrierWidth = getValidRightBarrierWidth(trackContext);
 		double	leftStartHeight = this.getCalculatedHeightStartLeft();
 		double	rightStartHeight = this.getCalculatedHeightStartRight();
 		double	leftEndHeight = this.getCalculatedHeightEndLeft();
@@ -292,7 +292,7 @@ public class Curve extends Segment
 		double endRadius = getValidRadiusEnd();
 		length = arc * (radiusStart + endRadius) / 2;
 		// same step count as the game's track loader
-		nbSteps = getBuiltSteps(editorFrame, length);
+		nbSteps = getBuiltSteps(trackContext, length);
 
 		trackStartDist += length;
 		stepLength = length / nbSteps;
@@ -345,7 +345,7 @@ public class Curve extends Segment
 		double leftHeightDeltaStep = (leftEndHeight - leftStartHeight) / nbSteps;
 		double rightHeightDeltaStep = (rightEndHeight - rightStartHeight) / nbSteps;
 
-		boolean linear = getValidProfil(editorFrame).equals("linear");
+		boolean linear = getValidProfil(trackContext).equals("linear");
 
 		double T1l = (getCalculatedStartTangentLeft() / 100.0) * getLength();
 		double T2l = (getCalculatedEndTangentLeft() / 100.0) * getLength();

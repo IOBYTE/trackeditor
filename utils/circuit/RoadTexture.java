@@ -59,16 +59,16 @@ public class RoadTexture
 	}
 
 	/** @return the texture mapping of each segment of the track, in order */
-	public static List<RoadTexture> of(TrackContext editorFrame)
+	public static List<RoadTexture> of(TrackContext trackContext)
 	{
 		List<RoadTexture> mappings = new ArrayList<RoadTexture>();
-		TrackData trackData = editorFrame.getTrackData();
+		TrackData trackData = trackContext.getTrackData();
 		if (trackData == null || trackData.getSegments() == null)
 			return mappings;
 
 		SegmentVector segments = trackData.getSegments();
 		double width = trackData.getMainTrack().getValidWidth();
-		String defaultTexture = editorFrame.getGameType() == GameType.TORCS ? DEFAULT_TORCS_TEXTURE : DEFAULT_TEXTURE;
+		String defaultTexture = trackContext.getGameType() == GameType.TORCS ? DEFAULT_TORCS_TEXTURE : DEFAULT_TEXTURE;
 		double fromStart = 0;
 		String texture = null;
 		boolean continuous = true, link = true;
@@ -76,7 +76,7 @@ public class RoadTexture
 
 		for (Segment segment : segments)
 		{
-			Surface surface = findSurface(editorFrame, segment.getValidSurface(editorFrame));
+			Surface surface = findSurface(trackContext, segment.getValidSurface(trackContext));
 			String name = surface == null || surface.getTextureName() == null ? defaultTexture : surface.getTextureName();
 			if (!name.equals(texture))
 			{
@@ -118,14 +118,14 @@ public class RoadTexture
 	}
 
 	/** @return the track's surface with this name, or else the default one, or null */
-	public static Surface findSurface(TrackContext editorFrame, String name)
+	public static Surface findSurface(TrackContext trackContext, String name)
 	{
-		for (Surface surface : editorFrame.getTrackData().getSurfaces())
+		for (Surface surface : trackContext.getTrackData().getSurfaces())
 		{
 			if (name.equals(surface.getName()))
 				return surface;
 		}
-		for (Surface surface : editorFrame.getDefaultSurfaces())
+		for (Surface surface : trackContext.getDefaultSurfaces())
 		{
 			if (name.equals(surface.getName()))
 				return surface;
@@ -137,15 +137,15 @@ public class RoadTexture
 	 * @return the texture in the track's folder (or for a Speed Dreams track in its
 	 *         local folder, the installed track's) or the game's textures folder, or null
 	 */
-	public static File findTextureFile(TrackContext editorFrame, String texture)
+	public static File findTextureFile(TrackContext trackContext, String texture)
 	{
-		for (String folder : editorFrame.getTrackFolders())
+		for (String folder : trackContext.getTrackFolders())
 		{
 			File file = new File(folder, texture);
 			if (file.isFile())
 				return file;
 		}
-		String data = editorFrame.getDataDirectory();
+		String data = trackContext.getDataDirectory();
 		if (data != null && !data.isEmpty())
 		{
 			File file = new File(data + File.separator + "data" + File.separator + "textures", texture);

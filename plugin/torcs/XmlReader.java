@@ -32,8 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -42,12 +40,13 @@ import org.jdom2.located.LocatedJDOMFactory;
 import org.jdom2.input.SAXBuilder;
 import org.xml.sax.InputSource;
 
-import gui.EditorFrame;
 import utils.DoubleValue;
 import utils.GameType;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.ac3d.Ac3dException;
+import utils.check.ReadNotices;
+import utils.check.TrackContext;
 import utils.circuit.Camera;
 import utils.circuit.Curve;
 import utils.circuit.EnvironmentMapping;
@@ -83,7 +82,9 @@ public class XmlReader
 		return e instanceof LocatedElement ? ((LocatedElement) e).getLine() : 0;
 	}
 
-	private EditorFrame		editorFrame = null;
+	private TrackContext	trackContext = null;
+	// where the problems the user has to know at once go
+	private ReadNotices		notices = null;
 	private String			filename	= null;
 	private List<String>	warnings	= new java.util.ArrayList<String>();
 	// the elements the editor read, to find what it didn't (see getUnreadKeys)
@@ -130,9 +131,14 @@ public class XmlReader
 		}
 	}
 
-	public XmlReader(EditorFrame editorFrame)
+	/**
+	 * @param trackContext the track read into (its track data), and the game it is read for
+	 * @param notices where the problems the user has to know at once go
+	 */
+	public XmlReader(TrackContext trackContext, ReadNotices notices)
 	{
-		this.editorFrame = editorFrame;
+		this.trackContext = trackContext;
+		this.notices = notices;
 	}
 
     public void readXml(String filename) throws JDOMException, IOException
@@ -375,10 +381,10 @@ public class XmlReader
 	    if (objectsMatcher.find())
 	        hasObjectsReference = objectsMatcher.group(1).contains("&default-objects;");
 
-		editorFrame.getTrackData().setHasSurfacesEntity(hasSurfacesEntity);
-		editorFrame.getTrackData().setHasSurfacesReference(hasSurfacesReference);
-		editorFrame.getTrackData().setHasObjectsEntity(hasObjectsEntity);
-		editorFrame.getTrackData().setHasObjectsReference(hasObjectsReference);
+		trackContext.getTrackData().setHasSurfacesEntity(hasSurfacesEntity);
+		trackContext.getTrackData().setHasSurfacesReference(hasSurfacesReference);
+		trackContext.getTrackData().setHasObjectsEntity(hasObjectsEntity);
+		trackContext.getTrackData().setHasObjectsReference(hasObjectsReference);
 	}
 
     private Document readFromFile(String fname) throws JDOMException, IOException
@@ -496,7 +502,7 @@ public class XmlReader
         setMainTrack(root);
         setSectors(root);
         setGeoreference(root);
-        editorFrame.getTrackData().calculateSegmentValues();
+        trackContext.getTrackData().calculateSegmentValues();
     }
 
 	/**
@@ -516,7 +522,7 @@ public class XmlReader
 		data.setAltitude(getAttrNumValue(element, "altitude", "m"));
 		data.setHeading(getAttrNumValue(element, "heading", "deg"));
 
-		editorFrame.getTrackData().setGeoreference(data);
+		trackContext.getTrackData().setGeoreference(data);
 	}
 
     private void setMainTrack(Element root)
@@ -527,24 +533,23 @@ public class XmlReader
         {
             // keep an empty track rather than none, so the editor doesn't crash (as
             // for a Main Track without segments)
-            editorFrame.getTrackData().setSegments(new SegmentVector());
-            JOptionPane.showMessageDialog(editorFrame, "The track has no \"Main Track\" section, so it has no segments.",
-                "Read Track", JOptionPane.WARNING_MESSAGE);
+            trackContext.getTrackData().setSegments(new SegmentVector());
+            notices.notice("Read Track", "The track has no \"Main Track\" section, so it has no segments.", false);
             return;
         }
 
-        editorFrame.getTrackData().getMainTrack().setWidth(getAttrNumValue(mainTrack, "width", "m"));
-        editorFrame.getTrackData().getMainTrack().setSurface(getAttrStrValue(mainTrack, "surface"));
-        editorFrame.getTrackData().getMainTrack().setProfil(getAttrStrValue(mainTrack, "profil"));
-        editorFrame.getTrackData().getMainTrack().setProfilStepsLength(getAttrNumValue(mainTrack, "profil steps length", "m"));
-        editorFrame.getTrackData().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
-        editorFrame.getTrackData().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
-        editorFrame.getTrackData().getMainTrack().setRacelineExt(getAttrNumValue(mainTrack, "raceline ext"));
+        trackContext.getTrackData().getMainTrack().setWidth(getAttrNumValue(mainTrack, "width", "m"));
+        trackContext.getTrackData().getMainTrack().setSurface(getAttrStrValue(mainTrack, "surface"));
+        trackContext.getTrackData().getMainTrack().setProfil(getAttrStrValue(mainTrack, "profil"));
+        trackContext.getTrackData().getMainTrack().setProfilStepsLength(getAttrNumValue(mainTrack, "profil steps length", "m"));
+        trackContext.getTrackData().getMainTrack().setRacelineWidthscale(getAttrNumValue(mainTrack, "raceline widthscale"));
+        trackContext.getTrackData().getMainTrack().setRacelineInt(getAttrNumValue(mainTrack, "raceline int"));
+        trackContext.getTrackData().getMainTrack().setRacelineExt(getAttrNumValue(mainTrack, "raceline ext"));
 
 		// only the version 5 loader reads these
-		if (editorFrame.getTrackData().getHeader().getVersion() == 5)
+		if (trackContext.getTrackData().getHeader().getVersion() == 5)
 		{
-			MainTrack main = editorFrame.getTrackData().getMainTrack();
+			MainTrack main = trackContext.getTrackData().getMainTrack();
 			main.setStartBearing(getAttrNumValue(mainTrack, "original bearing", "deg"));
 			main.setStartX(getAttrNumValue(mainTrack, "start X", "m"));
 			main.setStartY(getAttrNumValue(mainTrack, "start Y", "m"));
@@ -557,16 +562,16 @@ public class XmlReader
 			main.setExtentZ(getAttrNumValue(mainTrack, "extent Z", "m"));
 		}
 
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+        if (trackContext.getTrackData().getHeader().getVersion() == 3)
         {
-			setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "l", true);
-			setSideV3(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "r", true);
+			setSideV3(mainTrack, trackContext.getTrackData().getMainTrack().getLeft(), "l", true);
+			setSideV3(mainTrack, trackContext.getTrackData().getMainTrack().getRight(), "r", true);
             setPitsV3(mainTrack);
         }
         else
         {
-			setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getLeft(), "Left", true);
-			setSide(mainTrack, editorFrame.getTrackData().getMainTrack().getRight(), "Right", true);
+			setSide(mainTrack, trackContext.getTrackData().getMainTrack().getLeft(), "Left", true);
+			setSide(mainTrack, trackContext.getTrackData().getMainTrack().getRight(), "Right", true);
             setPits(mainTrack);
         }
 
@@ -587,7 +592,7 @@ public class XmlReader
 				", which the games read as version 3. The editor reads it, and will save it, as version 3.");
 			version = 3;
 		}
-		editorFrame.getTrackData().getHeader().setVersion(version);
+		trackContext.getTrackData().getHeader().setVersion(version);
 	}
 
     /**
@@ -602,16 +607,16 @@ public class XmlReader
         if (header == null)
             return;
 
-        editorFrame.getTrackData().getHeader().setName(getAttrStrValue(header, "name"));
-        editorFrame.getTrackData().getHeader().setShortName(getAttrStrValue(header, "short name"));
-        editorFrame.getTrackData().getHeader().setCategory(getAttrStrValue(header, "category"));
-        editorFrame.getTrackData().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
-        editorFrame.getTrackData().getHeader().setCarCategory(getAttrStrValue(header, "car category"));
-        editorFrame.getTrackData().getHeader().setAuthor(getAttrStrValue(header, "author"));
-        editorFrame.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
-        editorFrame.getTrackData().getHeader().setCopyright(getAttrStrValue(header, "copyright"));
-        editorFrame.getTrackData().getHeader().setDescription(getAttrStrValue(header, "description"));
-        editorFrame.getTrackData().getHeader().setDisabledPenalties(getAttrStrValue(header, "disabled penalties"));
+        trackContext.getTrackData().getHeader().setName(getAttrStrValue(header, "name"));
+        trackContext.getTrackData().getHeader().setShortName(getAttrStrValue(header, "short name"));
+        trackContext.getTrackData().getHeader().setCategory(getAttrStrValue(header, "category"));
+        trackContext.getTrackData().getHeader().setSubcategory(getAttrStrValue(header, "subcategory"));
+        trackContext.getTrackData().getHeader().setCarCategory(getAttrStrValue(header, "car category"));
+        trackContext.getTrackData().getHeader().setAuthor(getAttrStrValue(header, "author"));
+        trackContext.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
+        trackContext.getTrackData().getHeader().setCopyright(getAttrStrValue(header, "copyright"));
+        trackContext.getTrackData().getHeader().setDescription(getAttrStrValue(header, "description"));
+        trackContext.getTrackData().getHeader().setDisabledPenalties(getAttrStrValue(header, "disabled penalties"));
     }
 
     /**
@@ -624,7 +629,7 @@ public class XmlReader
         if (cameras == null)
             return;
 
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+        if (trackContext.getTrackData().getHeader().getVersion() == 3)
         	cameras = getChildWithName(cameras, "list");
 
         if (cameras == null)
@@ -656,7 +661,7 @@ public class XmlReader
 
             cameraData.add(cam);
         }
-        editorFrame.getTrackData().setCameras(cameraData);
+        trackContext.getTrackData().setCameras(cameraData);
     }
 
     /**
@@ -708,7 +713,7 @@ public class XmlReader
 
             lightData.add(lit);
         }
-        editorFrame.getTrackData().setTrackLights(lightData);
+        trackContext.getTrackData().setTrackLights(lightData);
     }
 
     /**
@@ -736,7 +741,7 @@ public class XmlReader
 
             sectorData.add(sector);
         }
-        editorFrame.getTrackData().setSectors(sectorData);
+        trackContext.getTrackData().setSectors(sectorData);
     }
 
     /**
@@ -758,7 +763,7 @@ public class XmlReader
         data.setOffsetWithinAColumn(getAttrNumValue(element, "offset within a column", "m"));
         data.setInitialHeight(getAttrNumValue(element, "initial height", "m"));
 
-        editorFrame.getTrackData().setStartingGrid(data);
+        trackContext.getTrackData().setStartingGrid(data);
     }
 
     /**
@@ -794,7 +799,7 @@ public class XmlReader
         data.setPrecipitation(getAttrNumValue(element, "precipitation"));
         data.setBestLap(getAttrNumValue(element, "best lap"));
 
-        editorFrame.getTrackData().setLocalInfo(data);
+        trackContext.getTrackData().setLocalInfo(data);
     }
 
     /**
@@ -807,7 +812,7 @@ public class XmlReader
         if (surfaces == null)
             return;
 
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+        if (trackContext.getTrackData().getHeader().getVersion() == 3)
             surfaces = getChildWithName(surfaces, "List");
 
         if (surfaces == null)
@@ -815,7 +820,7 @@ public class XmlReader
 
         Vector<Surface> surfaceData = new Vector<Surface>();
         getSurfaces(surfaces, surfaceData);
-        editorFrame.getTrackData().setSurfaces(surfaceData);
+        trackContext.getTrackData().setSurfaces(surfaceData);
     }
 
     private void getSurfaces(Element surfaces, Vector<Surface> surfaceData)
@@ -871,7 +876,7 @@ public class XmlReader
 
         Vector<TrackObject> objectData = new Vector<TrackObject>();
         getObjects(objects, objectData);
-        editorFrame.getTrackData().setObjects(objectData);
+        trackContext.getTrackData().setObjects(objectData);
     }
 
     /**
@@ -997,17 +1002,17 @@ public class XmlReader
 	    		catch (IOException e)
 	    		{
 	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
-	            	JOptionPane.showMessageDialog(editorFrame, msg, "Relief File", JOptionPane.ERROR_MESSAGE);
+	            	notices.notice("Relief File", msg, true);
 	    		}
 	    		catch (Ac3dException e)
 	    		{
 	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
-	            	JOptionPane.showMessageDialog(editorFrame, msg, "Relief File", JOptionPane.ERROR_MESSAGE);
+	            	notices.notice("Relief File", msg, true);
 	    		}
 	    		catch (Exception e)
 	    		{
 	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
-	            	JOptionPane.showMessageDialog(editorFrame, msg, "Relief File", JOptionPane.ERROR_MESSAGE);
+	            	notices.notice("Relief File", msg, true);
 	    		}
 	        }
 
@@ -1081,7 +1086,7 @@ public class XmlReader
 		            	catch (IOException e)
 		            	{
 		            		String msg = obj.getObjectMap() + " : " + e.getLocalizedMessage();
-		                	JOptionPane.showMessageDialog(editorFrame, msg, "Object Map File", JOptionPane.ERROR_MESSAGE);
+		                	notices.notice("Object Map File", msg, true);
 		            	}
 		            }
 
@@ -1112,7 +1117,7 @@ public class XmlReader
 	        data.setEnvironmentMapping(envMap);
         }
 
-	    editorFrame.getTrackData().setGraphic(data);
+	    trackContext.getTrackData().setGraphic(data);
     }
 
     /**
@@ -1125,9 +1130,9 @@ public class XmlReader
         if (pits == null)
             return;
 
-        editorFrame.getPits().setStyle(getAttrIntValue(pits, "pit style"));
+        trackContext.getPits().setStyle(getAttrIntValue(pits, "pit style"));
         // try alternate representation used by some TORCS tracks
-        if (editorFrame.getPits().getStyle() == Integer.MAX_VALUE)
+        if (trackContext.getPits().getStyle() == Integer.MAX_VALUE)
         {
         	String pitStyle = getAttrStrValue(pits, "type");
 
@@ -1135,32 +1140,32 @@ public class XmlReader
             {
 				if (pitStyle.equals("no pit"))
 				{
-                    editorFrame.getPits().setStyle(0);
+                    trackContext.getPits().setStyle(0);
 				}
 				else if (pitStyle.equals("track side"))
 				{
-                    editorFrame.getPits().setStyle(1);
+                    trackContext.getPits().setStyle(1);
 				}
 				// the games spell it "seperate path"; also read the correct spelling
 				else if (pitStyle.equals("seperate path") || pitStyle.equals("separate path"))
 				{
-					editorFrame.getPits().setStyle(2);
+					trackContext.getPits().setStyle(2);
 				}
             }
         }
 
-        editorFrame.getPits().setSide(getAttrStrValue(pits, "side"));
-        editorFrame.getPits().setEntry(getAttrStrValue(pits, "entry"));
-        editorFrame.getPits().setStart(getAttrStrValue(pits, "start"));
-        editorFrame.getPits().setStartBuildings(getAttrStrValue(pits, "start buildings"));
-        editorFrame.getPits().setStopBuildings(getAttrStrValue(pits, "stop buildings"));
-        editorFrame.getPits().setMaxPits(getAttrIntValue(pits, "max pits"));
-        editorFrame.getPits().setEnd(getAttrStrValue(pits, "end"));
-        editorFrame.getPits().setExit(getAttrStrValue(pits, "exit"));
-        editorFrame.getPits().setLength(getAttrNumValue(pits, "length", "m"));
-        editorFrame.getPits().setWidth(getAttrNumValue(pits, "width", "m"));
-        editorFrame.getPits().setIndicator(getAttrIntValue(pits, "pit indicator"));
-        editorFrame.getPits().setSpeedLimit(getAttrNumUnitsValue(pits, "speed limit"));
+        trackContext.getPits().setSide(getAttrStrValue(pits, "side"));
+        trackContext.getPits().setEntry(getAttrStrValue(pits, "entry"));
+        trackContext.getPits().setStart(getAttrStrValue(pits, "start"));
+        trackContext.getPits().setStartBuildings(getAttrStrValue(pits, "start buildings"));
+        trackContext.getPits().setStopBuildings(getAttrStrValue(pits, "stop buildings"));
+        trackContext.getPits().setMaxPits(getAttrIntValue(pits, "max pits"));
+        trackContext.getPits().setEnd(getAttrStrValue(pits, "end"));
+        trackContext.getPits().setExit(getAttrStrValue(pits, "exit"));
+        trackContext.getPits().setLength(getAttrNumValue(pits, "length", "m"));
+        trackContext.getPits().setWidth(getAttrNumValue(pits, "width", "m"));
+        trackContext.getPits().setIndicator(getAttrIntValue(pits, "pit indicator"));
+        trackContext.getPits().setSpeedLimit(getAttrNumUnitsValue(pits, "speed limit"));
     }
 
     /**
@@ -1174,30 +1179,30 @@ public class XmlReader
 		{
 			if (pitStyle.equals("no pit"))
 			{
-				editorFrame.getPits().setStyle(0);
+				trackContext.getPits().setStyle(0);
 			}
 			else if (pitStyle.equals("track side"))
 			{
-				editorFrame.getPits().setStyle(1);
+				trackContext.getPits().setStyle(1);
 			}
 			// the games spell it "seperate path"; also read the correct spelling
 			else if (pitStyle.equals("seperate path") || pitStyle.equals("separate path"))
 			{
-				editorFrame.getPits().setStyle(2);
+				trackContext.getPits().setStyle(2);
 			}
 		}
 
-		editorFrame.getPits().setSide(getAttrStrValue(mainTrack, "pit side"));
-		editorFrame.getPits().setEntry(getAttrStrValue(mainTrack, "pit entry"));
-		editorFrame.getPits().setStart(getAttrStrValue(mainTrack, "pit start"));
-		editorFrame.getPits().setStartBuildings(getAttrStrValue(mainTrack, "start buildings"));
-		editorFrame.getPits().setStopBuildings(getAttrStrValue(mainTrack, "stop buildings"));
-		editorFrame.getPits().setMaxPits(getAttrIntValue(mainTrack, "max pits"));
-		editorFrame.getPits().setEnd(getAttrStrValue(mainTrack, "pit end"));
-		editorFrame.getPits().setExit(getAttrStrValue(mainTrack, "pit exit"));
-		editorFrame.getPits().setLength(getAttrNumValue(mainTrack, "pit length", "m"));
-		editorFrame.getPits().setWidth(getAttrNumValue(mainTrack, "pit width", "m"));
-		editorFrame.getPits().setSpeedLimit(getAttrNumUnitsValue(mainTrack, "speed limit"));
+		trackContext.getPits().setSide(getAttrStrValue(mainTrack, "pit side"));
+		trackContext.getPits().setEntry(getAttrStrValue(mainTrack, "pit entry"));
+		trackContext.getPits().setStart(getAttrStrValue(mainTrack, "pit start"));
+		trackContext.getPits().setStartBuildings(getAttrStrValue(mainTrack, "start buildings"));
+		trackContext.getPits().setStopBuildings(getAttrStrValue(mainTrack, "stop buildings"));
+		trackContext.getPits().setMaxPits(getAttrIntValue(mainTrack, "max pits"));
+		trackContext.getPits().setEnd(getAttrStrValue(mainTrack, "pit end"));
+		trackContext.getPits().setExit(getAttrStrValue(mainTrack, "pit exit"));
+		trackContext.getPits().setLength(getAttrNumValue(mainTrack, "pit length", "m"));
+		trackContext.getPits().setWidth(getAttrNumValue(mainTrack, "pit width", "m"));
+		trackContext.getPits().setSpeedLimit(getAttrNumUnitsValue(mainTrack, "speed limit"));
    }
 
 	/**
@@ -1241,7 +1246,7 @@ public class XmlReader
     {
 		Element segmentsSection;
 
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+        if (trackContext.getTrackData().getHeader().getVersion() == 3)
             segmentsSection = getChildWithName(mainTrack, "segments");
         else
             segmentsSection = getChildWithName(mainTrack, "Track Segments");
@@ -1249,9 +1254,9 @@ public class XmlReader
         if (segmentsSection == null)
         {
             // keep an empty track rather than none, so the editor doesn't crash
-            editorFrame.getTrackData().setSegments(new SegmentVector());
-            JOptionPane.showMessageDialog(editorFrame, "The track has no \"" + (editorFrame.getTrackData().getHeader().getVersion() == 3 ? "segments" : "Track Segments") +
-                "\" section in its Main Track.", "Read Track", JOptionPane.WARNING_MESSAGE);
+            trackContext.getTrackData().setSegments(new SegmentVector());
+            notices.notice("Read Track", "The track has no \"" + (trackContext.getTrackData().getHeader().getVersion() == 3 ? "segments" : "Track Segments") +
+                "\" section in its Main Track.", false);
             return;
         }
 
@@ -1312,17 +1317,17 @@ public class XmlReader
                 message += unknown + " segment" + (unknown == 1 ? " has a type" : "s have types") + " other than str, lft or rgt and "
                     + (unknown == 1 ? "was" : "were") + " left out:\n" + unknownResult + ".\n";
             message += "Check lists them.";
-            JOptionPane.showMessageDialog(editorFrame, message, "Read Track", JOptionPane.WARNING_MESSAGE);
+            notices.notice("Read Track", message, false);
         }
 
-        editorFrame.getTrackData().setSegments(trackData);
-        editorFrame.getTrackData().calculateSegmentValues();
+        trackContext.getTrackData().setSegments(trackData);
+        trackContext.getTrackData().calculateSegmentValues();
 
-        for (Segment segment : editorFrame.getTrackData().getSegments())
+        for (Segment segment : trackContext.getTrackData().getSegments())
         {
             try
             {
-                segment.calcShape(editorFrame);
+                segment.calcShape(trackContext);
             }
             catch (Exception e)
             {
@@ -1420,7 +1425,7 @@ public class XmlReader
         shape.setProfilStartTangentRight(getAttrNumValue(seg, "profil start tangent right", "%"));
         shape.setProfilEndTangentRight(getAttrNumValue(seg, "profil end tangent right", "%"));
 
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+        if (trackContext.getTrackData().getHeader().getVersion() == 3)
         {
 			setSideV3(seg, left, "l", false);
 			setSideV3(seg, right, "r", false);
@@ -1453,7 +1458,7 @@ public class XmlReader
 				part.setSideStartWidth(width);
 				part.setSideEndWidth(width);
 			}
-			else if (!editorFrame.getGameType().widthSetsBothSideWidths())
+			else if (!trackContext.getGameType().widthSetsBothSideWidths())
 			{
 				// TORCS: the start width is "start width" (or else the previous end width),
 				// the end width is "end width", or else "width", or else the start width
@@ -1536,7 +1541,7 @@ public class XmlReader
         }
 
         String tmp = element.getParentElement().getAttribute("name").getValue();
-        if (editorFrame.getTrackData().getHeader().getVersion() == 3 && tmp.equals("segments"))
+        if (trackContext.getTrackData().getHeader().getVersion() == 3 && tmp.equals("segments"))
         {
             out = element.getAttribute("name").getValue();
         }
@@ -1586,8 +1591,8 @@ public class XmlReader
 	 */
 	private String unknownTypeResult()
 	{
-		GameType game = editorFrame.getGameType();
-		if (game == GameType.TORCS && editorFrame.getTrackData().getHeader().getVersion() >= 4)
+		GameType game = trackContext.getGameType();
+		if (game == GameType.TORCS && trackContext.getTrackData().getHeader().getVersion() >= 4)
 			return "TORCS stops loading the track (\"Unknown track segment type\")";
 		return game.getShortName() + " doesn't skip such a segment, but builds it with the shape of the segment before it "
 			+ "(its type, length, radius and arc)";
@@ -1687,7 +1692,7 @@ public class XmlReader
     {
         String unit = e.getAttributeValue("unit");
         List<String> unknown = new java.util.ArrayList<String>();
-		double out = GfParmNumbers.convert(value, unit, expectedUnit, editorFrame.getGameType(), unknown);
+		double out = GfParmNumbers.convert(value, unit, expectedUnit, trackContext.getGameType(), unknown);
 
         for (String u : unknown)
         {

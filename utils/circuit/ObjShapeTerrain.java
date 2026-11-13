@@ -60,20 +60,20 @@ public class ObjShapeTerrain extends Segment
 	 * line and wind backwards.</li>
 	 * </ul>
 	 */
-	public void calcShape(TrackContext editorFrame, Rectangle2D.Double boundingRectangle)
+	public void calcShape(TrackContext trackContext, Rectangle2D.Double boundingRectangle)
 	{
 		outers.clear();
 		holes.clear();
-		if (boundingRectangle == null || editorFrame.getTrackData() == null)
+		if (boundingRectangle == null || trackContext.getTrackData() == null)
 			return;
 
-		TerrainGeneration terrain = editorFrame.getTrackData().getGraphic().getTerrainGeneration();
+		TerrainGeneration terrain = trackContext.getTrackData().getGraphic().getTerrainGeneration();
 		boolean border = !"yes".equals(terrain.getReliefBorder());
 		List<Point2D.Double> hullPoints = new ArrayList<Point2D.Double>();
 		List<Point2D.Double> trackPoints = new ArrayList<Point2D.Double>();
 		if (!border)
 		{
-			for (Segment segment : editorFrame.getTrackData().getSegments())
+			for (Segment segment : trackContext.getTrackData().getSegments())
 			{
 				Point3D[] segmentPoints = segment.getPoints();
 				if (segmentPoints == null)
@@ -87,7 +87,7 @@ public class ObjShapeTerrain extends Segment
 			hullPoints.addAll(trackPoints);
 		}
 
-		Reliefs reliefs = editorFrame.getReliefs();
+		Reliefs reliefs = trackContext.getReliefs();
 		if (reliefs != null)
 		{
 			for (ObjShapeRelief relief : reliefs.getReliefs())

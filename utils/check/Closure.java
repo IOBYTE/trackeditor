@@ -72,10 +72,10 @@ public final class Closure
 	 * @return trackgen's deltas from the last Calc, Auto or Length, or null when the
 	 *         track has changed since (or is another track), so they may be out
 	 */
-	public static Closure last(TrackContext editorFrame)
+	public static Closure last(TrackContext trackContext)
 	{
 		Closure closure = last;
-		if (closure == null || editorFrame.getTrackData() == null || !closure.key.equals(key(editorFrame)))
+		if (closure == null || trackContext.getTrackData() == null || !closure.key.equals(key(trackContext)))
 			return null;
 		return closure;
 	}
@@ -84,12 +84,12 @@ public final class Closure
 	 * @return what the deltas depend on: the track's file, the main track's width (the
 	 *         deltas are between its left edges) and the segments' shapes and heights
 	 */
-	public static String key(TrackContext editorFrame)
+	public static String key(TrackContext trackContext)
 	{
 		StringBuilder key = new StringBuilder();
-		key.append(Properties.getInstance().getPath()).append('|').append(editorFrame.getGameType())
-			.append('|').append(editorFrame.getTrackData().getMainTrack().getValidWidth());
-		for (Segment segment : editorFrame.getTrackData().getSegments())
+		key.append(Properties.getInstance().getPath()).append('|').append(trackContext.getGameType())
+			.append('|').append(trackContext.getTrackData().getMainTrack().getValidWidth());
+		for (Segment segment : trackContext.getTrackData().getSegments())
 		{
 			key.append('|').append(segment.getName()).append(',').append(segment.getType());
 			if (segment instanceof Curve)

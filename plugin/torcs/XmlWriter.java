@@ -75,7 +75,7 @@ import utils.circuit.TrackObject;
  */
 public class XmlWriter
 {
-	private TrackContext	editorFrame;
+	private TrackContext	trackContext;
 	private List<String>	fileErrors		= new ArrayList<String>();
 	// false while only making the document (getDocument): the relief file and object
 	// maps aren't written then
@@ -100,9 +100,9 @@ public class XmlWriter
 		}
 	}
 
-	public XmlWriter(TrackContext editorFrame)
+	public XmlWriter(TrackContext trackContext)
 	{
-		this.editorFrame = editorFrame;
+		this.trackContext = trackContext;
 	}
 
 	public void writeXml(String fileName, String trackName) throws FileNotFoundException, IOException, SecurityException
@@ -152,7 +152,7 @@ public class XmlWriter
 	{
 		Comment com;
 		Element root = getRoot(trackName);
-		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
+		boolean torcs = trackContext.getGameType() == GameType.TORCS;
 
 		DocType type = new DocType("params", "../../../src/libs/tgf/params.dtd");
 		String entity = "<!--  general definitions for tracks  -->\n";
@@ -166,14 +166,14 @@ public class XmlWriter
 		doc.addContent(type);
 		doc.setRootElement(root);
 		// TORCS reads none of Track Lights, Local Info and Sectors
-		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
+		boolean extensions = trackContext.getGameType().hasSpeedDreamsExtensions();
 		if (extensions)
 			root.addContent(getLights());
 		root.addContent(getSurfaces());
 		root.addContent(getObjects());
 		root.addContent(getHeader());
 		// only TORCS reads it; its track manual puts it after the header
-		if (torcs && !editorFrame.getTrackData().getGeoreference().isEmpty())
+		if (torcs && !trackContext.getTrackData().getGeoreference().isEmpty())
 			root.addContent(getGeoreference());
 		if (extensions)
 			root.addContent(getLocal());
@@ -182,7 +182,7 @@ public class XmlWriter
 			root.addContent(getGrid());
 		root.addContent(getTrack());
 		// TORCS trackgen doesn't like empty cameras
-		if (!torcs || !editorFrame.getTrackData().getCameras().isEmpty())
+		if (!torcs || !trackContext.getTrackData().getCameras().isEmpty())
 			root.addContent(getCameras());
 		if (extensions)
 			root.addContent(getSectors());
@@ -245,18 +245,18 @@ public class XmlWriter
 		Element track = new Element("section");
 		Comment com = null;
 		track.setAttribute(name);
-		addContent(track, "width", "m", editorFrame.getTrackData().getMainTrack().getWidth());
-		addContent(track, "profil", editorFrame.getTrackData().getMainTrack().getProfil());
-		addContent(track, "profil steps length", "m", editorFrame.getTrackData().getMainTrack().getProfilStepsLength());
-		addContent(track, "surface", editorFrame.getTrackData().getMainTrack().getSurface());
-		addContent(track, "raceline widthscale", null, editorFrame.getTrackData().getMainTrack().getRacelineWidthscale());
-		addContent(track, "raceline int", null, editorFrame.getTrackData().getMainTrack().getRacelineInt());
-		addContent(track, "raceline ext", null, editorFrame.getTrackData().getMainTrack().getRacelineExt());
+		addContent(track, "width", "m", trackContext.getTrackData().getMainTrack().getWidth());
+		addContent(track, "profil", trackContext.getTrackData().getMainTrack().getProfil());
+		addContent(track, "profil steps length", "m", trackContext.getTrackData().getMainTrack().getProfilStepsLength());
+		addContent(track, "surface", trackContext.getTrackData().getMainTrack().getSurface());
+		addContent(track, "raceline widthscale", null, trackContext.getTrackData().getMainTrack().getRacelineWidthscale());
+		addContent(track, "raceline int", null, trackContext.getTrackData().getMainTrack().getRacelineInt());
+		addContent(track, "raceline ext", null, trackContext.getTrackData().getMainTrack().getRacelineExt());
 
 		// only the version 5 loader reads these
-		if (editorFrame.getTrackData().getHeader().getVersion() == 5)
+		if (trackContext.getTrackData().getHeader().getVersion() == 5)
 		{
-			MainTrack main = editorFrame.getTrackData().getMainTrack();
+			MainTrack main = trackContext.getTrackData().getMainTrack();
 			addContent(track, "original bearing", "deg", main.getStartBearing());
 			addContent(track, "start X", "m", main.getStartX());
 			addContent(track, "start Y", "m", main.getStartY());
@@ -269,32 +269,32 @@ public class XmlWriter
 			addContent(track, "extent Z", "m", main.getExtentZ());
 		}
 
-		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+		if (trackContext.getTrackData().getHeader().getVersion() == 3)
 		{
-			getSideV3(track, editorFrame.getTrackData().getMainTrack().getLeft(), "l", true);
-			getSideV3(track, editorFrame.getTrackData().getMainTrack().getRight(), "r", true);
+			getSideV3(track, trackContext.getTrackData().getMainTrack().getLeft(), "l", true);
+			getSideV3(track, trackContext.getTrackData().getMainTrack().getRight(), "r", true);
 			getPitsV3(track);
 		}
 		else
 		{
 			com = new Comment("Left part of track");
 			track.addContent(com);
-			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasSide())
-				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getLeft(), "Left", true));
-			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasBorder())
-				track.addContent(getBorder(editorFrame.getTrackData().getMainTrack().getLeft(), "Left"));
-			if (editorFrame.getTrackData().getMainTrack().getLeft().getHasBarrier())
-				track.addContent(getBarrier(editorFrame.getTrackData().getMainTrack().getLeft(), "Left"));
+			if (trackContext.getTrackData().getMainTrack().getLeft().getHasSide())
+				track.addContent(getSide(trackContext.getTrackData().getMainTrack().getLeft(), "Left", true));
+			if (trackContext.getTrackData().getMainTrack().getLeft().getHasBorder())
+				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getLeft(), "Left"));
+			if (trackContext.getTrackData().getMainTrack().getLeft().getHasBarrier())
+				track.addContent(getBarrier(trackContext.getTrackData().getMainTrack().getLeft(), "Left"));
 			com = new Comment("End of left part");
 			track.addContent(com);
 			com = new Comment("Right part of track");
 			track.addContent(com);
-			if (editorFrame.getTrackData().getMainTrack().getRight().getHasSide())
-				track.addContent(getSide(editorFrame.getTrackData().getMainTrack().getRight(), "Right", true));
-			if (editorFrame.getTrackData().getMainTrack().getRight().getHasBorder())
-				track.addContent(getBorder(editorFrame.getTrackData().getMainTrack().getRight(), "Right"));
-			if (editorFrame.getTrackData().getMainTrack().getRight().getHasBarrier())
-				track.addContent(getBarrier(editorFrame.getTrackData().getMainTrack().getRight(), "Right"));
+			if (trackContext.getTrackData().getMainTrack().getRight().getHasSide())
+				track.addContent(getSide(trackContext.getTrackData().getMainTrack().getRight(), "Right", true));
+			if (trackContext.getTrackData().getMainTrack().getRight().getHasBorder())
+				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getRight(), "Right"));
+			if (trackContext.getTrackData().getMainTrack().getRight().getHasBarrier())
+				track.addContent(getBarrier(trackContext.getTrackData().getMainTrack().getRight(), "Right"));
 			com = new Comment("End of right part");
 			track.addContent(com);
 			track.addContent(getPits());
@@ -313,28 +313,28 @@ public class XmlWriter
 		pits.setAttribute(new Attribute("name", "Pits"));
 
 		// TORCS only has track side pits, without buildings, max pits or an indicator
-		boolean options = editorFrame.getGameType().hasPitOptions();
+		boolean options = trackContext.getGameType().hasPitOptions();
 		if (options)
-			addContent(pits, "pit style", null, editorFrame.getPits().getStyle());
-		else if (editorFrame.getPits().getStyle() == 1)
+			addContent(pits, "pit style", null, trackContext.getPits().getStyle());
+		else if (trackContext.getPits().getStyle() == 1)
 			// TORCS track files name the pit type, though the game doesn't read it
 			addContent(pits, "type", "track side");
-		addContent(pits, "side", editorFrame.getPits().getSide());
-		addContent(pits, "entry", editorFrame.getPits().getEntry());
-		addContent(pits, "start", editorFrame.getPits().getStart());
+		addContent(pits, "side", trackContext.getPits().getSide());
+		addContent(pits, "entry", trackContext.getPits().getEntry());
+		addContent(pits, "start", trackContext.getPits().getStart());
 		if (options)
 		{
-			addContent(pits, "start buildings", editorFrame.getPits().getStartBuildings());
-			addContent(pits, "stop buildings", editorFrame.getPits().getStopBuildings());
-			addContent(pits, "max pits", null, editorFrame.getPits().getMaxPits());
+			addContent(pits, "start buildings", trackContext.getPits().getStartBuildings());
+			addContent(pits, "stop buildings", trackContext.getPits().getStopBuildings());
+			addContent(pits, "max pits", null, trackContext.getPits().getMaxPits());
 		}
-		addContent(pits, "end", editorFrame.getPits().getEnd());
-		addContent(pits, "exit", editorFrame.getPits().getExit());
-		addContent(pits, "length", "m", editorFrame.getPits().getLength());
-		addContent(pits, "width", "m", editorFrame.getPits().getWidth());
+		addContent(pits, "end", trackContext.getPits().getEnd());
+		addContent(pits, "exit", trackContext.getPits().getExit());
+		addContent(pits, "length", "m", trackContext.getPits().getLength());
+		addContent(pits, "width", "m", trackContext.getPits().getWidth());
 		if (options)
-			addContent(pits, "pit indicator", null, editorFrame.getPits().getIndicator());
-		addContent(pits, "speed limit", editorFrame.getPits().getSpeedLimit());
+			addContent(pits, "pit indicator", null, trackContext.getPits().getIndicator());
+		addContent(pits, "speed limit", trackContext.getPits().getSpeedLimit());
 
 		return pits;
 	}
@@ -344,31 +344,31 @@ public class XmlWriter
 	 */
 	private synchronized void getPitsV3(Element pits)
 	{
-		if (editorFrame.getPits().getStyle() == 0)
+		if (trackContext.getPits().getStyle() == 0)
 		{
 			addContent(pits, "pit type", "no pit");
 		}
-		else if (editorFrame.getPits().getStyle() == 1)
+		else if (trackContext.getPits().getStyle() == 1)
 		{
 			addContent(pits, "pit type", "track side");
 		}
-		else if (editorFrame.getPits().getStyle() == 2)
+		else if (trackContext.getPits().getStyle() == 2)
 		{
 			// the games' spelling (TRK_VAL_PIT_TYPE_SEP_PATH)
 			addContent(pits, "pit type", "seperate path");
 		}
 
-		addContent(pits, "pit side", editorFrame.getPits().getSide());
-		addContent(pits, "pit entry", editorFrame.getPits().getEntry());
-		addContent(pits, "pit start", editorFrame.getPits().getStart());
-		addContent(pits, "start buildings", editorFrame.getPits().getStartBuildings());
-		addContent(pits, "stop buildings", editorFrame.getPits().getStopBuildings());
-		addContent(pits, "max pits", null, editorFrame.getPits().getMaxPits());
-		addContent(pits, "pit end", editorFrame.getPits().getEnd());
-		addContent(pits, "pit exit", editorFrame.getPits().getExit());
-		addContent(pits, "pit length", "m", editorFrame.getPits().getLength());
-		addContent(pits, "pit width", "m", editorFrame.getPits().getWidth());
-		addContent(pits, "speed limit", editorFrame.getPits().getSpeedLimit());
+		addContent(pits, "pit side", trackContext.getPits().getSide());
+		addContent(pits, "pit entry", trackContext.getPits().getEntry());
+		addContent(pits, "pit start", trackContext.getPits().getStart());
+		addContent(pits, "start buildings", trackContext.getPits().getStartBuildings());
+		addContent(pits, "stop buildings", trackContext.getPits().getStopBuildings());
+		addContent(pits, "max pits", null, trackContext.getPits().getMaxPits());
+		addContent(pits, "pit end", trackContext.getPits().getEnd());
+		addContent(pits, "pit exit", trackContext.getPits().getExit());
+		addContent(pits, "pit length", "m", trackContext.getPits().getLength());
+		addContent(pits, "pit width", "m", trackContext.getPits().getWidth());
+		addContent(pits, "speed limit", trackContext.getPits().getSpeedLimit());
 	}
 
 	/**
@@ -376,10 +376,10 @@ public class XmlWriter
 	 */
 	private synchronized Element getSegments()
 	{
-		SegmentVector segments = editorFrame.getTrackData().getSegments();
+		SegmentVector segments = trackContext.getTrackData().getSegments();
 		Segment prev = null;
 		Attribute name = null;
-		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+		if (trackContext.getTrackData().getHeader().getVersion() == 3)
 			name = new Attribute("name", "segments");
 		else
 			name = new Attribute("name", "Track Segments");
@@ -459,14 +459,14 @@ public class XmlWriter
 		addContent(segment, "profil start tangent right", "%", shape.getProfilStartTangentRight());
 		addContent(segment, "profil end tangent right", "%", shape.getProfilEndTangentRight());
 		addContent(segment, "surface", shape.getSurface());
-		if (editorFrame.getGameType().hasSegmentPenalty())
+		if (trackContext.getGameType().hasSegmentPenalty())
 			addContent(segment, "penalty", null, shape.getPenalty());
 		addContent(segment, "env map index", null, shape.getEnvMapIndex());
 		// the version 3 loaders don't read it
-		if (editorFrame.getGameType().hasSpeedDreamsExtensions() && editorFrame.getTrackData().getHeader().getVersion() != 3)
+		if (trackContext.getGameType().hasSpeedDreamsExtensions() && trackContext.getTrackData().getHeader().getVersion() != 3)
 			addContent(segment, "DoV factor", null, shape.getDovFactor());
 
-		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+		if (trackContext.getTrackData().getHeader().getVersion() == 3)
 		{
 			getSideV3(segment, shape.getLeft(), "l", false);
 			getSideV3(segment, shape.getRight(), "r", false);
@@ -587,7 +587,7 @@ public class XmlWriter
 			// the games read only "width" for the Main Track: the segments start from it
 			addContent(side, "width", "m", part.getMainTrackSideWidth());
 		}
-		else if (!editorFrame.getGameType().widthSetsBothSideWidths())
+		else if (!trackContext.getGameType().widthSetsBothSideWidths())
 		{
 			// TORCS reads "width" as the end width only, so equal widths can't become "width"
 			addContent(side, "start width", "m", part.getSideStartWidth());
@@ -618,17 +618,17 @@ public class XmlWriter
 		surfaces.setAttribute(new Attribute("name", "Surfaces"));
 		Element root = surfaces;
 
-		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+		if (trackContext.getTrackData().getHeader().getVersion() == 3)
 		{
 			surfaces = new Element("section");
 			surfaces.setAttribute(new Attribute("name", "List"));
 			root.addContent(surfaces);
 		}
 
-		if (editorFrame.getTrackData().getHasSurfacesReference())
+		if (trackContext.getTrackData().getHasSurfacesReference())
 			surfaces.addContent(new EntityRef("default-surfaces"));
 
-		Vector<Surface> surfaceData = editorFrame.getTrackData().getSurfaces();
+		Vector<Surface> surfaceData = trackContext.getTrackData().getSurfaces();
 
 		if (surfaceData == null)
 			return surfaces;
@@ -650,7 +650,7 @@ public class XmlWriter
 			addContent(el, "texture name", surface.getTextureName());
 			addContent(el, "texture type", surface.getTextureType());
 			addContent(el, "texture size", "m", surface.getTextureSize());
-			if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+			if (trackContext.getGameType().hasTorcsTrackgenKeys())
 				addContent(el, "texture size v", "m", surface.getTextureSizeV());
 			addContent(el, "texture randomness", "m", surface.getTextureRandomness());
 			addContent(el, "texture link with previous", surface.getTextureLinkWithPrevious());
@@ -678,12 +678,12 @@ public class XmlWriter
 		cameras.setAttribute(new Attribute("name", "Cameras"));
 		Element root = cameras;
 
-		Vector<Camera> cameraData = editorFrame.getTrackData().getCameras();
+		Vector<Camera> cameraData = trackContext.getTrackData().getCameras();
 
 		if (cameraData == null)
 			return cameras;
 
-		if (editorFrame.getTrackData().getHeader().getVersion() == 3)
+		if (trackContext.getTrackData().getHeader().getVersion() == 3)
 		{
 			cameras = new Element("section");
 			cameras.setAttribute(new Attribute("name", "list"));
@@ -701,7 +701,7 @@ public class XmlWriter
 			addContent(el, "segment", camera.getSegment());
 			addContent(el, "to right", null, camera.getToRight());
 			// units can be meters for straights or degrees for curves
-			Segment segment = editorFrame.getSegment(camera.getSegment());
+			Segment segment = trackContext.getSegment(camera.getSegment());
 			if (camera.isToStartUnitsKnown())
 			{
 				// keep the unit the track file used: Speed Dreams converts deg to rad,
@@ -731,7 +731,7 @@ public class XmlWriter
 		Element lights = new Element("section");
 		lights.setAttribute(new Attribute("name", "Track Lights"));
 
-		Vector<TrackLight> lightData = editorFrame.getTrackData().getTrackLights();
+		Vector<TrackLight> lightData = trackContext.getTrackData().getTrackLights();
 
 		if (lightData == null)
 			return lights;
@@ -792,7 +792,7 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Georeference"));
 
-		Georeference data = editorFrame.getTrackData().getGeoreference();
+		Georeference data = trackContext.getTrackData().getGeoreference();
 
 		// TORCS keeps them as floats (good to about a meter), but the file keeps every
 		// digit given, for other tools and for a game that reads them more precisely
@@ -809,7 +809,7 @@ public class XmlWriter
 		Element sectors = new Element("section");
 		sectors.setAttribute(new Attribute("name", "Sectors"));
 
-		Vector<Sector> sectorData = editorFrame.getTrackData().getSectors();
+		Vector<Sector> sectorData = trackContext.getTrackData().getSectors();
 
 		if (sectorData == null)
 			return sectors;
@@ -833,10 +833,10 @@ public class XmlWriter
 	{
 		Element objects = new Element("section");
 		objects.setAttribute(new Attribute("name", "Objects"));
-		if (editorFrame.getTrackData().getHasObjectsReference())
+		if (trackContext.getTrackData().getHasObjectsReference())
 			objects.addContent(new EntityRef("default-objects"));
 
-		Vector<TrackObject> objectData = editorFrame.getTrackData().getObjects();
+		Vector<TrackObject> objectData = trackContext.getTrackData().getObjects();
 
 		if (objectData == null)
 			return objects;
@@ -853,7 +853,7 @@ public class XmlWriter
 			addHexContent(el, "color", null, object.getColor());
 			addContent(el, "orientation type", object.getOrientationType());
 			// TORCS trackgen reads neither the border distance nor the scale settings
-			boolean speedDreams = editorFrame.getGameType().hasSpeedDreamsTrackgenKeys();
+			boolean speedDreams = trackContext.getGameType().hasSpeedDreamsTrackgenKeys();
 			if (speedDreams)
 				addContent(el, "border distance", "m", object.getBorderDistance());
 			addContent(el, "orientation", "deg", object.getOrientation());
@@ -866,7 +866,7 @@ public class XmlWriter
 				addContent(el, "scale min", null, object.getScaleMin());
 				addContent(el, "scale max", null, object.getScaleMax());
 			}
-			if (editorFrame.getGameType().hasUseMaterial())
+			if (trackContext.getGameType().hasUseMaterial())
 				addContent(el, "use material", object.getUseMaterial());
 
 			objects.addContent(el);
@@ -881,7 +881,7 @@ public class XmlWriter
 	 */
 	private String barrierStyle(String style)
 	{
-		if (!editorFrame.getGameType().hasFence1Fence2() && style != null && (style.equals("fence1") || style.equals("fence2")))
+		if (!trackContext.getGameType().hasFence1Fence2() && style != null && (style.equals("fence1") || style.equals("fence2")))
 			return "fence";
 
 		return style;
@@ -922,51 +922,51 @@ public class XmlWriter
 		header.setAttribute(name);
 
 		// TORCS reads none of subcategory, copyright and email; only CSR has a short name
-		boolean extensions = editorFrame.getGameType().hasSpeedDreamsExtensions();
-		addContent(header, "name", editorFrame.getTrackData().getHeader().getName());
-		if (editorFrame.getGameType().hasShortName())
-			addContent(header, "short name", editorFrame.getTrackData().getHeader().getShortName());
+		boolean extensions = trackContext.getGameType().hasSpeedDreamsExtensions();
+		addContent(header, "name", trackContext.getTrackData().getHeader().getName());
+		if (trackContext.getGameType().hasShortName())
+			addContent(header, "short name", trackContext.getTrackData().getHeader().getShortName());
 
-		if (editorFrame.getTrackData().getHeader().getCategory() != null)
+		if (trackContext.getTrackData().getHeader().getCategory() != null)
 		{
-			tmp = editorFrame.getTrackData().getHeader().getCategory();
+			tmp = trackContext.getTrackData().getHeader().getCategory();
 		} else
 		{
 			tmp = "road";
 		}
 		addContent(header, "category", tmp);
 		if (extensions)
-			addContent(header, "subcategory", editorFrame.getTrackData().getHeader().getSubcategory());
-		if (editorFrame.getGameType().hasCarCategory())
-			addContent(header, "car category", editorFrame.getTrackData().getHeader().getCarCategory());
-		if (editorFrame.getGameType().hasDisabledPenalties())
-			addContent(header, "disabled penalties", editorFrame.getTrackData().getHeader().getDisabledPenalties());
-		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
+			addContent(header, "subcategory", trackContext.getTrackData().getHeader().getSubcategory());
+		if (trackContext.getGameType().hasCarCategory())
+			addContent(header, "car category", trackContext.getTrackData().getHeader().getCarCategory());
+		if (trackContext.getGameType().hasDisabledPenalties())
+			addContent(header, "disabled penalties", trackContext.getTrackData().getHeader().getDisabledPenalties());
+		addContent(header, "version", null, trackContext.getTrackData().getHeader().getVersion());
 
-		if (editorFrame.getTrackData().getHeader().getAuthor() != null)
+		if (trackContext.getTrackData().getHeader().getAuthor() != null)
 		{
-			tmp = editorFrame.getTrackData().getHeader().getAuthor();
+			tmp = trackContext.getTrackData().getHeader().getAuthor();
 		} else
 		{
 			tmp = "Anonymous";
 		}
 		addContent(header, "author", tmp);
 
-		if (extensions && editorFrame.getTrackData().getHeader().getCopyright() != null)
+		if (extensions && trackContext.getTrackData().getHeader().getCopyright() != null)
 		{
-			tmp = editorFrame.getTrackData().getHeader().getCopyright();
+			tmp = trackContext.getTrackData().getHeader().getCopyright();
 			addContent(header, "copyright", tmp);
 		}
 
-		if (extensions && editorFrame.getTrackData().getHeader().getEmail() != null)
+		if (extensions && trackContext.getTrackData().getHeader().getEmail() != null)
 		{
-			tmp = editorFrame.getTrackData().getHeader().getEmail();
+			tmp = trackContext.getTrackData().getHeader().getEmail();
 			addContent(header, "email", tmp);
 		}
 
-		if (editorFrame.getTrackData().getHeader().getDescription() != null)
+		if (trackContext.getTrackData().getHeader().getDescription() != null)
 		{
-			tmp = editorFrame.getTrackData().getHeader().getDescription();
+			tmp = trackContext.getTrackData().getHeader().getDescription();
 		} else
 		{
 			tmp = "No description provided";
@@ -984,19 +984,19 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Local Info"));
 
-		addContent(element, "station", editorFrame.getTrackData().getLocalInfo().getStation());
-		addContent(element, "timezone", null, editorFrame.getTrackData().getLocalInfo().getTimezone());
-		addContent(element, "time of day", "hour", editorFrame.getTrackData().getLocalInfo().getTimeOfDay());
-		addContent(element, "sun ascension", "deg", editorFrame.getTrackData().getLocalInfo().getSunAscension());
-		addContent(element, "altitude", "m", editorFrame.getTrackData().getLocalInfo().getAltitude());
+		addContent(element, "station", trackContext.getTrackData().getLocalInfo().getStation());
+		addContent(element, "timezone", null, trackContext.getTrackData().getLocalInfo().getTimezone());
+		addContent(element, "time of day", "hour", trackContext.getTrackData().getLocalInfo().getTimeOfDay());
+		addContent(element, "sun ascension", "deg", trackContext.getTrackData().getLocalInfo().getSunAscension());
+		addContent(element, "altitude", "m", trackContext.getTrackData().getLocalInfo().getAltitude());
 		// Speed Dreams reads latitude/longitude without a unit and expects plain degrees,
 		// so only write a unit if the track file had one
-		addContent(element, "latitude", editorFrame.getTrackData().getLocalInfo().getLatitudeUnits(), editorFrame.getTrackData().getLocalInfo().getLatitude());
-		addContent(element, "longitude", editorFrame.getTrackData().getLocalInfo().getLongitudeUnits(), editorFrame.getTrackData().getLocalInfo().getLongitude());
-		addContent(element, "climat", null, editorFrame.getTrackData().getLocalInfo().getClimat());
-		addContent(element, "precipitation", null, editorFrame.getTrackData().getLocalInfo().getPrecipitation());
-		if (editorFrame.getGameType().hasBestLap())
-			addContent(element, "best lap", null, editorFrame.getTrackData().getLocalInfo().getBestLap());
+		addContent(element, "latitude", trackContext.getTrackData().getLocalInfo().getLatitudeUnits(), trackContext.getTrackData().getLocalInfo().getLatitude());
+		addContent(element, "longitude", trackContext.getTrackData().getLocalInfo().getLongitudeUnits(), trackContext.getTrackData().getLocalInfo().getLongitude());
+		addContent(element, "climat", null, trackContext.getTrackData().getLocalInfo().getClimat());
+		addContent(element, "precipitation", null, trackContext.getTrackData().getLocalInfo().getPrecipitation());
+		if (trackContext.getGameType().hasBestLap())
+			addContent(element, "best lap", null, trackContext.getTrackData().getLocalInfo().getBestLap());
 
 		return element;
 	}
@@ -1004,15 +1004,15 @@ public class XmlWriter
 	private synchronized Element getGrid()
 	{
 		Element element = new Element("section");
-		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
-		if (!torcs || !editorFrame.getTrackData().getStartingGrid().isEmpty())
+		boolean torcs = trackContext.getGameType() == GameType.TORCS;
+		if (!torcs || !trackContext.getTrackData().getStartingGrid().isEmpty())
 			element.setAttribute(new Attribute("name", "Starting Grid"));
-		addContent(element, "rows", null, editorFrame.getTrackData().getStartingGrid().getRows());
-		addContent(element, "pole position side", editorFrame.getTrackData().getStartingGrid().getPolePositionSide());
-		addContent(element, "distance to start", "m", editorFrame.getTrackData().getStartingGrid().getDistanceToStart());
-		addContent(element, "distance between columns", "m", editorFrame.getTrackData().getStartingGrid().getDistanceBetweenColumns());
-		addContent(element, "offset within a column", "m", editorFrame.getTrackData().getStartingGrid().getOffsetWithinAColumn());
-		addContent(element, "initial height", "m", editorFrame.getTrackData().getStartingGrid().getInitialHeight());
+		addContent(element, "rows", null, trackContext.getTrackData().getStartingGrid().getRows());
+		addContent(element, "pole position side", trackContext.getTrackData().getStartingGrid().getPolePositionSide());
+		addContent(element, "distance to start", "m", trackContext.getTrackData().getStartingGrid().getDistanceToStart());
+		addContent(element, "distance between columns", "m", trackContext.getTrackData().getStartingGrid().getDistanceBetweenColumns());
+		addContent(element, "offset within a column", "m", trackContext.getTrackData().getStartingGrid().getOffsetWithinAColumn());
+		addContent(element, "initial height", "m", trackContext.getTrackData().getStartingGrid().getInitialHeight());
 
 		return element;
 	}
@@ -1029,63 +1029,63 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Graphic"));
 
-		if (editorFrame.getTrackData().getGraphic().getDescription() == null)
+		if (trackContext.getTrackData().getGraphic().getDescription() == null)
 			addContent(element, "3d description", trackname + ".ac");
 		else
-			addContent(element, "3d description", editorFrame.getTrackData().getGraphic().getDescription());
+			addContent(element, "3d description", trackContext.getTrackData().getGraphic().getDescription());
 
 		// the per-type 3d object files are only used by CSR
-		if (editorFrame.getGameType().hasTypeObjectFiles())
+		if (trackContext.getGameType().hasTypeObjectFiles())
 		{
-			addContent(element, "3d separate objects", editorFrame.getTrackData().getGraphic().getSeparateObjects());
-			addContent(element, "3d terrain", editorFrame.getTrackData().getGraphic().getTerrainObjects());
-			addContent(element, "3d road", editorFrame.getTrackData().getGraphic().getRoadObjects());
-			addContent(element, "3d road2", editorFrame.getTrackData().getGraphic().getRoad2Objects());
-			addContent(element, "3d trees", editorFrame.getTrackData().getGraphic().getTreesObjects());
-			addContent(element, "3d building", editorFrame.getTrackData().getGraphic().getBuildingObjects());
-			addContent(element, "3d house", editorFrame.getTrackData().getGraphic().getHouseObjects());
-			addContent(element, "3d cars", editorFrame.getTrackData().getGraphic().getCarsObjects());
-			addContent(element, "3d truck", editorFrame.getTrackData().getGraphic().getTruckObjects());
-			addContent(element, "3d tribunes", editorFrame.getTrackData().getGraphic().getTribunesObjects());
-			addContent(element, "3d pub", editorFrame.getTrackData().getGraphic().getPubObjects());
-			addContent(element, "3d decors", editorFrame.getTrackData().getGraphic().getDecorsObjects());
-			addContent(element, "3d water", editorFrame.getTrackData().getGraphic().getWaterObjects());
-			addContent(element, "3d grass", editorFrame.getTrackData().getGraphic().getGrassObjects());
-			addContent(element, "3d sand", editorFrame.getTrackData().getGraphic().getSandObjects());
-			addContent(element, "3d rock", editorFrame.getTrackData().getGraphic().getRockObjects());
-			addContent(element, "3d curb", editorFrame.getTrackData().getGraphic().getCurbObjects());
-			addContent(element, "3d fence", editorFrame.getTrackData().getGraphic().getFenceObjects());
-			addContent(element, "3d barrier", editorFrame.getTrackData().getGraphic().getBarrierObjects());
-			addContent(element, "3d wall", editorFrame.getTrackData().getGraphic().getWallObjects());
-			addContent(element, "3d environment", editorFrame.getTrackData().getGraphic().getEnvironmentObjects());
+			addContent(element, "3d separate objects", trackContext.getTrackData().getGraphic().getSeparateObjects());
+			addContent(element, "3d terrain", trackContext.getTrackData().getGraphic().getTerrainObjects());
+			addContent(element, "3d road", trackContext.getTrackData().getGraphic().getRoadObjects());
+			addContent(element, "3d road2", trackContext.getTrackData().getGraphic().getRoad2Objects());
+			addContent(element, "3d trees", trackContext.getTrackData().getGraphic().getTreesObjects());
+			addContent(element, "3d building", trackContext.getTrackData().getGraphic().getBuildingObjects());
+			addContent(element, "3d house", trackContext.getTrackData().getGraphic().getHouseObjects());
+			addContent(element, "3d cars", trackContext.getTrackData().getGraphic().getCarsObjects());
+			addContent(element, "3d truck", trackContext.getTrackData().getGraphic().getTruckObjects());
+			addContent(element, "3d tribunes", trackContext.getTrackData().getGraphic().getTribunesObjects());
+			addContent(element, "3d pub", trackContext.getTrackData().getGraphic().getPubObjects());
+			addContent(element, "3d decors", trackContext.getTrackData().getGraphic().getDecorsObjects());
+			addContent(element, "3d water", trackContext.getTrackData().getGraphic().getWaterObjects());
+			addContent(element, "3d grass", trackContext.getTrackData().getGraphic().getGrassObjects());
+			addContent(element, "3d sand", trackContext.getTrackData().getGraphic().getSandObjects());
+			addContent(element, "3d rock", trackContext.getTrackData().getGraphic().getRockObjects());
+			addContent(element, "3d curb", trackContext.getTrackData().getGraphic().getCurbObjects());
+			addContent(element, "3d fence", trackContext.getTrackData().getGraphic().getFenceObjects());
+			addContent(element, "3d barrier", trackContext.getTrackData().getGraphic().getBarrierObjects());
+			addContent(element, "3d wall", trackContext.getTrackData().getGraphic().getWallObjects());
+			addContent(element, "3d environment", trackContext.getTrackData().getGraphic().getEnvironmentObjects());
 		}
 
-		addContent(element, "background image", editorFrame.getTrackData().getGraphic().getBackgroundImage());
-		addContent(element, "background type", null, editorFrame.getTrackData().getGraphic().getBackgroundType());
-		addContent(element, "background color R", null, editorFrame.getTrackData().getGraphic().getBackgroundColorR());
-		addContent(element, "background color G", null, editorFrame.getTrackData().getGraphic().getBackgroundColorG());
-		addContent(element, "background color B", null, editorFrame.getTrackData().getGraphic().getBackgroundColorB());
-		addContent(element, "ambient color R", null, editorFrame.getTrackData().getGraphic().getAmbientColorR());
-		addContent(element, "ambient color G", null, editorFrame.getTrackData().getGraphic().getAmbientColorG());
-		addContent(element, "ambient color B", null, editorFrame.getTrackData().getGraphic().getAmbientColorB());
-		addContent(element, "diffuse color R", null, editorFrame.getTrackData().getGraphic().getDiffuseColorR());
-		addContent(element, "diffuse color G", null, editorFrame.getTrackData().getGraphic().getDiffuseColorG());
-		addContent(element, "diffuse color B", null, editorFrame.getTrackData().getGraphic().getDiffuseColorB());
-		addContent(element, "specular color R", null, editorFrame.getTrackData().getGraphic().getSpecularColorR());
-		addContent(element, "specular color G", null, editorFrame.getTrackData().getGraphic().getSpecularColorG());
-		addContent(element, "specular color B", null, editorFrame.getTrackData().getGraphic().getSpecularColorB());
-		addContent(element, "light position x", "m", editorFrame.getTrackData().getGraphic().getLightPositionX());
-		addContent(element, "light position y", "m", editorFrame.getTrackData().getGraphic().getLightPositionY());
-		addContent(element, "light position z", "m", editorFrame.getTrackData().getGraphic().getLightPositionZ());
-		addContent(element, "shininess", null, editorFrame.getTrackData().getGraphic().getShininess());
-		addContent(element, "fov factor", null, editorFrame.getTrackData().getGraphic().getFovFactor());
+		addContent(element, "background image", trackContext.getTrackData().getGraphic().getBackgroundImage());
+		addContent(element, "background type", null, trackContext.getTrackData().getGraphic().getBackgroundType());
+		addContent(element, "background color R", null, trackContext.getTrackData().getGraphic().getBackgroundColorR());
+		addContent(element, "background color G", null, trackContext.getTrackData().getGraphic().getBackgroundColorG());
+		addContent(element, "background color B", null, trackContext.getTrackData().getGraphic().getBackgroundColorB());
+		addContent(element, "ambient color R", null, trackContext.getTrackData().getGraphic().getAmbientColorR());
+		addContent(element, "ambient color G", null, trackContext.getTrackData().getGraphic().getAmbientColorG());
+		addContent(element, "ambient color B", null, trackContext.getTrackData().getGraphic().getAmbientColorB());
+		addContent(element, "diffuse color R", null, trackContext.getTrackData().getGraphic().getDiffuseColorR());
+		addContent(element, "diffuse color G", null, trackContext.getTrackData().getGraphic().getDiffuseColorG());
+		addContent(element, "diffuse color B", null, trackContext.getTrackData().getGraphic().getDiffuseColorB());
+		addContent(element, "specular color R", null, trackContext.getTrackData().getGraphic().getSpecularColorR());
+		addContent(element, "specular color G", null, trackContext.getTrackData().getGraphic().getSpecularColorG());
+		addContent(element, "specular color B", null, trackContext.getTrackData().getGraphic().getSpecularColorB());
+		addContent(element, "light position x", "m", trackContext.getTrackData().getGraphic().getLightPositionX());
+		addContent(element, "light position y", "m", trackContext.getTrackData().getGraphic().getLightPositionY());
+		addContent(element, "light position z", "m", trackContext.getTrackData().getGraphic().getLightPositionZ());
+		addContent(element, "shininess", null, trackContext.getTrackData().getGraphic().getShininess());
+		addContent(element, "fov factor", null, trackContext.getTrackData().getGraphic().getFovFactor());
 
 		// TORCS tracks leave the section out when it has nothing to say: no values,
 		// or only the values the game uses anyway
-		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
+		boolean torcs = trackContext.getGameType() == GameType.TORCS;
 		if (!torcs ||
-			(!editorFrame.getTrackData().getGraphic().getTurnMarks().isEmpty() &&
-			 !editorFrame.getTrackData().getGraphic().getTurnMarks().isDefault()))
+			(!trackContext.getTrackData().getGraphic().getTurnMarks().isEmpty() &&
+			 !trackContext.getTrackData().getGraphic().getTurnMarks().isDefault()))
 			element.addContent(getTurnMarks());
 		element.addContent(getTerrainGeneration());
 		element.addContent(getEnvironmentMapping());
@@ -1098,10 +1098,10 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Turn Marks"));
 
-		addContent(element, "width", "m", editorFrame.getTrackData().getGraphic().getTurnMarks().getWidth());
-		addContent(element, "height", "m", editorFrame.getTrackData().getGraphic().getTurnMarks().getHeight());
-		addContent(element, "vertical space", "m", editorFrame.getTrackData().getGraphic().getTurnMarks().getVerticalSpace());
-		addContent(element, "horizontal space", "m", editorFrame.getTrackData().getGraphic().getTurnMarks().getHorizontalSpace());
+		addContent(element, "width", "m", trackContext.getTrackData().getGraphic().getTurnMarks().getWidth());
+		addContent(element, "height", "m", trackContext.getTrackData().getGraphic().getTurnMarks().getHeight());
+		addContent(element, "vertical space", "m", trackContext.getTrackData().getGraphic().getTurnMarks().getVerticalSpace());
+		addContent(element, "horizontal space", "m", trackContext.getTrackData().getGraphic().getTurnMarks().getHorizontalSpace());
 
 		return element;
 	}
@@ -1111,67 +1111,67 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Terrain Generation"));
 
-		addContent(element, "track step", "m", editorFrame.getTerrainGeneration().getTrackStep());
-		addContent(element, "border margin", "m", editorFrame.getTerrainGeneration().getBorderMargin());
-		addContent(element, "border step", "m", editorFrame.getTerrainGeneration().getBorderStep());
-		boolean torcs = editorFrame.getGameType().hasTorcsTrackgenKeys();
+		addContent(element, "track step", "m", trackContext.getTerrainGeneration().getTrackStep());
+		addContent(element, "border margin", "m", trackContext.getTerrainGeneration().getBorderMargin());
+		addContent(element, "border step", "m", trackContext.getTerrainGeneration().getBorderStep());
+		boolean torcs = trackContext.getGameType().hasTorcsTrackgenKeys();
 		if (torcs)
-			addContent(element, "terrain transition", "m", editorFrame.getTerrainGeneration().getTerrainTransition());
-		addContent(element, "border height", "m", editorFrame.getTerrainGeneration().getBorderHeight());
-		addContent(element, "orientation", editorFrame.getTerrainGeneration().getOrientation());
-		addContent(element, "maximum altitude", "m", editorFrame.getTerrainGeneration().getMaximumAltitude());
-		addContent(element, "minimum altitude", "m", editorFrame.getTerrainGeneration().getMinimumAltitude());
-		addContent(element, "group size", "m", editorFrame.getTerrainGeneration().getGroupSize());
-		addContent(element, "elevation map", editorFrame.getTerrainGeneration().getElevationMap());
+			addContent(element, "terrain transition", "m", trackContext.getTerrainGeneration().getTerrainTransition());
+		addContent(element, "border height", "m", trackContext.getTerrainGeneration().getBorderHeight());
+		addContent(element, "orientation", trackContext.getTerrainGeneration().getOrientation());
+		addContent(element, "maximum altitude", "m", trackContext.getTerrainGeneration().getMaximumAltitude());
+		addContent(element, "minimum altitude", "m", trackContext.getTerrainGeneration().getMinimumAltitude());
+		addContent(element, "group size", "m", trackContext.getTerrainGeneration().getGroupSize());
+		addContent(element, "elevation map", trackContext.getTerrainGeneration().getElevationMap());
 		// Add Relief names the file; reliefs left without one (the name was
 		// cleared) still go to <track folder>-relief.ac
-		if (!editorFrame.getReliefs().getReliefs().isEmpty() &&
-			(editorFrame.getTerrainGeneration().getReliefFile() == null || editorFrame.getTerrainGeneration().getReliefFile().isEmpty()))
+		if (!trackContext.getReliefs().getReliefs().isEmpty() &&
+			(trackContext.getTerrainGeneration().getReliefFile() == null || trackContext.getTerrainGeneration().getReliefFile().isEmpty()))
 		{
 			String fileName = Reliefs.newFileName();
 			if (fileName != null)
-				editorFrame.getReliefs().setNewFileName(fileName);
+				trackContext.getReliefs().setNewFileName(fileName);
 		}
 
-		addContent(element, "relief file", editorFrame.getTerrainGeneration().getReliefFile());
+		addContent(element, "relief file", trackContext.getTerrainGeneration().getReliefFile());
 
-		if (writeFiles && editorFrame.getReliefs().getChanged())
+		if (writeFiles && trackContext.getReliefs().getChanged())
 		{
 			try
 			{
-				editorFrame.getReliefs().writeFile();
+				trackContext.getReliefs().writeFile();
 			}
 			catch (Exception ex)
 			{
-				addFileError("Relief file", editorFrame.getTerrainGeneration().getReliefFile(), ex);
+				addFileError("Relief file", trackContext.getTerrainGeneration().getReliefFile(), ex);
 			}
 		}
 
-		addContent(element, "relief border", editorFrame.getTerrainGeneration().getReliefBorder());
-		addContent(element, "surface", editorFrame.getTerrainGeneration().getSurface());
-		addContent(element, "random seed", null, editorFrame.getTerrainGeneration().getRandomSeed());
-		if (editorFrame.getGameType().hasSpeedDreamsTrackgenKeys())
-			addContent(element, "use object materials", editorFrame.getTerrainGeneration().getUseObjectMaterials());
+		addContent(element, "relief border", trackContext.getTerrainGeneration().getReliefBorder());
+		addContent(element, "surface", trackContext.getTerrainGeneration().getSurface());
+		addContent(element, "random seed", null, trackContext.getTerrainGeneration().getRandomSeed());
+		if (trackContext.getGameType().hasSpeedDreamsTrackgenKeys())
+			addContent(element, "use object materials", trackContext.getTerrainGeneration().getUseObjectMaterials());
 		if (torcs)
 		{
-			addContent(element, "crossing mode", editorFrame.getTerrainGeneration().getCrossingMode());
-			addContent(element, "crossing bridge socket gap", "m", editorFrame.getTerrainGeneration().getCrossingBridgeSocketGap());
-			addContent(element, "crossing bridge thickness", "m", editorFrame.getTerrainGeneration().getCrossingBridgeThickness());
+			addContent(element, "crossing mode", trackContext.getTerrainGeneration().getCrossingMode());
+			addContent(element, "crossing bridge socket gap", "m", trackContext.getTerrainGeneration().getCrossingBridgeSocketGap());
+			addContent(element, "crossing bridge thickness", "m", trackContext.getTerrainGeneration().getCrossingBridgeThickness());
 			for (int i = 0; i < TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
-				addContent(element, TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS[i], editorFrame.getTerrainGeneration().getCrossingBridgeSurface(i));
+				addContent(element, TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS[i], trackContext.getTerrainGeneration().getCrossingBridgeSurface(i));
 		}
-		if (editorFrame.getGameType().hasTiledFile())
-			addContent(element, "tiled file", editorFrame.getTerrainGeneration().getTiledFile());
+		if (trackContext.getGameType().hasTiledFile())
+			addContent(element, "tiled file", trackContext.getTerrainGeneration().getTiledFile());
 		// accc's settings, for every game (TORCS and CSR make .acc tracks with accc)
 		for (int i = 0; i < TerrainGeneration.ACC_GROUP_DISTANCE_KEYS.length; i++)
-			addContent(element, TerrainGeneration.ACC_GROUP_DISTANCE_KEYS[i], "m", editorFrame.getTerrainGeneration().getAccGroupDistance(i));
-		addContent(element, TerrainGeneration.ACC_SPLIT_DISTANCE_KEY, "m", editorFrame.getTerrainGeneration().getAccSplitDistance());
-		addContent(element, TerrainGeneration.ACC_EXTENDED_STRIPS_KEY, editorFrame.getTerrainGeneration().getAccExtendedStrips());
+			addContent(element, TerrainGeneration.ACC_GROUP_DISTANCE_KEYS[i], "m", trackContext.getTerrainGeneration().getAccGroupDistance(i));
+		addContent(element, TerrainGeneration.ACC_SPLIT_DISTANCE_KEY, "m", trackContext.getTerrainGeneration().getAccSplitDistance());
+		addContent(element, TerrainGeneration.ACC_EXTENDED_STRIPS_KEY, trackContext.getTerrainGeneration().getAccExtendedStrips());
 
-		if (!torcs || !editorFrame.getTerrainGeneration().getObjectMaps().isEmpty())
+		if (!torcs || !trackContext.getTerrainGeneration().getObjectMaps().isEmpty())
 			element.addContent(getObjectMaps());
 		// only Speed Dreams trackgen places individual graphic objects
-		if (editorFrame.getGameType().hasGraphicObjects())
+		if (trackContext.getGameType().hasGraphicObjects())
 			element.addContent(getGraphicObjects());
 
 		return element;
@@ -1182,7 +1182,7 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Environment Mapping"));
 
-		Vector<EnvironmentMapping> environment = editorFrame.getTrackData().getGraphic().getEnvironmentMapping();
+		Vector<EnvironmentMapping> environment = trackContext.getTrackData().getGraphic().getEnvironmentMapping();
 
 		for (int i = 0; i < environment.size(); i++)
 		{
@@ -1204,7 +1204,7 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Objects"));
 
-		for (GraphicObject graphicObject : editorFrame.getGraphicObjects())
+		for (GraphicObject graphicObject : trackContext.getGraphicObjects())
 		{
 			Element el = new Element("section");
 			el.setAttribute(new Attribute("name", graphicObject.getName()));
@@ -1227,7 +1227,7 @@ public class XmlWriter
 		Element element = new Element("section");
 		element.setAttribute(new Attribute("name", "Object Maps"));
 
-		Vector<ObjectMap> objMaps = editorFrame.getObjectMaps();
+		Vector<ObjectMap> objMaps = trackContext.getObjectMaps();
 
 		for (int i = 0; i < objMaps.size(); i++)
 		{

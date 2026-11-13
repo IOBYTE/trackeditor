@@ -42,13 +42,13 @@ public final class Version3
 	 *     from surfaces.xml can't be kept: see {@link #getReboundWarnings}.</li>
 	 * </ul>
 	 */
-	public static void convertToVersion4(TrackContext editorFrame)
+	public static void convertToVersion4(TrackContext trackContext)
 	{
-		TrackData trackData = editorFrame.getTrackData();
+		TrackData trackData = trackContext.getTrackData();
 		if (trackData.getHeader().getVersion() != 3)
 			return;
 
-		boolean torcs = editorFrame.getGameType() == GameType.TORCS;
+		boolean torcs = trackContext.getGameType() == GameType.TORCS;
 		MainTrack mainTrack = trackData.getMainTrack();
 
 		for (SegmentSide main : new SegmentSide[] {mainTrack.getLeft(), mainTrack.getRight()})
@@ -88,7 +88,7 @@ public final class Version3
 			}
 		}
 
-		Pits pits = editorFrame.getPits();
+		Pits pits = trackContext.getPits();
 		if (pits.getStyle() != 1)
 		{
 			pits.setStyle(0);
@@ -112,7 +112,7 @@ public final class Version3
 			}
 		}
 
-		keepBarrierRebound(editorFrame);
+		keepBarrierRebound(trackContext);
 
 		// (the editor marks the track modified: see EditorFrame.convertToVersion4)
 		trackData.getHeader().setVersion(4);
@@ -123,10 +123,10 @@ public final class Version3
 	 * from surfaces.xml without one, by copying it into the track under a new name.
 	 * A barrier surface defined nowhere is defined in the track with a rebound of 1.
 	 */
-	private static void keepBarrierRebound(TrackContext editorFrame)
+	private static void keepBarrierRebound(TrackContext trackContext)
 	{
-		TrackData trackData = editorFrame.getTrackData();
-		if (trackData.getHasSurfacesReference() && editorFrame.getDefaultSurfaces().isEmpty())
+		TrackData trackData = trackContext.getTrackData();
+		if (trackData.getHasSurfacesReference() && trackContext.getDefaultSurfaces().isEmpty())
 			return;	// surfaces.xml couldn't be read: getReboundWarnings says so
 
 		MainTrack mainTrack = trackData.getMainTrack();
@@ -147,7 +147,7 @@ public final class Version3
 			String newName = name;
 			if (find(trackData.getSurfaces(), name) == null)
 			{
-				Surface shared = sharedSurface(editorFrame, name);
+				Surface shared = sharedSurface(trackContext, name);
 				if (shared == null)
 				{
 					// unknown to the game too: it has the defaults, rebound 1 in v3
@@ -159,7 +159,7 @@ public final class Version3
 				else if (Double.isNaN(shared.getRebound()))
 				{
 					Surface surface = shared.copy();
-					newName = uniqueName(editorFrame, name + "-v3");
+					newName = uniqueName(trackContext, name + "-v3");
 					surface.setName(newName);
 					surface.setRebound(1.0);
 					surface.setComment("copy of " + name + " with the rebound of a version 3 track");
@@ -178,14 +178,14 @@ public final class Version3
 	 *         0.5 (cars bottoming out on them), and a barrier surface can't be checked
 	 *         when surfaces.xml couldn't be read. Empty when nothing changes.
 	 */
-	public static List<String> getReboundWarnings(TrackContext editorFrame)
+	public static List<String> getReboundWarnings(TrackContext trackContext)
 	{
 		List<String> warnings = new ArrayList<String>();
-		TrackData trackData = editorFrame.getTrackData();
+		TrackData trackData = trackContext.getTrackData();
 		if (trackData.getHeader().getVersion() != 3)
 			return warnings;
 
-		boolean sharedUnknown = trackData.getHasSurfacesReference() && editorFrame.getDefaultSurfaces().isEmpty();
+		boolean sharedUnknown = trackData.getHasSurfacesReference() && trackContext.getDefaultSurfaces().isEmpty();
 		if (sharedUnknown)
 		{
 			warnings.add("The game's surfaces.xml couldn't be read (is the data directory set?), so surfaces from it " +
@@ -198,10 +198,10 @@ public final class Version3
 		{
 			for (Segment segment : trackData.getSegments())
 			{
-				road.add(segment.getValidSurface(editorFrame));
+				road.add(segment.getValidSurface(trackContext));
 				for (boolean right : new boolean[] {false, true})
 				{
-					GameSides.State state = GameSides.of(segment, right, editorFrame);
+					GameSides.State state = GameSides.of(segment, right, trackContext);
 					if (state.sideStartWidth > 0 || state.sideEndWidth > 0)
 						road.add(state.sideSurface);
 					if (state.borderWidth > 0)
@@ -215,7 +215,7 @@ public final class Version3
 		{
 			if (name == null || find(trackData.getSurfaces(), name) != null)
 				continue;	// the track's own surfaces get a rebound of 1
-			Surface shared = sharedSurface(editorFrame, name);
+			Surface shared = sharedSurface(trackContext, name);
 			if (shared == null || Double.isNaN(shared.getRebound()))
 				losing.add(name);
 		}
@@ -234,11 +234,11 @@ public final class Version3
 	}
 
 	/** @return the surfaces.xml surface the track reads, or null when it has none of that name */
-	private static Surface sharedSurface(TrackContext editorFrame, String name)
+	private static Surface sharedSurface(TrackContext trackContext, String name)
 	{
-		if (!editorFrame.getTrackData().getHasSurfacesReference())
+		if (!trackContext.getTrackData().getHasSurfacesReference())
 			return null;
-		return find(editorFrame.getDefaultSurfaces(), name);
+		return find(trackContext.getDefaultSurfaces(), name);
 	}
 
 	private static Surface find(Vector<Surface> surfaces, String name)
@@ -253,10 +253,10 @@ public final class Version3
 		return null;
 	}
 
-	private static String uniqueName(TrackContext editorFrame, String base)
+	private static String uniqueName(TrackContext trackContext, String base)
 	{
 		String name = base;
-		for (int i = 2; find(editorFrame.getTrackData().getSurfaces(), name) != null || find(editorFrame.getDefaultSurfaces(), name) != null; i++)
+		for (int i = 2; find(trackContext.getTrackData().getSurfaces(), name) != null || find(trackContext.getDefaultSurfaces(), name) != null; i++)
 			name = base + "-" + i;
 		return name;
 	}

@@ -136,28 +136,28 @@ public class Straight extends Segment
 		setSelectionBounds();
 	}
 
-	public void calcShape(TrackContext editorFrame) throws Exception
+	public void calcShape(TrackContext trackContext) throws Exception
 	{
 		double currentX = Properties.getInstance().getCurrentX();
 		double currentY = Properties.getInstance().getCurrentY();
 		double currentA = Properties.getInstance().getCurrentA();
 		double showArrows = Properties.getInstance().getShowArrows();
-		double trackWidth = editorFrame.getTrackData().getMainTrack().getValidWidth();
-		double leftBorderWidth = getValidLeftBorderWidth(editorFrame);
-		double rightBorderWidth = getValidRightBorderWidth(editorFrame);
-		double leftSideStartWidth = getValidLeftSideStartWidth(editorFrame);
-		double leftSideEndWidth = getValidLeftSideEndWidth(editorFrame);
-		double rightSideStartWidth = getValidRightSideStartWidth(editorFrame);
-		double rightSideEndWidth = getValidRightSideEndWidth(editorFrame);
-		double leftBarrierWidth = getValidLeftBarrierWidth(editorFrame);
-		double rightBarrierWidth = getValidRightBarrierWidth(editorFrame);
+		double trackWidth = trackContext.getTrackData().getMainTrack().getValidWidth();
+		double leftBorderWidth = getValidLeftBorderWidth(trackContext);
+		double rightBorderWidth = getValidRightBorderWidth(trackContext);
+		double leftSideStartWidth = getValidLeftSideStartWidth(trackContext);
+		double leftSideEndWidth = getValidLeftSideEndWidth(trackContext);
+		double rightSideStartWidth = getValidRightSideStartWidth(trackContext);
+		double rightSideEndWidth = getValidRightSideEndWidth(trackContext);
+		double leftBarrierWidth = getValidLeftBarrierWidth(trackContext);
+		double rightBarrierWidth = getValidRightBarrierWidth(trackContext);
 		double leftStartHeight = this.getCalculatedHeightStartLeft();
 		double rightStartHeight = this.getCalculatedHeightStartRight();
 		double leftEndHeight = this.getCalculatedHeightEndLeft();
 		double rightEndHeight = this.getCalculatedHeightEndRight();
 
 		// same step count as the game's track loader
-		nbSteps = getBuiltSteps(editorFrame, length);
+		nbSteps = getBuiltSteps(trackContext, length);
 		stepLength = length / nbSteps;
 
 		if (points == null || points.length != 4 * (7 + (showArrows > 0.0 ? 1 : 0)) * nbSteps)
@@ -185,7 +185,7 @@ public class Straight extends Segment
 		double cosTransLeft = Math.cos(currentA + Math.PI / 2);
 		double sinTransLeft = Math.sin(currentA + Math.PI / 2);
 
-		boolean linear = getValidProfil(editorFrame).equals("linear");
+		boolean linear = getValidProfil(trackContext).equals("linear");
 
 		double T1l = (getCalculatedStartTangentLeft() / 100.0)  * getLength();
 		double T2l = (getCalculatedEndTangentLeft() / 100.0) * getLength();

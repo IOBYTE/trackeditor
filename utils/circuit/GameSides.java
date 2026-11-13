@@ -61,16 +61,16 @@ public final class GameSides
 	/**
 	 * @return the values the game uses for this segment's right or left side
 	 */
-	public static State of(Segment segment, boolean right, TrackContext editorFrame)
+	public static State of(Segment segment, boolean right, TrackContext trackContext)
 	{
-		GameType game = editorFrame.getGameType();
-		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
-		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
+		GameType game = trackContext.getGameType();
+		boolean version3 = trackContext.getTrackData().getHeader().getVersion() == 3;
+		MainTrack mainTrack = trackContext.getTrackData().getMainTrack();
 		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game, version3);
 
 		// the segments from the first one to this one
 		ArrayList<Segment> chain = new ArrayList<Segment>();
-		int limit = editorFrame.getTrackData().getSegments() == null ? 0 : editorFrame.getTrackData().getSegments().size();
+		int limit = trackContext.getTrackData().getSegments() == null ? 0 : trackContext.getTrackData().getSegments().size();
 		for (Segment s = segment; s != null && chain.size() <= limit; s = s.previousShape)
 			chain.add(s);
 
@@ -217,15 +217,15 @@ public final class GameSides
 	 * past the curve's center: the game then builds them with a negative radius,
 	 * so they cross over the center and fold over, the barrier inside out.
 	 */
-	private static void insideCurve(java.util.List<Problem> problems, Segment segment, boolean right, State state, TrackContext editorFrame)
+	private static void insideCurve(java.util.List<Problem> problems, Segment segment, boolean right, State state, TrackContext trackContext)
 	{
 		if (!(segment instanceof Curve) || right != segment.getType().equals("rgt"))
 			return;
 		Curve curve = (Curve) segment;
-		double toBorder = editorFrame.getTrackData().getMainTrack().getValidWidth() / 2 + state.borderWidth;
+		double toBorder = trackContext.getTrackData().getMainTrack().getValidWidth() / 2 + state.borderWidth;
 		// the games whose segments can have no barrier (version 3 tracks take the barrier from the Main Track)
-		boolean noBarrier = !editorFrame.getGameType().otherBarrierStylesAreWalls()
-			&& editorFrame.getTrackData().getHeader().getVersion() != 3;
+		boolean noBarrier = !trackContext.getGameType().otherBarrierStylesAreWalls()
+			&& trackContext.getTrackData().getHeader().getVersion() != 3;
 		String[] ends = { "start", "end" };
 		double[] radii = { curve.getRadiusStart(), curve.getValidRadiusEnd() };
 		double[] sides = { state.sideStartWidth, state.sideEndWidth };
@@ -290,12 +290,12 @@ public final class GameSides
 		return String.format(java.util.Locale.US, "or set the %s to %.2f m or more", radius, reach);
 	}
 
-	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, TrackContext editorFrame)
+	public static java.util.List<Problem> problems(Segment segment, Segment previousSegment, boolean right, TrackContext trackContext)
 	{
 		java.util.List<Problem> problems = new ArrayList<Problem>();
 		SegmentSide side = right ? segment.getRight() : segment.getLeft();
-		State state = of(segment, right, editorFrame);
-		GameType game = editorFrame.getGameType();
+		State state = of(segment, right, trackContext);
+		GameType game = trackContext.getGameType();
 
 		// border
 		String borderStyle = side.getBorderStyle();
@@ -333,13 +333,13 @@ public final class GameSides
 			problems.add(new Problem("barrier height", "barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)"));
 		}
 
-		insideCurve(problems, segment, right, state, editorFrame);
+		insideCurve(problems, segment, right, state, trackContext);
 
 		if (previousSegment == null)
 			return problems;
 
 		// a new style takes its size from the previous segment unless it is set
-		State previous = of(previousSegment, right, editorFrame);
+		State previous = of(previousSegment, right, trackContext);
 		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
 		{
 			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")"));
@@ -352,7 +352,7 @@ public final class GameSides
 		// "no barrier", so after one it reads past the end of the list (once per run
 		// of segments: reported where the run starts)
 		SegmentSide previousSide = right ? previousSegment.getRight() : previousSegment.getLeft();
-		if (editorFrame.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
+		if (trackContext.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
 			(barrierStyle == null || barrierStyle.isEmpty()))
 		{
 			problems.add(new Problem("barrier style", "follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash"));

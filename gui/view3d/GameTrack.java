@@ -134,24 +134,24 @@ public class GameTrack
 	public final List<Seg>				segs	= new ArrayList<Seg>();
 	public final float					width;
 	public final float					trackStep;
-	private final TrackContext			editorFrame;
+	private final TrackContext			trackContext;
 
-	private GameTrack(TrackContext editorFrame)
+	private GameTrack(TrackContext trackContext)
 	{
-		this.editorFrame = editorFrame;
-		game = editorFrame.getGameType();
-		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
+		this.trackContext = trackContext;
+		game = trackContext.getGameType();
+		MainTrack mainTrack = trackContext.getTrackData().getMainTrack();
 		width = (float) mainTrack.getValidWidth();
-		double step = editorFrame.getTrackData().getTerrainGeneration().getTrackStep();
+		double step = trackContext.getTrackData().getTerrainGeneration().getTrackStep();
 		trackStep = (float) (Double.isNaN(step) || step <= 0 ? (game == GameType.TORCS ? 5.0 : 10.0) : step);
 	}
 
 	/** @return the open track as the game builds it, or null when there is none */
-	public static GameTrack build(TrackContext editorFrame)
+	public static GameTrack build(TrackContext trackContext)
 	{
-		if (editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null)
+		if (trackContext.getTrackData() == null || trackContext.getTrackData().getSegments() == null)
 			return null;
-		GameTrack track = new GameTrack(editorFrame);
+		GameTrack track = new GameTrack(trackContext);
 		track.buildSegments();
 		if (track.segs.isEmpty())
 			return null;
@@ -161,14 +161,14 @@ public class GameTrack
 
 	private void buildSegments()
 	{
-		MainTrack mainTrack = editorFrame.getTrackData().getMainTrack();
+		MainTrack mainTrack = trackContext.getTrackData().getMainTrack();
 		// a side follows the track's banking unless its banking type is "level" (the default)
 		int[] bankType = { bankType(mainTrack.getRight().getSideBankingType()), bankType(mainTrack.getLeft().getSideBankingType()) };
 		float fromStart = 0;
 		// the loader's heading (see Seg.headingZS)
 		float alf = 0;
 
-		for (Segment segment : editorFrame.getTrackData().getSegments())
+		for (Segment segment : trackContext.getTrackData().getSegments())
 		{
 			Point3D[] points = segment.getPoints();
 			int steps = segment.nbSteps;
@@ -203,8 +203,8 @@ public class GameTrack
 			}
 			int stride = points.length / steps;
 			int type = segment instanceof Curve ? ("lft".equals(segment.getType()) ? TR_LFT : TR_RGT) : TR_STR;
-			GameSides.State[] sides = { GameSides.of(segment, true, editorFrame), GameSides.of(segment, false, editorFrame) };
-			String surfaceName = segment.getValidSurface(editorFrame);
+			GameSides.State[] sides = { GameSides.of(segment, true, trackContext), GameSides.of(segment, false, trackContext) };
+			String surfaceName = segment.getValidSurface(trackContext);
 			float stepLength = (float) Math.abs(segment.stepLength);
 
 			for (int step = 0; step < steps; step++)
@@ -427,7 +427,7 @@ public class GameTrack
 	private void setSurface(Seg s, String name)
 	{
 		s.surface = name;
-		Surface surface = name == null ? null : RoadTexture.findSurface(editorFrame, name);
+		Surface surface = name == null ? null : RoadTexture.findSurface(trackContext, name);
 		double roughness = surface == null || Double.isNaN(surface.getRoughness()) ? 0 : surface.getRoughness();
 		double wavelength = surface == null || Double.isNaN(surface.getRoughnessWavelength()) ? 1 : surface.getRoughnessWavelength();
 		s.kRoughness = (float) (roughness / 2);
@@ -455,7 +455,7 @@ public class GameTrack
 	/** Marks the barriers at the pit buildings, and the pit lane sides, as the game's InitPits does. */
 	private void markPits()
 	{
-		Pits pits = editorFrame.getTrackData().getMainTrack().getPits();
+		Pits pits = trackContext.getTrackData().getMainTrack().getPits();
 		if (pits == null)
 			return;
 		// the games take any side but "right" as left, and right when there's none
@@ -898,7 +898,7 @@ public class GameTrack
 
 	private PitLayout pitLayout(boolean noBuilding)
 	{
-		Pits pits = editorFrame.getTrackData().getMainTrack().getPits();
+		Pits pits = trackContext.getTrackData().getMainTrack().getPits();
 		if (pits == null)
 			return null;
 		Seg entry = first(pits.getEntry()), exit = last(pits.getExit());

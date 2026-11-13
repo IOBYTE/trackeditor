@@ -487,7 +487,7 @@ public class Segment implements Cloneable
 		selectionRectangle.add(boundingRectangle);
 	}
 
-	public void calcShape(TrackContext editorFrame) throws Exception
+	public void calcShape(TrackContext trackContext) throws Exception
 	{
 		System.out.println("Segment.calcShape : Start ...");
 	}
@@ -1289,7 +1289,7 @@ public class Segment implements Cloneable
 		this.calculatedEndTangentRight = calculatedEndTangentRight;
 	}
 
-	public String getValidSurface(TrackContext editorFrame)
+	public String getValidSurface(TrackContext trackContext)
 	{
 		Segment previous = this;
 		String surf;
@@ -1304,7 +1304,7 @@ public class Segment implements Cloneable
 			previous = previous.previousShape;
 		}
 
-		surf = editorFrame.getTrackData().getMainTrack().getSurface();
+		surf = trackContext.getTrackData().getMainTrack().getSurface();
 		if (surf == null)
 		{
 			surf = MainTrack.GAME_DEFAULT_SURFACE;
@@ -1314,7 +1314,7 @@ public class Segment implements Cloneable
 
 	// this is not inherited, and like the game's track loader the Main Track
 	// "profil" isn't used: a segment without its own profil is a spline
-	public String getValidProfil(TrackContext editorFrame)
+	public String getValidProfil(TrackContext trackContext)
 	{
 		if (hasProfil())
 		{
@@ -1339,11 +1339,11 @@ public class Segment implements Cloneable
 	 *
 	 * @param length the segment's length ((start + end radius) / 2 * arc for a curve)
 	 */
-	public int getValidSteps(TrackContext editorFrame, double length)
+	public int getValidSteps(TrackContext trackContext, double length)
 	{
 		// the editor builds at most MAX_STEPS (a value read from a file can ask
 		// for many more: Check reports it), and always at least one
-		double steps = getGameSteps(editorFrame, length);
+		double steps = getGameSteps(trackContext, length);
 		return (int) Math.max(1, Math.min(MAX_STEPS, steps));
 	}
 
@@ -1352,10 +1352,10 @@ public class Segment implements Cloneable
 	 *         fewer when the whole track would need more than MAX_TRACK_STEPS
 	 *         (each segment then gets its share)
 	 */
-	public int getBuiltSteps(TrackContext editorFrame, double length)
+	public int getBuiltSteps(TrackContext trackContext, double length)
 	{
-		int steps = getValidSteps(editorFrame, length);
-		double total = getTrackSteps(editorFrame);
+		int steps = getValidSteps(trackContext, length);
+		double total = getTrackSteps(trackContext);
 		if (total <= MAX_TRACK_STEPS)
 			return steps;
 		return (int) Math.max(1, Math.floor(steps * MAX_TRACK_STEPS / total));
@@ -1365,13 +1365,13 @@ public class Segment implements Cloneable
 	 * @return the steps the whole track is built in, each segment at most
 	 *         MAX_STEPS (getValidSteps)
 	 */
-	public static double getTrackSteps(TrackContext editorFrame)
+	public static double getTrackSteps(TrackContext trackContext)
 	{
 		double total = 0;
-		if (editorFrame == null || editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null)
+		if (trackContext == null || trackContext.getTrackData() == null || trackContext.getTrackData().getSegments() == null)
 			return total;
-		for (Segment segment : editorFrame.getTrackData().getSegments())
-			total += segment.getValidSteps(editorFrame, segment.getFormulaLength());
+		for (Segment segment : trackContext.getTrackData().getSegments())
+			total += segment.getValidSteps(trackContext, segment.getFormulaLength());
 		return total;
 	}
 
@@ -1388,7 +1388,7 @@ public class Segment implements Cloneable
 	 * @return the steps the game builds the segment in, without the editor's
 	 *         limit; a double, so a huge count doesn't overflow
 	 */
-	public double getGameSteps(TrackContext editorFrame, double length)
+	public double getGameSteps(TrackContext trackContext, double length)
 	{
 		if (!isSpline())
 			return 1;
@@ -1396,7 +1396,7 @@ public class Segment implements Cloneable
 		if (hasProfilSteps() && getProfilSteps() != 1)
 			return getProfilSteps();
 
-		double profilStepsLength = getValidProfilStepsLength(editorFrame);
+		double profilStepsLength = getValidProfilStepsLength(trackContext);
 		if (profilStepsLength > 0)
 			return Math.floor(length / profilStepsLength) + 1;
 
@@ -1404,7 +1404,7 @@ public class Segment implements Cloneable
 	}
 
 	// this is not inherited
-	public double getValidProfilStepsLength(TrackContext editorFrame)
+	public double getValidProfilStepsLength(TrackContext trackContext)
 	{
 		double	length = profilStepsLength;
 		if (hasProfilStepsLength())
@@ -1414,139 +1414,139 @@ public class Segment implements Cloneable
 
 		// NaN when neither the segment nor the Main Track has one: the game
 		// then builds the segment as a single step
-		return editorFrame.getTrackData().getMainTrack().getProfilStepsLength();
+		return trackContext.getTrackData().getMainTrack().getProfilStepsLength();
 	}
 
-    public double getValidLeftBarrierWidth(TrackContext editorFrame)
+    public double getValidLeftBarrierWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).barrierWidth;
+		return GameSides.of(this, false, trackContext).barrierWidth;
     }
 
-    public double getValidRightBarrierWidth(TrackContext editorFrame)
+    public double getValidRightBarrierWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).barrierWidth;
+		return GameSides.of(this, true, trackContext).barrierWidth;
     }
 
-    public double getValidLeftBarrierHeight(TrackContext editorFrame)
+    public double getValidLeftBarrierHeight(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).barrierHeight;
+		return GameSides.of(this, false, trackContext).barrierHeight;
     }
 
-    public double getValidRightBarrierHeight(TrackContext editorFrame)
+    public double getValidRightBarrierHeight(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).barrierHeight;
+		return GameSides.of(this, true, trackContext).barrierHeight;
     }
 
-    public String getValidLeftBarrierSurface(TrackContext editorFrame)
+    public String getValidLeftBarrierSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).barrierSurface;
+		return GameSides.of(this, false, trackContext).barrierSurface;
     }
 
-    public String getValidRightBarrierSurface(TrackContext editorFrame)
+    public String getValidRightBarrierSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).barrierSurface;
+		return GameSides.of(this, true, trackContext).barrierSurface;
     }
 
-    public String getValidLeftBarrierStyle(TrackContext editorFrame)
+    public String getValidLeftBarrierStyle(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).barrierStyle;
+		return GameSides.of(this, false, trackContext).barrierStyle;
     }
 
-    public String getValidRightBarrierStyle(TrackContext editorFrame)
+    public String getValidRightBarrierStyle(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).barrierStyle;
+		return GameSides.of(this, true, trackContext).barrierStyle;
     }
 
-    public double getValidLeftBorderWidth(TrackContext editorFrame)
+    public double getValidLeftBorderWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).borderWidth;
+		return GameSides.of(this, false, trackContext).borderWidth;
     }
 
-    public double getValidRightBorderWidth(TrackContext editorFrame)
+    public double getValidRightBorderWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).borderWidth;
+		return GameSides.of(this, true, trackContext).borderWidth;
     }
 
-    public double getValidLeftBorderHeight(TrackContext editorFrame)
+    public double getValidLeftBorderHeight(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).borderHeight;
+		return GameSides.of(this, false, trackContext).borderHeight;
     }
 
-    public double getValidRightBorderHeight(TrackContext editorFrame)
+    public double getValidRightBorderHeight(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).borderHeight;
+		return GameSides.of(this, true, trackContext).borderHeight;
     }
 
-    public String getValidLeftBorderSurface(TrackContext editorFrame)
+    public String getValidLeftBorderSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).borderSurface;
+		return GameSides.of(this, false, trackContext).borderSurface;
     }
 
-    public String getValidRightBorderSurface(TrackContext editorFrame)
+    public String getValidRightBorderSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).borderSurface;
+		return GameSides.of(this, true, trackContext).borderSurface;
     }
 
-    public String getValidLeftBorderStyle(TrackContext editorFrame)
+    public String getValidLeftBorderStyle(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).borderStyle;
+		return GameSides.of(this, false, trackContext).borderStyle;
     }
 
-    public String getValidRightBorderStyle(TrackContext editorFrame)
+    public String getValidRightBorderStyle(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).borderStyle;
+		return GameSides.of(this, true, trackContext).borderStyle;
     }
 
-    public double getValidLeftSideStartWidth(TrackContext editorFrame)
+    public double getValidLeftSideStartWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).sideStartWidth;
+		return GameSides.of(this, false, trackContext).sideStartWidth;
     }
 
-    public double getValidLeftSideEndWidth(TrackContext editorFrame)
+    public double getValidLeftSideEndWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).sideEndWidth;
+		return GameSides.of(this, false, trackContext).sideEndWidth;
     }
 
-    public double getValidRightSideStartWidth(TrackContext editorFrame)
+    public double getValidRightSideStartWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).sideStartWidth;
+		return GameSides.of(this, true, trackContext).sideStartWidth;
     }
 
-    public double getValidRightSideEndWidth(TrackContext editorFrame)
+    public double getValidRightSideEndWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).sideEndWidth;
+		return GameSides.of(this, true, trackContext).sideEndWidth;
     }
     
-    public String getValidLeftSideSurface(TrackContext editorFrame)
+    public String getValidLeftSideSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, false, editorFrame).sideSurface;
+		return GameSides.of(this, false, trackContext).sideSurface;
     }
 
-    public String getValidRightSideSurface(TrackContext editorFrame)
+    public String getValidRightSideSurface(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
-		return GameSides.of(this, true, editorFrame).sideSurface;
+		return GameSides.of(this, true, trackContext).sideSurface;
     }
 
     public double getValidHeightStart()
@@ -1652,7 +1652,7 @@ public class Segment implements Cloneable
         return Double.NaN;
     }
 
-    public double getValidBankingStart(TrackContext editorFrame)
+    public double getValidBankingStart(TrackContext trackContext)
     {
     	Segment previous = this;
 
@@ -1675,7 +1675,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-					return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
+					return Math.toDegrees(Math.atan2(previous.heightStartLeft - previous.heightStartRight, trackContext.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
             previous = previous.previousShape;
@@ -1699,7 +1699,7 @@ public class Segment implements Cloneable
             	}
             	else
             	{
-					return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, editorFrame.getTrackData().getMainTrack().getValidWidth()));
+					return Math.toDegrees(Math.atan2(previous.heightEndLeft - previous.heightEndRight, trackContext.getTrackData().getMainTrack().getValidWidth()));
             	}
             }
     	}
@@ -1790,18 +1790,18 @@ public class Segment implements Cloneable
 	 * @return what this segment carries on (see Carried); TrackData.calculateSegmentValues
 	 *         must be up to date
 	 */
-	public Carried getCarried(TrackContext editorFrame)
+	public Carried getCarried(TrackContext trackContext)
 	{
 		Carried carried = new Carried();
-		carried.surface = getValidSurface(editorFrame);
-		carried.left = GameSides.of(this, false, editorFrame);
-		carried.right = GameSides.of(this, true, editorFrame);
+		carried.surface = getValidSurface(trackContext);
+		carried.left = GameSides.of(this, false, trackContext);
+		carried.right = GameSides.of(this, true, trackContext);
 		carried.heightEnd = calculatedHeightEnd;
 		carried.bankingEnd = calculatedBankingEnd;
 		carried.endTangentLeft = calculatedEndTangentLeft;
 		carried.endTangentRight = calculatedEndTangentRight;
 		carried.grade = Double.NaN;
-		int limit = editorFrame.getTrackData().getSegments().size();
+		int limit = trackContext.getTrackData().getSegments().size();
 		Segment segment = this;
 		for (int i = 0; segment != null && i <= limit; i++, segment = segment.previousShape)
 		{
@@ -1827,9 +1827,9 @@ public class Segment implements Cloneable
 	 *
 	 * @param before what it carried before the change (getCarried)
 	 */
-	public void keep(TrackContext editorFrame, Carried before)
+	public void keep(TrackContext trackContext, Carried before)
 	{
-		set(editorFrame, getCarried(editorFrame), before, false);
+		set(trackContext, getCarried(trackContext), before, false);
 	}
 
 	/**
@@ -1838,10 +1838,10 @@ public class Segment implements Cloneable
 	 * game reads are set (not the barrier in a version 3 track, which the game takes
 	 * from the Main Track). TrackData.calculateSegmentValues must be up to date.
 	 */
-	public void unoptimize(TrackContext editorFrame)
+	public void unoptimize(TrackContext trackContext)
 	{
-		Carried now = getCarried(editorFrame);
-		set(editorFrame, now, now, true);
+		Carried now = getCarried(trackContext);
+		set(trackContext, now, now, true);
 
 		heightStart = calculatedHeightStart;
 		heightStartLeft = Double.NaN;
@@ -1856,9 +1856,9 @@ public class Segment implements Cloneable
 	/**
 	 * Sets the carried values that differ (all of them with all), to want.
 	 */
-	private void set(TrackContext editorFrame, Carried now, Carried want, boolean all)
+	private void set(TrackContext trackContext, Carried now, Carried want, boolean all)
 	{
-		boolean version3 = editorFrame.getTrackData().getHeader().getVersion() == 3;
+		boolean version3 = trackContext.getTrackData().getHeader().getVersion() == 3;
 
 		if (all || !same(now.surface, want.surface))
 			surface = want.surface;

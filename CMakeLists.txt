@@ -112,9 +112,13 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/check/CameraProblems.java
          utils/check/CheckMessage.java
          utils/check/Closure.java
+         utils/check/LoadedTrack.java
+         utils/check/ReadNotices.java
          utils/check/Subject.java
          utils/check/TrackChecker.java
          utils/check/TrackContext.java
+         utils/check/TrackFolders.java
+         utils/check/TrackLoader.java
          utils/TrackEditor.java
          utils/ac3d/Ac3d.java
          utils/ac3d/Ac3dException.java

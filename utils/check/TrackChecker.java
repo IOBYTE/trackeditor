@@ -67,7 +67,7 @@ public class TrackChecker
 	private final String 		sep 			= System.getProperty("file.separator");
 	private final java.util.List<CheckMessage>	messages	= new java.util.ArrayList<CheckMessage>();
 	private final Report		report			= new Report();
-	private final TrackContext	editorFrame;
+	private final TrackContext	trackContext;
 	private Vector<Surface>		defaultSurfaces	= null;
 	private Vector<TrackObject>	defaultObjects	= null;
 	private Boolean				doubleSided		= false;
@@ -77,9 +77,9 @@ public class TrackChecker
 	private TrackData			trackData		= null;
 	private Map<String,Boolean>	imageHasAlpha	= new HashMap<String, Boolean>();
 
-	public TrackChecker(TrackContext context)
+	public TrackChecker(TrackContext trackContext)
 	{
-		this.editorFrame = context;
+		this.trackContext = trackContext;
 	}
 
 	/**
@@ -92,12 +92,12 @@ public class TrackChecker
 	{
 		messages.clear();
 		report.reset();
-		trackData = editorFrame.getTrackData();
+		trackData = trackContext.getTrackData();
 		if (trackData == null)
 			return new java.util.ArrayList<CheckMessage>();
-		dataDirectory = editorFrame.getDataDirectory();
-		defaultSurfaces = trackData.getHasSurfacesReference() ? editorFrame.getDefaultSurfaces() : new Vector<Surface>();
-		defaultObjects = trackData.getHasObjectsReference() ? editorFrame.getDefaultObjects() : new Vector<TrackObject>();
+		dataDirectory = trackContext.getDataDirectory();
+		defaultSurfaces = trackData.getHasSurfacesReference() ? trackContext.getDefaultSurfaces() : new Vector<Surface>();
+		defaultObjects = trackData.getHasObjectsReference() ? trackContext.getDefaultObjects() : new Vector<TrackObject>();
 
 		// what the messages of each check are about, unless they say
 		check(null, this::checkSectionNames);
@@ -106,7 +106,7 @@ public class TrackChecker
 		check(properties("Objects"), this::checkObjects);
 		check(properties("Terrain"), this::checkTerrainGeneration);
 		check(properties("Env Map"), this::checkEnvironmentMapping);
-		if (editorFrame.getGameType().hasSpeedDreamsExtensions())
+		if (trackContext.getGameType().hasSpeedDreamsExtensions())
 			check(properties("Lights"), this::checkTrackLights);
 		check(properties("Graphic"), this::checkGraphic);
 		check(properties("Graphic 3D"), this::checkGraphic3D);
@@ -283,7 +283,7 @@ public class TrackChecker
 			checkSegmentSize(segment);
 			checkSegmentLimits(segment);
 		}
-		double trackSteps = Segment.getTrackSteps(editorFrame);
+		double trackSteps = Segment.getTrackSteps(trackContext);
 		if (trackSteps > Segment.MAX_TRACK_STEPS)
 			report.append(String.format(java.util.Locale.US, "The track is built in %,.0f steps, more than the editor's %,d: "
 				+ "it draws each segment in fewer, and the game may be slow to load it\n", trackSteps, Segment.MAX_TRACK_STEPS), NONE);
@@ -361,7 +361,7 @@ public class TrackChecker
 		else if (segment.hasProfilStepsLength() && segment.getProfilStepsLength() < 0)
 			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is negative: it must be 0 (none) or at least "
 				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and the segment is built in one step\n");
-		double steps = segment.getGameSteps(editorFrame, length);
+		double steps = segment.getGameSteps(trackContext, length);
 		if (steps > Segment.MAX_STEPS)
 			report.append(name + String.format(java.util.Locale.US, "the game builds it in %,.0f steps, more than the editor's %,d: "
 				+ "the editor draws it in %,d, and the game may be slow to load it\n", steps, Segment.MAX_STEPS, Segment.MAX_STEPS));
@@ -444,7 +444,7 @@ public class TrackChecker
 		double across = trackData.getMainTrack().getValidWidth();
 		for (boolean right : new boolean[] { false, true })
 		{
-			GameSides.State side = GameSides.of(curve, right, editorFrame);
+			GameSides.State side = GameSides.of(curve, right, trackContext);
 			across += Math.max(side.sideStartWidth, side.sideEndWidth) + side.borderWidth + side.barrierWidth;
 		}
 		if (Math.abs(curve.getValidRadiusEnd() - curve.getRadiusStart()) / turns >= across)
@@ -484,7 +484,7 @@ public class TrackChecker
 		double turn = Math.toDegrees(Math.IEEEremainder(last.endTrackAlpha - first.startTrackAlpha, 2 * Math.PI));
 		if (gap < 0.01 && Math.abs(turn) < 0.01)
 		{
-			Closure closure = Closure.last(editorFrame);
+			Closure closure = Closure.last(trackContext);
 			if (closure == null)
 			{
 				report.append("Closure not checked against trackgen's targets: double-click to run Calc in the Delta's dialog\n",
@@ -541,7 +541,7 @@ public class TrackChecker
 		{
 			report.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
 		}
-		if (editorFrame.getGameType().planBorderResetsHeight() && (!hasText(borderStyle) || borderStyle.equals("plan")) &&
+		if (trackContext.getGameType().planBorderResetsHeight() && (!hasText(borderStyle) || borderStyle.equals("plan")) &&
 			!Double.isNaN(main.getBorderHeight()) && main.getBorderHeight() != 0)
 		{
 			report.append(prefix + " border style is plan with " + main.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
@@ -549,7 +549,7 @@ public class TrackChecker
 
 		// barrier (fence when it isn't set)
 		String barrierStyle = main.getBarrierStyle();
-		boolean fence1Fence2 = !version3 && editorFrame.getGameType().hasFence1Fence2();
+		boolean fence1Fence2 = !version3 && trackContext.getGameType().hasFence1Fence2();
 		boolean fence = !hasText(barrierStyle) || barrierStyle.equals("fence") ||
 			(fence1Fence2 && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2")));
 		if (!fence && !barrierStyle.equals("wall"))
@@ -568,7 +568,7 @@ public class TrackChecker
 	private void checkSide(Segment segment, Segment previousSegment, SegmentSide side, String name, boolean right)
 	{
 		String prefix = "Segment " + segment.getName() + " " + name;
-		for (GameSides.Problem problem : GameSides.problems(segment, previousSegment, right, editorFrame))
+		for (GameSides.Problem problem : GameSides.problems(segment, previousSegment, right, trackContext))
 			report.append(prefix + " " + problem.text + "\n");
 	}
 
@@ -586,7 +586,7 @@ public class TrackChecker
 		org.jdom2.Document document;
 		try
 		{
-			document = new plugin.torcs.XmlWriter(editorFrame).getDocument("");
+			document = new plugin.torcs.XmlWriter(trackContext).getDocument("");
 		}
 		catch (Exception e)
 		{
@@ -750,7 +750,7 @@ public class TrackChecker
 	 */
 	private void checkGeoreference()
 	{
-		if (editorFrame.getGameType() != GameType.TORCS)
+		if (trackContext.getGameType() != GameType.TORCS)
 			return;
 		String problem = trackData.getGeoreference().problem();
 		if (problem != null)
@@ -760,12 +760,12 @@ public class TrackChecker
 	public void checkHeader()
 	{
 		// where the track is: the games list <tracks folder>/<category>/<name>
-		String placement = editorFrame.getTrackPlacementProblem();
+		String placement = trackContext.getTrackPlacementProblem();
 		if (placement != null)
 			report.append(placement + "\n");
 
 		// TORCS reads no subcategory
-		if (editorFrame.getGameType().hasSpeedDreamsExtensions() && trackData.getHeader().getSubcategory() != null)
+		if (trackContext.getGameType().hasSpeedDreamsExtensions() && trackData.getHeader().getSubcategory() != null)
 		{
 			if (!"speedway".equals(trackData.getHeader().getCategory()))
 			{
@@ -862,7 +862,7 @@ public class TrackChecker
 		boolean curve = !segment.getType().equals("str");
 		// a camera made here is saved in degrees on a curve and without a unit on a straight
 		String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : curve ? "deg" : null;
-		String problem = CameraProblems.toStartProblem(segment, value, units, editorFrame.getGameType());
+		String problem = CameraProblems.toStartProblem(segment, value, units, trackContext.getGameType());
 		if (problem != null)
 			report.append("Camera " + camera.getName() + ": " + problem + "\n");
 	}
@@ -916,12 +916,12 @@ public class TrackChecker
 				report.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
 
 			String order = Pits.orderProblem(segments, pits.getEntry(), pits.getStart(), pits.getStartBuildings(),
-				pits.getStopBuildings(), pits.getEnd(), pits.getExit(), editorFrame.getGameType().hasPitOptions());
+				pits.getStopBuildings(), pits.getEnd(), pits.getExit(), trackContext.getGameType().hasPitOptions());
 			if (order != null)
 				report.append(order + "\n");
 
 			// Speed Dreams and CSR: a buildings segment that isn't found is the pit start or end
-			if (editorFrame.getGameType().hasPitOptions())
+			if (trackContext.getGameType().hasPitOptions())
 			{
 				if (hasText(pits.getStartBuildings()) && segments.getSegmentFromName(pits.getStartBuildings()) == null)
 					report.append("Invalid pit start buildings: " + pits.getStartBuildings() + " isn't a segment, so the game uses the pit start\n");
@@ -938,7 +938,7 @@ public class TrackChecker
 
 		// the games only show a pit indicator with the pit type "no building"
 		int indicator = pits.getIndicator();
-		if (editorFrame.getGameType().hasPitOptions() && trackData.getHeader().getVersion() != 3
+		if (trackContext.getGameType().hasPitOptions() && trackData.getHeader().getVersion() != 3
 			&& indicator != Integer.MAX_VALUE)
 		{
 			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
@@ -967,7 +967,7 @@ public class TrackChecker
 		String problem;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
 			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
 			problem = layout == null ? null : layout.lineProblem();
 		}
@@ -985,7 +985,7 @@ public class TrackChecker
 		String problem;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
 			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
 			problem = layout == null ? null : layout.endProblem();
 		}
@@ -1007,7 +1007,7 @@ public class TrackChecker
 		gui.view3d.GameTrack.PitLayout layout;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
 			layout = track == null ? null : track.pitPlaces();
 		}
 		catch (RuntimeException e)
@@ -1047,7 +1047,7 @@ public class TrackChecker
 	 */
 	private void checkNoBuildingPitLane(Pits pits)
 	{
-		if (!editorFrame.getGameType().hasPitOptions() || trackData.getHeader().getVersion() == 3 || pits.getStyle() != 3)
+		if (!trackContext.getGameType().hasPitOptions() || trackData.getHeader().getVersion() == 3 || pits.getStyle() != 3)
 			return;
 		SegmentVector segments = trackData.getSegments();
 		Segment entry = segments.getSegmentFromName(pits.getEntry());
@@ -1341,7 +1341,7 @@ public class TrackChecker
 	{
 		Graphic graphic = trackData.getGraphic();
 		checkGraphic3DFile("Description", graphic.getDescription());
-		if (editorFrame.getGameType().hasTypeObjectFiles())
+		if (trackContext.getGameType().hasTypeObjectFiles())
 		{
 			checkGraphic3DFile("Terrain", graphic.getTerrainObjects());
 			checkGraphic3DFile("Road", graphic.getRoadObjects());
@@ -1368,7 +1368,7 @@ public class TrackChecker
 
 	private void checkGraphic3DFile(String what, String file)
 	{
-		if (hasText(file) && findFile(file, editorFrame.getTrackFolders()) == null)
+		if (hasText(file) && findFile(file, trackContext.getTrackFolders()) == null)
 			report.append("Graphic 3D " + what + " file " + file + " not found\n");
 	}
 
@@ -1408,7 +1408,7 @@ public class TrackChecker
 	 */
 	private boolean wantsPng()
 	{
-		return editorFrame.getGameType() != GameType.TORCS;
+		return trackContext.getGameType() != GameType.TORCS;
 	}
 
 	/**
@@ -1423,7 +1423,7 @@ public class TrackChecker
 
 		// without the game's data folder, a texture that isn't the track's can't be found
 		if (dataDirectory != null && !dataDirectory.isEmpty()
-			&& findFile(texture, editorFrame.getTrackFolders(dataDirectory,
+			&& findFile(texture, trackContext.getTrackFolders(dataDirectory,
 				dataDirectory + sep + "data" + sep + "textures")) == null)
 		{
 			report.append(description + " texture " + texture + " not found\n");
@@ -1434,7 +1434,7 @@ public class TrackChecker
 			report.append(description + " texture " + texture + PNG_MESSAGE + "\n");
 		}
 
-		String format = editorFrame.getGameType().textureFormatProblem(texture);
+		String format = trackContext.getGameType().textureFormatProblem(texture);
 		if (format != null)
 		{
 			report.append(description + " texture " + texture + ": " + format + "\n");
@@ -1506,7 +1506,7 @@ public class TrackChecker
 	private void checkTerrainGeneration()
 	{
 		// TORCS trackgen stops with an error for these
-		if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+		if (trackContext.getGameType().hasTorcsTrackgenKeys())
 		{
 			double gap = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSocketGap();
 			double thickness = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeThickness();
@@ -1548,7 +1548,7 @@ public class TrackChecker
 					}
 
 					Ac3dObject root = ac3dFile.getRoot();
-					boolean torcs = editorFrame.getGameType() == GameType.TORCS;
+					boolean torcs = trackContext.getGameType() == GameType.TORCS;
 
 					if (root == null || countReliefLines(root, false, torcs) == 0)
 					{
@@ -1574,7 +1574,7 @@ public class TrackChecker
 									// TORCS trackgen puts everything that isn't interior in the exterior list
 									String result = torcs ? "treated as exterior by" : "ignored by";
 
-									report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + editorFrame.getGameType().getShortName() + " trackgen\n");
+									report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : expected interior or exterior data but found " + data + ", " + result + " " + trackContext.getGameType().getShortName() + " trackgen\n");
 								}
 
 								// sd2-trackgen expects borders and holes to be closed line and generates bad terrain when using line and duplicate vertices
@@ -1621,7 +1621,7 @@ public class TrackChecker
 		// only Speed Dreams trackgen reads the tiled file
 		String tiledFile = trackData.getGraphic().getTerrainGeneration().getTiledFile();
 
-		if (editorFrame.getGameType().hasTiledFile() && tiledFile != null && !tiledFile.isEmpty())
+		if (trackContext.getGameType().hasTiledFile() && tiledFile != null && !tiledFile.isEmpty())
 		{
 			if (findFile(tiledFile, Properties.getInstance().getPath()) == null)
 			{
@@ -1781,7 +1781,7 @@ public class TrackChecker
 		}
 
 		//check for objects outside terrain boundary
-		SegmentVector track = editorFrame.getTrackData().getSegments();
+		SegmentVector track = trackContext.getTrackData().getSegments();
 		int size = track.size();
 		Rectangle2D.Double boundingRectangle = null;
 
@@ -1797,7 +1797,7 @@ public class TrackChecker
 		// without segments there is no terrain to place anything on (checkTrack says so)
 		if (boundingRectangle == null)
 			return;
-		double border = editorFrame.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
+		double border = trackContext.getTrackData().getGraphic().getTerrainGeneration().getBorderMargin();
 		if (Double.isNaN(border))
 		{
 			// trackgen uses this when the track doesn't set one
@@ -1810,7 +1810,7 @@ public class TrackChecker
 
 		// where trackgen makes terrain: the border or relief border, less the holes
 		ObjShapeTerrain terrainShape = new ObjShapeTerrain();
-		terrainShape.calcShape(editorFrame, boundingRectangle);
+		terrainShape.calcShape(trackContext, boundingRectangle);
 
 		for (int i = 0; i < objectMaps.size(); i++)
 		{
@@ -1848,7 +1848,7 @@ public class TrackChecker
 		//check for graphic objects outside the terrain (beyond the border or relief border)
 		//or inside a hole: trackgen finds no height there (no terrain or track), so it leaves them out
 		Vector<GraphicObject> graphicObjects = trackData.getGraphic().getTerrainGeneration().getGraphicObjects();
-		if (editorFrame.getGameType().hasGraphicObjects())
+		if (trackContext.getGameType().hasGraphicObjects())
 		{
 			for (GraphicObject graphicObject : graphicObjects)
 			{
@@ -1920,7 +1920,7 @@ public class TrackChecker
 		if (place == ObjShapeTerrain.Place.ON)
 			return null;
 		Point2D.Double point = new Point2D.Double(x, y);
-		for (Segment segment : editorFrame.getTrackData().getSegments())
+		for (Segment segment : trackContext.getTrackData().getSegments())
 		{
 			if (segment.contains(point))
 				return null;
@@ -2185,7 +2185,7 @@ public class TrackChecker
 			}
 
 			// a format the game can't load
-			String format = editorFrame.getGameType().textureFormatProblem(texture);
+			String format = trackContext.getGameType().textureFormatProblem(texture);
 			if (format != null)
 			{
 				messages.add(" texture " + texture + ": " + format + "\n");
@@ -2275,7 +2275,7 @@ public class TrackChecker
 			}
 		}
 
-		if (editorFrame.getCheckDefaultObjects())
+		if (trackContext.getCheckDefaultObjects())
 		{
 			for (int i = 0; i < defaultObjects.size(); i++)
 			{
@@ -2312,7 +2312,7 @@ public class TrackChecker
 	{
 		// the track's folder, and for a Speed Dreams track in its local folder the installed track's
 		File file = null;
-		for (String folder : editorFrame.getTrackFolders())
+		for (String folder : trackContext.getTrackFolders())
 		{
 			file = new File(folder + sep + texture);
 			if (file.exists())
@@ -2425,7 +2425,7 @@ public class TrackChecker
 
 			// TORCS: the texture's height on crossing bridges; an invalid one is the texture size
 			double sizeV = trackData.getSurfaces().get(i).getTextureSizeV();
-			if (editorFrame.getGameType().hasTorcsTrackgenKeys() && !Double.isNaN(sizeV) && !(sizeV > 0))
+			if (trackContext.getGameType().hasTorcsTrackgenKeys() && !Double.isNaN(sizeV) && !(sizeV > 0))
 			{
 				String what = hasText(name) ? " " + name : "";
 				report.append("Track surface " + (i + 1) + what + " texture size v " + format(sizeV)
@@ -2455,7 +2455,7 @@ public class TrackChecker
 		}
 		checkSurface(trackData.getGraphic().getTerrainGeneration().getSurface(), "Terrain", properties("Terrain"));
 		// the surfaces of the bridges where the track crosses itself: unset is the default
-		if (editorFrame.getGameType().hasTorcsTrackgenKeys())
+		if (trackContext.getGameType().hasTorcsTrackgenKeys())
 		{
 			for (int i = 0; i < TerrainGeneration.CROSSING_BRIDGE_SURFACE_KEYS.length; i++)
 				checkSurface(trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSurface(i),

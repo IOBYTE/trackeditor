@@ -50,8 +50,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +77,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import plugin.torcs.XmlReader;
 import plugin.torcs.XmlWriter;
 import utils.CustomFileFilter;
 import utils.EditorPoint;
@@ -95,10 +92,12 @@ import utils.ac3d.Ac3dMaterial;
 import utils.ac3d.Ac3dObject;
 import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
+import utils.check.ReadNotices;
 import utils.check.TrackContext;
+import utils.check.TrackFolders;
+import utils.check.TrackLoader;
 import utils.circuit.GraphicObject;
 import utils.circuit.MainTrack;
-import utils.circuit.ObjShapeObject;
 import utils.circuit.ObjectMap;
 import utils.circuit.Pits;
 import utils.circuit.Reliefs;
@@ -481,20 +480,14 @@ public class EditorFrame extends JFrame implements TrackContext
 	{
 		// read again when the directory or game changes: don't keep the old ones
 		defaultSurfaces.clear();
-		String dataDirectory = getDataDirectory();
-		if (dataDirectory != null && !dataDirectory.isEmpty())
-		{
-			String defaultSurfaceFile = dataDirectory + sep + "data" + sep + "tracks" + sep + "surfaces.xml";
-			try
-			{
-				XmlReader xmlreader = new XmlReader(this);
-				xmlreader.readDefaultSurfaces(defaultSurfaceFile, defaultSurfaces);
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Opening Default Surfaces", JOptionPane.ERROR_MESSAGE);
-			}
-		}
+		TrackLoader.readDefaultSurfaces(this, getDataDirectory(), defaultSurfaces, readNotices());
+	}
+
+	/** @return where reading a track reports what the user has to know at once: a message box */
+	private ReadNotices readNotices()
+	{
+		return (title, message, error) -> JOptionPane.showMessageDialog(this, message, title,
+			error ? JOptionPane.ERROR_MESSAGE : JOptionPane.WARNING_MESSAGE);
 	}
 
 	public Vector<Surface> getDefaultSurfaces()
@@ -541,20 +534,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	private void readDefaultObjects()
 	{
 		defaultObjects.clear();
-		String dataDirectory = getDataDirectory();
-		if (dataDirectory != null && !dataDirectory.isEmpty())
-		{
-			String defaultSurfaceFile = dataDirectory + sep + "data" + sep + "tracks" + sep + "objects.xml";
-			try
-			{
-				XmlReader xmlreader = new XmlReader(this);
-				xmlreader.readDefaultObjects(defaultSurfaceFile, defaultObjects);
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Opening Default Objects", JOptionPane.ERROR_MESSAGE);
-			}
-		}
+		TrackLoader.readDefaultObjects(this, getDataDirectory(), defaultObjects, readNotices());
 	}
 
 	public Vector<TrackObject> getDefaultObjects()
@@ -610,13 +590,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public String getLocalDirectory(GameType game)
 	{
-		if (!game.hasLocalTracks())
-			return null;
-		String local = getDirectory(game, LOCAL_DIRECTORY);
-		if (local != null && !local.isEmpty())
-			return local;
-		File standard = game.defaultLocalDirectory();
-		return standard != null && standard.isDirectory() ? standard.getPath() : null;
+		return TrackFolders.localDirectory(game, getDirectory(game, LOCAL_DIRECTORY));
 	}
 
 	/**
@@ -627,14 +601,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public List<File> getTracksDirectories()
 	{
-		List<File> folders = new ArrayList<File>();
-		String local = getLocalDirectory(gameType);
-		if (local != null)
-			folders.add(new File(local, "tracks"));
-		String data = getDataDirectory();
-		if (data != null && !data.isEmpty())
-			folders.add(new File(data, "tracks"));
-		return folders;
+		return TrackFolders.tracksDirectories(getLocalDirectory(gameType), getDataDirectory());
 	}
 
 	/** @return the folder file choosers for tracks start in: the first tracks folder there is */
@@ -656,28 +623,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public String getTrackPlacementProblem()
 	{
-		List<File> tracks = getTracksDirectories();
-		if (tracks.isEmpty() || trackData == null)
-			return null;
-		File folder = new File(Properties.getInstance().getPath());
-		File categoryFolder = folder.getAbsoluteFile().getParentFile();
-		File tracksFolder = categoryFolder == null ? null : categoryFolder.getParentFile();
-		boolean listed = false;
-		for (File candidate : tracks)
-			listed |= tracksFolder != null && sameFile(tracksFolder, candidate);
-		if (!listed)
-		{
-			StringBuilder where = new StringBuilder();
-			for (File candidate : tracks)
-				where.append(where.length() == 0 ? "" : " or ").append(candidate.getPath());
-			return gameType.getName() + " won't list the track: it reads tracks from " + where + ", as <category>" + sep + "<name>,"
-				+ " and this track is in " + folder.getPath();
-		}
-		String category = trackData.getHeader().getCategory();
-		if (category != null && !category.isEmpty() && !category.equals(categoryFolder.getName()))
-			return "Category " + category + " isn't the folder the track is in, " + categoryFolder.getName() + ": " + gameType.getName()
-				+ " lists the track under " + categoryFolder.getName();
-		return null;
+		return TrackFolders.placementProblem(gameType, getTracksDirectories(), Properties.getInstance().getPath(), trackData);
 	}
 
 	// the installed track folder found for a track path, local and data directory
@@ -701,18 +647,9 @@ public class EditorFrame extends JFrame implements TrackContext
 		String key = path + "|" + local + "|" + data;
 		if (key.equals(installedKey))
 			return installedFolder;
-		String found = null;
-		File folder = new File(path).getAbsoluteFile();
-		File category = folder.getParentFile();
-		if (category != null && category.getParentFile() != null && sameFile(category.getParentFile(), new File(local, "tracks")))
-		{
-			File installed = new File(new File(new File(data, "tracks"), category.getName()), folder.getName());
-			if (installed.isDirectory() && !sameFile(installed, folder))
-				found = installed.getPath();
-		}
 		installedKey = key;
-		installedFolder = found;
-		return found;
+		installedFolder = TrackFolders.installedTrackFolder(local, data, path);
+		return installedFolder;
 	}
 
 	/**
@@ -722,17 +659,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public String[] getTrackFolders(String... more)
 	{
-		List<String> folders = new ArrayList<String>();
-		folders.add(Properties.getInstance().getPath());
-		String installed = getInstalledTrackFolder();
-		if (installed != null)
-			folders.add(installed);
-		for (String folder : more)
-		{
-			if (folder != null)
-				folders.add(folder);
-		}
-		return folders.toArray(new String[folders.size()]);
+		return TrackFolders.trackFolders(Properties.getInstance().getPath(), getInstalledTrackFolder(), more);
 	}
 
 	/** @return where the track's own files are looked for, for a tool tip: "the track's folder" and so on */
@@ -743,15 +670,7 @@ public class EditorFrame extends JFrame implements TrackContext
 
 	private static boolean sameFile(File a, File b)
 	{
-		try
-		{
-			return Files.isSameFile(a.toPath(), b.toPath());
-		}
-		catch (IOException | SecurityException e)
-		{
-			// not the same: one of them doesn't exist
-			return false;
-		}
+		return TrackFolders.sameFile(a, b);
 	}
 
 	/**
@@ -4794,140 +4713,6 @@ public class EditorFrame extends JFrame implements TrackContext
 	}
 
 	/**
-	 * @return the keys and sections in the file just read that saving won't keep, as
-	 *         messages: the ones the editor doesn't read (or skips, like the game), and
-	 *         the ones it reads that it doesn't write for this game (the game doesn't
-	 *         use them)
-	 */
-	/**
-	 * @param paths gets the path in the file of what each message is about
-	 */
-	private List<String> findUnusedKeys(XmlReader xmlReader, java.util.Map<String, String> paths)
-	{
-		List<String> messages = new ArrayList<String>();
-		for (XmlReader.FileKey key : xmlReader.getUnreadKeys())
-		{
-			String what = key.section ? "section " + key.path + " (" + key.keys + (key.keys == 1 ? " key" : " keys") + ")" : key.path;
-			String message;
-			if ("attstr".equals(key.wrongType))
-				message = lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it";
-			else if ("attnum".equals(key.wrongType))
-				message = lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it";
-			else if (key.reason != null)
-				message = lineText(key) + what + ": " + key.reason;
-			else
-				message = lineText(key) + what + ": the editor doesn't read it, so saving removes it";
-			messages.add(message);
-			paths.put(message, key.path);
-		}
-		try
-		{
-			java.util.Set<String> written = XmlReader.getKeyPaths(new XmlWriter(this).getDocument(""));
-			for (XmlReader.FileKey key : xmlReader.getReadKeys())
-			{
-				if (!written.contains(key.path) && !writtenAsOther(key.path, written))
-				{
-					String message = lineText(key) + key.path + ": " + gameType.getName() + " doesn't use it, so saving for " +
-						gameType.getShortName() + " removes it";
-					messages.add(message);
-					paths.put(message, key.path);
-				}
-			}
-		}
-		catch (Exception e)
-		{
-			// only this part of the check is lost
-			e.printStackTrace();
-		}
-		return messages;
-	}
-
-	/**
-	 * @return whether the writer keeps the key under another name in its section: a
-	 *         side's equal start and end widths become "width" (and a TORCS end width
-	 *         "width" can become "end width"), and the pits' "type" of some TORCS tracks
-	 *         becomes "pit style", and a curve's end radius equal to its start radius
-	 *         is left out
-	 */
-	private static boolean writtenAsOther(String path, java.util.Set<String> written)
-	{
-		int slash = path.lastIndexOf('/');
-		if (slash < 0)
-			return false;
-		String section = path.substring(0, slash + 1);
-		String name = path.substring(slash + 1);
-		String[] others;
-		switch (name)
-		{
-		case "start width":
-		case "end width":
-			others = new String[] {"width"};
-			break;
-		case "width":
-			others = new String[] {"start width", "end width"};
-			break;
-		case "type":
-			others = section.endsWith("Pits/") ? new String[] {"pit style"} : new String[0];
-			break;
-		case "end radius":
-			// left out when it's the start radius, which the game uses then
-			others = new String[] {"radius"};
-			break;
-		default:
-			others = new String[0];
-		}
-		for (String other : others)
-		{
-			if (written.contains(section + other))
-				return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Keeps a value the file has as text the game reads as another number, for the
-	 * segment dialog to show (see TrackData.FileText).
-	 */
-	private void addFileText(XmlReader xmlReader, String warning)
-	{
-		String text = xmlReader.getWarningText(warning);
-		String[] place = TrackData.segmentPlace(xmlReader.getWarningPath(warning));
-		if (text == null || place == null || place.length < 3)
-			return;
-		Segment segment = trackData.getSegments().getSegmentFromName(place[0]);
-		if (segment == null)
-			return;
-		String message = warning.replaceFirst("^line \\d+: ", "");
-		for (int i = 2; i < place.length; i++)
-		{
-			String field = place[i];
-			int slash = field.indexOf('/');
-			Object owner = slash < 0 ? segment : field.startsWith("Left/") ? segment.getLeft() : segment.getRight();
-			try
-			{
-				Object value = owner.getClass().getMethod("get" + field.substring(slash + 1)).invoke(owner);
-				trackData.addFileText(segment, field, new TrackData.FileText(text, ((Number) value).doubleValue(), message));
-			}
-			catch (Exception e)
-			{
-				// a field the segment doesn't have (an arc on a straight)
-			}
-		}
-	}
-
-	private static String lineText(XmlReader.FileKey key)
-	{
-		return key.line > 0 ? "Line " + key.line + ": " : "";
-	}
-
-	/** @return the line a message starting with lineText is about, after all lines if none */
-	private static int messageLine(String message)
-	{
-		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^Line (\\d+): ").matcher(message);
-		return matcher.find() ? Integer.parseInt(matcher.group(1)) : Integer.MAX_VALUE;
-	}
-
-	/**
 	 * Closes the windows that show or edit the track that was open, when another
 	 * track replaces it. Left open they would show the old track, and editing in
 	 * them would change a track that is no longer open.
@@ -4966,21 +4751,8 @@ public class EditorFrame extends JFrame implements TrackContext
 
 		try
 		{
-			XmlReader xmlReader = new XmlReader(this);
-
-			xmlReader.readXml(file.getAbsolutePath());
-			numberWarnings = xmlReader.getWarnings();
-
-			Vector<ObjectMap> objectMaps = trackData.getObjectMaps();
-			for (int i = 0; i < objectMaps.size(); i++)
-			{
-				Vector<ObjShapeObject> objects = objectMaps.get(i).getObjects();
-
-				for (int j = 0; j < objects.size(); j++)
-				{
-					objects.get(j).setName(getObjectColorName(objects.get(j).getRGB()));
-				}
-			}
+			TrackLoader loader = new TrackLoader(this, readNotices());
+			numberWarnings = loader.read(file);
 
 			// TORCS has no version 5 loader, so a version 5 track has to become version 4
 			boolean convertToVersion4 = false;
@@ -5017,22 +4789,9 @@ public class EditorFrame extends JFrame implements TrackContext
 				documentIsModified = true;
 			}
 
-			// what saving won't keep from the file, and the values it changes (shown
-			// when the track was read too), for the Check dialog, in file order
-			// with where each message is from, so the Check dialog can show it
-			java.util.Map<String, String> paths = new java.util.HashMap<String, String>();
-			List<String> unusedKeys = findUnusedKeys(xmlReader, paths);
-			for (String warning : xmlReader.getValueWarnings())
-			{
-				String message = warning.startsWith("line ") ? "Line " + warning.substring("line ".length()) : warning;
-				unusedKeys.add(message);
-				if (xmlReader.getWarningPath(warning) != null)
-					paths.put(message, xmlReader.getWarningPath(warning));
-				addFileText(xmlReader, warning);
-			}
-			Collections.sort(unusedKeys, Comparator.comparingInt(EditorFrame::messageLine));
-			trackData.setUnusedKeys(unusedKeys);
-			trackData.setUnusedKeyPaths(paths);
+			// what saving won't keep from the file, and the values it changes, for the
+			// Check dialog, as saving would write the track now
+			loader.findSavingChanges();
 		}
 		catch (Exception e)
 		{
@@ -5386,25 +5145,7 @@ public class EditorFrame extends JFrame implements TrackContext
 
 	public String getObjectColorName(int rgb)
 	{
-		Vector<TrackObject>	trackObjects = trackData.getTrackObjects();
-
-		for (int i = 0; i < trackObjects.size(); i++)
-		{
-			if (trackObjects.get(i).getColor() == rgb)
-			{
-				return trackObjects.get(i).getName();
-			}
-		}
-
-		for (int i = 0; i < defaultObjects.size(); i++)
-		{
-			if (defaultObjects.get(i).getColor() == rgb)
-			{
-				return defaultObjects.get(i).getName();
-			}
-		}
-
-		return null;
+		return TrackLoader.objectColorName(this, rgb);
 	}
 
 	public Set<String> getObjectColorNames()
