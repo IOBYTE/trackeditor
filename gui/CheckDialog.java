@@ -176,7 +176,7 @@ public class CheckDialog extends JDialog
 		pngButton.setToolTipText("Shows or hides the messages about .rgb textures that should be converted to png");
 		pngButton.addActionListener(e -> showMessages());
 		// keys the editor doesn't keep are often only left over from an older version
-		savingButton.setToolTipText("Shows or hides the messages about what the file has that saving removes");
+		savingButton.setToolTipText("Shows or hides messages about items in the file that saving will remove");
 		savingButton.addActionListener(e -> showMessages());
 		textureButton.setToolTipText("Shows or hides the messages about textures that aren't found");
 		textureButton.addActionListener(e -> showMessages());

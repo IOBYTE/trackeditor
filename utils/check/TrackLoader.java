@@ -125,14 +125,41 @@ public class TrackLoader
 	public static LoadedTrack load(File file, GameType game, String dataDirectory, String localDirectory, ReadNotices notices)
 		throws JDOMException, IOException
 	{
+		LoadedTrack settings = new LoadedTrack(game, dataDirectory, TrackFolders.localDirectory(game, localDirectory));
+		readDefaults(settings, notices);
+		return load(file, settings, notices);
+	}
+
+	/**
+	 * Reads the game's default surfaces and objects into the track's, to read them
+	 * once for many tracks (see load).
+	 */
+	public static void readDefaults(LoadedTrack track, ReadNotices notices)
+	{
+		readDefaultSurfaces(track, track.getDataDirectory(), track.getDefaultSurfaces(), notices);
+		readDefaultObjects(track, track.getDataDirectory(), track.getDefaultObjects(), notices);
+	}
+
+	/**
+	 * Reads a track for checking, as the other load does, with the game, directories,
+	 * default surfaces and objects and settings of another track, read once for
+	 * many tracks (see readDefaults).
+	 *
+	 * @param settings the game, directories, default surfaces and objects and
+	 *        settings: it isn't changed
+	 */
+	public static LoadedTrack load(File file, LoadedTrack settings, ReadNotices notices) throws JDOMException, IOException
+	{
+		GameType game = settings.getGameType();
 		// no project: like importing a track file, the settings start new
 		Properties properties = new Properties();
 		properties.setPath(file.getAbsoluteFile().getParent());
 		Properties.setInstance(properties);
 
-		LoadedTrack track = new LoadedTrack(game, dataDirectory, TrackFolders.localDirectory(game, localDirectory));
-		readDefaultSurfaces(track, dataDirectory, track.getDefaultSurfaces(), notices);
-		readDefaultObjects(track, dataDirectory, track.getDefaultObjects(), notices);
+		LoadedTrack track = new LoadedTrack(game, settings.getDataDirectory(), settings.getLocalDirectory());
+		track.getDefaultSurfaces().addAll(settings.getDefaultSurfaces());
+		track.getDefaultObjects().addAll(settings.getDefaultObjects());
+		track.setCheckDefaultObjects(settings.getCheckDefaultObjects());
 
 		track.setTrackData(new TrackData());
 		TrackLoader loader = new TrackLoader(track, notices);
@@ -231,9 +258,9 @@ public class TrackLoader
 			String what = key.section ? "section " + key.path + " (" + key.keys + (key.keys == 1 ? " key" : " keys") + ")" : key.path;
 			String message;
 			if ("attstr".equals(key.wrongType))
-				message = lineText(key) + what + ": is text (attstr), but it's read as a number (attnum), so the game doesn't use it and saving removes it";
+				message = lineText(key) + what + " is text (attstr) but is read as a number (attnum), so the game doesn't use it and saving removes it";
 			else if ("attnum".equals(key.wrongType))
-				message = lineText(key) + what + ": is a number (attnum), but it's read as text (attstr), so the game doesn't use it and saving removes it";
+				message = lineText(key) + what + " is a number (attnum) but is read as text (attstr), so the game doesn't use it and saving removes it";
 			else if (key.reason != null)
 				message = lineText(key) + what + ": " + key.reason;
 			else
@@ -307,19 +334,45 @@ public class TrackLoader
 
 	/**
 	 * Keeps a value the file has as text the game reads as another number, for the
-	 * segment dialog to show (see TrackData.FileText).
+	 * segment dialog or the Properties dialog to show (see TrackData.FileText).
 	 */
 	private void addFileText(String warning)
 	{
 		TrackData trackData = trackContext.getTrackData();
 		String text = xmlReader.getWarningText(warning);
-		String[] place = TrackData.segmentPlace(xmlReader.getWarningPath(warning));
-		if (text == null || place == null || place.length < 3)
+		String path = xmlReader.getWarningPath(warning);
+		String[] place = TrackData.segmentPlace(path);
+		if (text == null)
+			return;
+		String message = warning.replaceFirst("^line \\d+: ", "");
+		if (place == null)
+		{
+			// outside the segments, with the number the game reads (a field showing
+			// another number, in another unit, doesn't show it): in a light by the
+			// light (the first with its name, as the game finds it), else by its path
+			if (path == null)
+				return;
+			TrackData.FileText fileText = new TrackData.FileText(text, plugin.torcs.GfParmNumbers.parse(text, new boolean[1]), message);
+			String[] parts = path.split("/", 3);
+			if (parts.length == 3 && parts[0].equals("Track Lights"))
+			{
+				for (utils.circuit.TrackLight light : trackData.getTrackLights())
+				{
+					if (parts[1].equals(light.getName()))
+					{
+						trackData.addFileText(light, parts[2], fileText);
+						return;
+					}
+				}
+			}
+			trackData.addFileText(null, path, fileText);
+			return;
+		}
+		if (place.length < 3)
 			return;
 		Segment segment = trackData.getSegments().getSegmentFromName(place[0]);
 		if (segment == null)
 			return;
-		String message = warning.replaceFirst("^line \\d+: ", "");
 		for (int i = 2; i < place.length; i++)
 		{
 			String field = place[i];

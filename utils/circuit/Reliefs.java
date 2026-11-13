@@ -143,18 +143,27 @@ public class Reliefs
 	/**
 	 * @return the file a relief file name stands for: a name without a folder is
 	 *         in the track's folder
+	 * @throws IOException for a name with characters the file system doesn't
+	 *         allow (on Windows ? * " and others)
 	 */
-	public static Path resolve(String name)
+	public static Path resolve(String name) throws IOException
 	{
-		Path filename = Paths.get(name);
-
-		// check for parent directory
-		if (filename.getParent() == null)
+		try
 		{
-			// use track directory
-			filename = Paths.get(Properties.getInstance().getPath(), filename.toString());
+			Path filename = Paths.get(name);
+
+			// check for parent directory
+			if (filename.getParent() == null)
+			{
+				// use track directory
+				filename = Paths.get(Properties.getInstance().getPath(), filename.toString());
+			}
+			return filename;
 		}
-		return filename;
+		catch (java.nio.file.InvalidPathException e)
+		{
+			throw new IOException("it isn't a valid file name");
+		}
 	}
 
 	public void readFile() throws IOException, Ac3dException, Exception

@@ -244,7 +244,7 @@ public class CameraProperties extends PropertyPanel
 			tip(nameLabel, nameTextField, "The camera's name, different from the other cameras'.",
 				"The game doesn't show it.");
 			tip(commentLabel, commentTextField, "A note for whoever edits the track. The game doesn't read it.");
-			segmentTip = new String[] { "The segment the camera stands by: To Start and To Right",
+			segmentTip = new String[] { "The segment the camera is placed next to: To Start and To Right",
 				"are measured from it. Required: without it the game won't load the track." };
 			tip(toRightLabel, toRightTextField, "How far across from the road's right edge, in meters, looking along the track:",
 				"0 is on the right edge, the road's width is on the left edge,",
@@ -253,18 +253,18 @@ public class CameraProperties extends PropertyPanel
 			heightTip = new String[] { "How high the camera is, in meters, above the ground under it",
 				"(the road, or a border or side when it is off the road).",
 				"Empty is 0, on the ground." };
-			fovStartTip = new String[] { "The first segment this camera films.",
+			fovStartTip = new String[] { "The first segment this camera covers.",
 				"Fov is the stretch of track the camera covers, not a lens angle: the game zooms by itself.",
-				"The camera films from the start of Fov Start up to the start of Fov End.",
-				"Where cameras' stretches overlap, the one later in the list films.",
+				"The camera covers the track from the start of Fov Start up to the start of Fov End.",
+				"Where two cameras' ranges overlap, the one later in the list is used.",
 				"Required: without it the game won't load the track." };
-			fovEndTip = new String[] { "The segment after the last one this camera films: it stops where this one starts.",
-				"The same segment as Fov Start films the whole lap.",
+			fovEndTip = new String[] { "The segment after the last one this camera covers: it stops where this one starts.",
+				"Use the same segment as Fov Start to cover the whole lap.",
 				"Required: without it the game won't load the track." };
 
 			fixButton.setBounds(toStartTextField.getX() + toStartTextField.getWidth() + 5, toStartTextField.getY(), 60,
 				toStartTextField.getHeight());
-			fixButton.setToolTipText("Put To Start in a unit that fits the segment");
+			fixButton.setToolTipText("Convert To Start to a unit that suits this segment");
 			fixButton.addActionListener(e -> fixToStart());
 			add(fixButton);
 
@@ -334,7 +334,7 @@ public class CameraProperties extends PropertyPanel
 			JTextField[] fields = { segmentTextField, fovStartTextField, fovEndTextField };
 			String[][] tips = { segmentTip, fovStartTip, fovEndTip };
 			String[] instead = { "the game puts the camera by the first segment instead",
-				"the game films from the first segment instead", "the game films up to the first segment instead" };
+				"the game uses the camera from the first segment instead", "the game uses the camera up to the first segment instead" };
 			namesProblem = false;
 			for (int i = 0; i < fields.length; i++)
 			{
@@ -387,7 +387,7 @@ public class CameraProperties extends PropertyPanel
 				return;
 			boolean problem = namesProblem || toStartProblem || heightProblem;
 			tabbedPane.setForegroundAt(i, problem ? java.awt.Color.RED : null);
-			tabbedPane.setToolTipTextAt(i, problem ? "This camera has a problem: see the red labels" : null);
+			tabbedPane.setToolTipTextAt(i, problem ? "This camera has a problem. Look for the red labels." : null);
 		}
 
 		/** @return the unit To Start is saved in: as the file has it, or as a new camera is saved */
@@ -533,13 +533,13 @@ public class CameraProperties extends PropertyPanel
 				double value = toStart();
 				text = units == null ? curve ? "rad" : "m" : units;
 				if (curve && units != null && !angle)
-					tip = "On a curve the game reads To Start as an angle: this " + units
-						+ " length is read as radians, so the camera is far from where it should be";
+					tip = "On a curve, the game reads To Start as an angle. This length in " + units
+						+ " is read as radians, so the camera ends up far from where it should be";
 				else if (!curve && angle && value != 0)
-					tip = "On a straight the game reads To Start as a length: this angle in " + units
-						+ " is turned into radians and read as meters";
+					tip = "On a straight, the game reads To Start as a length. This angle in " + units
+						+ " is converted to radians and then read as meters";
 				else if (curve && Math.abs(read(value, units)) >= 2 * Math.PI)
-					tip = "This is more than a full turn round the curve: the game puts the camera round and round its circle";
+					tip = "This is more than a full turn around the curve, so the game wraps the camera around the circle more than once";
 				fixable = tip != null;
 				warning = utils.check.CameraProblems.toStartProblem(segment, value, units, getEditorFrame().getGameType());
 			}
@@ -550,7 +550,7 @@ public class CameraProperties extends PropertyPanel
 			String[] lines;
 			if (segment == null)
 				lines = new String[] { "How far along the segment from its start.",
-					"On a straight a length, in meters; on a curve an angle round the curve,",
+					"On a straight a length, in meters; on a curve an angle around the curve,",
 					"in degrees when saved in degrees (as a new camera is), otherwise in radians.",
 					"Empty is 0, the segment's start." };
 			else if (segment.getType().equals("str"))
@@ -558,7 +558,7 @@ public class CameraProperties extends PropertyPanel
 					"More than the segment's length puts the camera past its end.",
 					"Empty is 0, the segment's start." };
 			else
-				lines = new String[] { "How far round the curve from the segment's start, as an angle (1 rad = 57.3 deg):",
+				lines = new String[] { "How far around the curve from the segment's start, as an angle (1 rad = 57.3 deg):",
 					"in degrees when saved in degrees (as a new camera is), otherwise in radians.",
 					"It is an angle, not a length: the bigger the curve's radius,",
 					"the further along the road the same angle is.",

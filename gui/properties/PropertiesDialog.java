@@ -76,7 +76,7 @@ public class PropertiesDialog extends JDialog
 	private GeoreferenceProperties	georeferenceProperties	= null;
 	// keeps the tabs with something in red in red, while the dialog is open
 	private javax.swing.Timer		tabProblemsTimer		= null;
-	private static final String		TAB_PROBLEM_TIP			= "Something on this tab has a problem: see the red text";
+	private static final String		TAB_PROBLEM_TIP			= "This tab has a problem. Look for the red text.";
 
 	/**
 	 *

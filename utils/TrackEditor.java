@@ -37,6 +37,7 @@ import com.jgoodies.looks.plastic.theme.DesertBlue;
 
 import gui.EditorFrame;
 import miscel.TCPopupEventQueue;
+import utils.check.TrackCheck;
 
 
 /**
@@ -47,18 +48,16 @@ public class TrackEditor
 {
 	private static EditorFrame gui;
 
-	public static String executableName = null;
+	// the first argument that checks tracks instead of opening the editor
+	private static final String	CHECK	= "check";
 
 	/**
 	 * @return the editor's name: csr-trackeditor when run as that, otherwise
-	 * sd2-trackeditor (also when run some other way, like from Eclipse)
+	 * sd2-trackeditor (see AppName)
 	 */
 	public static String getAppName()
 	{
-		if ("csr-trackeditor".equals(executableName))
-			return "csr-trackeditor";
-
-		return Properties.getInstance().title;
+		return AppName.get();
 	}
 
 	/**
@@ -150,47 +149,82 @@ public class TrackEditor
 		return encoding.equalsIgnoreCase("UTF-8") || encoding.equalsIgnoreCase("UTF8");
 	}
 
+	/**
+	 * Starts the editor. A class of its own, so checking tracks (see main) loads
+	 * none of the look and feel and Swing classes it uses.
+	 */
+	private static final class Editor
+	{
+		static void start()
+		{
+			Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TCPopupEventQueue());
+
+			PlasticLookAndFeel.setCurrentTheme(new DesertBlue());
+			try
+			{
+				UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
+			} catch (Exception e)
+			{
+			}
+			// tooltips stay until the mouse leaves: some, like file paths, take a while to read
+			ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+			System.out.println("Track editor    : "+Properties.getInstance().version);
+			System.out.println("Java version    : "+System.getProperty("java.version"));
+			System.out.println("OS              : "+System.getProperty("os.name"));
+			System.out.println("OS architecture : "+System.getProperty("os.arch"));
+			System.out.println("OS version      : "+System.getProperty("os.version"));
+			// relaunching didn't help (no C.UTF-8 locale) or wasn't possible
+			if (!utf8FileNames())
+				System.err.println("File names are in " + System.getProperty("sun.jnu.encoding") + ", not UTF-8, so files and folders"
+					+ " with accented letters in their names can't be opened. Start the editor with a UTF-8 locale,"
+					+ " such as: LC_ALL=C.UTF-8 java -jar trackeditor.jar");
+			// Swing windows must be made and used on the event dispatch thread
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					gui = new EditorFrame();
+				}
+			});
+		}
+	}
+
 	public static void main(String[] args)
 	{
+		// java -jar trackeditor.jar check ...: check tracks without a window (see
+		// TrackCheck), also on a computer without a display
+		boolean check = args.length > 0 && args[0].equals(CHECK);
+		if (check)
+			System.setProperty("java.awt.headless", "true");
+
 		File jarFile = codeSource();
-		executableName = jarFile.getName();
+		String executableName = jarFile.getName();
 		// ignore the extension (csr-trackeditor.jar -> csr-trackeditor)
 		int dot = executableName.lastIndexOf('.');
 		if (dot > 0)
 			executableName = executableName.substring(0, dot);
+		AppName.executableName = executableName;
 
 		// only relaunch when running from a jar (not from a class directory)
 		if (jarFile.isFile())
 			relaunchForUtf8(jarFile.getPath(), args);
 
-		Toolkit.getDefaultToolkit().getSystemEventQueue().push(new TCPopupEventQueue());
-		
-		PlasticLookAndFeel.setCurrentTheme(new DesertBlue());
-		try
+		String jar = jarFile.isFile() ? jarFile.getName() : "trackeditor.jar";
+		if (check)
+			System.exit(TrackCheck.run("java -jar " + jar + " " + CHECK, Arrays.copyOfRange(args, 1, args.length), System.out, System.err));
+		if (args.length > 0 && (args[0].equals("-h") || args[0].equals("--help")))
 		{
-			UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
-		} catch (Exception e)
-		{
+			System.out.println("Usage: java -jar " + jar + "            opens the track editor");
+			System.out.println("       java -jar " + jar + " " + CHECK + " ...  checks tracks without opening it: "
+				+ "java -jar " + jar + " " + CHECK + " --help shows how");
+			return;
 		}
-		// tooltips stay until the mouse leaves: some, like file paths, take a while to read
-		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
-		System.out.println("Track editor    : "+Properties.getInstance().version);
-		System.out.println("Java version    : "+System.getProperty("java.version"));
-		System.out.println("OS              : "+System.getProperty("os.name"));
-		System.out.println("OS architecture : "+System.getProperty("os.arch"));
-		System.out.println("OS version      : "+System.getProperty("os.version"));
-		// relaunching didn't help (no C.UTF-8 locale) or wasn't possible
-		if (!utf8FileNames())
-			System.err.println("File names are in " + System.getProperty("sun.jnu.encoding") + ", not UTF-8, so files and folders"
-				+ " with accented letters in their names can't be opened. Start the editor with a UTF-8 locale,"
-				+ " such as: LC_ALL=C.UTF-8 java -jar trackeditor.jar");
-		// Swing windows must be made and used on the event dispatch thread
-		SwingUtilities.invokeLater(new Runnable()
+		if (args.length > 0 && args[0].equals("--version"))
 		{
-			public void run()
-			{
-				gui = new EditorFrame();
-			}
-		});
+			System.out.println("Track editor " + Properties.getInstance().version);
+			return;
+		}
+
+		Editor.start();
 	}
 }

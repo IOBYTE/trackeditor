@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -994,24 +993,27 @@ public class XmlReader
 	        String reliefFile = getAttrStrValue(terrain, "relief file");
 	        if (reliefFile != null)
 	        {
-	    		Path path = Paths.get(reliefFile);
+				// the name to show, without its folder: not as a Path, which a name
+				// with characters the file system doesn't allow can't be (the track
+				// wouldn't open)
+				String shown = new java.io.File(reliefFile).getName();
 	        	try
 	        	{
 	        		data.getTerrainGeneration().getReliefs().setFileName(reliefFile);
 	    		}
 	    		catch (IOException e)
 	    		{
-	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
+					String msg = shown + " : " + e.getLocalizedMessage();
 	            	notices.notice("Relief File", msg, true);
 	    		}
 	    		catch (Ac3dException e)
 	    		{
-	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
+					String msg = shown + " : " + e.getLocalizedMessage();
 	            	notices.notice("Relief File", msg, true);
 	    		}
 	    		catch (Exception e)
 	    		{
-	        		String msg = path.getFileName() + " : " + e.getLocalizedMessage();
+					String msg = shown + " : " + e.getLocalizedMessage();
 	            	notices.notice("Relief File", msg, true);
 	    		}
 	        }

@@ -376,7 +376,7 @@ public class SegmentSlider extends JPanel
 		{
 			checkBox.setEnabled(true);
 			problemUnlocked = true;
-			tip = tip.replace("</body></html>", "<br>Untick the box to remove it.</body></html>");
+			tip = tip.replace("</body></html>", "<br>Uncheck the box to remove it.</body></html>");
 		}
 		else if (problemUnlocked && (tip == null || !checkBox.isSelected()))
 		{
@@ -435,8 +435,8 @@ public class SegmentSlider extends JPanel
 		{
 			String range = Double.isNaN(highest) ? "at least " + nf.format(lowest)
 				: Double.isNaN(lowest) ? "at most " + nf.format(highest)
-				: "from " + nf.format(lowest) + " to " + nf.format(highest);
-			return (zeroAllowed ? "it must be 0 (none), or " : "it must be ") + range;
+				: "between " + nf.format(lowest) + " and " + nf.format(highest);
+			return (zeroAllowed ? "it must be 0 (none) or " : "it must be ") + range;
 		}
 		return validator == null ? null : validator.apply(v);
 	}
@@ -496,9 +496,9 @@ public class SegmentSlider extends JPanel
 		java.awt.Color red = java.awt.Color.RED;
 		String fileTipText = showsFileText() ? "<html><body style='width: 300px'><font color=red>"
 			+ fileTip.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-			+ "</font><br>Typing a value replaces it.</body></html>" : null;
+			+ "</font><br>Type a value to replace it.</body></html>" : null;
 		String tip = refusedText != null ? "<html><body style='width: 300px'><font color=red><b>Not used:</b> "
-			+ refusedText + ".<br>Leaving the box puts the value back.</font></body></html>" : problemTip != null ? problemTip : fileTipText;
+			+ refusedText + ".<br>The previous value is restored when you leave the box.</font></body></html>" : problemTip != null ? problemTip : fileTipText;
 		getTextField().setDisabledTextColor(problemTip != null || fileTipText != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
 		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
 		getTextField().setToolTipText(tip);

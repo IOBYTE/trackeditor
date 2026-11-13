@@ -43,13 +43,14 @@ import javax.swing.event.DocumentListener;
 
 import gui.EditorFrame;
 import gui.properties.PropertyPanel;
-import gui.view3d.GameTrack.Seg;
+import utils.circuit.GameTrack.Seg;
 import utils.SegmentVector;
 import utils.circuit.Camera;
 import utils.circuit.MainTrack;
 import utils.circuit.StartingGrid;
 import utils.undo.Undo;
 import utils.undo.UndoCameras;
+import utils.circuit.GameTrack;
 
 /**
  * Plays a lap as the game's road views show it: a car (not drawn) drives round
@@ -188,7 +189,7 @@ class CameraPlayer
 		pauseButton.addActionListener(e -> setPlaying(!playing));
 		restartButton.setToolTipText("Back to the start line, or to the grid when driving");
 		restartButton.addActionListener(e -> restart());
-		previousButton.setToolTipText("Back to where the camera before this one takes over");
+		previousButton.setToolTipText("Back to where the previous camera takes over");
 		previousButton.addActionListener(e -> previousCamera());
 		nextButton.setToolTipText("Skip to where the next camera takes over");
 		nextButton.addActionListener(e -> nextCamera());
@@ -197,13 +198,13 @@ class CameraPlayer
 		driveViewBox.setLightWeightPopupEnabled(false);
 		driveViewBox.setToolTipText("From the driver's seat, or from behind the car");
 		driveViewBox.addActionListener(e -> show());
-		pathBox.setToolTipText("Where the car drives");
+		pathBox.setToolTipText("The line the car follows");
 		pathBox.addActionListener(e -> show());
-		speedSlider.setToolTipText("The car's speed, the same all round the lap");
+		speedSlider.setToolTipText("The car's speed, constant for the whole lap");
 		speedSlider.setPreferredSize(new Dimension(120, speedSlider.getPreferredSize().height));
 		speedSlider.addChangeListener(e -> speedLabel.setText(speedSlider.getValue() + " km/h"));
 		speedLabel.setText(speedSlider.getValue() + " km/h");
-		editBox.setToolTipText("Edit the camera showing; editing pauses");
+		editBox.setToolTipText("Edit the current camera (pauses playback)");
 		editBox.addActionListener(e -> {
 			endEdit();
 			editPanel.setVisible(editBox.isSelected());
@@ -292,19 +293,19 @@ class CameraPlayer
 		c.weighty = 1;
 		editPanel.add(new JPanel(), c);
 
-		segmentBox.setToolTipText("The segment the camera stands by");
+		segmentBox.setToolTipText("The segment the camera is placed next to");
 		toStartField.setToolTipText("<html>How far along the segment from its start: in a curve an angle,<br>"
 			+ "or in meters along the middle of the road (saved as an angle in degrees)</html>");
 		unitBox.setToolTipText("The unit of To Start");
 		toRightField.setToolTipText("From the right edge of the road: less than 0 is off the road on the right");
 		heightField.setToolTipText("Above the ground");
-		fovStartBox.setToolTipText("The first segment the camera films");
-		fovEndBox.setToolTipText("The segment after the last one it films (the same as Fov Start films all the lap)");
-		showStartButton.setToolTipText("Pause with the car where the camera starts filming: the start of Fov Start");
+		fovStartBox.setToolTipText("The first segment the camera covers");
+		fovEndBox.setToolTipText("The segment after the last one it covers (use the same segment as Fov Start for the whole lap)");
+		showStartButton.setToolTipText("Pause with the car where the camera's range starts: the start of Fov Start");
 		showEndButton.setToolTipText("Pause with the car just before the camera stops filming: the start of Fov End");
-		moveButton.setToolTipText("Put the camera by the car, keeping To Right and Height");
-		startButton.setToolTipText("Make the camera film from the car's segment");
-		endButton.setToolTipText("Make the camera film up to the end of the car's segment");
+		moveButton.setToolTipText("Move the camera next to the car, keeping To Right and Height");
+		startButton.setToolTipText("Make the camera's range start at the car's segment");
+		endButton.setToolTipText("Make the camera's range end at the end of the car's segment");
 		addButton.setToolTipText("A new camera by the car, filming from its segment to where the next camera takes over");
 		deleteButton.setToolTipText("Delete the camera");
 		undoButton.setToolTipText("Undo the last change, as the editor's Undo does");

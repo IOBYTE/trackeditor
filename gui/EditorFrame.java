@@ -94,6 +94,7 @@ import utils.ac3d.Ac3dSurface;
 import utils.circuit.Curve;
 import utils.check.ReadNotices;
 import utils.check.TrackContext;
+import utils.check.Trackgen;
 import utils.check.TrackFolders;
 import utils.check.TrackLoader;
 import utils.circuit.GraphicObject;
@@ -317,6 +318,8 @@ public class EditorFrame extends JFrame implements TrackContext
 	private DefaultObjectsDialog	defaultObjectsDialog			= null;
 
 	private String				originalTitle						= null;
+	// the project file the title bar shows, or null
+	private String				titleProject						= null;
 
 	private boolean				pasteObject							= false;
 	private int 				currentObjectMap					= -1;
@@ -451,6 +454,8 @@ public class EditorFrame extends JFrame implements TrackContext
 		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
 		// the default until a game type has been chosen
 		gameType = readGameType();
+		if (originalTitle != null)
+			showTitle(titleProject);
 		readDirectories();
 		if (exportMenu != null)
 			updateExportMenu();
@@ -474,6 +479,19 @@ public class EditorFrame extends JFrame implements TrackContext
 		readDefaultObjects();
 
 		originalTitle = getTitle();
+		showTitle(null);
+	}
+
+	/**
+	 * Shows the editor's name and version, the game the track is edited for and
+	 * the project file in the title bar.
+	 *
+	 * @param project the project file, or null for none
+	 */
+	private void showTitle(String project)
+	{
+		titleProject = project;
+		setTitle(originalTitle + " - " + gameType.getName() + (project == null ? "" : " - Project: " + project));
 	}
 
 	private void readDefaultSurfaces()
@@ -673,40 +691,6 @@ public class EditorFrame extends JFrame implements TrackContext
 		return TrackFolders.sameFile(a, b);
 	}
 
-	/**
-	 * @return why CSR's or Speed Dreams' trackgen can't read the shared surfaces or
-	 *         objects the track includes, or null. They're included as
-	 *         ../../../data/tracks/surfaces.xml and objects.xml, from the track's
-	 *         folder: the data directory's when the track is in its tracks folder.
-	 *         Speed Dreams reads them from its data directory for a track in its local
-	 *         tracks folder too.
-	 */
-	private String getSharedFilesProblem()
-	{
-		boolean surfaces = trackData.getHasSurfacesReference();
-		boolean objects = trackData.getHasObjectsReference();
-		if (!surfaces && !objects)
-			return null;
-		File folder = new File(Properties.getInstance().getPath()).getAbsoluteFile();
-		File shared = new File(folder, ".." + sep + ".." + sep + ".." + sep + "data" + sep + "tracks").toPath().normalize().toFile();
-		if ((!surfaces || new File(shared, "surfaces.xml").isFile()) && (!objects || new File(shared, "objects.xml").isFile()))
-			return null;
-		String local = getLocalDirectory(gameType);
-		File categoryFolder = folder.getParentFile();
-		File tracksFolder = categoryFolder == null ? null : categoryFolder.getParentFile();
-		if (local != null && tracksFolder != null && sameFile(tracksFolder, new File(local, "tracks")))
-			return null;
-		List<File> tracks = getTracksDirectories();
-		StringBuilder where = new StringBuilder();
-		for (File candidate : tracks)
-			where.append("\n").append(candidate.getPath()).append(sep).append(trackData.getHeader().getCategory()).append(sep)
-				.append(folder.getName());
-		return gameType.getTrackgen() + " can't read the default " + (surfaces && objects ? "surfaces and objects" : surfaces ? "surfaces" : "objects")
-			+ " this track includes: it looks for them\nthree folders up from the track, at\n" + shared.getPath() + "\n\n"
-			+ (tracks.isEmpty() ? "Set the " + gameType.getName() + " data directory in Preferences, and save the track in its tracks folder."
-				: "Save the track in a folder " + gameType.getName() + " reads tracks from:" + where);
-	}
-
 	private void putOrRemove(String key, String value)
 	{
 		if (value == null)
@@ -727,15 +711,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public String getTrackgenPath()
 	{
-		String trackgen = gameType.getTrackgen();
-		String bin = getBinDirectory();
-		if (bin != null && !bin.isEmpty())
-			return bin + sep + trackgen;
-		String data = getDataDirectory();
-		if (gameType == GameType.TORCS && data != null && !data.isEmpty() &&
-			(new File(data, trackgen).isFile() || new File(data, trackgen + ".exe").isFile()))
-			return data + sep + trackgen;
-		return trackgen;
+		return Trackgen.path(gameType, getBinDirectory(), getDataDirectory());
 	}
 
 	/**
@@ -748,29 +724,7 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public List<String> getTrackgenFolderArgs()
 	{
-		List<String> args = new ArrayList<String>();
-		if (gameType != GameType.TORCS)
-		{
-			// with forward slashes and as the file system spells it: Speed Dreams reads
-			// the default surfaces and objects of a track in its local directory from its
-			// data directory only when the track's path starts with the local directory
-			// as it spells it, like C:/Users/Bob/Documents/speed-dreams-2.settings/
-			String path = Properties.getInstance().getPath();
-			try
-			{
-				path = new File(path).getCanonicalPath();
-			}
-			catch (IOException | SecurityException e)
-			{
-				path = new File(path).getAbsolutePath();
-			}
-			path = path.replace(File.separatorChar, '/');
-			args.add("-i");
-			args.add(path);
-			args.add("-o");
-			args.add(path);
-		}
-		return args;
+		return Trackgen.folderArgs(gameType, Properties.getInstance().getPath());
 	}
 
 	/**
@@ -796,44 +750,18 @@ public class EditorFrame extends JFrame implements TrackContext
 	 */
 	public File getTrackgenDirectory()
 	{
-		String data = getDataDirectory();
-		if (gameType != GameType.TORCS || data == null || data.isEmpty())
-			return null;
-		return new File(data);
+		return Trackgen.directory(gameType, getDataDirectory());
 	}
 
 	/**
 	 * @return why trackgen can't read this track, or null: TORCS trackgen only reads
 	 * tracks/<category>/<name>/<name>.xml in its data directory, and CSR's and Speed
 	 * Dreams' only find the default surfaces and objects from their tracks folders
-	 * (see getSharedFilesProblem)
+	 * (see Trackgen.problem)
 	 */
 	public String getTrackgenProblem()
 	{
-		if (gameType != GameType.TORCS)
-			return trackData == null ? null : getSharedFilesProblem();
-
-		String data = getDataDirectory();
-		if (data == null || data.isEmpty())
-			return "Set the TORCS data directory (the folder TORCS is installed in) in Preferences:\n" +
-				"TORCS trackgen runs there and reads the track from its tracks folder.";
-
-		String path = Properties.getInstance().getPath();
-		String name = path.substring(path.lastIndexOf(sep) + 1);
-		File expected = new File(data + sep + "tracks" + sep + trackData.getHeader().getCategory() + sep + name);
-		try
-		{
-			if (java.nio.file.Files.isSameFile(new File(path).toPath(), expected.toPath()))
-				return null;
-		}
-		catch (IOException | SecurityException e)
-		{
-			// not the same: one of them doesn't exist
-		}
-		return "TORCS trackgen only reads the track from its data directory, at\n" + expected +
-			"\n\nbut this track is in\n" + path +
-			"\n\nSave the track there (its folder is the track's category, \"" + trackData.getHeader().getCategory() + "\"),\n" +
-			"or set the TORCS data directory in Preferences.";
+		return Trackgen.problem(gameType, getDataDirectory(), getLocalDirectory(gameType), Properties.getInstance().getPath(), trackData);
 	}
 
 	public void setDataDirectory(String dataDirectory)
@@ -986,6 +914,8 @@ public class EditorFrame extends JFrame implements TrackContext
 	public void setGameType(GameType value)
 	{
 		gameType = value;
+		if (originalTitle != null)
+			showTitle(titleProject);
 
 		// always saved, so a choice that matches this app's default still applies
 		// when the editor is run another way
@@ -1026,7 +956,7 @@ public class EditorFrame extends JFrame implements TrackContext
 
 	private static boolean isCsrApp()
 	{
-		return "csr-trackeditor".equals(TrackEditor.executableName);
+		return "csr-trackeditor".equals(utils.AppName.executableName);
 	}
 
 
@@ -1163,7 +1093,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		showBackgroundImage();
 		restoreView();
 
-		setTitle(originalTitle + " - Project: " + projectFileName);
+		showTitle(projectFileName);
 	}
 
 	/**
@@ -1480,14 +1410,14 @@ public class EditorFrame extends JFrame implements TrackContext
 		newProject.setVisible(true);
 		if (NewProjectDialog.APPROVE)
 		{
-			setTitle(originalTitle);
+			showTitle(null);
 			try
 			{
 				createNewCircuit(newProjectInfo);
 				String filename = Properties.getInstance().getPath();
 				String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 				filename = filename + sep + trackname + ".prj.xml";
-				setTitle(originalTitle + " - Project: " + filename);
+				showTitle(filename);
 			} catch (Exception e1)
 			{
 				e1.printStackTrace();
@@ -1850,7 +1780,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		if (closeTrackMenuItem == null)
 		{
 			closeTrackMenuItem = new JMenuItem("Close");
-			closeTrackMenuItem.setToolTipText("Close the track without opening another (to change the game without reading the track again).");
+			closeTrackMenuItem.setToolTipText("Closes the track without opening another one, so you can switch games without reloading it.");
 			closeTrackMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 			closeTrackMenuItem.addActionListener(new ActionListener()
 			{
@@ -3805,7 +3735,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		showObjectsAction = new ShowObjectsAction("Show objects", createNavigationIcon("Object24"), "Show objects.", KeyEvent.VK_S);
 		showReliefsAction = new ShowReliefsAction("Show reliefs", createNavigationIcon("Relief24"), "Show reliefs.", KeyEvent.VK_S);
 		showCamerasAction = new ShowCamerasAction("Show cameras", createNavigationIcon("Camera24"),
-			"Show the cameras, and color the road by the camera that films it.", KeyEvent.VK_S);
+			"Show the cameras, and color the road by the camera that covers it.", KeyEvent.VK_S);
 		checkAction = new CheckAction("Check", createNavigationIcon("Check24"), "Check.", KeyEvent.VK_S);
 		finishLineAction = new FinishLineAction("Finish Line", createNavigationIcon("Finish24"), "Finish Line.", KeyEvent.VK_S);
 		helpAction = new HelpAction("Help", createNavigationIcon("Help24"), "Help.", KeyEvent.VK_S);
@@ -3823,7 +3753,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		ac3E4Action = new ExportAC3E4Action("AC with track with height steps elevation map", null, "Create AC file and track with height steps elevation map.", null);
 		ac3RacelineAction = new ExportAC3RacelineAction("AC race line", null, "Create AC race line file.", null);
 		view3DAction = new View3DAction("3D View", createNavigationIcon("View3D24"), "Show the track in 3D (Ctrl+3).", KeyEvent.VK_3);
-		calcDeltaAction = new CalcDeltaAction("Delta's", createNavigationIcon("Calc24"), "Calculate Delta's for x,y,z and angle.", KeyEvent.VK_S);
+		calcDeltaAction = new CalcDeltaAction("Deltas", createNavigationIcon("Calc24"), "Calculate the deltas for x, y, z and angle.", KeyEvent.VK_S);
 		importAction = new ImportAction("Track XML", null, "Track xml file", null);
 		exportAction = new ExportAction("Track XML", null, "Track xml file", null);
 	}
@@ -4649,7 +4579,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		documentIsModified = false;
 		// the background image belongs to the closed track
 		clearBackgroundImage();
-		setTitle(originalTitle);
+		showTitle(null);
 		refresh();
 		if (view != null)
 			view.fireTrackChanged();
@@ -4811,7 +4741,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		}
 		refresh();
 
-		setTitle(originalTitle + " - Project: " + file.getAbsolutePath());
+		showTitle(file.getAbsolutePath());
 
 		showNumberWarnings(file, numberWarnings);
 		return true;

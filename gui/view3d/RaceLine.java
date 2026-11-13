@@ -8,7 +8,8 @@
  */
 package gui.view3d;
 
-import gui.view3d.GameTrack.Seg;
+import utils.circuit.GameTrack.Seg;
+import utils.circuit.GameTrack;
 
 /**
  * The racing line trackgen works out for the raceline texture layer

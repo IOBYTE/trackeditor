@@ -47,7 +47,6 @@ import org.jdom2.util.NamespaceStack;
 import utils.DoubleValue;
 import utils.GameType;
 import utils.Properties;
-import utils.TrackEditor;
 import utils.SegmentVector;
 import utils.check.TrackContext;
 import utils.circuit.Camera;
@@ -894,7 +893,7 @@ public class XmlWriter
 		String trackname = filename.substring(filename.lastIndexOf(sep) + 1);
 		String tmp = "\n";
 		tmp += "file                : " + trackname + ".xml\n";
-		tmp += "auto generated      : by " + TrackEditor.getAppName() + "\n";
+		tmp += "auto generated      : by " + utils.AppName.get() + "\n";
 		tmp += "version             : " + Properties.getInstance().version + "\n";
 		tmp += "copyright           : (C) 2005 by Charalampos Alexopoulos\n";
 

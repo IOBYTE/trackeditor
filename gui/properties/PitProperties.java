@@ -265,7 +265,7 @@ public class PitProperties extends PropertyPanel
 		getPitsOffsetComboBox().setBounds(120, rowY(row), 175, 23);
 		addTextField(this, row, pitsOffsetTextField, "", 300, 80);
 		addLabel(this, row++, pitsOffsetUnitsLabel, "m", 385, 30);
-		pitsOffsetTextField.setToolTipText("Where the pits start from the start line: less than 0 is before it");
+		pitsOffsetTextField.setToolTipText("Distance from the start line to the start of the pits. A negative value puts them before the line.");
 		addLabel(this, row, pitsLengthLabel, "Pits Length", 110);
 		addTextField(this, row, pitsLengthTextField, "", 120, 125);
 		addLabel(this, row++, pitsLengthUnitsLabel, "m", 250, 200);
@@ -279,7 +279,7 @@ public class PitProperties extends PropertyPanel
 			addLabel(this, row, pitCountLabel, "Number of Pits", 110);
 			addTextField(this, row, pitCountTextField, "", 120, 125);
 			addLabel(this, row++, pitCountUnitsLabel, "", 250, 200);
-			pitCountTextField.setToolTipText("How many pits: the buildings are this many pit lengths long");
+			pitCountTextField.setToolTipText("Number of pits. The buildings are this many pit lengths long.");
 		}
 		addLabel(this, row, exitLengthLabel, "Exit Length", 110);
 		addTextField(this, row, exitLengthTextField, "", 120, 125);
@@ -403,7 +403,7 @@ public class PitProperties extends PropertyPanel
 		JTextField field = null;
 		try
 		{
-			gui.view3d.GameTrack.PitLayout layout = pitLayoutOfDialog();
+			utils.circuit.GameTrack.PitLayout layout = pitLayoutOfDialog();
 			problem = layout == null ? null : layout.problem();
 			if (problem != null)
 			{
@@ -428,7 +428,7 @@ public class PitProperties extends PropertyPanel
 			getFitButton().setBounds(row.getX() + row.getWidth() + 10, row.getY(), 110, row.getHeight());
 		getFitButton().setVisible(problem != null);
 		getFitButton().setToolTipText(problem == null ? null : "<html><body style='width: 400px'>" + problem
-			+ ".<br><br>Fits the segments to the pits.</body></html>");
+			+ ".<br><br>Click to fit the segments to the pits.</body></html>");
 	}
 
 	private boolean isVersion3()
@@ -504,7 +504,7 @@ public class PitProperties extends PropertyPanel
 					items[3] = STYLE_ITEMS[index];
 				}
 				styleComboBox = new JComboBox<String>(items);
-				styleComboBox.setToolTipText("Version 3 tracks only get track side pits.");
+				styleComboBox.setToolTipText("Version 3 tracks can only have pits on the track side.");
 			}
 			else if (!getEditorFrame().getGameType().hasPitOptions())
 			{
@@ -568,8 +568,8 @@ public class PitProperties extends PropertyPanel
 		{
 			indicatorComboBox = new JComboBox<String>();
 			indicatorComboBox.setBounds(120, 307, 175, 23);
-			indicatorComboBox.setToolTipText("<html>The game only shows it when the pit type is \"no building\",<br>"
-				+ "for pits with a car: 1 is pit_indicator.ac, 2 or more normal_pit_indicator.ac</html>");
+			indicatorComboBox.setToolTipText("<html>The game shows it only for \"no building\" pits that have a car.<br>"
+				+ "1 uses pit_indicator.ac; 2 or more uses normal_pit_indicator.ac.</html>");
 			selectIndicator();
 		}
 		return indicatorComboBox;
@@ -742,11 +742,11 @@ public class PitProperties extends PropertyPanel
 	}
 
 	/** @return where the game places the pits, or null */
-	private gui.view3d.GameTrack.PitLayout pitLayout()
+	private utils.circuit.GameTrack.PitLayout pitLayout()
 	{
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(getEditorFrame());
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(getEditorFrame());
 			return track == null ? null : track.pitPlaces();
 		}
 		catch (RuntimeException e)
@@ -867,7 +867,7 @@ public class PitProperties extends PropertyPanel
 	 *         without changing the track: the dialog's values are tried on a copy
 	 *         of the pits
 	 */
-	private gui.view3d.GameTrack.PitLayout pitLayoutOfDialog()
+	private utils.circuit.GameTrack.PitLayout pitLayoutOfDialog()
 	{
 		utils.circuit.MainTrack mainTrack = getEditorFrame().getTrackData().getMainTrack();
 		Pits pits = mainTrack.getPits();
@@ -894,7 +894,7 @@ public class PitProperties extends PropertyPanel
 	 */
 	public boolean checkBuildingsEnd(java.awt.Component parent)
 	{
-		gui.view3d.GameTrack.PitLayout layout = pitLayoutOfDialog();
+		utils.circuit.GameTrack.PitLayout layout = pitLayoutOfDialog();
 		String problem = layout == null ? null : layout.problem();
 		if (problem == null)
 			return true;
@@ -920,7 +920,7 @@ public class PitProperties extends PropertyPanel
 	 *
 	 * @return what was done, and what went wrong or null
 	 */
-	private String[] fitStart(gui.view3d.GameTrack.PitLayout layout, boolean torcs)
+	private String[] fitStart(utils.circuit.GameTrack.PitLayout layout, boolean torcs)
 	{
 		Pits pits = getEditorFrame().getPits();
 		SegmentVector data = getEditorFrame().getTrackData().getSegments();
@@ -999,7 +999,7 @@ public class PitProperties extends PropertyPanel
 		UndoPitGeneration undo = new UndoPitGeneration(getEditorFrame());
 		// fit the pits as they are in the dialog
 		applyFields();
-		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		utils.circuit.GameTrack.PitLayout layout = pitLayout();
 		if (layout == null || layout.endName == null)
 		{
 			undo.undo();
@@ -1114,7 +1114,7 @@ public class PitProperties extends PropertyPanel
 		if (!torcs)
 		{
 			refreshView();
-			gui.view3d.GameTrack.PitLayout now = pitLayout();
+			utils.circuit.GameTrack.PitLayout now = pitLayout();
 			if (now != null && now.endsOnStopSegment() && now.stopSteps > 1)
 			{
 				Segment stop = data.getSegmentFromName(now.stopName);
@@ -1146,7 +1146,7 @@ public class PitProperties extends PropertyPanel
 		// a spiral is only split where one of the game's steps ends: not good enough
 		// (the pieces' shapes are worked out when the track is drawn)
 		refreshView();
-		gui.view3d.GameTrack.PitLayout after = pitLayout();
+		utils.circuit.GameTrack.PitLayout after = pitLayout();
 		String problem = after == null ? "the pits are gone" : after.endProblem() != null ? after.endProblem() : after.lineProblem();
 		if (problem != null)
 		{
@@ -1476,7 +1476,7 @@ public class PitProperties extends PropertyPanel
 	{
 		try
 		{
-			gui.view3d.GameTrack.PitLayout layout = pitLayout();
+			utils.circuit.GameTrack.PitLayout layout = pitLayout();
 			return layout == null ? 0 : layout.pits.size();
 		}
 		catch (RuntimeException e)
@@ -1743,7 +1743,7 @@ public class PitProperties extends PropertyPanel
 		if (!torcs)
 		{
 			refreshView();
-			gui.view3d.GameTrack.PitLayout now = pitLayout();
+			utils.circuit.GameTrack.PitLayout now = pitLayout();
 			if (now != null && now.endsOnStopSegment() && now.stopSteps > 1)
 			{
 				Segment stop = data.getSegmentFromName(now.stopName);
@@ -1765,7 +1765,7 @@ public class PitProperties extends PropertyPanel
 		renamePitSegments(torcs, done);
 
 		refreshView();
-		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		utils.circuit.GameTrack.PitLayout layout = pitLayout();
 		if (layout == null || layout.pits.isEmpty())
 			return new String[] { done.toString(), "The game wouldn't place any pits: check the Type and Side" };
 		if (layout.endProblem() != null)
@@ -2242,11 +2242,11 @@ public class PitProperties extends PropertyPanel
 	 */
 	private java.util.Set<String> pitBoxSegments()
 	{
-		gui.view3d.GameTrack.PitLayout layout = pitLayout();
+		utils.circuit.GameTrack.PitLayout layout = pitLayout();
 		if (layout == null)
 			return null;
 		java.util.Set<String> names = new java.util.HashSet<String>();
-		for (gui.view3d.GameTrack.LocalPos pit : layout.pits)
+		for (utils.circuit.GameTrack.LocalPos pit : layout.pits)
 			names.add(pit.seg.name);
 		if (layout.endName != null)
 			names.add(layout.endName);

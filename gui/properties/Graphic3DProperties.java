@@ -106,7 +106,7 @@ public class Graphic3DProperties extends PropertyPanel
 
 		if (getEditorFrame().getGameType().hasTypeObjectFiles())
 		{
-			addLabel(this, 1, separateObjectsLabel, "Seperate Objects", 150);
+			addLabel(this, 1, separateObjectsLabel, "Separate Objects", 150);
 			addLabel(this, 2, terrainObjectsLabel, "Terrain", 150);
 			addLabel(this, 3, roadObjectsLabel, "Road", 150);
 			addLabel(this, 4, road2ObjectsLabel, "Road2", 150);

@@ -285,19 +285,19 @@ public class TrackChecker
 		}
 		double trackSteps = Segment.getTrackSteps(trackContext);
 		if (trackSteps > Segment.MAX_TRACK_STEPS)
-			report.append(String.format(java.util.Locale.US, "The track is built in %,.0f steps, more than the editor's %,d: "
-				+ "it draws each segment in fewer, and the game may be slow to load it\n", trackSteps, Segment.MAX_TRACK_STEPS), NONE);
+			report.append(String.format(java.util.Locale.US, "The track needs %,.0f steps, more than the editor's limit of %,d. "
+				+ "The editor draws each segment with fewer steps, and the game may be slow to load it.\n", trackSteps, Segment.MAX_TRACK_STEPS), NONE);
 		report.about(properties("Track"));
 		double mainWidth = trackData.getMainTrack().getWidth();
 		if (!Double.isNaN(mainWidth) && mainWidth <= 0)
-			report.append("Main Track: width " + format(mainWidth) + " m: the track needs a width greater than 0\n");
+			report.append("Main Track: width is " + format(mainWidth) + " m. It must be greater than 0.\n");
 		double mainStepsLength = trackData.getMainTrack().getProfilStepsLength();
 		if (mainStepsLength > 0 && mainStepsLength < Segment.MIN_PROFIL_STEPS_LENGTH)
 			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is shorter than the editor allows ("
-				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m), so a segment with it is built in very many steps\n");
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m), so segments that use it need a very large number of steps\n");
 		else if (mainStepsLength < 0)
-			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is negative: it must be 0 (none) or at least "
-				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and a segment with it is built in one step\n");
+			report.append("Main Track: profil steps length " + format(mainStepsLength) + " m is negative. It must be 0 (none) or at least "
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m. Segments that use it are built in one step.\n");
 		report.about(null);
 
 		// a side reaching past a curve's center: GameSides.problems, in checkSide
@@ -359,12 +359,12 @@ public class TrackChecker
 			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is shorter than the editor allows ("
 				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m)\n");
 		else if (segment.hasProfilStepsLength() && segment.getProfilStepsLength() < 0)
-			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is negative: it must be 0 (none) or at least "
-				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m, and the segment is built in one step\n");
+			report.append(name + "steps length " + format(segment.getProfilStepsLength()) + " m is negative. It must be 0 (none) or at least "
+				+ format(Segment.MIN_PROFIL_STEPS_LENGTH) + " m. The segment is built in one step.\n");
 		double steps = segment.getGameSteps(trackContext, length);
 		if (steps > Segment.MAX_STEPS)
-			report.append(name + String.format(java.util.Locale.US, "the game builds it in %,.0f steps, more than the editor's %,d: "
-				+ "the editor draws it in %,d, and the game may be slow to load it\n", steps, Segment.MAX_STEPS, Segment.MAX_STEPS));
+			report.append(name + String.format(java.util.Locale.US, "the game builds it in %,.0f steps, more than the editor's limit of %,d. "
+				+ "The editor draws it in %,d, and the game may be slow to load it.\n", steps, Segment.MAX_STEPS, Segment.MAX_STEPS));
 	}
 
 	/**
@@ -381,21 +381,21 @@ public class TrackChecker
 		{
 			double length = segment.getLength();
 			if (Double.isNaN(length))
-				report.append(name + "no length: the game reads it as 0, so the straight has no length\n");
+				report.append(name + "length is missing. The game reads it as 0, so the straight has no length.\n");
 			else if (length == 0)
 				report.append(name + "length 0: the straight has no length\n");
 			else if (length < 0)
-				report.append(name + "length " + format(length) + " m: a straight needs a length greater than 0, "
-					+ "the game builds it backwards or not at all\n");
+				report.append(name + "length " + format(length) + " m: a straight needs a length greater than 0. "
+					+ "The game builds this one backward or not at all.\n");
 			return;
 		}
 
 		Curve curve = (Curve) segment;
 		double radius = curve.getRadiusStart();
 		if (Double.isNaN(radius))
-			report.append(name + "no radius: the game reads it as 0, so the curve turns on the spot\n");
+			report.append(name + "radius is missing. The game reads it as 0, so the curve turns in place.\n");
 		else if (radius == 0)
-			report.append(name + "radius 0: the curve turns on the spot\n");
+			report.append(name + "radius is 0, so the curve turns in place\n");
 		else if (radius < 0)
 			report.append(name + "radius " + format(radius) + " m: a curve needs a radius greater than 0\n");
 
@@ -409,19 +409,19 @@ public class TrackChecker
 		double half = trackData.getMainTrack().getValidWidth() / 2;
 		if (radius > 0 && radius < half)
 			report.append(name + "radius " + format(radius) + " m is less than half the track's width (" + format(half)
-				+ " m): the inside edge of the road crosses the curve's centre\n");
+				+ " m): the inside edge of the road crosses the curve's center\n");
 		if (end > 0 && end < half && end != radius)
 			report.append(name + "end radius " + format(end) + " m is less than half the track's width (" + format(half)
-				+ " m): the inside edge of the road crosses the curve's centre\n");
+				+ " m): the inside edge of the road crosses the curve's center\n");
 
 		double arc = curve.getArcDeg();
 		if (Double.isNaN(arc))
-			report.append(name + "no arc: the game reads it as 0, so the curve has no length and doesn't turn\n");
+			report.append(name + "arc is missing. The game reads it as 0, so the curve has no length and doesn't turn.\n");
 		else if (arc == 0)
 			report.append(name + "arc 0: the curve has no length and doesn't turn\n");
 		else if (arc < 0)
-			report.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0, "
-				+ "the game builds it backwards or not at all\n");
+			report.append(name + "arc " + format(arc) + " deg: a curve needs an arc greater than 0. "
+				+ "The game builds this one backward or not at all.\n");
 		else if (arc > 360)
 			checkFullTurns(curve, name);
 	}
@@ -454,9 +454,9 @@ public class TrackChecker
 			- curve.getCalculatedHeightStartLeft() - curve.getCalculatedHeightStartRight()) / 2;
 		double perTurn = Math.abs(rise) / turns;
 		if (!(perTurn >= MIN_RISE_PER_TURN))
-			report.append(name + "arc " + format(curve.getArcDeg()) + " deg is more than a full turn (360 deg) and the curve's height changes "
-				+ (Double.isNaN(perTurn) ? "0" : format(perTurn)) + " m a turn, less than " + format(MIN_RISE_PER_TURN)
-				+ " m: it passes through itself\n");
+			report.append(name + "arc is " + format(curve.getArcDeg()) + " deg, more than a full turn (360 deg), and the curve's height changes only "
+				+ (Double.isNaN(perTurn) ? "0" : format(perTurn)) + " m per turn (less than " + format(MIN_RISE_PER_TURN)
+				+ " m), so the road passes through itself\n");
 	}
 
 	/**
@@ -487,24 +487,24 @@ public class TrackChecker
 			Closure closure = Closure.last(trackContext);
 			if (closure == null)
 			{
-				report.append("Closure not checked against trackgen's targets: double-click to run Calc in the Delta's dialog\n",
+				report.append("Closure hasn't been checked against trackgen's targets. Double-click to run Calc in the Delta dialog.\n",
 					Subject.calculateClosure());
 				return;
 			}
 			java.util.List<String> off = new java.util.ArrayList<String>();
 			// within trackgen's rounding on a big track is as close as it gets
 			if (Math.abs(closure.dX) > Closure.allowed(Closure.TARGET_DX, closure.size))
-				off.add("Delta X " + closure.dX + " (target \u00b1" + Closure.plain(Closure.TARGET_DX) + " m)");
+				off.add("Delta X " + Closure.plain(closure.dX) + " (target \u00b1" + Closure.plain(Closure.TARGET_DX) + " m)");
 			if (Math.abs(closure.dY) > Closure.allowed(Closure.TARGET_DY, closure.size))
-				off.add("Delta Y " + closure.dY + " (target \u00b1" + Closure.plain(Closure.TARGET_DY) + " m)");
+				off.add("Delta Y " + Closure.plain(closure.dY) + " (target \u00b1" + Closure.plain(Closure.TARGET_DY) + " m)");
 			if (Math.abs(closure.dZ) > Closure.TARGET_DZ)
-				off.add("Delta Z " + closure.dZ + " (target \u00b1" + Closure.plain(Closure.TARGET_DZ) + " m)");
+				off.add("Delta Z " + Closure.plain(closure.dZ) + " (target \u00b1" + Closure.plain(Closure.TARGET_DZ) + " m)");
 			if (Math.abs(closure.angle) > Closure.TARGET_ANGLE)
-				off.add("Delta Ang " + closure.angle + " (target \u00b1" + Closure.plain(Closure.TARGET_ANGLE) + " degrees)");
+				off.add("Delta Ang " + Closure.plain(closure.angle) + " (target \u00b1" + Closure.plain(Closure.TARGET_ANGLE) + " degrees)");
 			if (off.isEmpty())
 				return;
-			report.append("Track doesn't close exactly: trackgen's " + String.join(", ", off)
-				+ ": Auto in the Delta's dialog closes it\n", Subject.lastClosure());
+			report.append("The track doesn't close exactly (trackgen's " + String.join(", ", off)
+				+ "). Auto in the Delta dialog will close it.\n", Subject.lastClosure());
 			return;
 		}
 
@@ -539,12 +539,12 @@ public class TrackChecker
 		String borderStyle = main.getBorderStyle();
 		if (hasText(borderStyle) && !borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
 		{
-			report.append(prefix + " border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall\n");
+			report.append(prefix + " border style \"" + borderStyle + "\" isn't valid, so the game treats it as a wall\n");
 		}
 		if (trackContext.getGameType().planBorderResetsHeight() && (!hasText(borderStyle) || borderStyle.equals("plan")) &&
 			!Double.isNaN(main.getBorderHeight()) && main.getBorderHeight() != 0)
 		{
-			report.append(prefix + " border style is plan with " + main.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height\n");
+			report.append(prefix + " border style is plan, but a height of " + main.getBorderHeight() + " is set. The game ignores it and uses 0. Set the border style to curb or wall, or remove the height.\n");
 		}
 
 		// barrier (fence when it isn't set)
@@ -555,12 +555,12 @@ public class TrackChecker
 		if (!fence && !barrierStyle.equals("wall"))
 		{
 			report.append(prefix + " barrier style \"" + barrierStyle + "\" isn't " + (fence1Fence2 ? "fence, fence1, fence2" : "fence") +
-				" or wall" + (version3 ? " in a version 3 track" : "") + ", so the game makes it a wall" +
+				" or wall" + (version3 ? " in a version 3 track" : "") + ", so the game treats it as a wall" +
 				(barrierStyle.equals("no barrier") ? " (only a segment can have no barrier)" : "") + "\n");
 		}
 		if (fence && !Double.isNaN(main.getBarrierWidth()) && main.getBarrierWidth() != 0)
 		{
-			report.append(prefix + " barrier style is " + (hasText(barrierStyle) ? barrierStyle : "fence") + " with " + main.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width\n");
+			report.append(prefix + " barrier style is " + (hasText(barrierStyle) ? barrierStyle : "fence") + ", but a width of " + main.getBarrierWidth() + " is set. The game ignores it and uses 0. Set the barrier style to wall, or remove the width.\n");
 		}
 	}
 
@@ -569,7 +569,7 @@ public class TrackChecker
 	{
 		String prefix = "Segment " + segment.getName() + " " + name;
 		for (GameSides.Problem problem : GameSides.problems(segment, previousSegment, right, trackContext))
-			report.append(prefix + " " + problem.text + "\n");
+			report.append(prefix + " " + sentences(problem.text) + "\n");
 	}
 
 	/**
@@ -620,14 +620,14 @@ public class TrackChecker
 			}
 			String[] kind = sectionKind(parent);
 			report.append(kind[0] + " name \"" + name + "\" is used " + entry.getValue()
-				+ " times: the game can't load a track file with two sections of the same name (" + path
-				+ "), so rename all but one of the " + kind[1] + "s\n", sectionTarget(parent, name));
+				+ " times. The game can't load a track file that has two sections with the same name (" + path
+				+ "). Rename all but one.\n", sectionTarget(parent, name));
 		}
 		for (String[] slash : slashes)
 		{
 			String[] kind = sectionKind(slash[0]);
-			report.append(kind[0] + " name \"" + slash[1] + "\" contains /: the game reads it as a section inside "
-				+ "another one, so the " + kind[1] + " is lost\n", sectionTarget(slash[0], slash[1]));
+			report.append(kind[0] + " name \"" + slash[1] + "\" contains a slash (/). The game reads it as a section nested inside "
+				+ "another, so the " + kind[1] + " is lost.\n", sectionTarget(slash[0], slash[1]));
 		}
 	}
 
@@ -736,12 +736,44 @@ public class TrackChecker
 	private void checkUnusedKeys()
 	{
 		for (String message : trackData.getUnusedKeys())
+			report.append(message + "\n", keyTarget(trackData.getUnusedKeyPath(message)));
+	}
+
+	// how the paths of the keys outside the editor's lists start, and the Properties
+	// tabs with them, the deepest first
+	private static final String[][] SECTION_TABS = { { "Main Track/Pits/", "Pit" }, { "Main Track/Left ", "Track", "Left" },
+		{ "Main Track/Right ", "Track", "Right" }, { "Main Track/", "Track" }, { "Graphic/Terrain Generation/", "Terrain" },
+		{ "Graphic/Turn Marks/", "Turn Marks" }, { "Header/", "General" }, { "Local Info/", "Local Info" },
+		{ "Starting Grid/", "Grid" }, { "Georeference/", "Georeference" } };
+
+	/**
+	 * @return where a key in the file is edited: a key in a segment the segment, on the
+	 *         dialog's tab with it; a key in an item of the editor's lists (a light,
+	 *         camera, surface...) the item's Properties tab; else the Properties tab
+	 *         with the section; null when it's none of those
+	 */
+	private Subject keyTarget(String path)
+	{
+		if (path == null)
+			return null;
+		String[] place = TrackData.segmentPlace(path);
+		if (place != null)
+			return segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
+		for (String list : LISTS)
 		{
-			// a key in a segment shows the segment, on the dialog's tab with it
-			String[] place = TrackData.segmentPlace(trackData.getUnusedKeyPath(message));
-			Subject target = place == null ? null : segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
-			report.append(message + "\n", target);
+			if (!path.startsWith(list + "/"))
+				continue;
+			String rest = path.substring(list.length() + 1);
+			int slash = rest.indexOf('/');
+			// a key of the list itself isn't in an item
+			return slash > 0 ? sectionTarget(list, rest.substring(0, slash)) : null;
 		}
+		for (String[] section : SECTION_TABS)
+		{
+			if (path.startsWith(section[0]))
+				return properties(java.util.Arrays.copyOfRange(section, 1, section.length));
+		}
+		return null;
 	}
 
 	/**
@@ -780,7 +812,7 @@ public class TrackChecker
 		for (utils.circuit.Camera camera : cameras)
 			for (String problem : CameraProblems.segmentProblems(trackData.getSegments(), camera.getName(),
 				camera.getSegment(), camera.getFovStart(), camera.getFovEnd()))
-				report.append(problem + "\n", properties("Cameras", camera.getName()));
+				report.append(sentences(problem) + "\n", properties("Cameras", camera.getName()));
 
 		SegmentVector segments = trackData.getSegments();
 		int count = segments.size();
@@ -793,9 +825,9 @@ public class TrackChecker
 			checkCameraPlace(camera, segments);
 			double height = camera.getHeight();
 			if (Double.isNaN(height) || height == 0)
-				report.append("Camera " + camera.getName() + ": no height, so the game puts it on the ground\n");
+				report.append("Camera " + camera.getName() + ": height is missing, so the game places it on the ground\n");
 			else if (height < 0)
-				report.append("Camera " + camera.getName() + ": height " + format(height) + " m puts it under the ground\n");
+				report.append("Camera " + camera.getName() + ": a height of " + format(height) + " m places it below the ground\n");
 		}
 		report.about(cameraTab);
 
@@ -820,20 +852,20 @@ public class TrackChecker
 		for (utils.circuit.Camera camera : cameras)
 			if (hasText(camera.getSegment()) && hasText(camera.getFovStart()) && hasText(camera.getFovEnd())
 				&& !filming.contains(camera.getName()))
-				report.append("Camera " + camera.getName() + ": never films, as cameras later in the list film all of its stretch ("
+				report.append("Camera " + camera.getName() + " is never used, because cameras later in the list cover its entire range ("
 					+ camera.getFovStart() + " to " + camera.getFovEnd() + ")\n", properties("Cameras", camera.getName()));
 
 		// the stretches no camera films, from the first segment of each
 		if (cameras.isEmpty())
 		{
-			report.append("No cameras: the game's TV views look at the cars from 120 m above the track\n");
+			report.append("No cameras. The game's TV views will show the cars from 120 m above the track.\n");
 			return;
 		}
 		if (!filming.contains(null))
 			return;
 		if (filming.size() == 1)
 		{
-			report.append("No camera films any segment: the game's TV views look at the cars from 120 m above the track\n");
+			report.append("No camera covers any segment. The game's TV views will show the cars from 120 m above the track.\n");
 			return;
 		}
 		for (int i = 0; i < count; i++)
@@ -844,8 +876,8 @@ public class TrackChecker
 			while (owners[(last + 1) % count] == null)
 				last = (last + 1) % count;
 			String from = segments.get(i).getName(), to = segments.get(last).getName();
-			report.append("No camera films " + (i == last ? "segment " + from : "segments " + from + " to " + to)
-				+ ": the game's TV views look at the cars from 120 m above the track there\n", segment(segments.get(i)));
+			report.append("No camera covers " + (i == last ? "segment " + from : "segments " + from + " to " + to)
+				+ ". The game's TV views will show the cars from 120 m above the track there.\n", segment(segments.get(i)));
 		}
 	}
 
@@ -864,7 +896,13 @@ public class TrackChecker
 		String units = camera.isToStartUnitsKnown() ? camera.getToStartUnits() : curve ? "deg" : null;
 		String problem = CameraProblems.toStartProblem(segment, value, units, trackContext.getGameType());
 		if (problem != null)
-			report.append("Camera " + camera.getName() + ": " + problem + "\n");
+			report.append("Camera " + camera.getName() + ": " + sentences(problem) + "\n");
+	}
+
+	/** @return a message of more than one sentence with the last one's period, any other as it is */
+	private static String sentences(String text)
+	{
+		return text.contains(". ") ? text + "." : text;
 	}
 
 	/** @return a number with at most 2 decimals, and none when it is whole */
@@ -896,22 +934,22 @@ public class TrackChecker
 			SegmentVector segments = trackData.getSegments();
 
 			if (!hasText(pits.getEntry()))
-				report.append("Missing pit entry: the game has no pits without it\n");
+				report.append("Pit entry is missing. Without it, the game has no pits.\n");
 			else if (segments.getSegmentFromName(pits.getEntry()) == null)
 				report.append("Invalid pit entry: " + pits.getEntry() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getStart()))
-				report.append("Missing pit start: the game has no pits without it\n");
+				report.append("Pit start is missing. Without it, the game has no pits.\n");
 			else if (segments.getSegmentFromName(pits.getStart()) == null)
 				report.append("Invalid pit start: " + pits.getStart() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getEnd()))
-				report.append("Missing pit end: the game has no pits without it\n");
+				report.append("Pit end is missing. Without it, the game has no pits.\n");
 			else if (segments.getSegmentFromName(pits.getEnd()) == null)
 				report.append("Invalid pit end: " + pits.getEnd() + " isn't a segment, so the game has no pits\n");
 
 			if (!hasText(pits.getExit()))
-				report.append("Missing pit exit: the game has no pits without it\n");
+				report.append("Pit exit is missing. Without it, the game has no pits.\n");
 			else if (segments.getSegmentFromName(pits.getExit()) == null)
 				report.append("Invalid pit exit: " + pits.getExit() + " isn't a segment, so the game has no pits\n");
 
@@ -931,9 +969,9 @@ public class TrackChecker
 
 			// the games read any side but "right" as left
 			if (!hasText(pits.getSide()))
-				report.append("Missing pit side: the game uses right\n");
+				report.append("Pit side is missing. The game uses the right side.\n");
 			else if (!(pits.getSide().equals("left") || pits.getSide().equals("right")))
-				report.append("Invalid pit side: " + pits.getSide() + " (the game uses left)\n");
+				report.append("Pit side \"" + pits.getSide() + "\" isn't valid (the game uses the left side)\n");
 		}
 
 		// the games only show a pit indicator with the pit type "no building"
@@ -943,13 +981,14 @@ public class TrackChecker
 		{
 			int style = pits.getStyle() == Integer.MAX_VALUE ? 1 : pits.getStyle();
 			if (indicator < 1)
-				report.append("Pit indicator " + indicator + ": the game only shows one for 1 (pit_indicator.ac) or more (normal_pit_indicator.ac)\n");
+				report.append("Pit indicator " + indicator + " isn't valid. The game shows an indicator only for 1 (pit_indicator.ac) or higher (normal_pit_indicator.ac).\n");
 			else if (style != 3)
 				report.append("Pit indicator is set, but the game only shows it when the pit type is \"no building\"\n");
 		}
 
 		if (!noSegments)
 		{
+			checkPitCount();
 			checkPitsOnCurves();
 			checkNoBuildingPitLane(pits);
 			checkPitsEnd();
@@ -967,8 +1006,8 @@ public class TrackChecker
 		String problem;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
-			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(trackContext);
+			utils.circuit.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
 			problem = layout == null ? null : layout.lineProblem();
 		}
 		catch (RuntimeException e)
@@ -976,7 +1015,30 @@ public class TrackChecker
 			return;
 		}
 		if (problem != null)
-			report.append(problem + ": Fit Segments in the Pit properties moves the start of the pits (Apply and Ok offer it too)\n");
+			report.append(problem + ": Fit Segments in the Pit properties moves the start of the pits (Apply and Ok also offer this)\n");
+	}
+
+	/**
+	 * More pits than the editor shows (GameTrack.MAX_PITS): the pit length is far
+	 * too short for the pit lane, or the pit lane far too long.
+	 */
+	private void checkPitCount()
+	{
+		utils.circuit.GameTrack.PitLayout layout;
+		try
+		{
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(trackContext);
+			layout = track == null ? null : track.pitPlaces();
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (layout == null || layout.fits <= utils.circuit.GameTrack.MAX_PITS)
+			return;
+		report.append(String.format(java.util.Locale.US, "The game places %,d pits, each %s m long. That's more than the editor shows (%,d). "
+			+ "The pit length is too short for the pit lane, or the pit lane is too long.\n",
+			layout.fits, Float.toString(layout.len), utils.circuit.GameTrack.MAX_PITS));
 	}
 
 	/** The last pit should end at the end of the stop buildings segment (the pit end in TORCS). */
@@ -985,8 +1047,8 @@ public class TrackChecker
 		String problem;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
-			gui.view3d.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(trackContext);
+			utils.circuit.GameTrack.PitLayout layout = track == null ? null : track.pitPlaces();
 			problem = layout == null ? null : layout.endProblem();
 		}
 		catch (RuntimeException e)
@@ -994,7 +1056,7 @@ public class TrackChecker
 			return;
 		}
 		if (problem != null)
-			report.append(problem + ": Fit Segments in the Pit properties fits the segments to the pits (Apply and Ok offer it too)\n");
+			report.append(problem + ": Fit Segments in the Pit properties fits the segments to the pits (Apply and Ok also offer this)\n");
 	}
 
 	/**
@@ -1004,10 +1066,10 @@ public class TrackChecker
 	 */
 	private void checkPitsOnCurves()
 	{
-		gui.view3d.GameTrack.PitLayout layout;
+		utils.circuit.GameTrack.PitLayout layout;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(trackContext);
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(trackContext);
 			layout = track == null ? null : track.pitPlaces();
 		}
 		catch (RuntimeException e)
@@ -1020,8 +1082,8 @@ public class TrackChecker
 		Map<String, java.util.List<Integer>> curves = new java.util.LinkedHashMap<String, java.util.List<Integer>>();
 		for (int i = 0; i < layout.pits.size(); i++)
 		{
-			gui.view3d.GameTrack.Seg seg = layout.pits.get(i).seg;
-			if (seg.type != gui.view3d.GameTrack.TR_STR)
+			utils.circuit.GameTrack.Seg seg = layout.pits.get(i).seg;
+			if (seg.type != utils.circuit.GameTrack.TR_STR)
 				curves.computeIfAbsent(seg.name, k -> new java.util.ArrayList<Integer>()).add(i + 1);
 		}
 		if (curves.isEmpty())
@@ -1035,8 +1097,8 @@ public class TrackChecker
 			int first = numbers.get(0), last = numbers.get(numbers.size() - 1);
 			list.append(curve.getKey()).append(first == last ? ": pit " + first : ": pits " + first + "-" + last);
 		}
-		report.append("Pits on a curve (" + list + "): the game reads a pit's place along a curve as an angle, so it draws "
-			+ "their buildings, doors, low wall or indicators in the wrong place (pit stops still work)\n", segment(curves.keySet().iterator().next()));
+		report.append("Pits on a curve (" + list + "): the game reads a pit's position along a curve as an angle, so it draws "
+			+ "the buildings, doors, low walls, or indicators in the wrong place (pit stops still work)\n", segment(curves.keySet().iterator().next()));
 	}
 
 	/**
@@ -1116,7 +1178,7 @@ public class TrackChecker
 
 			if (hasHeightStart && (hasHeightStartLeft || hasHeightStartRight))
 			{
-				report.append(segmentInfo + "has height start and height start left or height start right\n");
+				report.append(segmentInfo + "sets Height Start together with Height Start Left or Right. Use one or the other.\n");
 			}
 
 			// Track should start at an elevation of 0.0.
@@ -1141,13 +1203,13 @@ public class TrackChecker
 
 			if (hasBankingStart && hasBankingStartFromHeights)
 			{
-				report.append(segmentInfo + "Banking start angle and banking from heights\n");
+				report.append(segmentInfo + "sets a banking start angle, and its left and right start heights also define a banking\n");
 
 				double bankingFromHeights = Math.toDegrees(Math.atan2(heightStartLeft - heightStartRight, width));
 
 				if (bankingStart != bankingFromHeights)
 				{
-					report.append(segmentInfo + "Banking start: " + bankingStart + " doesn't match banking from heights: " + bankingFromHeights + "\n");
+					report.append(segmentInfo + "Banking start (" + bankingStart + ") doesn't match the banking from the heights (" + bankingFromHeights + ")\n");
 				}
 			}
 
@@ -1168,18 +1230,18 @@ public class TrackChecker
 
 			if (hasHeightEnd && (hasHeightEndLeft || hasHeightEndRight))
 			{
-				report.append(segmentInfo + "has height end and height end left or height end right\n");
+				report.append(segmentInfo + "sets Height End together with Height End Left or Right. Use one or the other.\n");
 			}
 
 			if (hasBankingEnd && hasBankingEndFromHeights)
 			{
-				report.append(segmentInfo + "Banking end angle and banking from heights\n");
+				report.append(segmentInfo + "sets a banking end angle, and its left and right end heights also define a banking\n");
 
 				double bankingFromHeights = Math.toDegrees(Math.atan2(heightEndLeft - heightEndRight, width));
 
 				if (bankingEnd != bankingFromHeights)
 				{
-					report.append(segmentInfo + "Banking end: " + bankingEnd + " doesn't match banking from heights: " + bankingFromHeights + "\n");
+					report.append(segmentInfo + "Banking end (" + bankingEnd + ") doesn't match the banking from the heights (" + bankingFromHeights + ")\n");
 				}
 			}
 
@@ -1190,11 +1252,11 @@ public class TrackChecker
 			{
 				if (hasBankingEndFromHeights)
 				{
-					report.append(segmentInfo + "Grade and end banking from heights\n");
+					report.append(segmentInfo + "sets a grade, and its left and right end heights also define the end height and banking\n");
 				}
 				else
 				{
-					report.append(segmentInfo + "Grade and end height\n");
+					report.append(segmentInfo + "sets both a grade and left and right end heights\n");
 				}
 			}
 
@@ -1205,78 +1267,78 @@ public class TrackChecker
 			{
 				if (!Double.isNaN(previousHeightEndLeft) && previousHeightEndLeft != heightStartLeft)
 				{
-					report.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStartLeft + "\n");
+					report.append(segmentInfo + "Previous segment's left end height (" + previousHeightEndLeft + ") doesn't match this segment's left start height (" + heightStartLeft + ")\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartLeft)
 				{
-					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartLeft + "\n");
+					report.append(segmentInfo + "Previous segment's end height (" + previousHeightEnd + ") doesn't match this segment's left start height (" + heightStartLeft + ")\n");
 				}
 
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStartRight)
 				{
-					report.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStartRight + "\n");
+					report.append(segmentInfo + "Previous segment's right end height (" + previousHeightEndRight + ") doesn't match this segment's right start height (" + heightStartRight + ")\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStartRight)
 				{
-					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStartRight + "\n");
+					report.append(segmentInfo + "Previous segment's end height (" + previousHeightEnd + ") doesn't match this segment's right start height (" + heightStartRight + ")\n");
 				}
 			}
 			else if (previous != null && hasHeightStart)
 			{
 				if (!Double.isNaN(previousHeightEndLeft) && previousHeightEndLeft != heightStart)
 				{
-					report.append(segmentInfo + "Previous height end left : " + previousHeightEndLeft + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous segment's left end height (" + previousHeightEndLeft + ") doesn't match this segment's start height (" + heightStart + ")\n");
 				}
 
 				if (!Double.isNaN(previousHeightEndRight) && previousHeightEndRight != heightStart)
 				{
-					report.append(segmentInfo + "Previous height end right : " + previousHeightEndRight + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous segment's right end height (" + previousHeightEndRight + ") doesn't match this segment's start height (" + heightStart + ")\n");
 				}
 
 				if (!Double.isNaN(previousHeightEnd) && previousHeightEnd != heightStart)
 				{
-					report.append(segmentInfo + "Previous height end : " + previousHeightEnd + " doesn't match " + heightStart + "\n");
+					report.append(segmentInfo + "Previous segment's end height (" + previousHeightEnd + ") doesn't match this segment's start height (" + heightStart + ")\n");
 				}
 			}
 			else if (next == null && hasHeightEndLeftRight)
 			{
 				if (!Double.isNaN(firstHeightStartLeft) && firstHeightStartLeft != heightEndLeft)
 				{
-					report.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStartLeft + "\n");
+					report.append(segmentInfo + "Left end height (" + heightEndLeft + ") doesn't match the first segment's left start height (" + firstHeightStartLeft + ")\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndLeft)
 				{
-					report.append(segmentInfo + "Height end left : " + heightEndLeft + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "Left end height (" + heightEndLeft + ") doesn't match the first segment's start height (" + firstHeightStart + ")\n");
 				}
 
 				if (!Double.isNaN(firstHeightStartRight) && firstHeightStartRight != heightEndRight)
 				{
-					report.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStartRight + "\n");
+					report.append(segmentInfo + "Right end height (" + heightEndRight + ") doesn't match the first segment's right start height (" + firstHeightStartRight + ")\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEndRight)
 				{
-					report.append(segmentInfo + "Height end right : " + heightEndRight + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "Right end height (" + heightEndRight + ") doesn't match the first segment's start height (" + firstHeightStart + ")\n");
 				}
 			}
 			else if (next == null && hasHeightEnd)
 			{
 				if (!Double.isNaN(firstHeightStartLeft) && firstHeightStartLeft != heightEnd)
 				{
-					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartLeft + "\n");
+					report.append(segmentInfo + "End height (" + heightEnd + ") doesn't match the first segment's left start height (" + firstHeightStartLeft + ")\n");
 				}
 
 				if (!Double.isNaN(firstHeightStartRight) && firstHeightStartRight != heightEnd)
 				{
-					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStartRight + "\n");
+					report.append(segmentInfo + "End height (" + heightEnd + ") doesn't match the first segment's right start height (" + firstHeightStartRight + ")\n");
 				}
 
 				if (!Double.isNaN(firstHeightStart) && firstHeightStart != heightEnd)
 				{
-					report.append(segmentInfo + "Height end : " + heightEnd + " doesn't match " + firstHeightStart + "\n");
+					report.append(segmentInfo + "End height (" + heightEnd + ") doesn't match the first segment's start height (" + firstHeightStart + ")\n");
 				}
 			}
 
@@ -1315,10 +1377,10 @@ public class TrackChecker
 			|| (Math.abs(endLeft - startLeft) <= tolerance && Math.abs(endRight - startRight) <= tolerance))
 			return;
 
-		report.append("Segment " + last.getName() + " : height end " + heights(endLeft, endRight)
-			+ (lastGiven ? "" : " (worked out: no height end is given)") + " doesn't match the start of first segment "
+		report.append("Segment " + last.getName() + " : end height " + heights(endLeft, endRight)
+			+ (lastGiven ? "" : " (calculated, because none is set)") + " doesn't match the start of the first segment "
 			+ first.getName() + " " + heights(startLeft, startRight)
-			+ (firstGiven ? "" : " (no height start is given, so it starts at 0)") + "\n", segment(last));
+			+ (firstGiven ? "" : " (no start height is set, so it starts at 0)") + "\n", segment(last));
 	}
 
 	/** @return one height when both sides have it, else left and right */
@@ -1511,9 +1573,9 @@ public class TrackChecker
 			double gap = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSocketGap();
 			double thickness = trackData.getGraphic().getTerrainGeneration().getCrossingBridgeThickness();
 			if (!Double.isNaN(gap) && (Double.isInfinite(gap) || gap < 0))
-				report.append("Terrain Generation crossing bridge socket gap " + gap + " must not be negative: trackgen stops\n", properties("Terrain", "Bridges"));
+				report.append("Terrain Generation crossing bridge socket gap " + gap + " can't be negative. Trackgen will stop.\n", properties("Terrain", "Bridges"));
 			if (!Double.isNaN(thickness) && (Double.isInfinite(thickness) || thickness <= 0))
-				report.append("Terrain Generation crossing bridge thickness " + thickness + " must be more than 0: trackgen stops\n", properties("Terrain", "Bridges"));
+				report.append("Terrain Generation crossing bridge thickness " + thickness + " must be greater than 0. Trackgen will stop.\n", properties("Terrain", "Bridges"));
 		}
 
 		String reliefFile = trackData.getGraphic().getTerrainGeneration().getReliefFile();
@@ -1542,7 +1604,7 @@ public class TrackChecker
 						{
 							if (name.contains(" "))
 							{
-								report.append("Relief file " + file.toString() + " : material \"" + name + "\" has space in name\n");
+								report.append("Relief file " + file.toString() + " : material \"" + name + "\" has a space in its name\n");
 							}
 						}
 					}
@@ -1589,7 +1651,7 @@ public class TrackChecker
 
 										if (firstVertex[0] == lastVertex[0] && firstVertex[1] == lastVertex[1] && firstVertex[2] == lastVertex[2])
 										{
-											report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : line with first and last vertices same\n");
+											report.append("Terrain Generation relief file " + reliefFile + " line " + object.getLinenum() + " : a line whose first and last vertices are the same\n");
 										}
 									}
 								}
@@ -1642,27 +1704,37 @@ public class TrackChecker
 
 			if (!hasText(objectMapName))
 			{
-				report.append("Terrain Generation object map " + (i + 1) + " missing name\n");
+				report.append("Terrain Generation object map " + (i + 1) + " is missing a name\n");
 				objectMapName = (i + 1) + "";
 			}
 
 			if (!hasText(objectMapFile))
 			{
-				report.append("Terrain Generation object map " + objectMapName + " missing file name\n");
+				report.append("Terrain Generation object map " + objectMapName + " is missing a file name\n");
 			}
 			else
 			{
-				Path filename = Paths.get(objectMapFile);
-				Path trackPath = Paths.get(Properties.getInstance().getPath());
-
-				// check for parent directory
-				if (filename.getParent() == null)
+				File file;
+				try
 				{
-					// use track directory
-					filename = Paths.get(trackPath.toString(), filename.toString());
-				}
+					Path filename = Paths.get(objectMapFile);
+					Path trackPath = Paths.get(Properties.getInstance().getPath());
 
-				File file = new File(filename.toString());
+					// check for parent directory
+					if (filename.getParent() == null)
+					{
+						// use track directory
+						filename = Paths.get(trackPath.toString(), filename.toString());
+					}
+
+					file = new File(filename.toString());
+				}
+				catch (java.nio.file.InvalidPathException e)
+				{
+					// a name with characters the file system doesn't allow
+					report.append("Terrain Generation object map " + objectMapName + " file " + objectMapFile + " isn't a valid file name\n");
+					continue;
+				}
 
 				if (!file.exists())
 				{
@@ -1688,6 +1760,8 @@ public class TrackChecker
 		}
 
 		Set<Integer> definedColors = new HashSet<Integer>();
+		// the object each color places: the track's own, else the default one
+		Map<Integer, String> colorNames = new HashMap<Integer, String>();
 
 		report.about(properties("Terrain"));
 
@@ -1698,11 +1772,12 @@ public class TrackChecker
 
 			if (color == Integer.MAX_VALUE)
 			{
-				report.append("Track object " + (i + 1) + " missing color\n", properties("Objects", trackData.getObjects().get(i).getName()));
+				report.append("Track object " + (i + 1) + " is missing a color\n", properties("Objects", trackData.getObjects().get(i).getName()));
 			}
 			else
 			{
 				definedColors.add(color);
+				colorNames.putIfAbsent(color, trackData.getObjects().get(i).getName());
 			}
 		}
 
@@ -1713,11 +1788,12 @@ public class TrackChecker
 
 			if (color == Integer.MAX_VALUE)
 			{
-				report.append("Default object " + (i + 1) + " missing color\n", NONE);
+				report.append("Default object " + (i + 1) + " is missing a color\n", NONE);
 			}
 			else
 			{
 				definedColors.add(color);
+				colorNames.putIfAbsent(color, defaultObjects.get(i).getName());
 			}
 		}
 
@@ -1730,16 +1806,19 @@ public class TrackChecker
 
 			if (!definedColors.contains(color))
 			{
-				report.append("No object for color " + String.format("0x%06X", color) + "\n", properties("Objects"));
+				report.append("No object is defined for color " + String.format("0x%06X", color) + "\n", properties("Objects"));
 			}
 		}
 
-		// check for big pixels
+		// check for big pixels: only for the objects' colors, as trackgen places
+		// nothing for the others (a map's background or fill, said once above)
 		colorsIterator = colors.iterator();
 
 		while (colorsIterator.hasNext())
 		{
 			int color = colorsIterator.next();
+			if (!definedColors.contains(color))
+				continue;
 			Set<Point> pixels = new HashSet<Point>();
 
 			for (int i = 0; i < objectMaps.size(); i++)
@@ -1767,6 +1846,9 @@ public class TrackChecker
 				}
 			}
 
+			// one message a color: a blob of pixels is many objects in a clump, however big
+			int adjacent = 0;
+			Point first = null;
 			Iterator<Point> pixelsIterator = pixels.iterator();
 
 			while (pixelsIterator.hasNext())
@@ -1775,8 +1857,19 @@ public class TrackChecker
 
 				if (pixels.contains(new Point(pixel.x + 1, pixel.y)) || pixels.contains(new Point(pixel.x, pixel.y + 1)))
 				{
-					report.append("Adjacent pixels for object color " + String.format("0x%06X", color) + " found at " + pixel.x + ", " + pixel.y + "\n", properties("Terrain", "Object Maps"));
+					adjacent++;
+					// the top left one, so the message is the same each time
+					if (first == null || pixel.y < first.y || (pixel.y == first.y && pixel.x < first.x))
+						first = pixel;
 				}
+			}
+			if (adjacent > 0)
+			{
+				String name = colorNames.get(color);
+				report.append("Adjacent pixels for object color " + String.format("0x%06X", color) + (name == null ? "" : " (" + name + ")")
+					+ ": " + adjacent + (adjacent == 1 ? " pixel touches" : " pixels touch") + " another pixel of the same color (the first at "
+					+ first.x + ", " + first.y + "). Trackgen places an object on every pixel, so these form a cluster of objects.\n",
+					properties("Terrain", "Object Maps"));
 			}
 		}
 
@@ -1834,13 +1927,13 @@ public class TrackChecker
 
 				if (!terrainRectangle.contains(location))
 				{
-					report.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " outside terrain boundary\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
+					report.append("Object map " + objectMaps.get(i).getName() + " object " + object.getName() + " is outside the terrain boundary\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
 				}
 				else
 				{
 					String place = placeText(terrainShape, location.x, location.y);
 					if (place != null)
-						report.append("Object Map " + objectMaps.get(i).getName() + " Object " + object.getName() + " " + place + "\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
+						report.append("Object map " + objectMaps.get(i).getName() + " object " + object.getName() + " " + place + "\n", properties("Terrain", "Object Maps", objectMaps.get(i).getName()));
 				}
 			}
 		}
@@ -1955,7 +2048,7 @@ public class TrackChecker
 		String object = trackObject.getObject();
 		if (!hasText(object))
 		{
-			report.append(type + " object " + trackObject.getName() + " missing model\n");
+			report.append(type + " object " + trackObject.getName() + " has no model\n");
 			return false;
 		}
 		if (findObjectFile(object) == null)
@@ -2007,7 +2100,7 @@ public class TrackChecker
 				{
 					if (name.contains(" "))
 					{
-						report.append("Object file " + file.toString() + " : material \"" + name + "\" has space in name\n");
+						report.append("Object file " + file.toString() + " : material \"" + name + "\" has a space in its name\n");
 					}
 				}
 			}
@@ -2024,17 +2117,18 @@ public class TrackChecker
 
 			if (doubleSided)
 			{
-				report.append("Object file " + file.toString() + " : has double sided surface\n");
+				report.append("Object file " + file.toString() + " has a double-sided surface\n");
 			}
 
 			if (flatShaded)
 			{
-				report.append("Object file " + file.toString() + " : has flat shaded surface\n");
+				report.append("Object file " + file.toString() + " has a flat-shaded surface\n");
 			}
 
 			if (textures.size() > 1)
 			{
 				int hasAlpha = 0;
+				boolean unreadable = false;
 				for (String filename : textures)
 				{
 					File textureFile = findTextureFile(filename);
@@ -2044,9 +2138,13 @@ public class TrackChecker
 					}
 					else if (textureFile != null && filename.endsWith(".png"))
 					{
-						BufferedImage image = ImageIO.read(textureFile);
+						Boolean alpha = pngHasAlpha(textureFile, file);
 
-						if (image.getColorModel().hasAlpha())
+						if (alpha == null)
+						{
+							unreadable = true;
+						}
+						else if (alpha)
 						{
 							hasAlpha++;
 						}
@@ -2054,7 +2152,11 @@ public class TrackChecker
 				}
 
 				// check for more than one of either alpha or non-alpha textures
-				if (hasAlpha == 0 || hasAlpha == textures.size() || (textures.size() - hasAlpha > 1) || hasAlpha > 1)
+				// (not known with a texture that can't be read)
+				if (unreadable)
+				{
+				}
+				else if (hasAlpha == 0 || hasAlpha == textures.size() || (textures.size() - hasAlpha > 1) || hasAlpha > 1)
 				{
 					report.append("Object file " + file.toString() + " : has multiple textures\n");
 				}
@@ -2076,12 +2178,12 @@ public class TrackChecker
 		{
 			if (object.getTexture() == null || object.getTexture().isEmpty())
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no texture\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : an object has no texture\n");
 			}
 
 			if (object.getSurfaces().isEmpty())
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with no surfaces\n");
+				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : an object has no surfaces\n");
 				return;
 			}
 
@@ -2120,21 +2222,10 @@ public class TrackChecker
 					}
 					else if (textureFile != null && objectTexture.endsWith(".png"))
 					{
-						try
+						// not known with a texture that can't be read
+						if (Boolean.FALSE.equals(pngHasAlpha(textureFile, file)))
 						{
-							if (!imageHasAlpha.containsKey(textureFile.getAbsolutePath()))
-							{
-								BufferedImage image = ImageIO.read(textureFile);
-								imageHasAlpha.put(textureFile.getAbsolutePath(), image.getColorModel().hasAlpha());
-							}
-
-							if (!imageHasAlpha.get(textureFile.getAbsolutePath()))
-							{
-								doubleSided = true;
-							}
-						}
-						catch (Exception e)
-						{
+							doubleSided = true;
 						}
 					}
 				}
@@ -2210,7 +2301,7 @@ public class TrackChecker
 
 			if (name == null || name.isEmpty())
 			{
-				report.append("Track object " + (i + 1) + " missing name\n", properties("Objects"));
+				report.append("Track object " + (i + 1) + " is missing a name\n", properties("Objects"));
 			}
 			else
 			{
@@ -2235,7 +2326,7 @@ public class TrackChecker
 
 			if (color == Integer.MAX_VALUE)
 			{
-				report.append("Track object " + (i + 1) + " missing color\n", properties("Objects", trackData.getObjects().get(i).getName()));
+				report.append("Track object " + (i + 1) + " is missing a color\n", properties("Objects", trackData.getObjects().get(i).getName()));
 			}
 			else
 			{
@@ -2243,7 +2334,7 @@ public class TrackChecker
 				{
 					if (color == trackData.getObjects().get(j).getColor())
 					{
-						report.append("Track object " + (i + 1) + " " + name + " has same color as Track object " + (j + 1) + " " + trackData.getObjects().get(j).getName() + "\n", properties("Objects", name));
+						report.append("Track object " + (i + 1) + " " + name + " has the same color as track object " + (j + 1) + " " + trackData.getObjects().get(j).getName() + "\n", properties("Objects", name));
 					}
 				}
 
@@ -2251,7 +2342,7 @@ public class TrackChecker
 				{
 					if (color == defaultObjects.get(j).getColor())
 					{
-						report.append("Track object " + (i + 1) + " " + name + " has same color as Default object " + (j + 1) + " " + defaultObjects.get(j).getName() + "\n", properties("Objects", name));
+						report.append("Track object " + (i + 1) + " " + name + " has the same color as default object " + (j + 1) + " " + defaultObjects.get(j).getName() + "\n", properties("Objects", name));
 					}
 				}
 			}
@@ -2308,6 +2399,36 @@ public class TrackChecker
 		int color = object.getColor();
 		return color != Integer.MAX_VALUE && used.contains(color & 0xFFFFFF);
 	}
+	/**
+	 * Reads a png texture once, and reports one that can't be read (ImageIO gives
+	 * no image for a file that isn't one it knows).
+	 *
+	 * @param objectFile the object's file that uses it, for the message
+	 * @return whether it has an alpha channel, or null when it can't be read
+	 */
+	private Boolean pngHasAlpha(File textureFile, File objectFile)
+	{
+		String path = textureFile.getAbsolutePath();
+		if (!imageHasAlpha.containsKey(path))
+		{
+			Boolean alpha = null;
+			try
+			{
+				BufferedImage image = ImageIO.read(textureFile);
+				if (image != null)
+					alpha = image.getColorModel().hasAlpha();
+			}
+			catch (Exception e)
+			{
+			}
+			if (alpha == null)
+				report.append("Object file " + objectFile.toString() + " : texture " + textureFile.getName()
+					+ " can't be read: it isn't a valid png image\n");
+			imageHasAlpha.put(path, alpha);
+		}
+		return imageHasAlpha.get(path);
+	}
+
 	private File findTextureFile(String texture)
 	{
 		// the track's folder, and for a Speed Dreams track in its local folder the installed track's
@@ -2407,7 +2528,7 @@ public class TrackChecker
 
 			if (!hasText(name))
 			{
-				report.append("Track surface " + (i + 1) + " missing name\n", properties("Surfaces"));
+				report.append("Track surface " + (i + 1) + " is missing a name\n", properties("Surfaces"));
 			}
 			else
 			{
@@ -2428,8 +2549,8 @@ public class TrackChecker
 			if (trackContext.getGameType().hasTorcsTrackgenKeys() && !Double.isNaN(sizeV) && !(sizeV > 0))
 			{
 				String what = hasText(name) ? " " + name : "";
-				report.append("Track surface " + (i + 1) + what + " texture size v " + format(sizeV)
-					+ " m isn't more than 0: crossing bridges use the texture size instead\n",
+				report.append("Track surface " + (i + 1) + what + ": Texture Size V (" + format(sizeV)
+					+ " m) must be greater than 0. Crossing bridges will use the texture size instead.\n",
 					hasText(name) ? properties("Surfaces", name) : properties("Surfaces"));
 			}
 		}

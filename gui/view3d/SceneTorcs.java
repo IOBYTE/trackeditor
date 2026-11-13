@@ -8,11 +8,12 @@
  */
 package gui.view3d;
 
-import static gui.view3d.GameTrack.*;
+import static utils.circuit.GameTrack.*;
 
 import gui.EditorFrame;
-import gui.view3d.GameTrack.Barrier;
-import gui.view3d.GameTrack.Seg;
+import utils.circuit.GameTrack.Barrier;
+import utils.circuit.GameTrack.Seg;
+import utils.circuit.GameTrack;
 
 /**
  * The scene as TORCS' trackgen makes it (tools/trackgen trackscene*.cpp): the

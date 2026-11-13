@@ -53,6 +53,7 @@ import com.jogamp.opengl.awt.GLCanvas;
 import gui.EditorFrame;
 import utils.Properties;
 import utils.TrackData;
+import utils.circuit.GameTrack;
 
 /**
  * A separate window that shows the open track's road in 3D and follows every edit
@@ -296,11 +297,11 @@ public class Track3DWindow extends JFrame
 
 		wireframeButton.setToolTipText("Show the edges of the triangles (W)");
 		wireframeButton.addActionListener(e -> setWireframe(wireframeButton.isSelected()));
-		lightingButton.setToolTipText("Shade the track by a light from above (L); off shows flat colors");
+		lightingButton.setToolTipText("Light the track from above (L). When off, colors are flat.");
 		lightingButton.addActionListener(e -> setLighting(lightingButton.isSelected()));
 		cullingButton.setToolTipText("Hide the back of one-sided surfaces, as the game does: the road's underside disappears (C)");
 		cullingButton.addActionListener(e -> setCulling(cullingButton.isSelected()));
-		racelineButton.setToolTipText("Show the raceline layer a raceline export adds to the road (R); on when the road's surfaces name a raceline texture");
+		racelineButton.setToolTipText("Show the raceline layer that a raceline export adds to the road (R). On by default when a road surface has a raceline texture.");
 		racelineButton.addActionListener(e -> setRaceline(racelineButton.isSelected()));
 		JButton fit = new JButton("Fit");
 		fit.setToolTipText("Show the whole track from the current direction (F, or double-click)");
@@ -311,7 +312,7 @@ public class Track3DWindow extends JFrame
 		JButton angled = new JButton("Angled");
 		angled.setToolTipText("Look at the track at an angle (P)");
 		angled.addActionListener(e -> fit(false));
-		camerasButton.setToolTipText("<html>Look from one of the track's cameras at all of the track it films (N for the next one).<br>" +
+		camerasButton.setToolTipText("<html>View everything one of the track's cameras covers (N for the next camera).<br>" +
 			"The game turns it to follow a car and zooms in on it.</html>");
 		camerasButton.addActionListener(e -> showCameras());
 		showCamerasButton.setToolTipText("Show where the track's cameras are, in the colors the 2D view gives them (M)");
@@ -358,7 +359,7 @@ public class Track3DWindow extends JFrame
 		toolBar.add(heightBox);
 		toolBar.add(Box.createHorizontalGlue());
 		playButton.setToolTipText("<html>Drive a lap and look from the track's cameras, as the game's road views do (space pauses).<br>"
-			+ "The strip below shows which camera films each part of the lap; Edit camera changes the one showing.</html>");
+			+ "The strip below shows which camera covers each part of the lap; Edit Camera changes the current one.</html>");
 		playButton.addActionListener(e -> play(playButton, driveButton, false));
 		driveButton.setToolTipText("<html>Drive a lap from the driver's seat, along the racing line or the middle of the road (space pauses).<br>"
 			+ "The strip below shows where the segments start: click it to go there.</html>");

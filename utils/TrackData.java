@@ -134,10 +134,36 @@ public final class TrackData
 		fileTexts.computeIfAbsent(segment, s -> new java.util.HashMap<String, FileText>()).put(field, text);
 	}
 
+	// the values outside the segments, for the Properties dialog: those of an item of
+	// a list (a light) by the item, so that they stay with it when it is renamed and a
+	// new item with its name doesn't get them, and in it by the key's path in the item
+	// ("red", "topleft/x"); the others by the key's path in the file (as
+	// XmlReader.getKeyPaths has it), under null
+	private final java.util.Map<Object, java.util.Map<String, FileText>>	keyFileTexts	=
+		new java.util.IdentityHashMap<Object, java.util.Map<String, FileText>>();
+
+	/**
+	 * @param item the list's item the key is in, null for none
+	 * @param path the key's path in the item, or in the file when there is no item
+	 * @return the text the file has for the key, null when it has none the game reads
+	 *         as another number
+	 */
+	public FileText getFileText(Object item, String path)
+	{
+		java.util.Map<String, FileText> texts = keyFileTexts.get(item);
+		return texts == null || path == null ? null : texts.get(path);
+	}
+
+	public void addFileText(Object item, String path, FileText text)
+	{
+		keyFileTexts.computeIfAbsent(item, i -> new java.util.HashMap<String, FileText>()).put(path, text);
+	}
+
 	/** Forgets the file's text: once the track is saved the file has the numbers */
 	public void clearFileTexts()
 	{
 		fileTexts.clear();
+		keyFileTexts.clear();
 	}
 
 	// the segment dialog's fields set by a segment's keys, by the key's name

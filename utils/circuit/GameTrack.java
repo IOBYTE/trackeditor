@@ -6,7 +6,7 @@
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  */
-package gui.view3d;
+package utils.circuit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +14,6 @@ import java.util.List;
 import plugin.torcs.GfParmNumbers;
 import utils.GameType;
 import utils.check.TrackContext;
-import utils.circuit.Camera;
-import utils.circuit.Curve;
-import utils.circuit.GameSides;
-import utils.circuit.MainTrack;
-import utils.circuit.Pits;
-import utils.circuit.Point3D;
-import utils.circuit.RoadTexture;
-import utils.circuit.Segment;
-import utils.circuit.Surface;
 
 /**
  * The track as the game's track loader builds it (trackv1 track4.cpp), for
@@ -749,11 +740,20 @@ public class GameTrack
 	}
 
 	/** Where trackgen puts the pit buildings: the pits' side and length, and each pit's place. */
+	/** the most pits the editor places and shows (see PitLayout.fits): far more than any track has */
+	public static final int	MAX_PITS	= 500;
+
 	public static final class PitLayout
 	{
 		/** TR_RGT or TR_LFT */
 		public int					side;
 		public float				len;
+		/**
+		 * how many pits the game places: more than the pits here when it is more
+		 * than MAX_PITS (a pit length far too short for the pit lane, or a pit lane
+		 * far too long, from a broken value in the file)
+		 */
+		public int					fits;
 		/** Speed Dreams' "no building" pits, with a low wall instead of buildings */
 		public boolean				noBuilding;
 		/** each pit's start, on its main segment: toStart is a length, also in a curve, as trackgen has it */
@@ -800,8 +800,8 @@ public class GameTrack
 			double rest = toLine % len;
 			if (rest < 0.01 || len - rest < 0.01)
 				return null;
-			return String.format("The finish line is %.2f m from the start of the pits in %s, not a multiple of the pit length (%.2f m): "
-				+ "trackgen starts the pit side's texture again at the line, so the pit boxes after it don't line up with the pits "
+			return String.format("The finish line is %.2f m from the start of the pits in %s, which isn't a multiple of the pit length (%.2f m). "
+				+ "Trackgen restarts the pit side's texture at the line, so the pit boxes after it don't line up with the pits "
 				+ "(start the pits %.2f m earlier or %.2f m later)", toLine, firstName, len, len - rest, rest);
 		}
 
@@ -862,8 +862,8 @@ public class GameTrack
 				return String.format("The last pit ends at the end of %s", endName) + past;
 			String stop = stopText();
 			if (endsOnStopSegment())
-				return String.format("%s has %d steps: the game leaves out the barrier along all but its last, "
-					+ "so it's missing for %.2f m after the pits", Character.toUpperCase(stop.charAt(0)) + stop.substring(1), stopSteps,
+				return String.format("%s has %d steps. The game omits the barrier along all but the last step, "
+					+ "so the barrier is missing for %.2f m after the pits", Character.toUpperCase(stop.charAt(0)) + stop.substring(1), stopSteps,
 					(stopSteps - 1) * stopStepLength);
 			if (torcs)
 				return String.format("The last pit ends at the end of %s, not of the pit end %s", endName, stopName);
@@ -960,6 +960,11 @@ public class GameTrack
 			layout.pastPitEnd = offset + (double) count * layout.len > lane + 0.01;
 			layout.pitEndName = end.name;
 		}
+
+		// only MAX_PITS of them are placed, and so shown: a building, door and number
+		// for each of millions would use all the memory (Check reports the count)
+		layout.fits = count;
+		count = Math.min(count, MAX_PITS);
 
 		// initPits: one after the other from the start, "to start" a length even in a curve
 		Seg curMainSeg = first.prev;

@@ -100,7 +100,7 @@ public class Curve extends Segment
 		if (super.contains(point))
 			return true;
 		// and the bulge of each step's arc beyond the straight line between its ends
-		if (!hasStepArcs())
+		if (!drawsStepArcs())
 			return false;
 		int stride = points.length / nbSteps;
 		for (int i = 0; i < points.length; i += 4)
@@ -119,6 +119,19 @@ public class Curve extends Segment
 	}
 
 	/**
+	 * @return whether the steps are drawn with their arcs. Not those of a curve of
+	 *         more than Segment.MAX_ARC or without a number for an arc (a broken
+	 *         value in the file, which Check reports): drawing them in pieces along
+	 *         such arcs takes so long that the editor stops responding, so their
+	 *         steps are drawn with straight sides.
+	 */
+	private boolean drawsStepArcs()
+	{
+		double arc = Math.abs(getArcDeg());
+		return hasStepArcs() && arc <= MAX_ARC;
+	}
+
+	/**
 	 * Draws each step as the game builds it: its long sides are arcs around the
 	 * step's center (or spirals where a side's width changes), not the straight
 	 * lines between its ends, which a step of a whole curve would show as a chord.
@@ -126,7 +139,7 @@ public class Curve extends Segment
 	@Override
 	public void draw(Graphics g, AffineTransform affineTransform, boolean roadOnly)
 	{
-		if (!hasStepArcs() || !(g instanceof Graphics2D))
+		if (!drawsStepArcs() || !(g instanceof Graphics2D))
 		{
 			super.draw(g, affineTransform, roadOnly);
 			return;
@@ -174,7 +187,10 @@ public class Curve extends Segment
 		double cx = stepCenters[2 * step], cy = stepCenters[2 * step + 1];
 		double arc = stepArcs[step];
 		double r0 = Math.hypot(start.x - cx, start.y - cy), r1 = Math.hypot(end.x - cx, end.y - cy);
-		int pieces = (int) Math.min(3600, Math.max(1, Math.ceil(Math.abs(Math.toDegrees(arc)) / DEGREES_PER_PIECE)));
+		// a step can't turn more than its curve may (see drawsStepArcs); an arc that
+		// isn't a number gets a straight line
+		int pieces = Double.isNaN(arc) || Double.isInfinite(arc) ? 1
+			: (int) Math.min(MAX_ARC / DEGREES_PER_PIECE, Math.max(1, Math.ceil(Math.abs(Math.toDegrees(arc)) / DEGREES_PER_PIECE)));
 		if (pieces == 1 || r0 < 1e-9 || r1 < 1e-9)
 		{
 			Point3D to = back ? start : end;

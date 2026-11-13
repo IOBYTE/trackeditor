@@ -36,7 +36,7 @@ public final class CameraProblems
 	 * road. Check and the camera's tab both say it.
 	 *
 	 * @param units the unit To Start is saved in, null or empty for none
-	 * @return the problem, starting "to start", or null
+	 * @return the problem, starting "To Start", or null
 	 */
 	public static String toStartProblem(Segment segment, double value, String units, GameType game)
 	{
@@ -50,14 +50,14 @@ public final class CameraProblems
 		String given = format(value) + (length || angle ? " " + units : "");
 		if (curve && length)
 		{
-			return "to start " + given + " is a length on curve " + segment.getName()
-				+ ": the game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
-				+ " deg) round the curve, so the camera is far from where it should be";
+			return "To Start " + given + " is a length, but " + segment.getName() + " is a curve"
+				+ ". The game reads it as " + format(read) + " radians (" + format(Math.toDegrees(read))
+				+ " deg) around the curve, so the camera ends up far from where it should be";
 		}
 		if (!curve && angle && value != 0)
 		{
-			return "to start " + given + " is an angle on straight " + segment.getName()
-				+ ": the game reads it as " + format(read) + " m along it";
+			return "To Start " + given + " is an angle, but " + segment.getName() + " is a straight"
+				+ ". The game reads it as " + format(read) + " m along the straight";
 		}
 		if (!curve)
 			return null;
@@ -68,24 +68,24 @@ public final class CameraProblems
 		if (past <= Math.toRadians(1))
 			return null;
 		boolean bare = units == null || units.isEmpty();
-		String text = "to start " + given + (bare ? " (radians, " + format(Math.toDegrees(read)) + " deg)" : "");
+		String text = "To Start " + given + (bare ? " (radians, " + format(Math.toDegrees(read)) + " deg)" : "");
 		if (Math.abs(read) >= 2 * Math.PI)
 		{
 			// round and round the same circle
 			double turned = Math.toDegrees(read) % 360;
 			if (turned < 0)
 				turned += 360;
-			text += " is more than a full turn round curve " + segment.getName() + " (" + format(Math.toDegrees(arc))
-				+ " deg): the game puts the camera " + format(turned) + " deg round its circle from its start";
+			text += " is more than a full turn around curve " + segment.getName() + " (" + format(Math.toDegrees(arc))
+				+ " deg). The game places the camera " + format(turned) + " deg around the circle from the curve's start";
 		}
 		else
 			text += " is " + (read < 0 ? "before the start" : "past the end") + " of curve " + segment.getName() + " ("
-				+ format(Math.toDegrees(arc)) + " deg): the game puts the camera " + format(Math.toDegrees(past)) + " deg "
+				+ format(Math.toDegrees(arc)) + " deg). The game places the camera " + format(Math.toDegrees(past)) + " deg "
 				+ (read < 0 ? "before it" : "past it") + ", on the same circle";
 		// more than a turn without a unit: most likely meant as meters along the curve
 		double radius = ((Curve) segment).getRadiusStart();
 		if (bare && Math.abs(read) > 2 * Math.PI && !Double.isNaN(radius) && radius > 0)
-			text += "; if " + format(value) + " was meant as meters along it, that is " + format(Math.toDegrees(value / radius)) + " deg";
+			text += ". If " + format(value) + " was meant as meters along the curve, that would be " + format(Math.toDegrees(value / radius)) + " deg";
 		return text;
 	}
 
@@ -113,7 +113,7 @@ public final class CameraProblems
 		{
 			String name = names[i] == null ? "" : names[i].trim();
 			if (name.isEmpty())
-				problems.add("Camera " + camera + ": missing " + labels[i] + ": the game won't load the track without it");
+				problems.add("Camera " + camera + ": " + labels[i] + " is missing. The game won't load the track without it");
 			else if (segments.getSegmentFromName(name) == null)
 				problems.add("Camera " + camera + ": " + labels[i] + " \"" + name + "\" isn't a segment, " + results[i]);
 		}

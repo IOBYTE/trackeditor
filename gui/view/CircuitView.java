@@ -221,7 +221,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	public boolean				showObjects						= false;
 	// the track cameras: where each is, and the road colored by the one filming it
 	private boolean				showCameras						= false;
-	private gui.view3d.GameTrack	cameraTrack						= null;
+	private utils.circuit.GameTrack	cameraTrack						= null;
 	// where each camera's marker was drawn, for its tooltip
 	private final java.util.Map<utils.circuit.Camera, Point>	cameraMarkers	= new java.util.LinkedHashMap<utils.circuit.Camera, Point>();
 	private java.util.Set<utils.circuit.Camera>	filmingCameras	= new java.util.HashSet<utils.circuit.Camera>();
@@ -2429,10 +2429,10 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	/** @return where the game puts the pit buildings, as the 3D view draws them; null when there are none */
 	private PitOutlines pitOutlines()
 	{
-		gui.view3d.GameTrack.PitLayout layout;
+		utils.circuit.GameTrack.PitLayout layout;
 		try
 		{
-			gui.view3d.GameTrack track = gui.view3d.GameTrack.build(editorFrame);
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(editorFrame);
 			layout = track == null ? null : track.pitPlaces();
 		}
 		catch (RuntimeException e)
@@ -2443,11 +2443,11 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			return null;
 		PitOutlines outlines = new PitOutlines();
 		outlines.noBuilding = layout.noBuilding;
-		boolean right = layout.side == gui.view3d.GameTrack.TR_RGT;
-		for (gui.view3d.GameTrack.LocalPos p : layout.pits)
+		boolean right = layout.side == utils.circuit.GameTrack.TR_RGT;
+		for (utils.circuit.GameTrack.LocalPos p : layout.pits)
 		{
-			float[] xy = gui.view3d.GameTrack.local2Global(p.seg, p.toStart, p.toRight);
-			float[] n = gui.view3d.GameTrack.sideNormal(p.seg, xy[0], xy[1], layout.side);
+			float[] xy = utils.circuit.GameTrack.local2Global(p.seg, p.toStart, p.toRight);
+			float[] n = utils.circuit.GameTrack.sideNormal(p.seg, xy[0], xy[1], layout.side);
 			double x2 = xy[0], y2 = xy[1];
 			double x3 = right ? x2 + layout.len * n[1] : x2 - layout.len * n[1];
 			double y3 = right ? y2 - layout.len * n[0] : y2 + layout.len * n[0];
@@ -2504,9 +2504,9 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		}
 		// the unit as the game reads it: without one, meters on a straight and radians on a curve
 		String units = found.isToStartUnitsKnown() ? found.getToStartUnits() : null;
-		gui.view3d.GameTrack.Seg seg = cameraTrack == null ? null : cameraTrack.firstStep(found.getSegment());
+		utils.circuit.GameTrack.Seg seg = cameraTrack == null ? null : cameraTrack.firstStep(found.getSegment());
 		if ((units == null || units.isEmpty()) && seg != null)
-			units = seg.type == gui.view3d.GameTrack.TR_STR ? "m" : found.isToStartUnitsKnown() ? "rad" : "deg";
+			units = seg.type == utils.circuit.GameTrack.TR_STR ? "m" : found.isToStartUnitsKnown() ? "rad" : "deg";
 		StringBuilder text = new StringBuilder("<html><b>").append(html(found.getName())).append("</b>");
 		text.append("<br>Segment: ").append(html(found.getSegment()));
 		text.append("<br>To Start: ").append(number(found.getToStart())).append(units == null || units.isEmpty() ? "" : " " + units);
@@ -2514,7 +2514,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		text.append("<br>Height: ").append(number(found.getHeight())).append(" m");
 		text.append("<br>Films from ").append(html(found.getFovStart())).append(" up to ").append(html(found.getFovEnd()));
 		if (!filmingCameras.contains(found))
-			text.append("<br><font color=red>Never films: cameras later in the list film all of its stretch</font>");
+			text.append("<br><font color=red>Never used: cameras later in the list cover its entire range</font>");
 		setToolTipText(text.append("</html>").toString());
 	}
 
@@ -2546,8 +2546,8 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 	{
 		java.util.List<utils.circuit.Camera> cameras = editorFrame.getTrackData().getCameras();
 		if (cameraTrack == null)
-			cameraTrack = gui.view3d.GameTrack.build(editorFrame);
-		gui.view3d.GameTrack track = cameraTrack;
+			cameraTrack = utils.circuit.GameTrack.build(editorFrame);
+		utils.circuit.GameTrack track = cameraTrack;
 		if (track == null || track.segs.isEmpty())
 			return;
 		utils.circuit.Camera[] owners = track.cameraOwners(cameras);
@@ -2575,12 +2575,12 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		Point2D.Double p = new Point2D.Double();
 
 		// the road, a piece of each segment at a time
-		for (gui.view3d.GameTrack.Seg seg : track.segs)
+		for (utils.circuit.GameTrack.Seg seg : track.segs)
 		{
 			utils.circuit.Camera owner = seg.id < owners.length ? owners[seg.id] : null;
 			Color c = owner == null ? new Color(150, 150, 150) : colors.get(owner);
 			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 120));
-			boolean straight = seg.type == gui.view3d.GameTrack.TR_STR;
+			boolean straight = seg.type == utils.circuit.GameTrack.TR_STR;
 			int pieces = straight ? 1 : Math.max(2, (int) Math.ceil(Math.toDegrees(seg.arc) / 5));
 			int[] x = new int[2 * pieces + 2], y = new int[2 * pieces + 2];
 			for (int k = 0; k <= pieces; k++)
@@ -2588,7 +2588,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 				float toStart = straight ? seg.length * k / pieces : seg.arc * k / pieces;
 				for (int side = 0; side < 2; side++)
 				{
-					float[] xy = gui.view3d.GameTrack.local2Global(seg, toStart, side == 0 ? 0 : seg.width);
+					float[] xy = utils.circuit.GameTrack.local2Global(seg, toStart, side == 0 ? 0 : seg.width);
 					p.setLocation(xy[0], xy[1]);
 					affineTransform.transform(p, p);
 					int i = side == 0 ? k : 2 * pieces + 1 - k;
@@ -2603,7 +2603,7 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 		g2.setFont(oldFont.deriveFont(java.awt.Font.BOLD, 11f));
 		for (utils.circuit.Camera camera : cameras)
 		{
-			gui.view3d.GameTrack.Seg seg = track.firstStep(camera.getSegment());
+			utils.circuit.GameTrack.Seg seg = track.firstStep(camera.getSegment());
 			if (seg == null)
 				continue;
 			float[] eye = track.cameraEye(camera);
@@ -2616,10 +2616,10 @@ public class CircuitView extends JComponent implements KeyListener, MouseListene
 			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 160));
 			for (String name : new String[] { camera.getFovStart(), camera.getFovEnd() })
 			{
-				gui.view3d.GameTrack.Seg s = track.firstStep(name);
+				utils.circuit.GameTrack.Seg s = track.firstStep(name);
 				if (s == null)
 					continue;
-				float[] xy = gui.view3d.GameTrack.local2Global(s, 0, s.width / 2);
+				float[] xy = utils.circuit.GameTrack.local2Global(s, 0, s.width / 2);
 				p.setLocation(xy[0], xy[1]);
 				affineTransform.transform(p, p);
 				g2.drawLine(cx, cy, (int) Math.round(p.getX()), (int) Math.round(p.getY()));

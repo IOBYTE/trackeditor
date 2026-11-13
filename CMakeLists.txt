@@ -76,7 +76,6 @@ IF(Java_Development_FOUND AND Java_FOUND)
          gui/view/CircuitViewSelectionListener.java
          gui/view/SegmentSplitter.java
          gui/view3d/CameraPlayer.java
-         gui/view3d/GameTrack.java
          gui/view3d/OrbitCamera.java
          gui/view3d/RaceLine.java
          gui/view3d/RoadMesh.java
@@ -92,6 +91,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          plugin/torcs/NoOpEntityResolver.java
          plugin/torcs/XmlReader.java
          plugin/torcs/XmlWriter.java
+         utils/AppName.java
          utils/AtomicFile.java
          utils/CustomFileFilter.java
          utils/DoubleValue.java
@@ -112,13 +112,17 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/check/CameraProblems.java
          utils/check/CheckMessage.java
          utils/check/Closure.java
+         utils/check/ImportGuard.java
          utils/check/LoadedTrack.java
          utils/check/ReadNotices.java
          utils/check/Subject.java
+         utils/check/TrackCheck.java
          utils/check/TrackChecker.java
          utils/check/TrackContext.java
          utils/check/TrackFolders.java
          utils/check/TrackLoader.java
+         utils/check/Trackgen.java
+         utils/check/TrackgenOutput.java
          utils/TrackEditor.java
          utils/ac3d/Ac3d.java
          utils/ac3d/Ac3dException.java
@@ -129,6 +133,7 @@ IF(Java_Development_FOUND AND Java_FOUND)
          utils/circuit/Curve.java
          utils/circuit/EnvironmentMapping.java
          utils/circuit/GameSides.java
+         utils/circuit/GameTrack.java
          utils/circuit/Georeference.java
          utils/circuit/Graphic.java
          utils/circuit/GraphicObject.java
@@ -275,6 +280,16 @@ IF(Java_Development_FOUND AND Java_FOUND)
                               COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/${_JAR}" "${_TGT_DIR}"
                               VERBATIM)
       ENDFOREACH()
+
+   # The track checker (java -jar <jar> check) runs without a window: fail the build
+   # when what it uses reaches the editor's window code (see utils/check/ImportGuard.java)
+   IF(Java_JAVA_EXECUTABLE)
+      get_target_property(_GUARD_JAR ${_TARGET_NAME} JAR_FILE)
+      ADD_CUSTOM_COMMAND(TARGET ${_TARGET_NAME} POST_BUILD
+                         COMMAND ${Java_JAVA_EXECUTABLE} -cp "${_GUARD_JAR}" utils.check.ImportGuard
+                         COMMENT "Checking the track checker uses none of the editor's window code"
+                         VERBATIM)
+   ENDIF()
 
 
    # ========= Fat JAR: single self-contained jar with all dependencies

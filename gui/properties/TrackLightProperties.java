@@ -263,6 +263,18 @@ public class TrackLightProperties extends PropertyPanel
 			addTextField(this, 12, greenTextField, light.getGreen(), 120, 125);
 			addTextField(this, 13, blueTextField, light.getBlue(), 120, 125);
 
+			// the file's text the game reads as another number, in red (see showFileText)
+			showFileText(topLeftXTextField, light, "topleft/x");
+			showFileText(topLeftYTextField, light, "topleft/y");
+			showFileText(topLeftZTextField, light, "topleft/z");
+			showFileText(bottomRightXTextField, light, "bottomright/x");
+			showFileText(bottomRightYTextField, light, "bottomright/y");
+			showFileText(bottomRightZTextField, light, "bottomright/z");
+			showFileText(indexTextField, light, "index");
+			showFileText(redTextField, light, "red");
+			showFileText(greenTextField, light, "green");
+			showFileText(blueTextField, light, "blue");
+
 			add(getTextureOnButton(), null);
 			add(getTextureOffButton(), null);
 		}
@@ -392,37 +404,37 @@ public class TrackLightProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.topLeftXTextField.getText(), light.getTopLeftX(), doubleResult))
+            if (isDifferent(numberText(panel.topLeftXTextField), light.getTopLeftX(), doubleResult))
             {
                 light.setTopLeftX(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.topLeftYTextField.getText(), light.getTopLeftY(), doubleResult))
+            if (isDifferent(numberText(panel.topLeftYTextField), light.getTopLeftY(), doubleResult))
             {
                 light.setTopLeftY(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.topLeftZTextField.getText(), light.getTopLeftZ(), doubleResult))
+            if (isDifferent(numberText(panel.topLeftZTextField), light.getTopLeftZ(), doubleResult))
             {
                 light.setTopLeftZ(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.bottomRightXTextField.getText(), light.getBottomRightX(), doubleResult))
+            if (isDifferent(numberText(panel.bottomRightXTextField), light.getBottomRightX(), doubleResult))
             {
                 light.setBottomRightX(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.bottomRightYTextField.getText(), light.getBottomRightY(), doubleResult))
+            if (isDifferent(numberText(panel.bottomRightYTextField), light.getBottomRightY(), doubleResult))
             {
                 light.setBottomRightY(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.bottomRightZTextField.getText(), light.getBottomRightZ(), doubleResult))
+            if (isDifferent(numberText(panel.bottomRightZTextField), light.getBottomRightZ(), doubleResult))
             {
                 light.setBottomRightZ(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -440,25 +452,25 @@ public class TrackLightProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.indexTextField.getText(), light.getIndex(), integerResult))
+            if (isDifferent(numberText(panel.indexTextField), light.getIndex(), integerResult))
             {
                 light.setIndex(integerResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.redTextField.getText(), light.getRed(), doubleResult))
+            if (isDifferent(numberText(panel.redTextField), light.getRed(), doubleResult))
             {
                 light.setRed(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.greenTextField.getText(), light.getGreen(), doubleResult))
+            if (isDifferent(numberText(panel.greenTextField), light.getGreen(), doubleResult))
             {
                 light.setGreen(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.blueTextField.getText(), light.getBlue(), doubleResult))
+            if (isDifferent(numberText(panel.blueTextField), light.getBlue(), doubleResult))
             {
                 light.setBlue(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;

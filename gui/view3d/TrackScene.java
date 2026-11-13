@@ -35,6 +35,7 @@ import utils.circuit.RoadTexture;
 import utils.circuit.Surface;
 import utils.circuit.TrackLight;
 import utils.circuit.TurnMarks;
+import utils.circuit.GameTrack;
 
 /**
  * The track's road, borders, sides and barriers as the game's trackgen makes

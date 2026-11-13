@@ -13,10 +13,11 @@ import java.util.Collections;
 import java.util.List;
 
 import gui.EditorFrame;
-import gui.view3d.GameTrack.Seg;
+import utils.circuit.GameTrack.Seg;
 import utils.circuit.RoadTexture;
 import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
+import utils.circuit.GameTrack;
 
 /**
  * The bridges TORCS's trackgen builds where the track crosses over itself

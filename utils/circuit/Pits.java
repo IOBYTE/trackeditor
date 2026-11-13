@@ -31,7 +31,7 @@ public class Pits {
 				continue;
 			int along = (index - from + n) % n;
 			if (along < previous)
-				return String.format("The pit segments are out of order: going round the track from the entry %s, %s %s comes before %s %s. "
+				return String.format("The pit segments are out of order: going around the track from the entry %s, %s %s comes before %s %s. "
 					+ "They have to come in this order: Entry, Start, %sEnd, Exit",
 					entry, labels[i], names[i], previousLabel, previousName, buildings ? "Start Buildings, Stop Buildings, " : "");
 			previous = along;

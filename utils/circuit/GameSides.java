@@ -302,13 +302,13 @@ public final class GameSides
 		if (borderStyle != null && !borderStyle.isEmpty() &&
 			!borderStyle.equals("plan") && !borderStyle.equals("curb") && !borderStyle.equals("wall"))
 		{
-			problems.add(new Problem("border style", "border style \"" + borderStyle + "\" isn't a border style, so the game makes it a wall"));
+			problems.add(new Problem("border style", "border style \"" + borderStyle + "\" isn't valid, so the game treats it as a wall"));
 		}
 		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
 		if (game.planBorderResetsHeight() &&
 			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
 		{
-			problems.add(new Problem("border height", "border style is plan with " + side.getBorderHeight() + " height, which the game ignores (it uses 0): set border style to curb or wall or don't set a height"));
+			problems.add(new Problem("border height", "border style is plan, but a height of " + side.getBorderHeight() + " is set. The game ignores it and uses 0. Set the border style to curb or wall, or remove the height"));
 		}
 
 		// barrier
@@ -320,17 +320,17 @@ public final class GameSides
 			!barrierStyle.equals("fence") && !(game.hasFence1Fence2() && (barrierStyle.equals("fence1") || barrierStyle.equals("fence2"))))
 		{
 			if (walls)
-				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game makes it a wall"));
+				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't fence or wall, so the game treats it as a wall"));
 			else
-				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't one the game knows, so it keeps the " + state.barrierStyle + " from before"));
+				problems.add(new Problem("barrier style", "barrier style \"" + barrierStyle + "\" isn't recognized by the game, so it keeps the previous style (" + state.barrierStyle + ")"));
 		}
 		if ((fence || state.barrierStyle.equals("no barrier")) && !Double.isNaN(side.getBarrierWidth()) && side.getBarrierWidth() != 0)
 		{
-			problems.add(new Problem("barrier width", "barrier style is " + state.barrierStyle + " with " + side.getBarrierWidth() + " width, which the game ignores (it uses 0): set barrier style to wall or don't set a width"));
+			problems.add(new Problem("barrier width", "barrier style is " + state.barrierStyle + ", but a width of " + side.getBarrierWidth() + " is set. The game ignores it and uses 0. Set the barrier style to wall, or remove the width"));
 		}
 		if (state.barrierStyle.equals("no barrier") && !Double.isNaN(side.getBarrierHeight()) && side.getBarrierHeight() != 0)
 		{
-			problems.add(new Problem("barrier height", "barrier style is no barrier with " + side.getBarrierHeight() + " height, which the game ignores (it uses 0)"));
+			problems.add(new Problem("barrier height", "barrier style is no barrier, but a height of " + side.getBarrierHeight() + " is set. The game ignores it and uses 0"));
 		}
 
 		insideCurve(problems, segment, right, state, trackContext);
@@ -342,11 +342,11 @@ public final class GameSides
 		State previous = of(previousSegment, right, trackContext);
 		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
 		{
-			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + " but new height not set (the game uses " + state.borderHeight + ")"));
+			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + ", but no new height is set (the game uses " + state.borderHeight + ")"));
 		}
 		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
 		{
-			problems.add(new Problem("barrier width", "barrier style changed from " + previous.barrierStyle + " to wall but new width not set (the game uses " + state.barrierWidth + ")"));
+			problems.add(new Problem("barrier width", "barrier style changed from " + previous.barrierStyle + " to wall, but no new width is set (the game uses " + state.barrierWidth + ")"));
 		}
 		// CSR's track loader takes a missing barrier style from a list that has no
 		// "no barrier", so after one it reads past the end of the list (once per run
@@ -355,7 +355,7 @@ public final class GameSides
 		if (trackContext.getCarsSportsRacing() && "no barrier".equals(previousSide.getBarrierStyle()) &&
 			(barrierStyle == null || barrierStyle.isEmpty()))
 		{
-			problems.add(new Problem("barrier style", "follows a no barrier side without setting its own barrier style: CSR then uses an undefined style for it and the segments after it until one sets a barrier style, and can crash"));
+			problems.add(new Problem("barrier style", "comes after a side with no barrier but doesn't set its own barrier style. CSR then uses an undefined style for it and the following segments until one sets a style, and it can crash"));
 		}
 		return problems;
 	}

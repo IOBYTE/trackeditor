@@ -174,7 +174,7 @@ public class TerrainProperties extends PropertyPanel
 		{
 			addLabel(this, 13, terrainTransitionLabel, "Terrain Transition", 120);
 			addTextField(this, 13, terrainTransitionTextField, getEditorFrame().getTerrainGeneration().getTerrainTransition(), 140, 125);
-			terrainTransitionTextField.setToolTipText("Distance from the track over which the terrain spacing grows to the border step (empty = border margin, 0 or less = off)");
+			terrainTransitionTextField.setToolTipText("Distance from the track over which the terrain grid widens to the border step (empty = border margin; 0 or less = off)");
 			// its hint is the border margin
 			borderMarginTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 			{
@@ -296,7 +296,7 @@ public class TerrainProperties extends PropertyPanel
 		boolean bad = heightSteps() < 0;
 		heightStepsTextField.setForeground(bad ? java.awt.Color.RED : javax.swing.UIManager.getColor("TextField.foreground"));
 		heightStepsTextField.setToolTipText(bad ? "Height steps \"" + heightStepsTextField.getText().trim()
-			+ "\" must be a whole number of 1 or more: it isn't saved" : HEIGHT_STEPS_TIP);
+			+ "\" must be a whole number, 1 or higher. It won't be saved." : HEIGHT_STEPS_TIP);
 	}
 
 	/**
@@ -796,7 +796,7 @@ public class TerrainProperties extends PropertyPanel
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SOCKET_GAP + " m)");
 		addLabel(panel, 2, new JLabel(), "Thickness", 120);
 		addTextField(panel, 2, thicknessTextField, terrain.getCrossingBridgeThickness(), 140, 125);
-		thicknessTextField.setToolTipText("Least thickness below the upper track (empty = "
+		thicknessTextField.setToolTipText("Minimum thickness under the upper track (empty = "
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_THICKNESS + " m)");
 
 		for (int i = 0; i < bridgeSurfaceComboBoxes.length; i++)
@@ -841,7 +841,7 @@ public class TerrainProperties extends PropertyPanel
 		}
 		addLabel(panel, 3, new JLabel(), "Split Distance", 120);
 		addTextField(panel, 3, accSplitDistanceTextField, terrain.getAccSplitDistance(), 140, 125);
-		accSplitDistanceTextField.setToolTipText("accc -S: the distance TERRAIN objects are split at (for example 300 m)");
+		accSplitDistanceTextField.setToolTipText("accc -S: the distance at which TERRAIN objects are split (for example, 300 m)");
 
 		addLabel(panel, 4, new JLabel(), "Extended Strips", 120);
 		String[] items = {"none (no)", "yes", "no"};

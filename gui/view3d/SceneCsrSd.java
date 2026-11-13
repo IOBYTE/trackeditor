@@ -8,12 +8,13 @@
  */
 package gui.view3d;
 
-import static gui.view3d.GameTrack.*;
+import static utils.circuit.GameTrack.*;
 
 import gui.EditorFrame;
-import gui.view3d.GameTrack.Barrier;
-import gui.view3d.GameTrack.Seg;
+import utils.circuit.GameTrack.Barrier;
+import utils.circuit.GameTrack.Seg;
 import utils.GameType;
+import utils.circuit.GameTrack;
 
 /**
  * The scene as Speed Dreams' and CSR's trackgen make it (tools/trackgen

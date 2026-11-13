@@ -149,9 +149,9 @@ public class PropertyPanel extends JPanel
 			else if (file != null)
 				field.setToolTipText("Found at " + file.getAbsolutePath());
 			else if (unknown)
-				field.setToolTipText(name + " isn't in the track's folder, and the game's data folder isn't set in Preferences to look further");
+				field.setToolTipText(name + " isn't in the track's folder. Set the game's data folder in Preferences so the editor can look there too.");
 			else
-				field.setToolTipText((name + " isn't found " + where).trim());
+				field.setToolTipText((name + " wasn't found " + where).trim());
 		};
 		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
@@ -260,6 +260,82 @@ public class PropertyPanel extends JPanel
 			field.setText(null);
 		}
 		markNumber(field, Double.class);
+	}
+
+	// a number field showing the text the file has for it, which the game reads as
+	// another number (see showFileText)
+	private static final String	FILE_TEXT	= "trackeditor.fileText";
+
+	/**
+	 * Shows the text the file has for the key instead of the number read from it, in
+	 * red with why in its tool tip, while the field has the number the game reads
+	 * (see TrackData.FileText), as the segment dialog does: typing replaces it, and
+	 * Ok keeps the number while the field has the file's text, typed again too (see
+	 * numberText).
+	 *
+	 * @param item the list's item the key is in (a light), null for none
+	 * @param path the key's path in the item, or in the file when there is no item
+	 *        (see TrackData.getFileText)
+	 */
+	protected void showFileText(final JTextField field, Object item, String path)
+	{
+		utils.TrackData trackData = getEditorFrame().getTrackData();
+		final utils.TrackData.FileText fileText = trackData == null ? null : trackData.getFileText(item, path);
+		String text = field.getText();
+		if (fileText == null || text == null || text.trim().isEmpty() || Double.compare(getDouble(text.trim()), fileText.value) != 0)
+			return;
+
+		field.setText(fileText.text);
+		// not a typo to catch on Ok (see checkNumbers)
+		field.putClientProperty(NUMBER_TEXT, fileText.text);
+		field.putClientProperty(FILE_TEXT, fileText);
+		field.setCaretPosition(0);
+		final Color foreground = field.getForeground();
+		final String tip = field.getToolTipText();
+		final String fileTip = "<html><body style='width: 300px'><font color=red>"
+			+ fileText.message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+			+ "</font><br>Type a value to replace it.</body></html>";
+		field.setForeground(Color.RED);
+		field.setToolTipText(fileTip);
+		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				changed();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				changed();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				changed();
+			}
+
+			// red while it has the file's text, typed again too
+			private void changed()
+			{
+				boolean shown = fileText.text.equals(field.getText());
+				field.setForeground(shown ? Color.RED : foreground);
+				field.setToolTipText(shown ? fileTip : tip);
+			}
+		});
+	}
+
+	/**
+	 * @return the field's text, or the number the game reads while it shows the text
+	 *         the file has (see showFileText)
+	 */
+	protected static String numberText(JTextField field)
+	{
+		Object shown = field.getClientProperty(FILE_TEXT);
+		if (!(shown instanceof utils.TrackData.FileText) || !((utils.TrackData.FileText) shown).text.equals(field.getText()))
+			return field.getText();
+		double value = ((utils.TrackData.FileText) shown).value;
+		// a whole number as one, for a whole number field
+		return value == Math.rint(value) && Math.abs(value) < 1e15 ? String.valueOf((long) value) : String.valueOf(value);
 	}
 
 	public void setHexTextField(JTextField field, int value)

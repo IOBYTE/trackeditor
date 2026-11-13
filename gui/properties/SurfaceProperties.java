@@ -320,7 +320,7 @@ public class SurfaceProperties extends PropertyPanel
 			}
 			boolean bad = !Double.isNaN(value) && !(value > 0);
 			textureSizeVTextField.setForeground(bad ? java.awt.Color.RED : javax.swing.UIManager.getColor("TextField.foreground"));
-			textureSizeVTextField.setToolTipText(bad ? "Texture size v " + text + " isn't more than 0: crossing bridges use the texture size instead"
+			textureSizeVTextField.setToolTipText(bad ? "Texture Size V " + text + " must be greater than 0. Crossing bridges will use the texture size instead."
 				: TEXTURE_SIZE_V_TIP);
 		}
 		private JLabel				textureRandomnessLabel			= new JLabel();

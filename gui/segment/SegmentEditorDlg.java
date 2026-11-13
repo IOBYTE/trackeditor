@@ -319,9 +319,9 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 				setter.invoke(shape, old);
 			}
 			if (steps > Segment.MAX_STEPS)
-				return String.format(java.util.Locale.US, "the segment would be built in %,.0f steps, and the editor allows at most %,d", steps, Segment.MAX_STEPS);
+				return String.format(java.util.Locale.US, "the segment would need %,.0f steps, but the editor allows at most %,d", steps, Segment.MAX_STEPS);
 			if (trackSteps > Segment.MAX_TRACK_STEPS)
-				return String.format(java.util.Locale.US, "the track would be built in %,.0f steps, and the editor allows at most %,d", trackSteps, Segment.MAX_TRACK_STEPS);
+				return String.format(java.util.Locale.US, "the track would need %,.0f steps, but the editor allows at most %,d", trackSteps, Segment.MAX_TRACK_STEPS);
 		}
 		catch (ReflectiveOperationException e)
 		{
@@ -366,7 +366,7 @@ public class SegmentEditorDlg extends JDialog implements SliderListener
 			centerPanel.add(commentLabel, null);
 			penaltyLabel = new JLabel("Penalty");
 			penaltyLabel.setBounds(820, 5, 70, 23);
-			penaltyLabel.setToolTipText("CSR 'penalty' (empty = not set)");
+			penaltyLabel.setToolTipText("CSR penalty for this segment (empty = not set)");
 			if (editorFrame.getGameType().hasSegmentPenalty())
 				centerPanel.add(penaltyLabel, null);
 			envMapIndexLabel = new JLabel("Env Map");

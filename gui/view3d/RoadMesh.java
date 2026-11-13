@@ -14,6 +14,7 @@ import java.util.List;
 
 import gui.EditorFrame;
 import utils.circuit.RoadTexture;
+import utils.circuit.GameTrack;
 
 /**
  * What the 3D view draws: the track's road, borders, sides and barriers as

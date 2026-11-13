@@ -215,8 +215,8 @@ public class TrackProperties extends PropertyPanel
 		boolean keeps = !Double.isNaN(width) && width > 0;
 		showNotUsed(widthTextField, !badWidth(widthTextField.getText()) ? null
 			: "the track needs a width greater than 0. "
-			+ (keeps ? "Ok keeps the width " + width + " m." : "Type one, or clear the box for the default "
-			+ MainTrack.GAME_DEFAULT_WIDTH + " m."));
+			+ (keeps ? "Ok keeps the width " + width + " m." : "Enter a width, or clear the box to use the default ("
+			+ MainTrack.GAME_DEFAULT_WIDTH + " m)."));
 	}
 
 	/**
@@ -245,7 +245,7 @@ public class TrackProperties extends PropertyPanel
 		showNotUsed(profilStepsLengthTextField, !badStepsLength(profilStepsLengthTextField.getText()) ? null
 			: "it must be 0 (none), or at least " + Segment.MIN_PROFIL_STEPS_LENGTH
 			+ " m: a shorter one builds each segment in very many steps. "
-			+ (!keeps ? "Type one, or clear the box for none." : Double.isNaN(length) ? "Ok keeps it unset."
+			+ (!keeps ? "Enter a length, or clear the box for none." : Double.isNaN(length) ? "Ok keeps it unset."
 			: "Ok keeps " + length + " m."));
 	}
 
@@ -522,7 +522,7 @@ public class TrackProperties extends PropertyPanel
 			boolean plan = getEditorFrame().getGameType().planBorderResetsHeight()
 				&& ("none".equals(style) || "plan".equals(style));
 			showIgnored(borderHeightTextField, plan,
-				"A plan border is always 0 high, so this is redundant: clear it",
+				"A plan border always has a height of 0, so this value isn't needed. Clear it.",
 				"A plan border has no height: the game ignores %s and uses 0. Clear it, or set the border style to curb or wall");
 		}
 
@@ -539,7 +539,7 @@ public class TrackProperties extends PropertyPanel
 			boolean fence = "none".equals(style) || "fence".equals(style)
 				|| (fence1Fence2 && ("fence1".equals(style) || "fence2".equals(style)));
 			showIgnored(barrierWidthTextField, fence,
-				"A fence is always 0 wide, so this is redundant: clear it",
+				"A fence always has a width of 0, so this value isn't needed. Clear it.",
 				"A fence has no width: the game ignores %s and uses 0. Clear it, or set the barrier style to wall");
 		}
 

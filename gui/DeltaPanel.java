@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +42,7 @@ import javax.swing.WindowConstants;
 import utils.Properties;
 import utils.SegmentVector;
 import utils.check.Closure;
+import utils.check.TrackgenOutput;
 import utils.circuit.Curve;
 import utils.circuit.Pits;
 import utils.circuit.Segment;
@@ -260,9 +260,8 @@ public class DeltaPanel extends JDialog
 		dZ = Double.NaN;
 		angle = Double.NaN;
 
-		// the last few lines that weren't track data, to show if trackgen fails
-		ArrayDeque<String> otherLines = new ArrayDeque<String>();
-		final int maxOtherLines = 15;
+		// the track data read, and the last lines that weren't, to show if trackgen fails
+		TrackgenOutput output = new TrackgenOutput();
 
 		Process proc;
 		try
@@ -289,76 +288,18 @@ public class DeltaPanel extends JDialog
 
 			while ((line = in.readLine()) != null)
 			{
-				JLabel label = null;
-				// the target for a delta, and the delta
-				double target = Double.NaN;
-				double value = Double.NaN;
-				int equals = line.indexOf("=");
-				String key = equals == -1 ? "" : line.substring(0, equals);
-
-				try
+				TrackgenOutput.Field field = output.read(line);
+				if (field != null)
 				{
-					if (key.equals("name      ")) {
-						label = nameLabel;
-					} else if (key.equals("authors   ") || key.equals("author    ")) {
-						label = authorLabel;
-					} else if (key.equals("filename  ")) {
-						label = fileNameLabel;
-					} else if (key.equals("length    ")) {
-						length = Double.parseDouble(line.substring(equals + 1).trim());
-						label = lengthLabel;
-					} else if (key.equals("width     ")) {
-						label = widthLabel;
-					} else if (key.equals("XSize     ")) {
-						label = xSizeLabel;
-						size = Double.isNaN(size) ? Math.abs(Double.parseDouble(line.substring(equals + 1).trim()))
-							: Math.max(size, Math.abs(Double.parseDouble(line.substring(equals + 1).trim())));
-					} else if (key.equals("YSize     ")) {
-						label = ySizeLabel;
-						size = Double.isNaN(size) ? Math.abs(Double.parseDouble(line.substring(equals + 1).trim()))
-							: Math.max(size, Math.abs(Double.parseDouble(line.substring(equals + 1).trim())));
-					} else if (key.equals("Delta X   ")) {
-						dX = Double.parseDouble(line.substring(equals + 1).trim());
-						label = deltaXLabel;
-						target = TARGET_DX;
-						value = dX;
-					} else if (key.equals("Delta Y   ")) {
-						dY = Double.parseDouble(line.substring(equals + 1).trim());
-						label = deltaYLabel;
-						target = TARGET_DY;
-						value = dY;
-					} else if (key.equals("Delta Z   ")) {
-						dZ = Double.parseDouble(line.substring(equals + 1).trim());
-						label = deltaZLabel;
-						target = TARGET_DZ;
-						value = dZ;
-					} else if (key.equals("Delta Ang ")) {
-						angle = Double.parseDouble(line.substring(line.indexOf("(") + 1, line.indexOf(")")).trim());
-						label = deltaAngLabel;
-						target = TARGET_ANGLE;
-						value = angle;
-					}
-				}
-				catch (NumberFormatException | IndexOutOfBoundsException e)
-				{
-					label = null;
-				}
-
-				if (label != null)
-				{
-					final JLabel l = label;
+					final JLabel l = labels()[field.ordinal()];
 					final String text = line;
-					final double t = target;
-					final double v = value;
-					final double a = label == deltaXLabel || label == deltaYLabel ? allowed(target, size) : target;
-					lines[Arrays.asList(labels()).indexOf(label)] = line;
+					// the target for a delta, and the delta
+					final double t = TrackgenOutput.target(field);
+					final double v = output.value(field);
+					final double a = field == TrackgenOutput.Field.DELTA_X || field == TrackgenOutput.Field.DELTA_Y
+						? allowed(t, output.getSize()) : t;
+					lines[field.ordinal()] = line;
 					SwingUtilities.invokeLater(() -> showLine(l, text, t, v, a));
-				}
-				else if (!key.isEmpty() || !line.trim().isEmpty())
-				{
-					if (otherLines.size() == maxOtherLines)
-						otherLines.removeFirst();
-					otherLines.addLast(line);
 				}
 			}
 
@@ -368,7 +309,7 @@ public class DeltaPanel extends JDialog
 				throw new TrackgenException(null);
 
 			if (exitValue != 0)
-				throw new TrackgenException(trackgen[0] + " failed (exit status " + exitValue + ")" + output(otherLines));
+				throw new TrackgenException(utils.check.Trackgen.failed(trackgen[0], exitValue) + output.otherOutput());
 		}
 		catch (IOException e)
 		{
@@ -386,10 +327,16 @@ public class DeltaPanel extends JDialog
 		finally
 		{
 			process = null;
+			length = output.getLength();
+			size = output.getSize();
+			dX = output.getDX();
+			dY = output.getDY();
+			dZ = output.getDZ();
+			angle = output.getAngle();
 		}
 
 		if (Double.isNaN(length) || Double.isNaN(dX) || Double.isNaN(dY) || Double.isNaN(angle))
-			throw new TrackgenException(trackgen[0] + " didn't report the track length and deltas" + output(otherLines));
+			throw new TrackgenException(trackgen[0] + " didn't report the track length and deltas" + output.otherOutput());
 
 		Closure.setLast(new Closure(trackKey[0], dX, dY, dZ, angle, size, lines));
     }
@@ -506,17 +453,6 @@ public class DeltaPanel extends JDialog
 			setLocation(Math.max(screen.x, screen.x + screen.width - getWidth()), getY());
 		validate();
 		repaint();
-    }
-
-    private static String output(ArrayDeque<String> lines)
-    {
-		if (lines.isEmpty())
-			return "";
-
-		StringBuilder text = new StringBuilder("\n\n");
-		for (String line : lines)
-			text.append(line).append("\n");
-		return text.toString();
     }
 
     /**
@@ -822,7 +758,7 @@ public class DeltaPanel extends JDialog
 			lengthButton = new JButton();
 			lengthButton.setBounds(169, 345, 85, 25);
 			lengthButton.setText("Length");
-			lengthButton.setToolTipText("Adjust the length of the track to match the value in the text field on the rigth");
+			lengthButton.setToolTipText("Adjusts the track's length to match the value in the box on the right");
 			lengthButton.addActionListener(new java.awt.event.ActionListener() { 
 				public void actionPerformed(java.awt.event.ActionEvent e) 
 				{    
@@ -869,7 +805,7 @@ public class DeltaPanel extends JDialog
 		if (jTextField == null) {
 			jTextField = new JTextField();
 			jTextField.setBounds(266, 345, 85, 25);
-			jTextField.setToolTipText("The length value used from Length button");
+			jTextField.setToolTipText("The length the Length button adjusts the track to");
 		}
 		return jTextField;
 	}
