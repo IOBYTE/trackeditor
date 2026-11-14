@@ -36,6 +36,8 @@ import utils.circuit.Surface;
 import utils.circuit.TrackLight;
 import utils.circuit.TurnMarks;
 import utils.circuit.GameTrack;
+import utils.check.TrackChecker;
+import utils.check.TrackFolders;
 
 /**
  * The track's road, borders, sides and barriers as the game's trackgen makes
@@ -514,7 +516,6 @@ public abstract class TrackScene
 	{
 		if (!editorFrame.getGameType().hasSpeedDreamsExtensions())
 			return;
-		String data = editorFrame.getDataDirectory();
 		// the corners are in the game's coordinates, moved to start at 0
 		float[] origin = null;
 		int k = 0;
@@ -534,9 +535,9 @@ public abstract class TrackScene
 			strip.doubleSided = true;
 			strip.clamp = true;
 			strip.color = new float[] { (float) orDefault(light.getRed(), 1), (float) orDefault(light.getGreen(), 1), (float) orDefault(light.getBlue(), 1) };
-			// the game looks for the texture from its data folder
-			strip.texture = lightTexture(light.getTextureOn(), data, editorFrame.getTrackFolders());
-			strip.textureOff = lightTexture(light.getTextureOff(), data, editorFrame.getTrackFolders());
+			// the game loads the texture from its data folder
+			strip.texture = lightTexture(light.getTextureOn());
+			strip.textureOff = lightTexture(light.getTextureOff());
 			strip.lightRole = role;
 			strip.lightIndex = light.getIndex() == Integer.MAX_VALUE ? 0 : light.getIndex();
 			// as the game makes it: down the top left edge, then the bottom right one
@@ -624,13 +625,10 @@ public abstract class TrackScene
 		}
 	}
 
-	/** A start light's texture, where the game looks for it: from its data folder */
-	private static String lightTexture(String texture, String data, String[] trackFolders)
+	/** A start light's texture, where the game looks for it: from its data folder (see TrackFolders.findLightTexture) */
+	private String lightTexture(String texture)
 	{
-		String[] folders = new String[trackFolders.length + 1];
-		folders[0] = data;
-		System.arraycopy(trackFolders, 0, folders, 1, trackFolders.length);
-		return texture == null || texture.isEmpty() ? "" : foundTexture("track light/", texture, folders);
+		return texture == null || texture.isEmpty() ? "" : foundTexture("track light/", texture, TrackFolders.findLightTexture(editorFrame, texture));
 	}
 
 	private static double orDefault(double value, double otherwise)
@@ -983,8 +981,7 @@ public abstract class TrackScene
 		if (value == Integer.MAX_VALUE || value < 1)
 			return null;
 		String name = value == 1 ? "pit_indicator.ac" : "normal_pit_indicator.ac";
-		String data = editorFrame.getDataDirectory();
-		File file = findFile(name, Properties.getInstance().getPath(), data == null ? null : data + File.separator + "data" + File.separator + "objects");
+		File file = TrackFolders.findPitIndicator(editorFrame, name);
 		if (file == null)
 			return null;
 		Ac3d ac3d = new Ac3d();
@@ -1000,20 +997,6 @@ public abstract class TrackScene
 		double[][] identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
 		indicatorParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
 		return parts;
-	}
-
-	/** @return the first of the folders that has the file, or null */
-	private static File findFile(String name, String... folders)
-	{
-		for (String folder : folders)
-		{
-			if (folder == null || folder.isEmpty())
-				continue;
-			File file = new File(folder, name);
-			if (file.isFile())
-				return file;
-		}
-		return null;
 	}
 
 	/** An object's polygons and its kids', placed by their loc and rot as the game's loader places them */
@@ -1095,8 +1078,6 @@ public abstract class TrackScene
 	 */
 	private void addPitIndicator(List<IndicatorPart> parts, float[] at, int number)
 	{
-		String data = editorFrame.getDataDirectory();
-		String dataPath = data == null ? null : data + File.separator + "data" + File.separator;
 		int k = 0;
 		for (IndicatorPart part : parts)
 		{
@@ -1116,7 +1097,7 @@ public abstract class TrackScene
 				vScale = 1 / 0.33f;
 			}
 			else if (part.texture != null && !part.texture.isEmpty())
-				strip.texture = indicatorTexture(part.texture, dataPath, editorFrame);
+				strip.texture = indicatorTexture(part.texture, editorFrame);
 			else
 				strip.texture = "";
 			for (float[] p : part.points)
@@ -1130,16 +1111,14 @@ public abstract class TrackScene
 	}
 
 	/**
-	 * A texture of the pit indicator, where the game looks for it: the track's
-	 * folder, data/objects, data/textures, data/img.
+	 * A texture of the pit indicator, where the game looks for it (see
+	 * TrackFolders.pitIndicatorTextureFolders).
 	 *
 	 * @return its texture name
 	 */
-	private static String indicatorTexture(String texture, String dataPath, EditorFrame editorFrame)
+	private static String indicatorTexture(String texture, EditorFrame editorFrame)
 	{
-		return foundTexture("pit indicator/", texture, editorFrame.getTrackFolders(
-			dataPath == null ? null : dataPath + "objects", dataPath == null ? null : dataPath + "textures",
-			dataPath == null ? null : dataPath + "img"));
+		return foundTexture("pit indicator/", texture, TrackFolders.pitIndicatorTextureFolders(editorFrame));
 	}
 
 	/**
@@ -1151,8 +1130,13 @@ public abstract class TrackScene
 	 */
 	private static String foundTexture(String prefix, String texture, String... folders)
 	{
+		return foundTexture(prefix, texture, TrackChecker.findFile(texture, folders));
+	}
+
+	/** @return the texture name of a texture found here as the file, null for none (see foundTexture) */
+	private static String foundTexture(String prefix, String texture, File file)
+	{
 		String name = prefix + texture;
-		File file = findFile(texture, folders);
 		synchronized (generatedTextures)
 		{
 			if (file != null)

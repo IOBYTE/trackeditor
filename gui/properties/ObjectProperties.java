@@ -378,13 +378,17 @@ public class ObjectProperties extends PropertyPanel
 			{
 				addLabel(this, row, borderDistanceLabel, "Border Distance", 160);
 				addTextField(this, row++, borderDistanceTextField, object.getBorderDistance(), 120, 125);
+				showFileText(borderDistanceTextField, object, "border distance");
 			}
 			addLabel(this, row, orientationLabel, "Orientation", 160);
 			addTextField(this, row++, orientationTextField, object.getOrientation(), 120, 125);
+			showFileText(orientationTextField, object, "orientation");
 			addLabel(this, row, deltaHeightLabel, "Delta Height", 160);
 			addTextField(this, row++, deltaHeightTextField, object.getDeltaHeight(), 120, 125);
+			showFileText(deltaHeightTextField, object, "delta height");
 			addLabel(this, row, deltaVertLabel, "Delta Vert", 160);
 			addTextField(this, row++, deltaVertTextField, object.getDeltaVert(), 120, 125);
+			showFileText(deltaVertTextField, object, "delta vert");
 
 			// the scale fields are filled in even when they aren't shown, as the scale
 			// type's listener uses them
@@ -398,10 +402,13 @@ public class ObjectProperties extends PropertyPanel
 				add(getScaleTypeComboBox(), null);
 				addLabel(this, row + 1, scaleLabel, "Scale", 160);
 				addTextField(this, row + 1, scaleTextField, object.getScale(), 120, 125);
+				showFileText(scaleTextField, object, "scale");
 				addLabel(this, row + 2, scaleMinLabel, "Scale Min", 160);
 				addTextField(this, row + 2, scaleMinTextField, object.getScaleMin(), 120, 125);
+				showFileText(scaleMinTextField, object, "scale min");
 				addLabel(this, row + 3, scaleMaxLabel, "Scale Max", 160);
 				addTextField(this, row + 3, scaleMaxTextField, object.getScaleMax(), 120, 125);
+				showFileText(scaleMaxTextField, object, "scale max");
 			}
 
 			// only Speed Dreams trackgen reads "use material"
@@ -557,7 +564,7 @@ public class ObjectProperties extends PropertyPanel
 		{
 			if (scaleTextField.isEnabled())
 			{
-				String text = scaleTextField.getText();
+				String text = numberText(scaleTextField);
 				if (text != null && !text.isEmpty())
 				{
 					lastScale = getDouble(text);
@@ -565,12 +572,12 @@ public class ObjectProperties extends PropertyPanel
 			}
 			else if (scaleMinTextField.isEnabled())
 			{
-				String text = scaleMinTextField.getText();
+				String text = numberText(scaleMinTextField);
 				if (text != null && !text.isEmpty())
 				{
 					lastScaleMin = getDouble(text);
 				}
-				text = scaleMaxTextField.getText();
+				text = numberText(scaleMaxTextField);
 				if (text != null && !text.isEmpty())
 				{
 					lastScaleMax = getDouble(text);
@@ -819,25 +826,25 @@ public class ObjectProperties extends PropertyPanel
 
 			// the fields TORCS trackgen doesn't read aren't shown, so they are left as they are
 			boolean speedDreams = getEditorFrame().getGameType().hasSpeedDreamsTrackgenKeys();
-			if (speedDreams && isDifferent(panel.borderDistanceTextField.getText(), object.getBorderDistance(), doubleResult))
+			if (speedDreams && isDifferent(numberText(panel.borderDistanceTextField), object.getBorderDistance(), doubleResult))
             {
                 object.setBorderDistance(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.orientationTextField.getText(), object.getOrientation(), doubleResult))
+            if (isDifferent(numberText(panel.orientationTextField), object.getOrientation(), doubleResult))
             {
                 object.setOrientation(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.deltaHeightTextField.getText(), object.getDeltaHeight(), doubleResult))
+            if (isDifferent(numberText(panel.deltaHeightTextField), object.getDeltaHeight(), doubleResult))
             {
                 object.setDeltaHeight(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.deltaVertTextField.getText(), object.getDeltaVert(), doubleResult))
+            if (isDifferent(numberText(panel.deltaVertTextField), object.getDeltaVert(), doubleResult))
             {
                 object.setDeltaVert(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -849,19 +856,19 @@ public class ObjectProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-			if (speedDreams && isDifferent(panel.scaleTextField.getText(), object.getScale(), doubleResult))
+			if (speedDreams && isDifferent(numberText(panel.scaleTextField), object.getScale(), doubleResult))
             {
                 object.setScale(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-			if (speedDreams && isDifferent(panel.scaleMinTextField.getText(), object.getScaleMin(), doubleResult))
+			if (speedDreams && isDifferent(numberText(panel.scaleMinTextField), object.getScaleMin(), doubleResult))
             {
                 object.setScaleMin(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-			if (speedDreams && isDifferent(panel.scaleMaxTextField.getText(), object.getScaleMax(), doubleResult))
+			if (speedDreams && isDifferent(numberText(panel.scaleMaxTextField), object.getScaleMax(), doubleResult))
             {
                 object.setScaleMax(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -899,14 +906,14 @@ public class ObjectProperties extends PropertyPanel
 		object.setObject(panel.objectTextField.getText());
 		object.setColor(getInteger(panel.colorTextField.getText()));
 		object.setOrientationType(chosenItem(panel.orientationTypeComboBox));
-		object.setBorderDistance(getDouble(panel.borderDistanceTextField.getText()));
-		object.setOrientation(getDouble(panel.orientationTextField.getText()));
-		object.setDeltaHeight(getDouble(panel.deltaHeightTextField.getText()));
-		object.setDeltaVert(getDouble(panel.deltaVertTextField.getText()));
+		object.setBorderDistance(getDouble(numberText(panel.borderDistanceTextField)));
+		object.setOrientation(getDouble(numberText(panel.orientationTextField)));
+		object.setDeltaHeight(getDouble(numberText(panel.deltaHeightTextField)));
+		object.setDeltaVert(getDouble(numberText(panel.deltaVertTextField)));
 		object.setScaleType(chosenItem(panel.scaleTypeComboBox));
-		object.setScale(getDouble(panel.scaleTextField.getText()));
-		object.setScaleMin(getDouble(panel.scaleMinTextField.getText()));
-		object.setScaleMax(getDouble(panel.scaleMaxTextField.getText()));
+		object.setScale(getDouble(numberText(panel.scaleTextField)));
+		object.setScaleMin(getDouble(numberText(panel.scaleMinTextField)));
+		object.setScaleMax(getDouble(numberText(panel.scaleMaxTextField)));
 		if (getEditorFrame().getGameType().hasUseMaterial())
 			object.setUseMaterial(chosenItem(panel.getUseMaterialComboBox()));
 	}

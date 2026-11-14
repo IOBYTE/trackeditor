@@ -176,6 +176,7 @@ public class TrackProperties extends PropertyPanel
 		addLabel(this, 6, racelineExtLabel, "Raceline Ext", 140);
 
 		addTextField(this, 0, widthTextField, getEditorFrame().getTrackData().getMainTrack().getWidth(), 150, 125);
+		showFileText(widthTextField, null, "Main Track/width");
 		listen(widthTextField, this::showWidth);
 		showWidth();
 
@@ -183,11 +184,15 @@ public class TrackProperties extends PropertyPanel
 		this.add(getProfilComboBox(), null);
 
 		addTextField(this, 3, profilStepsLengthTextField, getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength(), 150, 125);
+		showFileText(profilStepsLengthTextField, null, "Main Track/profil steps length");
 		listen(profilStepsLengthTextField, this::showStepsLength);
 		showStepsLength();
 		addTextField(this, 4, racelineWidthscaleTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineWidthscale(), 150, 125);
+		showFileText(racelineWidthscaleTextField, null, "Main Track/raceline widthscale");
 		addTextField(this, 5, racelineIntTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineInt(), 150, 125);
+		showFileText(racelineIntTextField, null, "Main Track/raceline int");
 		addTextField(this, 6, racelineExtTextField, getEditorFrame().getTrackData().getMainTrack().getRacelineExt(), 150, 125);
+		showFileText(racelineExtTextField, null, "Main Track/raceline ext");
 
 		this.add(getTabbedPane(), null);
 	}
@@ -213,7 +218,7 @@ public class TrackProperties extends PropertyPanel
 	{
 		double width = getEditorFrame().getTrackData().getMainTrack().getWidth();
 		boolean keeps = !Double.isNaN(width) && width > 0;
-		showNotUsed(widthTextField, !badWidth(widthTextField.getText()) ? null
+		showNotUsed(widthTextField, !badWidth(numberText(widthTextField)) ? null
 			: "the track needs a width greater than 0. "
 			+ (keeps ? "Ok keeps the width " + width + " m." : "Enter a width, or clear the box to use the default ("
 			+ MainTrack.GAME_DEFAULT_WIDTH + " m)."));
@@ -242,7 +247,7 @@ public class TrackProperties extends PropertyPanel
 	{
 		double length = getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength();
 		boolean keeps = Double.isNaN(length) || length == 0 || length >= Segment.MIN_PROFIL_STEPS_LENGTH;
-		showNotUsed(profilStepsLengthTextField, !badStepsLength(profilStepsLengthTextField.getText()) ? null
+		showNotUsed(profilStepsLengthTextField, !badStepsLength(numberText(profilStepsLengthTextField)) ? null
 			: "it must be 0 (none), or at least " + Segment.MIN_PROFIL_STEPS_LENGTH
 			+ " m: a shorter one builds each segment in very many steps. "
 			+ (!keeps ? "Enter a length, or clear the box for none." : Double.isNaN(length) ? "Ok keeps it unset."
@@ -258,7 +263,7 @@ public class TrackProperties extends PropertyPanel
 			field.setToolTipText("<html><body style='width: 300px'><font color=red><b>Not used:</b> "
 				+ why + "</font></body></html>");
 		}
-		else
+		else if (!showFileTextTip(field))
 		{
 			field.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
 			field.setToolTipText(null);
@@ -382,6 +387,18 @@ public class TrackProperties extends PropertyPanel
 	private class SidePanel extends JPanel
 	{
 		private SegmentSide 		side;
+
+		/**
+		 * @return a key's paths for this side: in version 4 its section's ("Main
+		 *         Track/Left Border/width"), in version 3 the Main Track's ("Main
+		 *         Track/lborder width")
+		 */
+		private String[] sideKeys(String section, String key)
+		{
+			boolean left = side == getEditorFrame().getTrackData().getMainTrack().getLeft();
+			return new String[] { "Main Track/" + (left ? "Left " : "Right ") + section + "/" + key,
+				"Main Track/" + (left ? "l" : "r") + section.toLowerCase() + " " + key };
+		}
 		private JLabel				sideWidthLabel				= new JLabel();
 		private JTextField 			sideWidthTextField			= hintTextField("0.0 (default)");
 		private JLabel				sideSurfaceLabel			= new JLabel();
@@ -443,18 +460,23 @@ public class TrackProperties extends PropertyPanel
 			addLabel(this, 10, barrierStyleLabel, "Barrier Style", 140);
 			
 			addTextField(this, 0, sideWidthTextField, side.getMainTrackSideWidth(), 150, 125);
+			showFileText(sideWidthTextField, null, sideKeys("Side", "width"));
 
 			add(getSideSurfaceComboBox(), null);
 			add(getSideBankingTypeComboBox(), null);
 
 			addTextField(this, 3, borderWidthTextField, side.getBorderWidth(), 150, 125);
+			showFileText(borderWidthTextField, null, sideKeys("Border", "width"));
 			addTextField(this, 4, borderHeightTextField, side.getBorderHeight(), 150, 125);
+			showFileText(borderHeightTextField, null, sideKeys("Border", "height"));
 
 			add(getBorderSurfaceComboBox(), null);
 			add(getBorderStyleComboBox(), null);
 
 			addTextField(this, 7, barrierWidthTextField, side.getBarrierWidth(), 150, 125);
+			showFileText(barrierWidthTextField, null, sideKeys("Barrier", "width"));
 			addTextField(this, 8, barrierHeightTextField, side.getBarrierHeight(), 150, 125);
+			showFileText(barrierHeightTextField, null, sideKeys("Barrier", "height"));
 
 			add(getBarrierSurfaceComboBox(), null);
 			add(getBarrierStyleComboBox(), null);
@@ -557,6 +579,8 @@ public class TrackProperties extends PropertyPanel
 			String text = field.getText().trim();
 			if (!ignored || text.isEmpty())
 			{
+				if (!ignored && showFileTextTip(field))
+					return;
 				field.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
 				field.setToolTipText(null);
 				if (ignored)
@@ -845,7 +869,7 @@ public class TrackProperties extends PropertyPanel
 
 		// a width of 0 or less isn't used (see showWidth)
 		MainTrack mainTrack = getEditorFrame().getTrackData().getMainTrack();
-		if (!badWidth(widthTextField.getText()) && isDifferent(widthTextField.getText(), mainTrack.getWidth(), doubleResult))
+		if (!badWidth(numberText(widthTextField)) && isDifferent(numberText(widthTextField), mainTrack.getWidth(), doubleResult))
 		{
 			mainTrack.setWidth(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
@@ -866,28 +890,28 @@ public class TrackProperties extends PropertyPanel
 		}
 
 		// one the editor doesn't allow isn't used (see showStepsLength)
-		if (!badStepsLength(profilStepsLengthTextField.getText()) && isDifferent(profilStepsLengthTextField.getText(),
+		if (!badStepsLength(numberText(profilStepsLengthTextField)) && isDifferent(numberText(profilStepsLengthTextField),
             getEditorFrame().getTrackData().getMainTrack().getProfilStepsLength(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().setProfilStepsLength(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;
         }
 
-        if (isDifferent(racelineWidthscaleTextField.getText(),
+        if (isDifferent(numberText(racelineWidthscaleTextField),
             getEditorFrame().getTrackData().getMainTrack().getRacelineWidthscale(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().setRacelineWidthscale(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;
         }
 
-        if (isDifferent(racelineIntTextField.getText(),
+        if (isDifferent(numberText(racelineIntTextField),
             getEditorFrame().getTrackData().getMainTrack().getRacelineInt(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().setRacelineInt(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;
         }
 
-        if (isDifferent(racelineExtTextField.getText(),
+        if (isDifferent(numberText(racelineExtTextField),
             getEditorFrame().getTrackData().getMainTrack().getRacelineExt(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().setRacelineExt(doubleResult.getValue());
@@ -897,7 +921,7 @@ public class TrackProperties extends PropertyPanel
         SidePanel left = (SidePanel) tabbedPane.getComponentAt(0);
 
 		SegmentSide mainLeft = getEditorFrame().getTrackData().getMainTrack().getLeft();
-		if (isDifferent(left.sideWidthTextField.getText(), mainLeft.getMainTrackSideWidth(), doubleResult))
+		if (isDifferent(numberText(left.sideWidthTextField), mainLeft.getMainTrackSideWidth(), doubleResult))
 		{
 			// the Main Track's one width is kept as both
 			mainLeft.setSideStartWidth(doubleResult.getValue());
@@ -916,13 +940,13 @@ public class TrackProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setSideBankingType(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-        if (isDifferent(left.borderWidthTextField.getText(),
+        if (isDifferent(numberText(left.borderWidthTextField),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBorderWidth(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderWidth(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-        if (isDifferent(left.borderHeightTextField.getText(),
+        if (isDifferent(numberText(left.borderHeightTextField),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBorderHeight(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderHeight(doubleResult.getValue());
@@ -940,13 +964,13 @@ public class TrackProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getMainTrack().getLeft().setBorderStyle(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-        if (isDifferent(left.barrierWidthTextField.getText(),
+        if (isDifferent(numberText(left.barrierWidthTextField),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBarrierWidth(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBarrierWidth(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-        if (isDifferent(left.barrierHeightTextField.getText(),
+        if (isDifferent(numberText(left.barrierHeightTextField),
             getEditorFrame().getTrackData().getMainTrack().getLeft().getBarrierHeight(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getLeft().setBarrierHeight(doubleResult.getValue());
@@ -968,7 +992,7 @@ public class TrackProperties extends PropertyPanel
         SidePanel right = (SidePanel) tabbedPane.getComponentAt(1);
 
 		SegmentSide mainRight = getEditorFrame().getTrackData().getMainTrack().getRight();
-		if (isDifferent(right.sideWidthTextField.getText(), mainRight.getMainTrackSideWidth(), doubleResult))
+		if (isDifferent(numberText(right.sideWidthTextField), mainRight.getMainTrackSideWidth(), doubleResult))
 		{
 			// the Main Track's one width is kept as both
 			mainRight.setSideStartWidth(doubleResult.getValue());
@@ -987,13 +1011,13 @@ public class TrackProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getMainTrack().getRight().setSideBankingType(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-        if (isDifferent(right.borderWidthTextField.getText(),
+        if (isDifferent(numberText(right.borderWidthTextField),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBorderWidth(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getRight().setBorderWidth(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-        if (isDifferent(right.borderHeightTextField.getText(),
+        if (isDifferent(numberText(right.borderHeightTextField),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBorderHeight(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getRight().setBorderHeight(doubleResult.getValue());
@@ -1011,13 +1035,13 @@ public class TrackProperties extends PropertyPanel
 			getEditorFrame().getTrackData().getMainTrack().getRight().setBorderStyle(stringResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
-        if (isDifferent(right.barrierWidthTextField.getText(),
+        if (isDifferent(numberText(right.barrierWidthTextField),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBarrierWidth(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getRight().setBarrierWidth(doubleResult.getValue());
             getEditorFrame().documentIsModified = true;        	
         }
-        if (isDifferent(right.barrierHeightTextField.getText(),
+        if (isDifferent(numberText(right.barrierHeightTextField),
             getEditorFrame().getTrackData().getMainTrack().getRight().getBarrierHeight(), doubleResult))
         {
             getEditorFrame().getTrackData().getMainTrack().getRight().setBarrierHeight(doubleResult.getValue());

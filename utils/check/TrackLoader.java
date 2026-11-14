@@ -108,6 +108,15 @@ public class TrackLoader
 		Collections.sort(unusedKeys, Comparator.comparingInt(TrackLoader::messageLine));
 		trackContext.getTrackData().setUnusedKeys(unusedKeys);
 		trackContext.getTrackData().setUnusedKeyPaths(paths);
+		// the segment or item each is in, for Check to find after it's renamed
+		java.util.Map<String, Object> items = new java.util.HashMap<String, Object>();
+		for (java.util.Map.Entry<String, String> entry : paths.entrySet())
+		{
+			Object item = pathItem(trackContext.getTrackData(), entry.getValue());
+			if (item != null)
+				items.put(entry.getKey(), item);
+		}
+		trackContext.getTrackData().setUnusedKeyItems(items);
 	}
 
 	/**
@@ -360,6 +369,74 @@ public class TrackLoader
 		return false;
 	}
 
+	// the sections of the editor's lists whose items keep the file's text, longer first
+	private static final String[]	LISTS	= { "Track Lights", "Cameras/list", "Cameras", "Surfaces/List", "Surfaces", "Objects", "Sectors" };
+
+	/** @return the items of one of LISTS */
+	static java.util.List<?> listItems(TrackData trackData, String list)
+	{
+		switch (list)
+		{
+		case "Track Lights":
+			return trackData.getTrackLights();
+		case "Cameras/list":
+		case "Cameras":
+			return trackData.getCameras();
+		case "Surfaces/List":
+		case "Surfaces":
+			return trackData.getSurfaces();
+		case "Objects":
+			return trackData.getObjects();
+		default:
+			return trackData.getSectors();
+		}
+	}
+
+	/** @return the name of an item of one of LISTS */
+	static String itemName(Object item)
+	{
+		return item instanceof utils.circuit.TrackLight ? ((utils.circuit.TrackLight) item).getName()
+			: item instanceof utils.circuit.Camera ? ((utils.circuit.Camera) item).getName()
+			: item instanceof utils.circuit.Surface ? ((utils.circuit.Surface) item).getName()
+			: item instanceof utils.circuit.TrackObject ? ((utils.circuit.TrackObject) item).getName()
+			: item instanceof utils.circuit.Sector ? ((utils.circuit.Sector) item).getName() : null;
+	}
+
+	/**
+	 * @return the item of a list with the name, the first as the game finds it, or
+	 *         null: its values' text stays with it when it's renamed (see
+	 *         TrackData.getKeyFileText)
+	 */
+	private static Object listItem(TrackData trackData, String list, String name)
+	{
+		for (Object item : listItems(trackData, list))
+		{
+			if (name.equals(itemName(item)))
+				return item;
+		}
+		return null;
+	}
+
+	/**
+	 * @return the segment (the first with the name) or item of one of LISTS a key's
+	 *         path in the file is in, null for none
+	 */
+	private static Object pathItem(TrackData trackData, String path)
+	{
+		String[] place = TrackData.segmentPlace(path);
+		if (place != null)
+			return trackData.getSegments().getSegmentFromName(place[0]);
+		for (String list : LISTS)
+		{
+			if (!path.startsWith(list + "/"))
+				continue;
+			String rest = path.substring(list.length() + 1);
+			int slash = rest.indexOf('/');
+			return slash <= 0 ? null : listItem(trackData, list, rest.substring(0, slash));
+		}
+		return null;
+	}
+
 	/**
 	 * Keeps a value the file has as text the game reads as another number, for the
 	 * segment dialog or the Properties dialog to show (see TrackData.FileText).
@@ -381,19 +458,21 @@ public class TrackLoader
 			if (path == null)
 				return;
 			TrackData.FileText fileText = new TrackData.FileText(text, plugin.torcs.GfParmNumbers.parse(text, new boolean[1]), message);
-			String[] parts = path.split("/", 3);
-			if (parts.length == 3 && parts[0].equals("Track Lights"))
+			for (String list : LISTS)
 			{
-				for (utils.circuit.TrackLight light : trackData.getTrackLights())
+				if (!path.startsWith(list + "/"))
+					continue;
+				String rest = path.substring(list.length() + 1);
+				int slash = rest.indexOf('/');
+				Object item = slash <= 0 ? null : listItem(trackData, list, rest.substring(0, slash));
+				if (item != null)
 				{
-					if (parts[1].equals(light.getName()))
-					{
-						trackData.addFileText(light, parts[2], fileText);
-						return;
-					}
+					trackData.addKeyFileText(item, rest.substring(slash + 1), fileText);
+					return;
 				}
+				break;
 			}
-			trackData.addFileText(null, path, fileText);
+			trackData.addKeyFileText(null, path, fileText);
 			return;
 		}
 		if (place.length < 3)

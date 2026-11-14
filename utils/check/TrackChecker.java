@@ -734,14 +734,14 @@ public class TrackChecker
 	private void checkUnusedKeys()
 	{
 		for (String message : trackData.getUnusedKeys())
-			report.append(message + "\n", keyTarget(trackData.getUnusedKeyPath(message)));
+			report.append(message + "\n", keyTarget(trackData.getUnusedKeyPath(message), trackData.getUnusedKeyItem(message)));
 	}
 
 	// how the paths of the keys outside the editor's lists start, and the Properties
 	// tabs with them, the deepest first
 	private static final String[][] SECTION_TABS = { { "Main Track/Pits/", "Pit" }, { "Main Track/Left ", "Track", "Left" },
 		{ "Main Track/Right ", "Track", "Right" }, { "Main Track/", "Track" }, { "Graphic/Terrain Generation/", "Terrain" },
-		{ "Graphic/Turn Marks/", "Turn Marks" }, { "Header/", "General" }, { "Local Info/", "Local Info" },
+		{ "Graphic/Turn Marks/", "Turn Marks" }, { "Graphic/3d ", "Graphic 3D" }, { "Graphic/", "Graphic" }, { "Header/", "General" }, { "Local Info/", "Local Info" },
 		{ "Starting Grid/", "Grid" }, { "Georeference/", "Georeference" } };
 
 	/**
@@ -749,14 +749,22 @@ public class TrackChecker
 	 *         dialog's tab with it; a key in an item of the editor's lists (a light,
 	 *         camera, surface...) the item's Properties tab; else the Properties tab
 	 *         with the section; null when it's none of those
+	 * @param item the segment or item the key was in when the track was read (see
+	 *        TrackData.getUnusedKeyItem), found by the name it has now; null to find
+	 *        it by the name in the path
 	 */
-	private Subject keyTarget(String path)
+	private Subject keyTarget(String path, Object item)
 	{
 		if (path == null)
 			return null;
 		String[] place = TrackData.segmentPlace(path);
 		if (place != null)
-			return segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
+		{
+			if (!(item instanceof Segment))
+				return segment(trackData.getSegments().getSegmentFromName(place[0]), place[1]);
+			// not one deleted since
+			return trackData.getSegments().contains(item) ? segment((Segment) item, place[1]) : null;
+		}
 		for (String list : LISTS)
 		{
 			if (!path.startsWith(list + "/"))
@@ -764,7 +772,17 @@ public class TrackChecker
 			String rest = path.substring(list.length() + 1);
 			int slash = rest.indexOf('/');
 			// a key of the list itself isn't in an item
-			return slash > 0 ? sectionTarget(list, rest.substring(0, slash)) : null;
+			if (slash <= 0)
+				return null;
+			if (item == null)
+				return sectionTarget(list, rest.substring(0, slash));
+			// renamed: by its name now; deleted: nowhere
+			for (Object listItem : TrackLoader.listItems(trackData, list))
+			{
+				if (listItem == item)
+					return sectionTarget(list, TrackLoader.itemName(item));
+			}
+			return null;
 		}
 		for (String[] section : SECTION_TABS)
 		{
@@ -1517,10 +1535,8 @@ public class TrackChecker
 				+ "The game loads light textures from the data folder. " + (use != null ? "Use " + use + " instead."
 					: "Put the file in its data" + sep + "textures folder and use data/textures/" + new File(texture).getName() + ".") + "\n");
 		}
-		// without the game's data folder, a texture that isn't the track's can't be found
-		else if (dataDirectory != null && !dataDirectory.isEmpty()
-			&& findFile(texture, trackContext.getTrackFolders(dataDirectory,
-				dataDirectory + sep + "data" + sep + "textures")) == null)
+		// the game loads it from its data folder; without it, it can't be found
+		else if (hasText(dataDirectory) && TrackFolders.findLightTexture(trackContext, texture) == null)
 		{
 			report.append(description + " texture " + texture + " not found\n");
 		}
@@ -2113,10 +2129,7 @@ public class TrackChecker
 	/** @return where the game looks for textures (and the background image), with the data folder's folders when it is set */
 	private String[] textureFolders()
 	{
-		if (dataDirectory == null || dataDirectory.isEmpty())
-			return trackContext.getTrackFolders();
-		return trackContext.getTrackFolders(dataDirectory + sep + "data" + sep + "textures", dataDirectory + sep + "data" + sep + "img",
-			dataDirectory);
+		return TrackFolders.textureFolders(trackContext);
 	}
 
 	/** @return the folders textureFolders gives, for a message */
@@ -2419,7 +2432,8 @@ public class TrackChecker
 			// a full path is reported once, as that, not as not found or a path
 			boolean fullPath = reportFullPath(description.trim() + " texture", texture, textureWhere(image), image, textureFolders());
 			File textureFile = fullPath ? null : findTextureFile(texture);
-			if (textureFile == null && !fullPath)
+			// without the game's data folder, one that isn't the track's can't be found
+			if (textureFile == null && !fullPath && hasText(dataDirectory))
 			{
 				messages.add(" texture " + texture + " not found\n");
 			}
@@ -2583,29 +2597,10 @@ public class TrackChecker
 		return imageHasAlpha.get(path);
 	}
 
+	/** @return the texture where the game finds it (see TrackFolders.textureFolders), or null */
 	private File findTextureFile(String texture)
 	{
-		// the track's folder, and for a Speed Dreams track in its local folder the installed track's
-		File file = null;
-		for (String folder : trackContext.getTrackFolders())
-		{
-			file = new File(folder + sep + texture);
-			if (file.exists())
-				break;
-		}
-
-		if (!file.exists())
-		{
-			if (dataDirectory != null)
-			{
-				file = new File(dataDirectory + sep + "data" + sep + "textures" + sep + texture);
-				if (!file.exists())
-				{
-					return null;
-				}
-			}
-		}
-		return file;
+		return TrackFolders.findTexture(trackContext, texture);
 	}
 	/**
 	 * @param where what uses the surface: a missing surface, or a default surface's

@@ -72,9 +72,13 @@ public class TurnMarksProperties extends PropertyPanel
 		addLabel(this, 3, horizontalSpaceLabel, "Horizontal Space", 120);
 
 		addTextField(this, 0, widthTextField, getEditorFrame().getTrackData().getGraphic().getTurnMarks().getWidth(), 130, 125);
+		showFileText(widthTextField, null, "Graphic/Turn Marks/width");
 		addTextField(this, 1, heightTextField, getEditorFrame().getTrackData().getGraphic().getTurnMarks().getHeight(), 130, 125);
+		showFileText(heightTextField, null, "Graphic/Turn Marks/height");
 		addTextField(this, 2, verticalSpaceTextField, getEditorFrame().getTrackData().getGraphic().getTurnMarks().getVerticalSpace(), 130, 125);
+		showFileText(verticalSpaceTextField, null, "Graphic/Turn Marks/vertical space");
 		addTextField(this, 3, horizontalSpaceTextField, getEditorFrame().getTrackData().getGraphic().getTurnMarks().getHorizontalSpace(), 130, 125);
+		showFileText(horizontalSpaceTextField, null, "Graphic/Turn Marks/horizontal space");
 
 		add(getDefaultButton(), null);
 		add(getDeleteButton(), null);
@@ -138,28 +142,28 @@ public class TurnMarksProperties extends PropertyPanel
 	{
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(widthTextField.getText(),
+		if (isDifferent(numberText(widthTextField),
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().getWidth(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().setWidth(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(heightTextField.getText(),
+		if (isDifferent(numberText(heightTextField),
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().getHeight(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().setHeight(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(verticalSpaceTextField.getText(),
+		if (isDifferent(numberText(verticalSpaceTextField),
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().getVerticalSpace(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().setVerticalSpace(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(horizontalSpaceTextField.getText(),
+		if (isDifferent(numberText(horizontalSpaceTextField),
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().getHorizontalSpace(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getGraphic().getTurnMarks().setHorizontalSpace(doubleResult.getValue());

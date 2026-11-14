@@ -272,7 +272,8 @@ public class PropertyPanel extends JPanel
 			else if (file != null)
 				field.setToolTipText("Found at " + file.getAbsolutePath());
 			else if (unknown)
-				field.setToolTipText(name + " isn't in the track's folder. Set the game's data folder in Preferences so the editor can look there too.");
+				field.setToolTipText(folders.length > 1 ? name + " isn't in the track's folder. Set the game's data folder in Preferences so the editor can look there too."
+					: "Set the game's data folder in Preferences so the editor can look for " + name + " there.");
 			else
 				field.setToolTipText((name + " wasn't found " + where).trim());
 		};
@@ -343,33 +344,35 @@ public class PropertyPanel extends JPanel
 
 	/**
 	 * Shows a shared texture's name field, like a surface's texture, bump or
-	 * raceline, in red while there is no such texture, where Check looks for
-	 * it: the track's folder, then the game's data/textures folder, where most
-	 * of them are. Until the game's data folder is set, a name isn't red, and
-	 * its tool tip says why.
+	 * raceline, in red while there is no such texture, where the game, Check
+	 * and the 3D view look for it (see TrackFolders.textureFolders). Until the
+	 * game's data folder is set, a name isn't red, and its tool tip says why.
 	 */
 	protected void showSharedTextureFound(JTextField field)
 	{
 		String dataDirectory = getEditorFrame().getDataDirectory();
-		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in " + getEditorFrame().getTrackFoldersWords() + " or the game's data/textures folder", textureFormat(),
-			getEditorFrame().getTrackFolders(dataDirectory == null || dataDirectory.isEmpty() ? null : dataDirectory + sep + "data" + sep + "textures"));
+		boolean unknown = dataDirectory == null || dataDirectory.isEmpty();
+		String[] folders = utils.check.TrackFolders.textureFolders(getEditorFrame());
+		if (unknown)
+		{
+			// the data folder's, not known (see showFileFound)
+			folders = java.util.Arrays.copyOf(folders, folders.length + 1);
+		}
+		showFileFound(field, "in " + getEditorFrame().getTrackFoldersWords() + " or the game's data/textures, data/img or data folder",
+			textureFormat(), folders);
 	}
 
 	/**
-	 * Shows a light's texture name field in red while there is no such texture,
-	 * where Check looks for it: the track's folder, the game's data folder (the
-	 * game's tracks name them like data/textures/start-light-red.png), then
-	 * the game's data/textures folder. Until the game's data folder is set, a
-	 * name isn't red.
+	 * Shows a light's texture name field in red while there is no such texture
+	 * where the game loads it from: its data folder (the game's tracks name
+	 * them like data/textures/start-light-red.png). Until the game's data
+	 * folder is set, a name isn't red.
 	 */
 	protected void showLightTextureFound(JTextField field)
 	{
 		String dataDirectory = getEditorFrame().getDataDirectory();
 		boolean unknown = dataDirectory == null || dataDirectory.isEmpty();
-		String sep = System.getProperty("file.separator");
-		showFileFound(field, "in " + getEditorFrame().getTrackFoldersWords() + " or the game's data folder", textureFormat(),
-			getEditorFrame().getTrackFolders(unknown ? null : dataDirectory, unknown ? null : dataDirectory + sep + "data" + sep + "textures"));
+		showFileFound(field, "in the game's data folder", textureFormat(), new String[] { unknown ? null : dataDirectory });
 	}
 
 	public void setTextField(JTextField field, double value)
@@ -396,14 +399,20 @@ public class PropertyPanel extends JPanel
 	 * Ok keeps the number while the field has the file's text, typed again too (see
 	 * numberText).
 	 *
-	 * @param item the list's item the key is in (a light), null for none
-	 * @param path the key's path in the item, or in the file when there is no item
-	 *        (see TrackData.getFileText)
+	 * @param item the list's item the key is in (a light, camera, surface, object
+	 *        or sector), null for none
+	 * @param paths the key's path in the item, or in the file when there is no
+	 *        item (see TrackData.getKeyFileText); more than one for a key whose path
+	 *        depends on the track's version, the first the file has text for
 	 */
-	protected void showFileText(final JTextField field, Object item, String path)
+	protected void showFileText(final JTextField field, Object item, String... paths)
 	{
 		utils.TrackData trackData = getEditorFrame().getTrackData();
-		final utils.TrackData.FileText fileText = trackData == null ? null : trackData.getFileText(item, path);
+		// the first of the key's paths the file has text for (a version's key or another's)
+		utils.TrackData.FileText found = null;
+		for (int i = 0; trackData != null && found == null && i < paths.length; i++)
+			found = trackData.getKeyFileText(item, paths[i]);
+		final utils.TrackData.FileText fileText = found;
 		String text = field.getText();
 		if (fileText == null || text == null || text.trim().isEmpty() || Double.compare(getDouble(text.trim()), fileText.value) != 0)
 			return;
@@ -415,11 +424,8 @@ public class PropertyPanel extends JPanel
 		field.setCaretPosition(0);
 		final Color foreground = field.getForeground();
 		final String tip = field.getToolTipText();
-		final String fileTip = "<html><body style='width: 300px'><font color=red>"
-			+ fileText.message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-			+ "</font><br>Type a value to replace it.</body></html>";
-		field.setForeground(Color.RED);
-		field.setToolTipText(fileTip);
+		showFileTextTip(field);
+		final String fileTip = field.getToolTipText();
 		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
@@ -437,14 +443,51 @@ public class PropertyPanel extends JPanel
 				changed();
 			}
 
-			// red while it has the file's text, typed again too
+			// red while it has the file's text, typed again too; then as it was,
+			// unless the field's own check has shown something since (one that
+			// shows it calls showFileTextTip when it finds nothing)
 			private void changed()
 			{
-				boolean shown = fileText.text.equals(field.getText());
-				field.setForeground(shown ? Color.RED : foreground);
-				field.setToolTipText(shown ? fileTip : tip);
+				if (!showFileTextTip(field) && fileTip.equals(field.getToolTipText()))
+				{
+					field.setForeground(foreground);
+					field.setToolTipText(tip);
+				}
 			}
 		});
+	}
+
+	/**
+	 * @return the tool tip line saying what the game reads, while the field shows
+	 *         the file's text (see showFileText), else null
+	 */
+	protected static String fileTextLine(JTextField field)
+	{
+		Object shown = field.getClientProperty(FILE_TEXT);
+		if (!(shown instanceof utils.TrackData.FileText) || !((utils.TrackData.FileText) shown).text.equals(field.getText()))
+			return null;
+		return "<font color=red>" + ((utils.TrackData.FileText) shown).message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+			+ "</font>";
+	}
+
+	/**
+	 * Shows the field in red, with what the game reads in its tool tip, while it
+	 * shows the file's text (see showFileText); a field's own check calls it when
+	 * it finds nothing to show.
+	 *
+	 * @return whether the field shows the file's text
+	 */
+	protected static boolean showFileTextTip(JTextField field)
+	{
+		String line = fileTextLine(field);
+		if (line == null)
+			return false;
+		field.setForeground(Color.RED);
+		// a tool tip the field's own check made with the line stays
+		String tip = field.getToolTipText();
+		if (tip == null || !tip.contains(line))
+			field.setToolTipText("<html><body style='width: 300px'>" + line + "<br>Type a value to replace it.</body></html>");
+		return true;
 	}
 
 	/**

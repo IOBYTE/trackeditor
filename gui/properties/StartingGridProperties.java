@@ -77,13 +77,18 @@ public class StartingGridProperties extends PropertyPanel
 		addLabel(this, 5, initialHeightLabel, "Initial Height", 180);
 
 		addTextField(this, 0, rowsTextField, getEditorFrame().getTrackData().getStartingGrid().getRows(), 190, 125);
+		showFileText(rowsTextField, null, "Starting Grid/rows");
 
 		add(getPolePositionSideComboBox(), null);
 
 		addTextField(this, 2, distanceToStartTextField, getEditorFrame().getTrackData().getStartingGrid().getDistanceToStart(), 190, 125);
+		showFileText(distanceToStartTextField, null, "Starting Grid/distance to start");
 		addTextField(this, 3, distanceBetweenColumnsTextField, getEditorFrame().getTrackData().getStartingGrid().getDistanceBetweenColumns(), 190, 125);
+		showFileText(distanceBetweenColumnsTextField, null, "Starting Grid/distance between columns");
 		addTextField(this, 4, offsetWithinAColumnTextField, getEditorFrame().getTrackData().getStartingGrid().getOffsetWithinAColumn(), 190, 125);
+		showFileText(offsetWithinAColumnTextField, null, "Starting Grid/offset within a column");
 		addTextField(this, 5, initialHeightTextField, getEditorFrame().getTrackData().getStartingGrid().getInitialHeight(), 190, 125);
+		showFileText(initialHeightTextField, null, "Starting Grid/initial height");
 	}
 
 	/**
@@ -115,7 +120,7 @@ public class StartingGridProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();
 
-		if (isDifferent(rowsTextField.getText(),
+		if (isDifferent(numberText(rowsTextField),
 			getEditorFrame().getTrackData().getStartingGrid().getRows(), integerResult))
 		{
 			getEditorFrame().getTrackData().getStartingGrid().setRows(integerResult.getValue());
@@ -129,28 +134,28 @@ public class StartingGridProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(distanceToStartTextField.getText(),
+		if (isDifferent(numberText(distanceToStartTextField),
 			getEditorFrame().getTrackData().getStartingGrid().getDistanceToStart(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getStartingGrid().setDistanceToStart(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(distanceBetweenColumnsTextField.getText(),
+		if (isDifferent(numberText(distanceBetweenColumnsTextField),
 			getEditorFrame().getTrackData().getStartingGrid().getDistanceBetweenColumns(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getStartingGrid().setDistanceBetweenColumns(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(offsetWithinAColumnTextField.getText(),
+		if (isDifferent(numberText(offsetWithinAColumnTextField),
 			getEditorFrame().getTrackData().getStartingGrid().getOffsetWithinAColumn(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getStartingGrid().setOffsetWithinAColumn(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(initialHeightTextField.getText(),
+		if (isDifferent(numberText(initialHeightTextField),
 			getEditorFrame().getTrackData().getStartingGrid().getInitialHeight(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getStartingGrid().setInitialHeight(doubleResult.getValue());

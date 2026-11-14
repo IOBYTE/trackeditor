@@ -209,6 +209,7 @@ public class PitProperties extends PropertyPanel
 		{
 			addLabel(this, row, maxPitsLabel, "Max Pits", 110);
 			addTextField(this, row++, maxPitsTextField, pits.getMaxPits(), 120, 125);
+			showFileText(maxPitsTextField, null, "Main Track/Pits/max pits", "Main Track/max pits");
 		}
 		addLabel(this, row, endLabel, "End", 110);
 		addTextField(this, row++, endTextField, pits.getEnd(), 120, 200);
@@ -231,9 +232,11 @@ public class PitProperties extends PropertyPanel
 		addLabel(this, row, widthLabel, "Width", 110);
 		addTextField(this, row++, widthTextField, pits.getWidth(), 120, 125);
 		widthTextField.setToolTipText("Width of each pit (empty = 5 m)");
+		showFileText(widthTextField, null, "Main Track/Pits/width", "Main Track/pit width");
 		addLabel(this, row, lengthLabel, "Length", 110);
 		addTextField(this, row++, lengthTextField, pits.getLength(), 120, 125);
 		lengthTextField.setToolTipText("Length of each pit (empty = 15 m)");
+		showFileText(lengthTextField, null, "Main Track/Pits/length", "Main Track/pit length");
 		if (showMaxPitsAndIndicator())
 		{
 			addLabel(this, row, indicatorLabel, "Indicator", 110);
@@ -1368,7 +1371,7 @@ public class PitProperties extends PropertyPanel
 	/** @return the length of a pit: the dialog's, or the default */
 	private double pitLength()
 	{
-		double length = getDouble(lengthTextField.getText());
+		double length = getDouble(numberText(lengthTextField));
 		return length > 0 ? length : 15.0;
 	}
 
@@ -2834,7 +2837,7 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (showMaxPitsAndIndicator() && isDifferent(maxPitsTextField.getText(),
+		if (showMaxPitsAndIndicator() && isDifferent(numberText(maxPitsTextField),
 			getEditorFrame().getPits().getMaxPits(), integerResult))
 		{
 			getEditorFrame().getPits().setMaxPits(integerResult.getValue());
@@ -2855,14 +2858,14 @@ public class PitProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(widthTextField.getText(),
+		if (isDifferent(numberText(widthTextField),
 			getEditorFrame().getPits().getWidth(), doubleResult))
 		{
 			getEditorFrame().getPits().setWidth(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(lengthTextField.getText(),
+		if (isDifferent(numberText(lengthTextField),
 			getEditorFrame().getPits().getLength(), doubleResult))
 		{
 			getEditorFrame().getPits().setLength(doubleResult.getValue());

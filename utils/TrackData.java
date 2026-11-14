@@ -98,6 +98,22 @@ public final class TrackData
 		this.unusedKeyPaths = unusedKeyPaths;
 	}
 
+	// the segment or list item (a light, camera, surface, object or sector) each of
+	// the unused keys' messages is in, as the track was read: Check jumps to it by
+	// the name it has now, so a renamed one is still found
+	private java.util.Map<String, Object>	unusedKeyItems	= new java.util.HashMap<String, Object>();
+
+	/** @return the segment or list item the message from getUnusedKeys is in, null if none */
+	public Object getUnusedKeyItem(String message)
+	{
+		return unusedKeyItems.get(message);
+	}
+
+	public void setUnusedKeyItems(java.util.Map<String, Object> unusedKeyItems)
+	{
+		this.unusedKeyItems = unusedKeyItems;
+	}
+
 	/**
 	 * A value the file has as text the game reads as another number ("*2.5" read
 	 * as 0): the segment dialog shows the text in red while the segment still has
@@ -148,13 +164,14 @@ public final class TrackData
 	 * @return the text the file has for the key, null when it has none the game reads
 	 *         as another number
 	 */
-	public FileText getFileText(Object item, String path)
+	public FileText getKeyFileText(Object item, String path)
 	{
 		java.util.Map<String, FileText> texts = keyFileTexts.get(item);
 		return texts == null || path == null ? null : texts.get(path);
 	}
 
-	public void addFileText(Object item, String path, FileText text)
+	// not addFileText: a null item would choose the segment's
+	public void addKeyFileText(Object item, String path, FileText text)
 	{
 		keyFileTexts.computeIfAbsent(item, i -> new java.util.HashMap<String, FileText>()).put(path, text);
 	}

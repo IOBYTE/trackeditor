@@ -160,6 +160,7 @@ public class SectorProperties extends PropertyPanel
 			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, sector.getComment(), 160, 335);
 			addTextField(this, 2, distanceFromStartTextField, sector.getDistanceFromStart(), 160, 125);
+			showFileText(distanceFromStartTextField, sector, "distance from start");
 		}
 	}
 
@@ -188,7 +189,7 @@ public class SectorProperties extends PropertyPanel
                 sector.setComment(stringResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
-            if (isDifferent(panel.distanceFromStartTextField.getText(), sector.getDistanceFromStart(), doubleResult))
+            if (isDifferent(numberText(panel.distanceFromStartTextField), sector.getDistanceFromStart(), doubleResult))
             {
                 sector.setDistanceFromStart(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;

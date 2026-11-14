@@ -88,18 +88,25 @@ public class LocalInfoProperties extends PropertyPanel
 
 		addTextField(this, 0, stationTextField, getEditorFrame().getTrackData().getLocalInfo().getStation(), 170, 125);
 		addTextField(this, 1, timezoneTextField, getEditorFrame().getTrackData().getLocalInfo().getTimezone(), 170, 125);
+		showFileText(timezoneTextField, null, "Local Info/timezone");
 		addTextField(this, 2, timeOfDayTextField, getEditorFrame().getTrackData().getLocalInfo().getTimeOfDay(), 170, 125);
+		showFileText(timeOfDayTextField, null, "Local Info/time of day");
 		addTextField(this, 3, sunAscensionTextField, getEditorFrame().getTrackData().getLocalInfo().getSunAscension(), 170, 125);
+		showFileText(sunAscensionTextField, null, "Local Info/sun ascension");
 		addTextField(this, 4, altitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getAltitude(), 170, 125);
+		showFileText(altitudeTextField, null, "Local Info/altitude");
 		addTextField(this, 5, latitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLatitude(), 170, 125);
 		addTextField(this, 6, longitudeTextField, getEditorFrame().getTrackData().getLocalInfo().getLongitude(), 170, 125);
 		addTextField(this, 7, climatTextField, getEditorFrame().getTrackData().getLocalInfo().getClimat(), 170, 125);
+		showFileText(climatTextField, null, "Local Info/climat");
 		addTextField(this, 8, precipitationTextField, getEditorFrame().getTrackData().getLocalInfo().getPrecipitation(), 170, 125);
+		showFileText(precipitationTextField, null, "Local Info/precipitation");
 		
 		if (getEditorFrame().getGameType().hasBestLap())
 		{
 			addLabel(this, 9, bestLapLabel, "Best Lap", 150);
 			addTextField(this, 9, bestLapTextField, getEditorFrame().getTrackData().getLocalInfo().getBestLap(), 170, 125);
+			showFileText(bestLapTextField, null, "Local Info/best lap");
 		}
 	}
 
@@ -119,28 +126,28 @@ public class LocalInfoProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(timezoneTextField.getText(),
+		if (isDifferent(numberText(timezoneTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getTimezone(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setTimezone(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(timeOfDayTextField.getText(),
+		if (isDifferent(numberText(timeOfDayTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getTimeOfDay(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setTimeOfDay(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(sunAscensionTextField.getText(),
+		if (isDifferent(numberText(sunAscensionTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getSunAscension(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setSunAscension(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(altitudeTextField.getText(),
+		if (isDifferent(numberText(altitudeTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getAltitude(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setAltitude(doubleResult.getValue());
@@ -161,14 +168,14 @@ public class LocalInfoProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(climatTextField.getText(),
+		if (isDifferent(numberText(climatTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getClimat(), integerResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setClimat(integerResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(precipitationTextField.getText(),
+		if (isDifferent(numberText(precipitationTextField),
 			getEditorFrame().getTrackData().getLocalInfo().getPrecipitation(), doubleResult))
 		{
 			getEditorFrame().getTrackData().getLocalInfo().setPrecipitation(doubleResult.getValue());
@@ -177,7 +184,7 @@ public class LocalInfoProperties extends PropertyPanel
 
 		if (getEditorFrame().getGameType().hasBestLap())
 		{
-			if (isDifferent(bestLapTextField.getText(),
+			if (isDifferent(numberText(bestLapTextField),
 				getEditorFrame().getTrackData().getLocalInfo().getBestLap(), doubleResult))
 			{
 				getEditorFrame().getTrackData().getLocalInfo().setBestLap(doubleResult.getValue());

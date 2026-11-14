@@ -173,6 +173,7 @@ public class TerrainProperties extends PropertyPanel
 			addLabel(this, 13, terrainTransitionLabel, "Terrain Transition", 120);
 			addTextField(this, 13, terrainTransitionTextField, getEditorFrame().getTerrainGeneration().getTerrainTransition(), 140, 125);
 			terrainTransitionTextField.setToolTipText("Distance from the track over which the terrain grid widens to the border step (empty = border margin; 0 or less = off)");
+			showFileText(terrainTransitionTextField, null, "Graphic/Terrain Generation/terrain transition");
 			// its hint is the border margin
 			borderMarginTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 			{
@@ -194,15 +195,22 @@ public class TerrainProperties extends PropertyPanel
 		}
 
 		addTextField(this, 0, trackStepTextField, getEditorFrame().getTerrainGeneration().getTrackStep(), 140, 125);
+		showFileText(trackStepTextField, null, "Graphic/Terrain Generation/track step");
 		addTextField(this, 1, borderMarginTextField, getEditorFrame().getTerrainGeneration().getBorderMargin(), 140, 125);
+		showFileText(borderMarginTextField, null, "Graphic/Terrain Generation/border margin");
 		addTextField(this, 2, borderStepTextField, getEditorFrame().getTerrainGeneration().getBorderStep(), 140, 125);
+		showFileText(borderStepTextField, null, "Graphic/Terrain Generation/border step");
 		addTextField(this, 3, borderHeightTextField, getEditorFrame().getTerrainGeneration().getBorderHeight(), 140, 125);
+		showFileText(borderHeightTextField, null, "Graphic/Terrain Generation/border height");
 
 		this.add(getOrientationComboBox(), null);
 
 		addTextField(this, 5, maximumAltitudeTextField, getEditorFrame().getTerrainGeneration().getMaximumAltitude(), 140, 125);
+		showFileText(maximumAltitudeTextField, null, "Graphic/Terrain Generation/maximum altitude");
 		addTextField(this, 6, minimumAltitudeTextField, getEditorFrame().getTerrainGeneration().getMinimumAltitude(), 140, 125);
+		showFileText(minimumAltitudeTextField, null, "Graphic/Terrain Generation/minimum altitude");
 		addTextField(this, 7, groupSizeTextField, getEditorFrame().getTerrainGeneration().getGroupSize(), 140, 125);
+		showFileText(groupSizeTextField, null, "Graphic/Terrain Generation/group size");
 		addTextField(this, 8, elevationMapTextField, getEditorFrame().getTerrainGeneration().getElevationMap(), 140, 295);
 		addTextField(this, 9, reliefFileTextField, getEditorFrame().getTerrainGeneration().getReliefFile(), 140, 295);
 		// files that aren't found are shown in red, where Check looks for them
@@ -211,6 +219,7 @@ public class TerrainProperties extends PropertyPanel
 		// like trackgen, only in the track's folder
 		showFileFound(reliefFileTextField, "in the track's folder", trackFolder);
 		addTextField(this, 12, randomSeedTextField, getEditorFrame().getTerrainGeneration().getRandomSeed(), 140, 125);
+		showFileText(randomSeedTextField, null, "Graphic/Terrain Generation/random seed");
 
 		this.add(getSurfaceComboBox(), null);
 		this.add(getDefaultButton(), null);
@@ -267,7 +276,7 @@ public class TerrainProperties extends PropertyPanel
 	/** @return the border margin typed, or trackgen's when there's none */
 	private String borderMargin()
 	{
-		String text = borderMarginTextField.getText().trim();
+		String text = numberText(borderMarginTextField).trim();
 		return text.isEmpty() ? "100.0" : text;
 	}
 
@@ -778,10 +787,12 @@ public class TerrainProperties extends PropertyPanel
 		addTextField(panel, 1, socketGapTextField, terrain.getCrossingBridgeSocketGap(), 140, 125);
 		socketGapTextField.setToolTipText("Clearance beside the lower track, to the bridge's support walls (empty = "
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SOCKET_GAP + " m)");
+		showFileText(socketGapTextField, null, "Graphic/Terrain Generation/crossing bridge socket gap");
 		addLabel(panel, 2, new JLabel(), "Thickness", 120);
 		addTextField(panel, 2, thicknessTextField, terrain.getCrossingBridgeThickness(), 140, 125);
 		thicknessTextField.setToolTipText("Minimum thickness under the upper track (empty = "
 			+ TerrainGeneration.DEFAULT_CROSSING_BRIDGE_THICKNESS + " m)");
+		showFileText(thicknessTextField, null, "Graphic/Terrain Generation/crossing bridge thickness");
 
 		for (int i = 0; i < bridgeSurfaceComboBoxes.length; i++)
 		{
@@ -822,10 +833,12 @@ public class TerrainProperties extends PropertyPanel
 			addLabel(panel, i, new JLabel(), names[i], 120);
 			addTextField(panel, i, accGroupDistanceTextFields[i], terrain.getAccGroupDistance(i), 140, 125);
 			accGroupDistanceTextFields[i].setToolTipText(tips[i]);
+			showFileText(accGroupDistanceTextFields[i], null, "Graphic/Terrain Generation/" + utils.circuit.TerrainGeneration.ACC_GROUP_DISTANCE_KEYS[i]);
 		}
 		addLabel(panel, 3, new JLabel(), "Split Distance", 120);
 		addTextField(panel, 3, accSplitDistanceTextField, terrain.getAccSplitDistance(), 140, 125);
 		accSplitDistanceTextField.setToolTipText("accc -S: the distance at which TERRAIN objects are split (for example, 300 m)");
+		showFileText(accSplitDistanceTextField, null, "Graphic/Terrain Generation/" + utils.circuit.TerrainGeneration.ACC_SPLIT_DISTANCE_KEY);
 
 		addLabel(panel, 4, new JLabel(), "Extended Strips", 120);
 		String[] items = {"none (no)", "yes", "no"};
@@ -849,49 +862,49 @@ public class TerrainProperties extends PropertyPanel
 		MutableDouble doubleResult = new MutableDouble();
 		MutableInteger integerResult = new MutableInteger();
 
-		if (isDifferent(trackStepTextField.getText(),
+		if (isDifferent(numberText(trackStepTextField),
 			getEditorFrame().getTerrainGeneration().getTrackStep(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setTrackStep(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(borderMarginTextField.getText(),
+		if (isDifferent(numberText(borderMarginTextField),
 			getEditorFrame().getTerrainGeneration().getBorderMargin(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setBorderMargin(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(borderStepTextField.getText(),
+		if (isDifferent(numberText(borderStepTextField),
 			getEditorFrame().getTerrainGeneration().getBorderStep(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setBorderStep(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(borderHeightTextField.getText(),
+		if (isDifferent(numberText(borderHeightTextField),
 			getEditorFrame().getTerrainGeneration().getBorderHeight(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setBorderHeight(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(maximumAltitudeTextField.getText(),
+		if (isDifferent(numberText(maximumAltitudeTextField),
 			getEditorFrame().getTerrainGeneration().getMaximumAltitude(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setMaximumAltitude(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(minimumAltitudeTextField.getText(),
+		if (isDifferent(numberText(minimumAltitudeTextField),
 			getEditorFrame().getTerrainGeneration().getMinimumAltitude(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setMinimumAltitude(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(groupSizeTextField.getText(),
+		if (isDifferent(numberText(groupSizeTextField),
 			getEditorFrame().getTerrainGeneration().getGroupSize(), doubleResult))
 		{
 			getEditorFrame().getTerrainGeneration().setGroupSize(doubleResult.getValue());
@@ -960,7 +973,7 @@ public class TerrainProperties extends PropertyPanel
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(randomSeedTextField.getText(),
+		if (isDifferent(numberText(randomSeedTextField),
 			getEditorFrame().getTerrainGeneration().getRandomSeed(), integerResult))
 		{
 			getEditorFrame().getTerrainGeneration().setRandomSeed(integerResult.getValue());
@@ -986,7 +999,7 @@ public class TerrainProperties extends PropertyPanel
 		if (getEditorFrame().getGameType().hasTorcsTrackgenKeys())
 		{
 			TerrainGeneration terrain = getEditorFrame().getTerrainGeneration();
-			if (isDifferent(terrainTransitionTextField.getText(), terrain.getTerrainTransition(), doubleResult))
+			if (isDifferent(numberText(terrainTransitionTextField), terrain.getTerrainTransition(), doubleResult))
 			{
 				terrain.setTerrainTransition(doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
@@ -996,12 +1009,12 @@ public class TerrainProperties extends PropertyPanel
 				terrain.setCrossingMode(stringResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
-			if (isDifferent(socketGapTextField.getText(), terrain.getCrossingBridgeSocketGap(), doubleResult))
+			if (isDifferent(numberText(socketGapTextField), terrain.getCrossingBridgeSocketGap(), doubleResult))
 			{
 				terrain.setCrossingBridgeSocketGap(doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
-			if (isDifferent(thicknessTextField.getText(), terrain.getCrossingBridgeThickness(), doubleResult))
+			if (isDifferent(numberText(thicknessTextField), terrain.getCrossingBridgeThickness(), doubleResult))
 			{
 				terrain.setCrossingBridgeThickness(doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
@@ -1019,13 +1032,13 @@ public class TerrainProperties extends PropertyPanel
 		TerrainGeneration accTerrain = getEditorFrame().getTerrainGeneration();
 		for (int i = 0; i < accGroupDistanceTextFields.length; i++)
 		{
-			if (isDifferent(accGroupDistanceTextFields[i].getText(), accTerrain.getAccGroupDistance(i), doubleResult))
+			if (isDifferent(numberText(accGroupDistanceTextFields[i]), accTerrain.getAccGroupDistance(i), doubleResult))
 			{
 				accTerrain.setAccGroupDistance(i, doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
 		}
-		if (isDifferent(accSplitDistanceTextField.getText(), accTerrain.getAccSplitDistance(), doubleResult))
+		if (isDifferent(numberText(accSplitDistanceTextField), accTerrain.getAccSplitDistance(), doubleResult))
 		{
 			accTerrain.setAccSplitDistance(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;

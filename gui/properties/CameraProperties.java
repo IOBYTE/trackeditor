@@ -234,8 +234,10 @@ public class CameraProperties extends PropertyPanel
 			addTextField(this, 2, segmentTextField, camera.getSegment(), 150, 185);
 			segmentChooser(segmentTextField, 0);
 			addTextField(this, 3, toRightTextField, camera.getToRight(), 150, 185);
+			showFileText(toRightTextField, camera, "to right");
 			addTextField(this, 4, toStartTextField, camera.getToStart(), 150, 185);
 			addTextField(this, 5, heightTextField, camera.getHeight(), 150, 185);
+			showFileText(heightTextField, camera, "height");
 			addTextField(this, 6, fovStartTextField, camera.getFovStart(), 150, 185);
 			addTextField(this, 7, fovEndTextField, camera.getFovEnd(), 150, 185);
 			segmentChooser(fovStartTextField, 1);
@@ -305,7 +307,7 @@ public class CameraProperties extends PropertyPanel
 			double height = Double.NaN;
 			try
 			{
-				height = Double.parseDouble(heightTextField.getText().trim());
+				height = Double.parseDouble(numberText(heightTextField).trim());
 			}
 			catch (NumberFormatException e)
 			{
@@ -313,13 +315,20 @@ public class CameraProperties extends PropertyPanel
 			}
 			heightProblem = height < 0;
 			String[] lines = heightTip;
+			// the file's text the game reads as another number (see showFileText)
+			String fileText = fileTextLine(heightTextField);
+			if (fileText != null)
+			{
+				lines = java.util.Arrays.copyOf(lines, lines.length + 1);
+				lines[lines.length - 1] = fileText;
+			}
 			if (heightProblem)
 			{
 				lines = java.util.Arrays.copyOf(lines, lines.length + 1);
 				lines[lines.length - 1] = "<font color=red>Below 0: the camera is under the ground.</font>";
 			}
 			heightLabel.setForeground(heightProblem ? java.awt.Color.RED : UIManager.getColor("Label.foreground"));
-			heightTextField.setForeground(heightProblem ? java.awt.Color.RED : UIManager.getColor("TextField.foreground"));
+			heightTextField.setForeground(heightProblem || fileText != null ? java.awt.Color.RED : UIManager.getColor("TextField.foreground"));
 			tip(heightLabel, heightTextField, lines);
 			showTabProblem();
 		}
@@ -622,7 +631,7 @@ public class CameraProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.toRightTextField.getText(), camera.getToRight(), doubleResult))
+            if (isDifferent(numberText(panel.toRightTextField), camera.getToRight(), doubleResult))
             {
                 camera.setToRight(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -641,7 +650,7 @@ public class CameraProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.heightTextField.getText(), camera.getHeight(), doubleResult))
+            if (isDifferent(numberText(panel.heightTextField), camera.getHeight(), doubleResult))
             {
                 camera.setHeight(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;

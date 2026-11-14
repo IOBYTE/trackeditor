@@ -288,4 +288,75 @@ public final class TrackFolders
 			return false;
 		}
 	}
+
+	// Where the game finds the files the track names, so Check, the Properties
+	// dialog and the 3D view agree. Each joins the name to the folder, as the game
+	// does, so a full path isn't found (see TrackChecker.findFile).
+
+	/**
+	 * @return the folders the game finds the track's textures (its surfaces' and
+	 *         its 3D model's) in, in its order: the track's folders, then the data
+	 *         folder's data/textures and data/img, then the data folder itself; only
+	 *         the track's folders when the data folder isn't known. Speed Dreams'
+	 *         OpenSceneGraph graphics look only in the track's folders and
+	 *         data/textures; its plib graphics, CSR and TORCS in all of them.
+	 */
+	public static String[] textureFolders(TrackContext trackContext)
+	{
+		String data = trackContext.getDataDirectory();
+		if (data == null || data.isEmpty())
+			return trackContext.getTrackFolders();
+		String sep = File.separator;
+		return trackContext.getTrackFolders(data + sep + "data" + sep + "textures", data + sep + "data" + sep + "img", data);
+	}
+
+	/** @return a texture of the track, where the game finds it (see textureFolders), or null */
+	public static File findTexture(TrackContext trackContext, String texture)
+	{
+		return texture == null || texture.isEmpty() ? null : TrackChecker.findFile(texture, textureFolders(trackContext));
+	}
+
+	/**
+	 * @return a light's texture: the game loads it from its data folder, where
+	 *         it runs (the game's tracks name them like
+	 *         data/textures/start-light-red.png); null when it isn't there or the
+	 *         data folder isn't known
+	 */
+	public static File findLightTexture(TrackContext trackContext, String texture)
+	{
+		String data = trackContext.getDataDirectory();
+		if (texture == null || texture.isEmpty() || data == null || data.isEmpty())
+			return null;
+		return TrackChecker.findFile(texture, data);
+	}
+
+	/**
+	 * @return the pit indicator's model (pit_indicator.ac or
+	 *         normal_pit_indicator.ac), as Speed Dreams finds it: in the track's
+	 *         folders, then the data folder's data/objects, where the game has
+	 *         them; or null
+	 */
+	public static File findPitIndicator(TrackContext trackContext, String name)
+	{
+		String data = trackContext.getDataDirectory();
+		String sep = File.separator;
+		return TrackChecker.findFile(name,
+			trackContext.getTrackFolders(data == null || data.isEmpty() ? null : data + sep + "data" + sep + "objects"));
+	}
+
+	/**
+	 * @return the folders Speed Dreams finds the pit indicator's textures in, as
+	 *         its OpenSceneGraph graphics do: the track's folders, then the data
+	 *         folder's data/objects (where the game's are), data/textures and
+	 *         data/img. Its older plib graphics leave out data/objects.
+	 */
+	public static String[] pitIndicatorTextureFolders(TrackContext trackContext)
+	{
+		String data = trackContext.getDataDirectory();
+		if (data == null || data.isEmpty())
+			return trackContext.getTrackFolders();
+		String sep = File.separator;
+		String folder = data + sep + "data" + sep;
+		return trackContext.getTrackFolders(folder + "objects", folder + "textures", folder + "img");
+	}
 }

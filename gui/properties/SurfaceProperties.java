@@ -307,7 +307,7 @@ public class SurfaceProperties extends PropertyPanel
 		/** Shows a texture size v that isn't more than 0 in red: trackgen uses the texture size instead */
 		private void showTextureSizeV()
 		{
-			String text = textureSizeVTextField.getText().trim();
+			String text = numberText(textureSizeVTextField).trim();
 			double value = Double.NaN;
 			try
 			{
@@ -319,6 +319,8 @@ public class SurfaceProperties extends PropertyPanel
 				// not a number: what the field's own check says
 			}
 			boolean bad = !Double.isNaN(value) && !(value > 0);
+			if (!bad && showFileTextTip(textureSizeVTextField))
+				return;
 			textureSizeVTextField.setForeground(bad ? java.awt.Color.RED : javax.swing.UIManager.getColor("TextField.foreground"));
 			textureSizeVTextField.setToolTipText(bad ? "Texture Size V " + text + " must be greater than 0. Crossing bridges will use the texture size instead."
 				: TEXTURE_SIZE_V_TIP);
@@ -387,17 +389,24 @@ public class SurfaceProperties extends PropertyPanel
 			markItemName(nameTextField);
 			addTextField(this, 1, commentTextField, surface.getComment(), 190, 310);
 			addTextField(this, 2, colorR1TextField, surface.getColorR1(), 190, 125);
+			showFileText(colorR1TextField, surface, "color R1");
 			addTextField(this, 3, colorG1TextField, surface.getColorG1(), 190, 125);
+			showFileText(colorG1TextField, surface, "color G1");
 			addTextField(this, 4, colorB1TextField, surface.getColorB1(), 190, 125);
+			showFileText(colorB1TextField, surface, "color B1");
 			addTextField(this, 5, colorR2TextField, surface.getColorR2(), 190, 125);
+			showFileText(colorR2TextField, surface, "color R2");
 			addTextField(this, 6, colorG2TextField, surface.getColorG2(), 190, 125);
+			showFileText(colorG2TextField, surface, "color G2");
 			addTextField(this, 7, colorB2TextField, surface.getColorB2(), 190, 125);
+			showFileText(colorB2TextField, surface, "color B2");
 			addTextField(this, 8, textureNameTextField, surface.getTextureName(), 190, 220);
 
 			add(getTextureTypeComboBox(), null);
 			selectItem(getTextureTypeComboBox(), toNoneString(surface.getTextureType()));
 
 			addTextField(this, 10, textureSizeTextField, surface.getTextureSize(), 190, 125);
+			showFileText(textureSizeTextField, surface, "texture size");
 
 			int row = 11;
 			// TORCS: the texture's height on crossing bridges
@@ -407,6 +416,7 @@ public class SurfaceProperties extends PropertyPanel
 				addLabel(this, row, textureSizeVLabel, "Texture Size V", 180);
 				addTextField(this, row++, textureSizeVTextField, surface.getTextureSizeV(), 190, 125);
 				textureSizeVTextField.setToolTipText(TEXTURE_SIZE_V_TIP);
+				showFileText(textureSizeVTextField, surface, "texture size v");
 				// red while it isn't more than 0, as Check reports
 				textureSizeVTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 				{
@@ -429,6 +439,7 @@ public class SurfaceProperties extends PropertyPanel
 			}
 			addLabel(this, row, textureRandomnessLabel, "Texture Randomness", 180);
 			addTextField(this, row++, textureRandomnessTextField, surface.getTextureRandomness(), 190, 125);
+			showFileText(textureRandomnessTextField, surface, "texture randomness");
 
 			addLabel(this, row, textureLinkWithPreviousLabel, "Texture Link With Previous", 180);
 			add(getTextureLinkWithPreviousComboBox(), null);
@@ -441,24 +452,32 @@ public class SurfaceProperties extends PropertyPanel
 
 			addLabel(this, row, textureMipMapLabel, "Texture MipMap", 180);
 			addTextField(this, row++, textureMipMapTextField, surface.getTextureMipMap(), 190, 125);
+			showFileText(textureMipMapTextField, surface, "texture mipmap");
 			addLabel(this, row, frictionLabel, "Friction", 180);
 			addTextField(this, row++, frictionTextField, surface.getFriction(), 190, 125);
+			showFileText(frictionTextField, surface, "friction");
 			addLabel(this, row, rollingResistanceLabel, "Rolling Resistance", 180);
 			addTextField(this, row++, rollingResistanceTextField, surface.getRollingResistance(), 190, 125);
+			showFileText(rollingResistanceTextField, surface, "rolling resistance");
 			addLabel(this, row, bumpNameLabel, "Bump Name", 180);
 			addTextField(this, row++, bumpNameTextField, surface.getBumpName(), 190, 220);
 			addLabel(this, row, bumpSizeLabel, "Bump Size", 180);
 			addTextField(this, row++, bumpSizeTextField, surface.getBumpSize(), 190, 125);
+			showFileText(bumpSizeTextField, surface, "bump size");
 			addLabel(this, row, roughnessLabel, "Roughness", 180);
 			addTextField(this, row++, roughnessTextField, surface.getRoughness(), 190, 125);
+			showFileText(roughnessTextField, surface, "roughness");
 			addLabel(this, row, roughnessWavelengthLabel, "Roughness Wavelength", 180);
 			addTextField(this, row++, roughnessWavelengthTextField, surface.getRoughnessWavelength(), 190, 125);
+			showFileText(roughnessWavelengthTextField, surface, "roughness wavelength");
 			addLabel(this, row, racelineNameLabel, "Raceline Name", 180);
 			addTextField(this, row++, racelineNameTextField, surface.getRacelineName(), 190, 220);
 			addLabel(this, row, damageLabel, "Damage", 180);
 			addTextField(this, row++, damageTextField, surface.getDammage(), 190, 125);
+			showFileText(damageTextField, surface, "dammage");
 			addLabel(this, row, reboundLabel, "Rebound", 180);
 			addTextField(this, row++, reboundTextField, surface.getRebound(), 190, 125);
+			showFileText(reboundTextField, surface, "rebound");
 
 			// tool tips say where the textures are, or that they aren't found (in red)
 			showSharedTextureFound(textureNameTextField);
@@ -731,37 +750,37 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorR1TextField.getText(), surface.getColorR1(), doubleResult))
+            if (isDifferent(numberText(panel.colorR1TextField), surface.getColorR1(), doubleResult))
             {
                 surface.setColorR1(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorG1TextField.getText(), surface.getColorG1(), doubleResult))
+            if (isDifferent(numberText(panel.colorG1TextField), surface.getColorG1(), doubleResult))
             {
                 surface.setColorG1(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorB1TextField.getText(), surface.getColorB1(), doubleResult))
+            if (isDifferent(numberText(panel.colorB1TextField), surface.getColorB1(), doubleResult))
             {
                 surface.setColorB1(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorR2TextField.getText(), surface.getColorR2(), doubleResult))
+            if (isDifferent(numberText(panel.colorR2TextField), surface.getColorR2(), doubleResult))
             {
                 surface.setColorR2(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorG2TextField.getText(), surface.getColorG2(), doubleResult))
+            if (isDifferent(numberText(panel.colorG2TextField), surface.getColorG2(), doubleResult))
             {
                 surface.setColorG2(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.colorB2TextField.getText(), surface.getColorB2(), doubleResult))
+            if (isDifferent(numberText(panel.colorB2TextField), surface.getColorB2(), doubleResult))
             {
                 surface.setColorB2(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -779,7 +798,7 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.textureSizeTextField.getText(), surface.getTextureSize(), doubleResult))
+            if (isDifferent(numberText(panel.textureSizeTextField), surface.getTextureSize(), doubleResult))
             {
                 surface.setTextureSize(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -787,13 +806,13 @@ public class SurfaceProperties extends PropertyPanel
 
 			// (only shown for TORCS)
 			if (getEditorFrame().getGameType().hasTorcsTrackgenKeys() &&
-				isDifferent(panel.textureSizeVTextField.getText(), surface.getTextureSizeV(), doubleResult))
+				isDifferent(numberText(panel.textureSizeVTextField), surface.getTextureSizeV(), doubleResult))
 			{
 				surface.setTextureSizeV(doubleResult.getValue());
 				getEditorFrame().documentIsModified = true;
 			}
 
-            if (isDifferent(panel.textureRandomnessTextField.getText(), surface.getTextureRandomness(), doubleResult))
+            if (isDifferent(numberText(panel.textureRandomnessTextField), surface.getTextureRandomness(), doubleResult))
             {
                 surface.setTextureRandomness(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -811,19 +830,19 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.textureMipMapTextField.getText(), surface.getTextureMipMap(), doubleResult))
+            if (isDifferent(numberText(panel.textureMipMapTextField), surface.getTextureMipMap(), doubleResult))
             {
                 surface.setTextureMipMap(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.frictionTextField.getText(), surface.getFriction(), doubleResult))
+            if (isDifferent(numberText(panel.frictionTextField), surface.getFriction(), doubleResult))
             {
                 surface.setFriction(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.rollingResistanceTextField.getText(), surface.getRollingResistance(), doubleResult))
+            if (isDifferent(numberText(panel.rollingResistanceTextField), surface.getRollingResistance(), doubleResult))
             {
                 surface.setRollingResistance(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -835,19 +854,19 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.bumpSizeTextField.getText(), surface.getBumpSize(), doubleResult))
+            if (isDifferent(numberText(panel.bumpSizeTextField), surface.getBumpSize(), doubleResult))
             {
                 surface.setBumpSize(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.roughnessTextField.getText(), surface.getRoughness(), doubleResult))
+            if (isDifferent(numberText(panel.roughnessTextField), surface.getRoughness(), doubleResult))
             {
                 surface.setRoughness(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.roughnessWavelengthTextField.getText(), surface.getRoughnessWavelength(), doubleResult))
+            if (isDifferent(numberText(panel.roughnessWavelengthTextField), surface.getRoughnessWavelength(), doubleResult))
             {
                 surface.setRoughnessWavelength(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -859,13 +878,13 @@ public class SurfaceProperties extends PropertyPanel
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.damageTextField.getText(), surface.getDammage(), doubleResult))
+            if (isDifferent(numberText(panel.damageTextField), surface.getDammage(), doubleResult))
             {
                 surface.setDammage(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
             }
 
-            if (isDifferent(panel.reboundTextField.getText(), surface.getRebound(), doubleResult))
+            if (isDifferent(numberText(panel.reboundTextField), surface.getRebound(), doubleResult))
             {
                 surface.setRebound(doubleResult.getValue());
                 getEditorFrame().documentIsModified = true;
@@ -894,28 +913,28 @@ public class SurfaceProperties extends PropertyPanel
 	{
 		surface.setName(panel.nameTextField.getText());
 		surface.setComment(panel.commentTextField.getText());
-		surface.setColorR1(getDouble(panel.colorR1TextField.getText()));
-		surface.setColorG1(getDouble(panel.colorG1TextField.getText()));
-		surface.setColorB1(getDouble(panel.colorB1TextField.getText()));
-		surface.setColorR2(getDouble(panel.colorR2TextField.getText()));
-		surface.setColorG2(getDouble(panel.colorG2TextField.getText()));
-		surface.setColorB2(getDouble(panel.colorB2TextField.getText()));
+		surface.setColorR1(getDouble(numberText(panel.colorR1TextField)));
+		surface.setColorG1(getDouble(numberText(panel.colorG1TextField)));
+		surface.setColorB1(getDouble(numberText(panel.colorB1TextField)));
+		surface.setColorR2(getDouble(numberText(panel.colorR2TextField)));
+		surface.setColorG2(getDouble(numberText(panel.colorG2TextField)));
+		surface.setColorB2(getDouble(numberText(panel.colorB2TextField)));
 		surface.setTextureName(panel.textureNameTextField.getText());
 		surface.setTextureType(getString(panel.getTextureTypeComboBox().getSelectedItem().toString()));
-		surface.setTextureSize(getDouble(panel.textureSizeTextField.getText()));
-		surface.setTextureSizeV(getDouble(panel.textureSizeVTextField.getText()));
+		surface.setTextureSize(getDouble(numberText(panel.textureSizeTextField)));
+		surface.setTextureSizeV(getDouble(numberText(panel.textureSizeVTextField)));
 		surface.setTextureLinkWithPrevious(getString(panel.getTextureLinkWithPreviousComboBox().getSelectedItem().toString()));
 		surface.setTextureStartOnBoundary(getString(panel.getTextureStartOnBoundaryComboBox().getSelectedItem().toString()));
-		surface.setTextureMipMap(getDouble(panel.textureMipMapTextField.getText()));
-		surface.setFriction(getDouble(panel.frictionTextField.getText()));
-		surface.setRollingResistance(getDouble(panel.rollingResistanceTextField.getText()));
+		surface.setTextureMipMap(getDouble(numberText(panel.textureMipMapTextField)));
+		surface.setFriction(getDouble(numberText(panel.frictionTextField)));
+		surface.setRollingResistance(getDouble(numberText(panel.rollingResistanceTextField)));
 		surface.setBumpName(panel.bumpNameTextField.getText());
-		surface.setBumpSize(getDouble(panel.bumpSizeTextField.getText()));
-		surface.setRoughness(getDouble(panel.roughnessTextField.getText()));
-		surface.setRoughnessWavelength(getDouble(panel.roughnessWavelengthTextField.getText()));
+		surface.setBumpSize(getDouble(numberText(panel.bumpSizeTextField)));
+		surface.setRoughness(getDouble(numberText(panel.roughnessTextField)));
+		surface.setRoughnessWavelength(getDouble(numberText(panel.roughnessWavelengthTextField)));
 		surface.setRacelineName(panel.racelineNameTextField.getText());
-		surface.setDammage(getDouble(panel.damageTextField.getText()));
-		surface.setRebound(getDouble(panel.reboundTextField.getText()));
+		surface.setDammage(getDouble(numberText(panel.damageTextField)));
+		surface.setRebound(getDouble(numberText(panel.reboundTextField)));
 	}
 
 	private void setPanelFromSurface(Surface surface, SurfacePanel panel)

@@ -134,24 +134,13 @@ public class RoadTexture
 	}
 
 	/**
-	 * @return the texture in the track's folder (or for a Speed Dreams track in its
-	 *         local folder, the installed track's) or the game's textures folder, or null
+	 * @return the texture where the game finds it: the track's folder (and for a
+	 *         Speed Dreams track in its local folder, the installed track's), then
+	 *         the data folder's data/textures and data/img, then the data folder; or
+	 *         null (see TrackFolders.textureFolders)
 	 */
 	public static File findTextureFile(TrackContext trackContext, String texture)
 	{
-		for (String folder : trackContext.getTrackFolders())
-		{
-			File file = new File(folder, texture);
-			if (file.isFile())
-				return file;
-		}
-		String data = trackContext.getDataDirectory();
-		if (data != null && !data.isEmpty())
-		{
-			File file = new File(data + File.separator + "data" + File.separator + "textures", texture);
-			if (file.isFile())
-				return file;
-		}
-		return null;
+		return utils.check.TrackFolders.findTexture(trackContext, texture);
 	}
 }

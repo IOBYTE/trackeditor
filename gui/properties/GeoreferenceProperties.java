@@ -48,9 +48,13 @@ public class GeoreferenceProperties extends PropertyPanel
 		noteLabel.setSize(480, 50);
 
 		addTextField(this, 0, latitudeTextField, georeference().getLatitude(), 170, 125);
+		showFileText(latitudeTextField, null, "Georeference/latitude");
 		addTextField(this, 1, longitudeTextField, georeference().getLongitude(), 170, 125);
+		showFileText(longitudeTextField, null, "Georeference/longitude");
 		addTextField(this, 2, altitudeTextField, georeference().getAltitude(), 170, 125);
+		showFileText(altitudeTextField, null, "Georeference/altitude");
 		addTextField(this, 3, headingTextField, georeference().getHeading(), 170, 125);
+		showFileText(headingTextField, null, "Georeference/heading");
 
 		// red with why while TORCS can't use them, as Check reports
 		javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener()
@@ -81,8 +85,8 @@ public class GeoreferenceProperties extends PropertyPanel
 	 */
 	private void showProblems()
 	{
-		double latitude = getDouble(latitudeTextField.getText().trim());
-		double longitude = getDouble(longitudeTextField.getText().trim());
+		double latitude = getDouble(numberText(latitudeTextField).trim());
+		double longitude = getDouble(numberText(longitudeTextField).trim());
 		String latitudeProblem = null;
 		String longitudeProblem = null;
 		if (!Double.isNaN(latitude) && !(Math.abs(latitude) <= 90))
@@ -104,6 +108,8 @@ public class GeoreferenceProperties extends PropertyPanel
 
 	private static void show(JTextField field, String problem)
 	{
+		if (problem == null && showFileTextTip(field))
+			return;
 		field.setForeground(problem == null ? javax.swing.UIManager.getColor("TextField.foreground") : java.awt.Color.RED);
 		field.setToolTipText(problem == null ? null : "TORCS ignores the latitude and longitude: " + problem);
 	}
@@ -114,8 +120,8 @@ public class GeoreferenceProperties extends PropertyPanel
 	 */
 	public String problem()
 	{
-		double latitude = getDouble(latitudeTextField.getText().trim());
-		double longitude = getDouble(longitudeTextField.getText().trim());
+		double latitude = getDouble(numberText(latitudeTextField).trim());
+		double longitude = getDouble(numberText(longitudeTextField).trim());
 
 		// as Check reports one read from the file
 		String problem = Georeference.problem(latitude, longitude);
@@ -126,25 +132,25 @@ public class GeoreferenceProperties extends PropertyPanel
 	{
 		MutableDouble doubleResult = new MutableDouble();
 
-		if (isDifferent(latitudeTextField.getText(), georeference().getLatitude(), doubleResult))
+		if (isDifferent(numberText(latitudeTextField), georeference().getLatitude(), doubleResult))
 		{
 			georeference().setLatitude(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(longitudeTextField.getText(), georeference().getLongitude(), doubleResult))
+		if (isDifferent(numberText(longitudeTextField), georeference().getLongitude(), doubleResult))
 		{
 			georeference().setLongitude(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(altitudeTextField.getText(), georeference().getAltitude(), doubleResult))
+		if (isDifferent(numberText(altitudeTextField), georeference().getAltitude(), doubleResult))
 		{
 			georeference().setAltitude(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
 		}
 
-		if (isDifferent(headingTextField.getText(), georeference().getHeading(), doubleResult))
+		if (isDifferent(numberText(headingTextField), georeference().getHeading(), doubleResult))
 		{
 			georeference().setHeading(doubleResult.getValue());
 			getEditorFrame().documentIsModified = true;
