@@ -252,7 +252,7 @@ public class ObjectMapProperties extends PropertyPanel
 						}
 						catch (IOException ex)
 						{
-							JOptionPane.showMessageDialog(ObjectMapPanel.this, "Couldn't create the object map\n\n" + ex.getLocalizedMessage(),
+							JOptionPane.showMessageDialog(ObjectMapPanel.this, "Couldn't create the object map\n\n" + utils.FileProblem.reason(ex, null, true),
 									"Create Object Map", JOptionPane.ERROR_MESSAGE);
 						}
 					}
@@ -415,8 +415,9 @@ public class ObjectMapProperties extends PropertyPanel
 
 		/**
 		 * Says why the image fileName names can't be read now, as the Check
-		 * dialog does: "not found" with where it was looked for when there is
-		 * no such file. when, if not null, says when it couldn't be read.
+		 * dialog does: "not found", in the track's folder for a name without a
+		 * folder, when there is no such file. when, if not null, says when it
+		 * couldn't be read.
 		 */
 		private String cantRead(String fileName, String when)
 		{
@@ -429,8 +430,8 @@ public class ObjectMapProperties extends PropertyPanel
 			{
 				return "Can't read " + fileName + ": " + reason(e) + ".";
 			}
-			if (!java.nio.file.Files.isRegularFile(file))
-				return fileName + " not found: there is no file " + file.toAbsolutePath() + ".";
+			if (!java.nio.file.Files.exists(file))
+				return fileName + " not found" + (java.nio.file.Paths.get(fileName).getParent() == null ? " in the track's folder." : ".");
 			try
 			{
 				ObjectMap.readImageFile(file);
@@ -439,7 +440,7 @@ public class ObjectMapProperties extends PropertyPanel
 			}
 			catch (IOException e)
 			{
-				return "Can't read " + file.toAbsolutePath() + ": " + reason(e) + ".";
+				return "Can't read " + fileName + ": " + reason(e) + ".";
 			}
 		}
 

@@ -463,8 +463,9 @@ public class EditorFrame extends JFrame implements TrackContext
 		if (getDataDirectory() == null)
 		{
 			JOptionPane.showMessageDialog(this,
-					"You need to specify the " + gameType.getName() + " data directory in order to\n" +
-					"load the default surfaces, textures and objects.\n" +
+					"A track in the " + gameType.getName() + " data directory's tracks folder finds the\n" +
+					"default surfaces, textures and objects there by itself, as the game does.\n" +
+					"For tracks anywhere else, you need to specify the data directory.\n" +
 					"Make sure you have write permission if you intend to edit or add\n" +
 					"tracks in this directory.\n\n" +
 					"You may need to specify the bin directory where " +
@@ -699,10 +700,46 @@ public class EditorFrame extends JFrame implements TrackContext
 			preferences.put(key, value);
 	}
 
-	/** @return the data directory of the game in use */
+	// the data folder of the open track when it is in a data folder's tracks folder,
+	// else null (see TrackFolders.dataDirectoryOf)
+	private String	trackDataDirectory	= null;
+
+	/**
+	 * @return the data directory the open track uses: like the game, a track in a
+	 *         data folder's tracks folder uses that data folder; any other the one
+	 *         set in Preferences
+	 */
 	public String getDataDirectory()
 	{
+		return trackDataDirectory != null ? trackDataDirectory : getDataDirectorySetting();
+	}
+
+	/** @return the data directory set in Preferences for the game in use */
+	public String getDataDirectorySetting()
+	{
 		return getDirectory(gameType, DATA_DIRECTORY);
+	}
+
+	/**
+	 * Uses the data folder of a track in a data folder's tracks folder (see
+	 * getDataDirectory), and reads the default surfaces and objects again when
+	 * that changes the data directory.
+	 *
+	 * @param dataDirectory the track's data folder, null for none
+	 */
+	private void useTrackDataDirectory(String dataDirectory)
+	{
+		String old = getDataDirectory();
+		trackDataDirectory = dataDirectory;
+		if (Objects.equals(old, getDataDirectory()))
+			return;
+		readDefaultSurfaces();
+		readDefaultObjects();
+		// an open Default Surfaces or Default Objects window shows the new ones
+		if (defaultSurfacesDialog != null)
+			defaultSurfacesDialog.refresh();
+		if (defaultObjectsDialog != null)
+			defaultObjectsDialog.refresh();
 	}
 
 	/**
@@ -1484,6 +1521,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		trackData.getHeader().setSubcategory(newProjectInfo.subcategory);
 		trackData.getHeader().setVersion(newProjectInfo.version);
 		Properties.getInstance().setPath(newProjectInfo.path);
+		useTrackDataDirectory(TrackFolders.dataDirectoryOf(new File(newProjectInfo.path)));
 		trackData.getHeader().setAuthor(newProjectInfo.author);
 		trackData.getHeader().setEmail(newProjectInfo.email);
 		trackData.getHeader().setCopyright(newProjectInfo.copyright);
@@ -4676,6 +4714,10 @@ public class EditorFrame extends JFrame implements TrackContext
 		//System.out.println("readFile : " + file.getAbsolutePath());
 
 		TrackData previous = trackData;
+		// the track's own data folder, if it has one, before it is read: it reads the
+		// default surfaces
+		String previousDataDirectory = trackDataDirectory;
+		useTrackDataDirectory(TrackFolders.dataDirectoryOf(file.getAbsoluteFile().getParentFile()));
 		trackData = new TrackData();
 		List<String> numberWarnings = null;
 
@@ -4697,6 +4739,7 @@ public class EditorFrame extends JFrame implements TrackContext
 				if (choice != 0)
 				{
 					trackData = previous;
+					useTrackDataDirectory(previousDataDirectory);
 					refresh();
 					return false;
 				}
@@ -4727,6 +4770,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		{
 			e.printStackTrace();
 			trackData = previous;
+			useTrackDataDirectory(previousDataDirectory);
 			String reason = e.getLocalizedMessage();
 			if (reason == null || reason.isEmpty())
 				reason = e.toString();

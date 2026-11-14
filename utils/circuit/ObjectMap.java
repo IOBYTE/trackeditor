@@ -217,9 +217,21 @@ public class ObjectMap
 	 */
 	public static BufferedImage readImageFile(Path filename) throws IOException
 	{
+		if (java.nio.file.Files.isDirectory(filename))
+			throw new IOException("it's a folder, not a file");
 		if (!java.nio.file.Files.isRegularFile(filename))
-			throw new IOException("there is no such file");
-		BufferedImage image = ImageIO.read(filename.toFile());
+			throw new IOException("the file doesn't exist");
+		if (!java.nio.file.Files.isReadable(filename))
+			throw new IOException("it can't be read: access is denied");
+		BufferedImage image;
+		try
+		{
+			image = ImageIO.read(filename.toFile());
+		}
+		catch (IOException e)
+		{
+			throw new IOException("it can't be read as an image: " + utils.FileProblem.reason(e, filename, false));
+		}
 		if (image == null)
 			throw new IOException("not an image format the editor can read (use PNG)");
 		return image;
@@ -250,7 +262,7 @@ public class ObjectMap
 		// ImageIO only reports "Can't create an ImageOutputStream!" for a bad folder
 		Path folder = filename.toAbsolutePath().getParent();
 		if (folder != null && !java.nio.file.Files.isDirectory(folder))
-			throw new IOException("folder doesn't exist: " + folder);
+			throw new IOException("its folder doesn't exist");
 
 		AtomicFile.write(filename, file -> {
 			if (!ImageIO.write(image, "png", file))

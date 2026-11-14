@@ -22,7 +22,6 @@ package gui.properties;
 
 import java.awt.Component;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Vector;
@@ -45,7 +44,6 @@ import utils.MutableDouble;
 import utils.MutableInteger;
 import utils.MutableString;
 import utils.SurfaceComboBox;
-import utils.ac3d.Ac3dException;
 import utils.circuit.Reliefs;
 import utils.circuit.Surface;
 import utils.circuit.TerrainGeneration;
@@ -585,20 +583,9 @@ public class TerrainProperties extends PropertyPanel
 				tabbedPane.insertTab("Reliefs", null, newReliefProperties(reliefs), null, reliefTab);
 				tabbedPane.setSelectedIndex(reliefTab);
 			}
-			catch (IOException e)
-			{
-				String msg = fileName + " : Can't read input file!";
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
-			}
-			catch (Ac3dException e)
-			{
-				String msg = fileName + " : " + e.getLocalizedMessage();
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
-			}
 			catch (Exception e)
 			{
-				String msg = fileName + " : " + e.getLocalizedMessage();
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(getEditorFrame(), Reliefs.problem(fileName, e), "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}
@@ -939,23 +926,10 @@ public class TerrainProperties extends PropertyPanel
 			{
 				keepReliefEdits = !getEditorFrame().getTerrainGeneration().setReliefFile(stringResult.getValue());
 			}
-			catch (IOException e)
-			{
-				keepReliefEdits = false;
-				String msg = stringResult.getValue() + " : Can't read input file!";
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
-			}
-			catch (Ac3dException e)
-			{
-				keepReliefEdits = false;
-				String msg = stringResult.getValue() + " : " + e.getLocalizedMessage();
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
-			}
 			catch (Exception e)
 			{
 				keepReliefEdits = false;
-				String msg = stringResult.getValue() + " : " + e.getLocalizedMessage();
-				JOptionPane.showMessageDialog(getEditorFrame(), msg, "Relief File", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(getEditorFrame(), Reliefs.problem(stringResult.getValue(), e), "Relief File", JOptionPane.ERROR_MESSAGE);
 			}
 			getEditorFrame().documentIsModified = true;
 		}

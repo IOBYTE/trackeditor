@@ -125,7 +125,9 @@ public class TrackLoader
 	public static LoadedTrack load(File file, GameType game, String dataDirectory, String localDirectory, ReadNotices notices)
 		throws JDOMException, IOException
 	{
-		LoadedTrack settings = new LoadedTrack(game, dataDirectory, TrackFolders.localDirectory(game, localDirectory));
+		// like the game, a track in a data folder's tracks folder uses that data folder
+		String own = TrackFolders.dataDirectoryOf(file.getAbsoluteFile().getParentFile());
+		LoadedTrack settings = new LoadedTrack(game, own != null ? own : dataDirectory, TrackFolders.localDirectory(game, localDirectory));
 		readDefaults(settings, notices);
 		return load(file, settings, notices);
 	}

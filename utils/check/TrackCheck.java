@@ -65,7 +65,10 @@ public final class TrackCheck
 
 	// how it's run when run as this class (the editor's jar runs it as "check", see TrackEditor)
 	private static final String	COMMAND			= "java -cp trackeditor.jar utils.check.TrackCheck";
-	private static final String	BASELINE_HEADER	= "# Track editor check baseline: one message per line, the track file, a tab, then the message";
+	private static final String	BASELINE_HEADER	= "# Track editor check baseline 2: one message per line, the track (the category its file has, "
+		+ "its folder and file), a tab, then the message";
+	// the header of the first baselines, which named a track by its path as given
+	private static final String	OLD_BASELINE_HEADER	= "# Track editor check baseline:";
 
 	// the editor's preferences (gui.EditorFrame's package), and the keys it uses
 	private static final String	PREFERENCES_NODE		= "/gui";
@@ -109,20 +112,26 @@ public final class TrackCheck
 		final String	title;
 		final String	text;
 		final boolean	error;
+		// the track as a baseline names it (see baselineName): the file until the track is read
+		String			track;
 
 		Report(String file, int line, String title, String text, boolean error)
 		{
 			this.file = file;
+			this.track = file;
 			this.line = line;
 			this.title = title;
 			this.text = text;
 			this.error = error;
 		}
 
-		/** @return what a baseline matches: the file and the message, without its line */
+		/**
+		 * @return what a baseline matches: the track and the message, without its
+		 *         line, with / in paths as on every computer
+		 */
 		String key()
 		{
-			return file + "\t" + (title == null ? "" : title + ": ") + text;
+			return slashes(track + "\t" + (title == null ? "" : title + ": ") + text);
 		}
 	}
 
@@ -186,6 +195,8 @@ public final class TrackCheck
 	private GameType				editorGame		= null;
 
 	private final List<Track>		tracks			= new ArrayList<Track>();
+	// each track's name in the baseline, and the track that has it first
+	private final Map<String, String>	baselineNames	= new HashMap<String, String>();
 	private int						skipped			= 0;
 
 	private PrintStream				out;
@@ -239,18 +250,19 @@ public final class TrackCheck
 					return done;
 				check.settings();
 				check.findTracks();
+				check.dataFolders();
 				check.gameHint();
 			}
 			catch (UsageException e)
 			{
-				err.println(e.getMessage());
-				err.println("Try " + check.command + " --help for the options.");
+				err.println(slashes(e.getMessage()));
+				err.println(slashes("Try " + check.command + " --help for the options."));
 				return FAILED;
 			}
 			catch (java.nio.file.InvalidPathException e)
 			{
 				// a list's entry or a pattern that can't be a path here
-				err.println("Not a path here: " + e.getMessage());
+				err.println(slashes("Not a path here: " + e.getMessage()));
 				return FAILED;
 			}
 			catch (IllegalArgumentException e)
@@ -258,7 +270,7 @@ public final class TrackCheck
 				// an option's value that can't be used, with why: not a bug
 				if (e.getMessage() == null || e.getClass() != IllegalArgumentException.class)
 					throw e;
-				err.println(e.getMessage());
+				err.println(slashes(e.getMessage()));
 				return FAILED;
 			}
 			return check.check();
@@ -266,10 +278,20 @@ public final class TrackCheck
 		catch (RuntimeException | Error e)
 		{
 			// a bug: say so, rather than end with Java's exit status 1, which means messages
-			err.println("The check failed: " + bug(e));
+			err.println(slashes("The check failed: " + bug(e)));
 			e.printStackTrace(err);
 			return FAILED;
 		}
+	}
+
+	/**
+	 * @return the text with / for \ in its paths: the checker writes paths with /
+	 *         on every computer, as Windows takes them too, so its output and
+	 *         baselines are the same everywhere
+	 */
+	static String slashes(Object text)
+	{
+		return String.valueOf(text).replace('\\', '/');
 	}
 
 	/** @return what went wrong, and where in the checker, to report as a bug */
@@ -325,7 +347,7 @@ public final class TrackCheck
 				out.print(help(command));
 				return OK;
 			case "--version":
-				out.println("Track editor " + Properties.getInstance().version);
+				out.println(slashes("Track editor " + Properties.getInstance().version));
 				return OK;
 			case "--game":
 				gameOption = value != null ? value : next(args, ++i, name);
@@ -486,7 +508,7 @@ public final class TrackCheck
 		}
 		else if (localOption != null)
 		{
-			err.println("--local isn't used: " + game.getName() + " has no local folder, only Speed Dreams has");
+			err.println(slashes("--local isn't used: " + game.getName() + " has no local folder, only Speed Dreams has"));
 		}
 
 		if (checkDefaultObjectsOption)
@@ -515,33 +537,48 @@ public final class TrackCheck
 		StringBuilder shown = new StringBuilder("Messages Check hides at first that are shown: ");
 		shown.append(show.isEmpty() ? "none" : show.toString().toLowerCase().replaceAll("[\\[\\]]", ""));
 		settings.add(shown.toString());
+	}
 
-		// a folder that isn't the game's data folder makes most messages wrong: say so once
-		if (dataDirectory != null && !new File(dataDirectory, "tracks").isDirectory())
-		{
-			File inner = new File(dataDirectory, "data");
-			throw new IllegalArgumentException("The data folder " + dataDirectory + " has no tracks folder"
-				+ (hasTrackFolders(new File(inner, "tracks")) ? ": is the data folder " + inner.getPath() + "?" : "")
-				+ (dataOption == null ? " (it's the editor's, from Preferences)" : ""));
-		}
+	/** @return the data folder the track uses: like the game, its own when it's in a data folder's tracks folder */
+	private String dataDirectory(Track track)
+	{
+		String own = TrackFolders.dataDirectoryOf(track.file.getAbsoluteFile().getParentFile());
+		return own != null ? own : dataDirectory;
 	}
 
 	/**
-	 * @return whether the folder has tracks: <category>/<name> folders (the shared
-	 *         data/tracks folder only has surfaces.xml and objects.xml)
+	 * Says which tracks use their own data folder, and checks the data folder given
+	 * when a track uses it.
+	 *
+	 * @throws IllegalArgumentException for a data folder a track uses that isn't
+	 *         a game's data folder
 	 */
-	private static boolean hasTrackFolders(File tracks)
+	private void dataFolders()
 	{
-		File[] categories = tracks.listFiles(File::isDirectory);
-		if (categories == null)
-			return false;
-		for (File category : categories)
+		int own = 0;
+		for (Track track : tracks)
 		{
-			File[] names = category.listFiles(File::isDirectory);
-			if (names != null && names.length > 0)
-				return true;
+			if (TrackFolders.dataDirectoryOf(track.file.getAbsoluteFile().getParentFile()) != null)
+				own++;
 		}
-		return false;
+		if (own > 0)
+		{
+			settings.add((own == tracks.size() ? (own == 1 ? "The track uses" : "All " + own + " tracks use")
+				: own + " of the " + tracks.size() + (own == 1 ? " tracks uses" : " tracks use"))
+				+ " the data folder whose tracks folder " + (own == 1 ? "it's" : "they're") + " in, as the game does");
+		}
+
+		// a folder that isn't the game's data folder makes most messages wrong: say so once,
+		// when a track uses it
+		if (own < tracks.size() && dataDirectory != null)
+		{
+			TrackFolders.DataFolderProblem problem = TrackFolders.dataFolderProblem(new File(dataDirectory));
+			if (problem != null)
+			{
+				throw new IllegalArgumentException((dataOption == null ? "The editor's data folder, from Preferences: " : "--data: ")
+					+ problem.text + (problem.suggestion == null ? "" : " Give --data " + problem.suggestion + "."));
+			}
+		}
 	}
 
 	/**
@@ -612,8 +649,8 @@ public final class TrackCheck
 			return null;
 		if (!new File(value).isDirectory())
 		{
-			err.println("The editor's " + what.toLowerCase() + " for " + game.getShortName() + ", " + value
-				+ ", isn't a folder: it isn't used (give " + option + ")");
+			err.println(slashes("The editor's " + what.toLowerCase() + " for " + game.getShortName() + ", " + value
+				+ ", isn't a folder: it isn't used (give " + option + ")"));
 			return null;
 		}
 		settings.add(what + ": " + value + " (the editor's preferences)");
@@ -671,9 +708,9 @@ public final class TrackCheck
 			}
 			if (count > 0)
 			{
-				err.println((count == tracks.size() ? (count == 1 ? "The track is" : "All " + count + " tracks are")
+				err.println(slashes((count == tracks.size() ? (count == 1 ? "The track is" : "All " + count + " tracks are")
 					: count + " of the " + tracks.size() + (count == 1 ? " tracks is" : " tracks are")) + " in " + other.getName() + "'s tracks folder " + where.getPath()
-					+ ", not " + game.getName() + "'s: did you mean --game " + option(other) + "?");
+					+ ", not " + game.getName() + "'s: did you mean --game " + option(other) + "?"));
 			}
 		}
 	}
@@ -943,7 +980,9 @@ public final class TrackCheck
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 		for (String name : names)
 		{
-			File file = byName.get(name).toFile();
+			// without the ./ a pattern from the current folder starts with: the folders above
+			// the track's are its category's, the tracks folder and the data folder
+			File file = byName.get(name).normalize().toFile();
 			String folder = file.getParentFile() == null ? null : file.getAbsoluteFile().getParentFile().getName();
 			String expected = folder + ".xml";
 			if (WINDOWS ? file.getName().equalsIgnoreCase(expected) : file.getName().equals(expected))
@@ -1003,14 +1042,14 @@ public final class TrackCheck
 		if (verbose)
 		{
 			for (String setting : settings)
-				err.println(setting);
+				err.println(slashes(setting));
 		}
 
 		List<Report> reports = new ArrayList<Report>();
 		if (tracks.isEmpty())
 		{
 			// only empty lists: nothing changed, say, so nothing to check
-			out.println("No tracks to check");
+			out.println(slashes("No tracks to check"));
 			return writeBaseline != null ? writeBaseline(reports, false) : OK;
 		}
 
@@ -1020,28 +1059,44 @@ public final class TrackCheck
 		{
 			if (!new File(baseline).isFile())
 			{
-				err.println("There is no baseline file " + baseline);
+				err.println(slashes("There is no baseline file " + baseline));
 				return FAILED;
 			}
 			try
 			{
 				for (String line : Files.readAllLines(new File(baseline).toPath(), StandardCharsets.UTF_8))
 				{
+					if (line.replace("\uFEFF", "").startsWith(OLD_BASELINE_HEADER))
+					{
+						// its tracks are named by their paths: none of them would match
+						err.println(slashes("The baseline " + baseline + " was written by an earlier version of the checker, which named "
+							+ "tracks by their paths: write it again with --write-baseline"));
+						return FAILED;
+					}
 					if (!line.isEmpty() && !line.startsWith("#"))
 						known.merge(line, 1, Integer::sum);
 				}
 			}
 			catch (IOException e)
 			{
-				err.println("Couldn't read the baseline " + baseline + ": " + e.getLocalizedMessage());
+				err.println(slashes("Couldn't read the baseline " + baseline + ": " + e.getLocalizedMessage()));
 				return FAILED;
 			}
 		}
 
-		// the game's default surfaces and objects, read once: what's wrong with them is about every track
-		LoadedTrack shared = new LoadedTrack(game, dataDirectory, localDirectory);
-		shared.setCheckDefaultObjects(checkDefaultObjects);
-		TrackLoader.readDefaults(shared, (title, message, error) -> reports.add(new Report("", 0, title, oneLine(message), error)));
+		// the game's default surfaces and objects, read once for each data folder the
+		// tracks use: what's wrong with them is about every track that uses it
+		Map<String, LoadedTrack> sharedByData = new HashMap<String, LoadedTrack>();
+		for (Track track : tracks)
+		{
+			String data = dataDirectory(track);
+			if (sharedByData.containsKey(data))
+				continue;
+			LoadedTrack shared = new LoadedTrack(game, data, localDirectory);
+			shared.setCheckDefaultObjects(checkDefaultObjects);
+			TrackLoader.readDefaults(shared, (title, message, error) -> reports.add(new Report("", 0, title, oneLine(message), error)));
+			sharedByData.put(data, shared);
+		}
 		int fresh = 0;
 		for (Report report : reports)
 		{
@@ -1061,7 +1116,7 @@ public final class TrackCheck
 			Result result;
 			try
 			{
-				result = check(track, shared, reports);
+				result = check(track, sharedByData.get(dataDirectory(track)), reports);
 			}
 			catch (RuntimeException | StackOverflowError e)
 			{
@@ -1107,7 +1162,7 @@ public final class TrackCheck
 		if (skipped > 0)
 			summary.append("; skipped ").append(skipped).append(skipped == 1 ? " file that isn't" : " files that aren't")
 				.append(" <name>/<name>.xml").append(verbose ? "" : " (--verbose lists them)");
-		out.println(summary);
+		out.println(slashes(summary));
 
 		if (failed)
 			return FAILED;
@@ -1129,7 +1184,7 @@ public final class TrackCheck
 	{
 		if (failed)
 		{
-			err.println("The baseline " + writeBaseline + " wasn't written: not every track could be checked");
+			err.println(slashes("The baseline " + writeBaseline + " wasn't written: not every track could be checked"));
 			return FAILED;
 		}
 		List<String> lines = new ArrayList<String>();
@@ -1143,11 +1198,11 @@ public final class TrackCheck
 		}
 		catch (IOException e)
 		{
-			err.println("Couldn't write the baseline " + writeBaseline + ": " + e.getLocalizedMessage());
+			err.println(slashes("Couldn't write the baseline " + writeBaseline + ": " + e.getLocalizedMessage()));
 			return FAILED;
 		}
-		out.println("Wrote " + reports.size() + (reports.size() == 1 ? " message" : " messages") + " for "
-			+ tracks.size() + (tracks.size() == 1 ? " track" : " tracks") + " to " + writeBaseline);
+		out.println(slashes("Wrote " + reports.size() + (reports.size() == 1 ? " message" : " messages") + " for "
+			+ tracks.size() + (tracks.size() == 1 ? " track" : " tracks") + " to " + writeBaseline));
 		return OK;
 	}
 
@@ -1179,14 +1234,24 @@ public final class TrackCheck
 			error(name, "Couldn't read the track: " + (reason == null || reason.isEmpty() || e instanceof RuntimeException ? e.toString() : reason));
 			return Result.NOT_READ;
 		}
+		// the track as the baseline names it, wherever it is
+		final String inBaseline = baselineName(track, loaded);
+		for (Report notice : notices)
+			notice.track = inBaseline;
 		reports.addAll(notices);
+		String other = baselineNames.putIfAbsent(inBaseline, name);
+		if (other != null && (baseline != null || writeBaseline != null))
+		{
+			err.println(slashes(other + " and " + name + " are both " + inBaseline + " in the baseline: "
+				+ "a message in it for one also matches the other"));
+		}
 
 		Result result = Result.CHECKED;
 		if (trackgen)
 		{
 			try
 			{
-				TrackgenOutput output = Trackgen.calculate(game, binDirectory, dataDirectory, loaded.getLocalDirectory(),
+				TrackgenOutput output = Trackgen.calculate(game, binDirectory, loaded.getDataDirectory(), loaded.getLocalDirectory(),
 					Properties.getInstance().getPath(), loaded.getTrackData(), trackgenTimeout);
 				Closure.setLast(output.closure(Closure.key(loaded)));
 			}
@@ -1222,7 +1287,9 @@ public final class TrackCheck
 					line = Integer.parseInt(matcher.group(1));
 					text = text.substring(matcher.end());
 				}
-				reports.add(new Report(name, line, null, text, false));
+				Report report = new Report(name, line, null, text, false);
+				report.track = inBaseline;
+				reports.add(report);
 			}
 		}
 
@@ -1245,9 +1312,27 @@ public final class TrackCheck
 				line = Integer.parseInt(matcher.group(1));
 				text = text.substring(matcher.end());
 			}
-			reports.add(new Report(name, line, null, text, false));
+			Report report = new Report(name, line, null, text, false);
+			report.track = inBaseline;
+			reports.add(report);
 		}
 		return result;
+	}
+
+	/**
+	 * @return the track as a baseline names it: the category its file has, its
+	 *         folder and its file, as circuit/aalborg/aalborg.xml, wherever it is.
+	 *         The same baseline then works from any folder and on any computer, and
+	 *         tracks of the same name in different categories stay apart. Without a
+	 *         category, its folder and file.
+	 */
+	private static String baselineName(Track track, LoadedTrack loaded)
+	{
+		String category = loaded.getTrackData().getHeader().getCategory();
+		File file = track.file.getAbsoluteFile();
+		File folder = file.getParentFile();
+		String name = (folder == null ? "" : folder.getName() + "/") + file.getName();
+		return category == null || category.trim().isEmpty() ? name : category.trim() + "/" + name;
 	}
 
 	/** Reports a problem that stopped a track being checked, right away */
@@ -1271,7 +1356,7 @@ public final class TrackCheck
 			}
 			line.append(separator).append("title=").append(property(report.title != null ? report.title : "Track check"));
 			line.append("::").append(data(report.text));
-			out.println(line);
+			out.println(slashes(line));
 			return;
 		}
 		StringBuilder line = new StringBuilder(report.file);
@@ -1284,7 +1369,7 @@ public final class TrackCheck
 		if (report.title != null)
 			line.append(report.title).append(": ");
 		line.append(report.text);
-		out.println(line);
+		out.println(slashes(line));
 	}
 
 	/** @return the text on one line: a message box's lines, joined */
@@ -1327,7 +1412,9 @@ public final class TrackCheck
 			+ n
 			+ "Game (default: the editor's preferences):" + n
 			+ "  --game GAME          torcs, sd or csr" + n
-			+ "  --data DIR           the game's data folder, which has its tracks folder" + n
+			+ "  --data DIR           the game's data folder, which has its tracks folder, for" + n
+			+ "                       tracks elsewhere: like the game, a track in a data folder's" + n
+			+ "                       tracks folder uses that data folder" + n
 			+ "  --local DIR          Speed Dreams' local folder (default: also its standard one)" + n
 			+ "  --bin DIR            where trackgen is (default: also the PATH, or TORCS' data folder)" + n
 			+ "  --no-prefs           don't use the editor's preferences: the result depends only on" + n
@@ -1352,7 +1439,9 @@ public final class TrackCheck
 			+ "Output:" + n
 			+ "  --format FORMAT      text (default), or github: annotations for GitHub Actions," + n
 			+ "                       in UTF-8" + n
-			+ "  --baseline FILE      only report messages that aren't in FILE" + n
+			+ "  --baseline FILE      only report messages that aren't in FILE. It names each track" + n
+			+ "                       by its category and name (circuit/aalborg/aalborg.xml), so" + n
+			+ "                       it works from any folder and on any computer" + n
 			+ "  --write-baseline FILE" + n
 			+ "                       write the messages to FILE as the baseline, and exit 0" + n
 			+ "  -v, --verbose        show the settings used, where each came from, and the files" + n

@@ -137,10 +137,8 @@ public class XmlWriter
 
 	private void addFileError(String what, String file, Exception e)
 	{
-		String reason = e.getLocalizedMessage();
-		if (reason == null || reason.isEmpty())
-			reason = e.getClass().getSimpleName();
-		fileErrors.add(what + " " + file + " : " + reason);
+		// why without the file's path: the message names the file as the track does
+		fileErrors.add(what + " " + file + " : " + utils.FileProblem.reason(e, null, true));
 	}
 
 	/**

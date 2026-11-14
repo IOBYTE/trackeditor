@@ -43,7 +43,6 @@ import utils.DoubleValue;
 import utils.GameType;
 import utils.Properties;
 import utils.SegmentVector;
-import utils.ac3d.Ac3dException;
 import utils.check.ReadNotices;
 import utils.check.TrackContext;
 import utils.circuit.Camera;
@@ -991,32 +990,18 @@ public class XmlReader
 	        data.getTerrainGeneration().setElevationMap(getAttrStrValue(terrain, "elevation map"));
 
 	        String reliefFile = getAttrStrValue(terrain, "relief file");
-	        if (reliefFile != null)
-	        {
-				// the name to show, without its folder: not as a Path, which a name
-				// with characters the file system doesn't allow can't be (the track
-				// wouldn't open)
-				String shown = new java.io.File(reliefFile).getName();
-	        	try
-	        	{
-	        		data.getTerrainGeneration().getReliefs().setFileName(reliefFile);
-	    		}
-	    		catch (IOException e)
-	    		{
-					String msg = shown + " : " + e.getLocalizedMessage();
-	            	notices.notice("Relief File", msg, true);
-	    		}
-	    		catch (Ac3dException e)
-	    		{
-					String msg = shown + " : " + e.getLocalizedMessage();
-	            	notices.notice("Relief File", msg, true);
-	    		}
-	    		catch (Exception e)
-	    		{
-					String msg = shown + " : " + e.getLocalizedMessage();
-	            	notices.notice("Relief File", msg, true);
-	    		}
-	        }
+			if (reliefFile != null)
+			{
+				try
+				{
+					data.getTerrainGeneration().getReliefs().setFileName(reliefFile);
+				}
+				catch (Exception e)
+				{
+					// the name as the track has it, and why without the file's path
+					notices.notice("Relief File", utils.circuit.Reliefs.problem(reliefFile, e), true);
+				}
+			}
 
 	        data.getTerrainGeneration().setReliefBorder(getAttrStrValue(terrain, "relief border"));
 	        data.getTerrainGeneration().setSurface(getAttrStrValue(terrain, "surface"));

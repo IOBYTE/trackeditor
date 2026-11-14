@@ -1604,7 +1604,7 @@ public class TrackChecker
 						{
 							if (name.contains(" "))
 							{
-								report.append("Relief file " + file.toString() + " : material \"" + name + "\" has a space in its name\n");
+								report.append("Terrain Generation relief file " + reliefFile + " : material \"" + name + "\" has a space in its name\n");
 							}
 						}
 					}
@@ -1665,7 +1665,7 @@ public class TrackChecker
 				}
 				catch (Exception e)
 				{
-					report.append("Terrain Generation relief file " + reliefFile + " : " + e.getLocalizedMessage() + "\n");
+					report.append("Terrain Generation relief file " + utils.circuit.Reliefs.problem(reliefFile, e) + "\n");
 				}
 			}
 		}

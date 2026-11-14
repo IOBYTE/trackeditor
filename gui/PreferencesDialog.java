@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import utils.GameType;
+import utils.check.TrackFolders;
 
 public class PreferencesDialog extends JDialog
 {
@@ -201,7 +202,7 @@ public class PreferencesDialog extends JDialog
 		{
 			dataDirectoryTextField = new JTextField();
 			dataDirectoryTextField.setBounds(fieldX, 10, FIELD_WIDTH, 23);
-			dataDirectoryTextField.setText(editorFrame.getDataDirectory());
+			dataDirectoryTextField.setText(editorFrame.getDataDirectorySetting());
 		}
 		return dataDirectoryTextField;
 	}
@@ -573,8 +574,65 @@ public class PreferencesDialog extends JDialog
 			return;
 		}
 
+		if (!dataDirectoriesChecked())
+			return;
+
 		APPROVE = true;
 		cancel();
+	}
+
+	/**
+	 * Checks the data directory set, and the other games' ones changed here: a
+	 * folder that isn't a data folder has no default surfaces and objects, so Check
+	 * would report most surfaces and objects missing. A track in a data folder's
+	 * tracks folder doesn't use it (see EditorFrame.getDataDirectory).
+	 *
+	 * @return true to save the directories: they're data folders, were fixed, or
+	 *         are to be kept as they are; false to go back to the dialog
+	 */
+	private boolean dataDirectoriesChecked()
+	{
+		keepDirectories(getGameType());
+		StringBuilder problems = new StringBuilder();
+		java.util.EnumMap<GameType, String> fixes = new java.util.EnumMap<GameType, String>(GameType.class);
+		for (GameType game : GameType.values())
+		{
+			String value = directories.get(game)[EditorFrame.DATA_DIRECTORY];
+			if (value == null || value.trim().isEmpty())
+				continue;
+			if (game != getGameType() && value.equals(editorFrame.getDirectory(game, EditorFrame.DATA_DIRECTORY)))
+				continue;
+			TrackFolders.DataFolderProblem problem = TrackFolders.dataFolderProblem(new File(value.trim()));
+			if (problem == null)
+				continue;
+			problems.append(game.getName()).append(" data directory: ").append(problem.text).append("\n");
+			if (problem.suggestion != null)
+				fixes.put(game, problem.suggestion);
+		}
+		if (problems.length() == 0)
+			return true;
+
+		String[] options = fixes.isEmpty() ? new String[] {"Keep", "Back"} : new String[] {"Fix", "Keep", "Back"};
+		String text = problems + "\nWithout a data folder the editor can't read the default surfaces and objects, so Check reports\n"
+			+ "most surfaces and objects as missing. A track in a data folder's tracks folder uses that\n"
+			+ "data folder instead, as the game does.\n\n"
+			+ (fixes.isEmpty() ? "" : "Fix uses the data " + (fixes.size() == 1 ? "folder" : "folders") + " found. ")
+			+ "Keep saves the directories as they are. Back returns to Preferences.";
+		int choice = JOptionPane.showOptionDialog(this, text, "Data Directory", JOptionPane.DEFAULT_OPTION,
+			JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		String chosen = choice < 0 ? "Back" : options[choice];
+		if (chosen.equals("Back"))
+			return false;
+		if (chosen.equals("Fix"))
+		{
+			for (java.util.Map.Entry<GameType, String> fix : fixes.entrySet())
+			{
+				directories.get(fix.getKey())[EditorFrame.DATA_DIRECTORY] = fix.getValue();
+				if (fix.getKey() == getGameType())
+					getDataDirectoryTextField().setText(fix.getValue());
+			}
+		}
+		return true;
 	}
 
 	protected void cancel()

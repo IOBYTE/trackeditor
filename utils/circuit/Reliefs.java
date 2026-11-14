@@ -166,6 +166,38 @@ public class Reliefs
 		}
 	}
 
+	// a fault in the file, as Ac3d.read reports it: "line <n> <what>"
+	private static final java.util.regex.Pattern	FAULT_LINE	= java.util.regex.Pattern.compile("line (\\d+) (.*)", java.util.regex.Pattern.DOTALL);
+
+	/**
+	 * @return why the relief file fileName couldn't be read, for a message: its
+	 *         name as the track has it, the line for a fault in the file
+	 *         ("relief.ac line 12 : ..."), and why without the file's path (see
+	 *         FileProblem)
+	 */
+	public static String problem(String fileName, Exception e)
+	{
+		if (e instanceof Ac3dException)
+		{
+			int line = ((Ac3dException) e).getLineNumber();
+			return fileName + (line > 0 ? " line " + line : "") + " : " + e.getLocalizedMessage();
+		}
+		Path file = null;
+		try
+		{
+			file = resolve(fileName);
+		}
+		catch (IOException x)
+		{
+			// not a file name: the reason says so
+		}
+		String reason = utils.FileProblem.reason(e, file, false);
+		java.util.regex.Matcher fault = FAULT_LINE.matcher(reason);
+		if (fault.matches())
+			return fileName + " line " + fault.group(1) + " : " + fault.group(2);
+		return fileName + " : " + reason;
+	}
+
 	public void readFile() throws IOException, Ac3dException, Exception
 	{
 		Ac3d ac3dFile = new Ac3d();

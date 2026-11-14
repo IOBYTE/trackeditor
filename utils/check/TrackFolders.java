@@ -53,6 +53,88 @@ public final class TrackFolders
 	}
 
 	/**
+	 * @param trackFolder the track's folder
+	 * @return the data folder of a track in a data folder's tracks folder,
+	 *         &lt;data&gt;/tracks/&lt;category&gt;/&lt;name&gt;: the folder three up
+	 *         from the track's, when it has data/tracks/surfaces.xml. That's where
+	 *         the game finds the default surfaces and objects the track includes
+	 *         (../../../data/tracks/surfaces.xml), so it needs no data folder set.
+	 *         Null for a track somewhere else.
+	 */
+	public static String dataDirectoryOf(File trackFolder)
+	{
+		if (trackFolder == null)
+			return null;
+		// without . and .. in it, which would be counted as folders
+		File category = trackFolder.getAbsoluteFile().toPath().normalize().toFile().getParentFile();
+		File tracks = category == null ? null : category.getParentFile();
+		File data = tracks == null ? null : tracks.getParentFile();
+		if (!isDataFolder(data))
+			return null;
+		return data.toPath().normalize().toString();
+	}
+
+	/**
+	 * @return whether the folder is a game's data folder: it has
+	 *         data/tracks/surfaces.xml, the default surfaces every track includes
+	 */
+	public static boolean isDataFolder(File folder)
+	{
+		return folder != null && new File(folder, "data" + sep + "tracks" + sep + "surfaces.xml").isFile();
+	}
+
+	/** What's wrong with a folder given as a game's data folder, and the folder meant when that can be told */
+	public static final class DataFolderProblem
+	{
+		/** what's wrong, as a sentence */
+		public final String	text;
+		/** the data folder that was likely meant, or null */
+		public final String	suggestion;
+
+		DataFolderProblem(String text, File suggestion)
+		{
+			this.text = text;
+			this.suggestion = suggestion == null ? null : suggestion.getPath();
+		}
+	}
+
+	/**
+	 * Tells a data folder that is one by its layout: &lt;data&gt;/data/tracks/surfaces.xml,
+	 * and &lt;data&gt;/tracks with the tracks. The usual mistakes are a folder too high
+	 * (the one with the data folder in it), too low (the data folder's own data
+	 * folder, or its tracks folder) or a track's folder.
+	 *
+	 * @return what's wrong with the folder as a data folder, or null when it is one
+	 */
+	public static DataFolderProblem dataFolderProblem(File folder)
+	{
+		folder = folder.getAbsoluteFile().toPath().normalize().toFile();
+		if (!folder.exists())
+			return new DataFolderProblem(folder + " doesn't exist.", null);
+		if (!folder.isDirectory())
+			return new DataFolderProblem(folder + " isn't a folder.", null);
+		if (isDataFolder(folder))
+			return null;
+		File inner = new File(folder, "data");
+		if (isDataFolder(inner))
+			return new DataFolderProblem(folder + " isn't the data folder, but " + inner + " in it is.", inner);
+		// its data or tracks folder, or a category's or track's folder in it
+		File up = folder.getParentFile();
+		for (int level = 0; level < 4 && up != null; level++, up = up.getParentFile())
+		{
+			if (isDataFolder(up))
+				return new DataFolderProblem(folder + " is inside the data folder " + up + ".", up);
+		}
+		String surfaces = "data" + sep + "tracks" + sep + "surfaces.xml";
+		if (new File(folder, "tracks").isDirectory() && new File(folder, "data" + sep + "tracks").isDirectory())
+		{
+			return new DataFolderProblem(folder + " has no " + surfaces + ", the default surfaces every track includes. "
+				+ "The game needs it too: restore it from the game's files.", null);
+		}
+		return new DataFolderProblem(folder + " doesn't look like a data folder: it has no " + surfaces + ".", null);
+	}
+
+	/**
 	 * @return the folders a game lists tracks from, as
 	 *         <folder>/<category>/<name>/<name>.xml: the local directory's tracks
 	 *         first, then the data directory's. Empty when neither is set.
