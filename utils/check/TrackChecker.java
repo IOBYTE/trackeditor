@@ -480,6 +480,13 @@ public class TrackChecker
 		double dy = last.endTrackCenter.y - first.startTrackCenter.y;
 		double gap = Math.hypot(dx, dy);
 		double turn = Math.toDegrees(Math.IEEEremainder(last.endTrackAlpha - first.startTrackAlpha, 2 * Math.PI));
+		// a segment with no shape, like a curve with radius 0, leaves no end to measure from
+		if (!Double.isFinite(gap) || !Double.isFinite(turn))
+		{
+			report.append("Can't tell whether the track closes: where segment " + last.getName()
+				+ " ends can't be calculated. Fix the segments reported first.\n", segment(last));
+			return;
+		}
 		if (gap < 0.01 && Math.abs(turn) < 0.01)
 		{
 			Closure closure = Closure.last(trackContext);

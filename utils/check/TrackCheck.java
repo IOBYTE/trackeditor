@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1286,6 +1287,9 @@ public final class TrackCheck
 		// what the editor says in a message box when it opens the track: values the game
 		// reads differently than they are written, keys it reads once. Check has them
 		// with what saving changes, so they're reported here unless those are shown.
+		// Check doesn't hide the ones about a value, so those are left to it below.
+		List<Report> fromReading = new ArrayList<Report>();
+		int beforeCheck = reports.size();
 		if (!show.contains(Kind.SAVING))
 		{
 			for (String warning : loaded.getNumberWarnings())
@@ -1300,7 +1304,7 @@ public final class TrackCheck
 				}
 				Report report = new Report(name, line, null, text, false);
 				report.track = inBaseline;
-				reports.add(report);
+				fromReading.add(report);
 			}
 		}
 
@@ -1326,7 +1330,18 @@ public final class TrackCheck
 			Report report = new Report(name, line, null, text, false);
 			report.track = inBaseline;
 			reports.add(report);
+			// the same message from reading the track: once is enough
+			for (Iterator<Report> read = fromReading.iterator(); read.hasNext();)
+			{
+				if (read.next().key().equals(report.key()))
+				{
+					read.remove();
+					break;
+				}
+			}
 		}
+		// what reading the track found that Check doesn't report, before Check's messages
+		reports.addAll(beforeCheck, fromReading);
 		return result;
 	}
 
