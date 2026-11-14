@@ -1,0 +1,3 @@
+oval/oval.xml: Segments front and back overlap around (50, 0) with their roads only 0 m apart in height (less than 2.5 m), so the road passes through itself
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

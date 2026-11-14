@@ -91,6 +91,13 @@ def write(case, args, xml, name='oval', files=('road.png', 'grass.png', 'curb.pn
 def oval(front=None, turn1=None, back=None, turn2=None):
     return [front or straight('front'), turn1 or curve('turn 1'), back or straight('back'), turn2 or curve('turn 2')]
 
+def figure_eight(climb=0):
+    """front crosses back halfway along both: front east, a left turn of 270 degrees, back south, a right turn of 270
+    degrees back to the start. With a climb, turn 1 climbs it and turn 2 comes down again, so back crosses over front."""
+    heights = lambda start, end: [num('z start', start, 'm'), num('z end', end, 'm')]
+    return [straight('front', extra=heights(0, 0)), curve('turn 1', arc=270, kind='lft', extra=heights(0, climb)),
+        straight('back', extra=heights(climb, climb)), curve('turn 2', arc=270, extra=heights(climb, 0))]
+
 def pit_section(**changes):
     values = {'side': 'right', 'entry': 'turn 2', 'start': 'front', 'end': 'front', 'exit': 'turn 1',
         'length': 10, 'width': 5, 'pit style': 1}
@@ -208,6 +215,16 @@ CASES = [
     ('number-written-as-text', SD, track('oval').replace('<attnum name="lg" unit="m" val="100"/>', '<attstr name="lg" val="100"/>', 1)),
     ('number-not-a-number', SD, track('oval').replace('<attnum name="lg" unit="m" val="100"/>', '<attnum name="lg" unit="m" val="long"/>', 1)),
     ('key-twice', SD, track('oval').replace('<attnum name="lg" unit="m" val="100"/>', '<attnum name="lg" unit="m" val="100"/>\n        <attnum name="lg" unit="m" val="120"/>', 1)),
+
+    # where the track crosses itself
+    ('crossing-flat', SD, track('oval', figure_eight())),
+    ('crossing-climbs-over', SD, track('oval', figure_eight(climb=6))),
+    ('crossing-bridge-torcs', '--game torcs oval/oval.xml', track('oval', figure_eight(climb=6))),
+    ('crossing-too-low-for-a-bridge-torcs', '--game torcs oval/oval.xml', track('oval', figure_eight(climb=3),
+        terrain=num('crossing bridge thickness', 2.5, 'm'))),
+    # a loop of exactly a full turn, flat, between front and turn 1: it ends where it starts
+    ('crossing-full-turn', SD, track('oval', [straight('front'), curve('loop', arc=360, radius=30, kind='lft'), curve('turn 1'),
+        straight('back'), curve('turn 2')])),
 
     # the track menu's pictures
     ('menu-map-missing-torcs', '--game torcs oval/oval.xml', track('oval'), {'omit': ['oval.png']}),

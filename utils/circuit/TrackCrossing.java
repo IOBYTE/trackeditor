@@ -6,18 +6,14 @@
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  */
-package gui.view3d;
+package utils.circuit;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import gui.EditorFrame;
+import utils.check.TrackContext;
 import utils.circuit.GameTrack.Seg;
-import utils.circuit.RoadTexture;
-import utils.circuit.Surface;
-import utils.circuit.TerrainGeneration;
-import utils.circuit.GameTrack;
 
 /**
  * The bridges TORCS's trackgen builds where the track crosses over itself
@@ -26,6 +22,8 @@ import utils.circuit.GameTrack;
  * underside and sides over the lower part, the walls (sockets) beside the lower
  * part with their returns at the portals, and the floors between the walls and
  * the lower part's edges. Each is a list of triangles, as trackgen writes them.
+ * Check also uses it, without a window: where trackgen builds no bridge, and
+ * where the track overlaps itself without room between (see findOverlaps).
  */
 public class TrackCrossing
 {
@@ -57,6 +55,14 @@ public class TrackCrossing
 		public double				undersideZ;
 		public double				minimumUpperZ;
 		public double				minimumBridgeThickness;
+		/**
+		 * for one trackgen builds no bridge for (see unbuilt): whether the upper
+		 * road less the bridge's thickness isn't above the lower part's barriers,
+		 * with the lower part's highest barrier top; else the bridge doesn't fit
+		 * there for another reason
+		 */
+		public boolean				tooLow;
+		public double				lowerBarrierTopZ	= Double.NaN;
 		public final double[]		measuredSocketGap	= new double[2];
 		public final CrossingObject	underside			= new CrossingObject();
 		public final CrossingObject	bridgeRight			= new CrossingObject();
@@ -188,26 +194,31 @@ public class TrackCrossing
 	}
 
 	private final GameTrack		track;
-	private final EditorFrame	editorFrame;
+	private final TrackContext	trackContext;
 	private final double		trackStep;
 	private final double		socketGap, bridgeThickness;
 	/** how many places the centerlines cross, before the height and clearance checks */
 	public int					candidateCount;
 	public final List<Geometry>	crossings	= new ArrayList<Geometry>();
+	/** where the centerlines cross at different heights and trackgen builds no bridge */
+	public final List<Geometry>	unbuilt		= new ArrayList<Geometry>();
+	/** the bridge's thickness trackgen uses (Terrain Generation), in meters */
+	public final double			thickness;
 
 	/**
 	 * BuildTrackCrossingModel, with ReadTrackCrossingSettings: finds the crossings
 	 * and builds each one with enough clearance. Nothing when the settings are
 	 * invalid (trackgen stops then).
 	 */
-	public TrackCrossing(GameTrack track, EditorFrame editorFrame)
+	public TrackCrossing(GameTrack track, TrackContext trackContext)
 	{
 		this.track = track;
-		this.editorFrame = editorFrame;
+		this.trackContext = trackContext;
 		trackStep = track.trackStep;
-		TerrainGeneration terrain = editorFrame.getTrackData().getTerrainGeneration();
+		TerrainGeneration terrain = trackContext.getTrackData().getTerrainGeneration();
 		socketGap = Double.isNaN(terrain.getCrossingBridgeSocketGap()) ? 0.5 : (float) terrain.getCrossingBridgeSocketGap();
 		bridgeThickness = Double.isNaN(terrain.getCrossingBridgeThickness()) ? 1.0 : (float) terrain.getCrossingBridgeThickness();
+		thickness = bridgeThickness;
 		if (!finite(socketGap) || socketGap < 0.0 || !finite(bridgeThickness) || bridgeThickness <= 0.0)
 			return;
 		if (track.segs.isEmpty() || !finite(trackStep) || trackStep <= 0.0)
@@ -238,8 +249,15 @@ public class TrackCrossing
 				continue;
 			boolean firstIsUpper = firstHeight[0] > secondHeight[0];
 			Geometry geometry = new Geometry();
+			// where it is, for one that isn't built too
+			geometry.upperSegmentId = segments.get(firstIsUpper ? candidate.firstIndex : candidate.secondIndex).segment.id;
+			geometry.lowerSegmentId = segments.get(firstIsUpper ? candidate.secondIndex : candidate.firstIndex).segment.id;
+			geometry.crossingX = candidate.x;
+			geometry.crossingY = candidate.y;
 			if (buildCrossingGeometry(segments, trackLength, candidate, firstIsUpper, crossings.size(), geometry))
 				crossings.add(geometry);
+			else
+				unbuilt.add(geometry);
 		}
 	}
 
@@ -1176,7 +1194,7 @@ public class TrackCrossing
 		String defaultTexture = "concrete".equals(material) ? "tr-concrete_nmm.rgb" : "tr-asphalt.rgb";
 		if (size != null)
 			size[0] = CROSSING_TEXTURE_SIZE;
-		Surface surface = RoadTexture.findSurface(editorFrame, material);
+		Surface surface = RoadTexture.findSurface(trackContext, material);
 		if (size != null && surface != null)
 		{
 			size[0] = Double.isNaN(surface.getTextureSize()) ? CROSSING_TEXTURE_SIZE : (float) surface.getTextureSize();
@@ -1205,10 +1223,10 @@ public class TrackCrossing
 		texture.name = resolveSurfaceTexture(fallbackSurface, size);
 		texture.sizeU = size[0];
 		texture.sizeV = texture.sizeU;
-		String surfaceName = editorFrame.getTrackData().getTerrainGeneration().getCrossingBridgeSurface(surfaceIndex);
+		String surfaceName = trackContext.getTrackData().getTerrainGeneration().getCrossingBridgeSurface(surfaceIndex);
 		if (surfaceName == null || surfaceName.isEmpty())
 			surfaceName = TerrainGeneration.DEFAULT_CROSSING_BRIDGE_SURFACES[surfaceIndex];
-		Surface surface = RoadTexture.findSurface(editorFrame, surfaceName);
+		Surface surface = RoadTexture.findSurface(trackContext, surfaceName);
 		String name = surface == null ? null : surface.getTextureName();
 		if (name == null || name.isEmpty())
 			return texture;
@@ -2009,7 +2027,11 @@ public class TrackCrossing
 			double undersideZ = geometry.minimumUpperZ - bridgeThickness;
 			double lowerMaximumZ = Math.max(maximumBarrierTopZ(lowerRightSlice), maximumBarrierTopZ(lowerLeftSlice));
 			if (undersideZ <= lowerMaximumZ + CROSSING_HEIGHT_EPSILON)
+			{
+				geometry.tooLow = true;
+				geometry.lowerBarrierTopZ = lowerMaximumZ;
 				return false;
+			}
 
 			List<BoundaryPoint> bridgeLeftCap = sliceBoundaryLine(socketLeft, rightLeft.secondDistance, leftLeft.secondDistance);
 			List<BoundaryPoint> bridgeRightCap = sliceBoundaryLine(socketRight, leftRight.secondDistance, rightRight.secondDistance);
@@ -2125,5 +2147,199 @@ public class TrackCrossing
 			return true;
 		}
 		return false;
+	}
+
+	/** Where the track overlaps itself without room between its two parts (see findOverlaps) */
+	public static final class Overlap
+	{
+		/** the two segments' names, the one first along the lap first (the game splits a long one, under the same name) */
+		public String	firstSegment, secondSegment;
+		/** the middle of where they overlap, and how close in height their roads come there (m) */
+		public double	x, y, heightDifference;
+		// the overlapping pieces' middles, added up, and how many
+		private double	sumX, sumY;
+		private int		count;
+	}
+
+	/** for findOverlaps: only what samples the track's edges */
+	private TrackCrossing(GameTrack track)
+	{
+		this.track = track;
+		trackContext = null;
+		trackStep = track.trackStep;
+		socketGap = 0.0;
+		bridgeThickness = 0.0;
+		thickness = 0.0;
+	}
+
+	/** a piece of the track about trackStep long: the plan of its outer edges, and its road's heights */
+	private static final class Piece
+	{
+		/** its segment's name: the game's pieces of one have the same */
+		String			segment;
+		/** of its middle, along the lap */
+		double			distance;
+		/** its corners, in order round it: the start's right and left edge, the end's left and right */
+		final double[]	xs	= new double[4], ys = new double[4];
+		double			minX, minY, maxX, maxY;
+		/** the lowest and highest of its road, sides and borders */
+		double			lowZ, highZ;
+		/** from one side's outer edge to the other's */
+		double			across;
+	}
+
+	/**
+	 * Not trackgen's: where two parts of the track, from the outer edge of one
+	 * side's barrier to the other's, overlap in plan with their roads less than
+	 * clearance apart in height, so the road passes through itself. Pieces of the
+	 * track about trackStep long are compared, of different segments (a curve of
+	 * more than a full turn over itself is Check's own), and not the ones less
+	 * than twice the track's width apart along it: they join, or turn away from
+	 * each other.
+	 *
+	 * @param clearance how far apart in height the roads of two parts that
+	 *        overlap in plan have to be (m)
+	 * @return one for each pair of segments that overlap so, where their roads
+	 *         are closest in height
+	 */
+	public static List<Overlap> findOverlaps(GameTrack track, double clearance)
+	{
+		List<Overlap> overlaps = new ArrayList<Overlap>();
+		if (track == null || track.segs.isEmpty() || !finite(track.trackStep) || track.trackStep <= 0.0)
+			return overlaps;
+		TrackCrossing sampler = new TrackCrossing(track);
+		List<Piece> pieces = new ArrayList<Piece>();
+		double lap = 0.0;
+		for (Seg segment : track.segs)
+		{
+			double length = segment.length;
+			if (!finite(length) || length <= CROSSING_PLAN_EPSILON)
+				continue;
+			int steps = Math.max(1, (int) Math.ceil(length / track.trackStep));
+			BoundaryPoint[] previous = null;
+			for (int step = 0; step <= steps; step++)
+			{
+				double toStart = segmentToStart(segment, length * step / steps);
+				BoundaryPoint[] station = { sampler.sampleOuterBoundary(segment, toStart, TR_SIDE_RGT, false),
+					sampler.sampleOuterBoundary(segment, toStart, TR_SIDE_LFT, false) };
+				if (!finite(station[0].x) || !finite(station[0].y) || !finite(station[1].x) || !finite(station[1].y)
+					|| !finite(station[0].minimumSurfaceZ) || !finite(station[0].maximumSurfaceZ))
+				{
+					previous = null;
+					continue;
+				}
+				if (previous != null)
+					pieces.add(piece(String.valueOf(segment.name), lap + length * (step - 0.5) / steps, previous, station));
+				previous = station;
+			}
+			lap += length;
+		}
+
+		// the pairs whose boxes overlap, sweeping across x
+		Collections.sort(pieces, (a, b) -> Double.compare(a.minX, b.minX));
+		java.util.Map<String, Overlap> bySegments = new java.util.LinkedHashMap<String, Overlap>();
+		for (int i = 0; i < pieces.size(); i++)
+		{
+			Piece a = pieces.get(i);
+			for (int j = i + 1; j < pieces.size() && pieces.get(j).minX <= a.maxX; j++)
+			{
+				Piece b = pieces.get(j);
+				if (a.segment.equals(b.segment) || b.minY > a.maxY || b.maxY < a.minY)
+					continue;
+				double along = Math.abs(a.distance - b.distance);
+				along = Math.min(along, lap - along);
+				if (along < 2.0 * Math.max(a.across, b.across))
+					continue;
+				// the upper one's lowest road over the lower one's highest
+				double difference = Math.max(a.lowZ - b.highZ, b.lowZ - a.highZ);
+				if (!(difference < clearance) || !overlap(a, b))
+					continue;
+				Piece first = a.distance <= b.distance ? a : b;
+				Piece second = first == a ? b : a;
+				String key = first.segment + "\n" + second.segment;
+				Overlap overlap = bySegments.get(key);
+				if (overlap == null)
+				{
+					bySegments.put(key, overlap = new Overlap());
+					overlap.firstSegment = first.segment;
+					overlap.secondSegment = second.segment;
+					overlap.heightDifference = DBL_MAX;
+				}
+				overlap.heightDifference = Math.min(overlap.heightDifference, Math.max(0.0, difference));
+				overlap.sumX += (first.minX + first.maxX + second.minX + second.maxX) / 4.0;
+				overlap.sumY += (first.minY + first.maxY + second.minY + second.maxY) / 4.0;
+				overlap.count++;
+			}
+		}
+		for (Overlap overlap : bySegments.values())
+		{
+			overlap.x = overlap.sumX / overlap.count;
+			overlap.y = overlap.sumY / overlap.count;
+			overlaps.add(overlap);
+		}
+		return overlaps;
+	}
+
+	private static Piece piece(String segment, double distance, BoundaryPoint[] start, BoundaryPoint[] end)
+	{
+		Piece piece = new Piece();
+		piece.segment = segment;
+		piece.distance = distance;
+		BoundaryPoint[] corners = { start[0], start[1], end[1], end[0] };
+		piece.minX = piece.minY = DBL_MAX;
+		piece.maxX = piece.maxY = -DBL_MAX;
+		piece.lowZ = DBL_MAX;
+		piece.highZ = -DBL_MAX;
+		for (int k = 0; k < 4; k++)
+		{
+			piece.xs[k] = corners[k].x;
+			piece.ys[k] = corners[k].y;
+			piece.minX = Math.min(piece.minX, corners[k].x);
+			piece.minY = Math.min(piece.minY, corners[k].y);
+			piece.maxX = Math.max(piece.maxX, corners[k].x);
+			piece.maxY = Math.max(piece.maxY, corners[k].y);
+			piece.lowZ = Math.min(piece.lowZ, corners[k].minimumSurfaceZ);
+			piece.highZ = Math.max(piece.highZ, corners[k].maximumSurfaceZ);
+		}
+		piece.across = (Math.sqrt(distanceSquared(start[0].x, start[0].y, start[1].x, start[1].y))
+			+ Math.sqrt(distanceSquared(end[0].x, end[0].y, end[1].x, end[1].y))) / 2.0;
+		return piece;
+	}
+
+	// how far two pieces have to reach into each other to overlap, not only touch (m)
+	private static final double	OVERLAP_DEPTH	= 0.01;
+
+	/** @return whether the two pieces overlap in plan: no edge of either separates them (they are about convex) */
+	private static boolean overlap(Piece a, Piece b)
+	{
+		for (Piece piece : new Piece[] { a, b })
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				double edgeX = piece.xs[(k + 1) % 4] - piece.xs[k];
+				double edgeY = piece.ys[(k + 1) % 4] - piece.ys[k];
+				double length = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
+				if (length <= CROSSING_PLAN_EPSILON)
+					continue;
+				double normalX = -edgeY / length, normalY = edgeX / length;
+				double[] first = project(a, normalX, normalY), second = project(b, normalX, normalY);
+				if (Math.min(first[1], second[1]) - Math.max(first[0], second[0]) <= OVERLAP_DEPTH)
+					return false;
+			}
+		}
+		return true;
+	}
+
+	/** @return the lowest and highest of the piece's corners along the direction */
+	private static double[] project(Piece piece, double x, double y)
+	{
+		double low = DBL_MAX, high = -DBL_MAX;
+		for (int k = 0; k < 4; k++)
+		{
+			double value = piece.xs[k] * x + piece.ys[k] * y;
+			low = Math.min(low, value);
+			high = Math.max(high, value);
+		}
+		return new double[] { low, high };
 	}
 }

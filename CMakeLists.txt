@@ -66,7 +66,6 @@ set(_JAVA_SRC
       gui/view3d/SceneTorcs.java
       gui/view3d/Track3DRenderer.java
       gui/view3d/Track3DWindow.java
-      gui/view3d/TrackCrossing.java
       gui/view3d/TrackScene.java
       miscel/EPMath.java
       miscel/TCPopupEventQueue.java
@@ -143,6 +142,7 @@ set(_JAVA_SRC
       utils/circuit/Straight.java
       utils/circuit/Surface.java
       utils/circuit/TerrainGeneration.java
+      utils/circuit/TrackCrossing.java
       utils/circuit/TrackLight.java
       utils/circuit/TrackObject.java
       utils/circuit/TurnMarks.java

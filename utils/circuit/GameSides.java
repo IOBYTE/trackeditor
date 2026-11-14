@@ -199,11 +199,19 @@ public final class GameSides
 		public final String	field;
 		/** what the game does, starting with the field's name */
 		public final String	text;
+		/** whether the game folds the side over, past the curve's center */
+		public final boolean	folds;
 
 		Problem(String field, String text)
 		{
+			this(field, text, false);
+		}
+
+		Problem(String field, String text, boolean folds)
+		{
 			this.field = field;
 			this.text = text;
+			this.folds = folds;
 		}
 	}
 
@@ -265,7 +273,7 @@ public final class GameSides
 			// the same width at both ends shows on the one the segment sets
 			SegmentSide own = right ? segment.getRight() : segment.getLeft();
 			String field = sides[0] != sides[1] ? ends[i] : !Double.isNaN(own.getSideStartWidth()) || Double.isNaN(own.getSideEndWidth()) ? "start" : "end";
-			problems.add(new Problem(sideReaches ? "side " + field + " width" : "barrier width", text));
+			problems.add(new Problem(sideReaches ? "side " + field + " width" : "barrier width", text, true));
 		}
 	}
 

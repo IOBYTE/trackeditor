@@ -74,6 +74,10 @@ public class TrackChecker
 	private Boolean				flatShaded		= false;
 	private Set<String> 		textures 		= new HashSet<String>();
 	private String				dataDirectory	= null;
+	// the segments whose own message says the road or its sides fold over or pass
+	// through themselves: an overlap of one, or of the two next to it, is the same
+	// problem (see checkCrossings)
+	private final Set<String>	foldedSegments	= new HashSet<String>();
 	private TrackData			trackData		= null;
 	private Map<String,Boolean>	imageHasAlpha	= new HashMap<String, Boolean>();
 
@@ -115,6 +119,7 @@ public class TrackChecker
 		check(properties("Pit"), this::checkPits);
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
+		check(null, this::checkCrossings);
 		check(properties("General"), this::checkHeader);
 		check(properties("Georeference"), this::checkGeoreference);
 		// lines of the file: what saving drops isn't in the editor to show
@@ -407,11 +412,17 @@ public class TrackChecker
 		// (the segment dialog doesn't allow it)
 		double half = trackData.getMainTrack().getValidWidth() / 2;
 		if (radius > 0 && radius < half)
+		{
 			report.append(name + "radius " + format(radius) + " m is less than half the track's width (" + format(half)
 				+ " m): the inside edge of the road crosses the curve's center\n");
+			foldedSegments.add(curve.getName());
+		}
 		if (end > 0 && end < half && end != radius)
+		{
 			report.append(name + "end radius " + format(end) + " m is less than half the track's width (" + format(half)
 				+ " m): the inside edge of the road crosses the curve's center\n");
+			foldedSegments.add(curve.getName());
+		}
 
 		double arc = curve.getArcDeg();
 		if (Double.isNaN(arc))
@@ -425,8 +436,12 @@ public class TrackChecker
 			checkFullTurns(curve, name);
 	}
 
-	/** the least a curve of more than a full turn has to climb or drop each turn to clear itself (m): a car's height with room to spare, less than a parking garage's floors */
-	private static final double	MIN_RISE_PER_TURN	= 2.5;
+	/**
+	 * the least two parts of the road that overlap in plan have to be apart in
+	 * height, like a curve of more than a full turn each turn (m): a car's height
+	 * with room to spare, less than a parking garage's floors
+	 */
+	private static final double	MIN_CLEARANCE	= 2.5;
 
 	/**
 	 * More than a full turn is fine when the curve climbs or drops enough each turn
@@ -452,10 +467,107 @@ public class TrackChecker
 		double rise = (curve.getCalculatedHeightEndLeft() + curve.getCalculatedHeightEndRight()
 			- curve.getCalculatedHeightStartLeft() - curve.getCalculatedHeightStartRight()) / 2;
 		double perTurn = Math.abs(rise) / turns;
-		if (!(perTurn >= MIN_RISE_PER_TURN))
+		if (!(perTurn >= MIN_CLEARANCE))
+		{
 			report.append(name + "arc is " + format(curve.getArcDeg()) + " deg, more than a full turn (360 deg), and the curve's height changes only "
-				+ (Double.isNaN(perTurn) ? "0" : format(perTurn)) + " m per turn (less than " + format(MIN_RISE_PER_TURN)
+				+ (Double.isNaN(perTurn) ? "0" : format(perTurn)) + " m per turn (less than " + format(MIN_CLEARANCE)
 				+ " m), so the road passes through itself\n");
+			foldedSegments.add(curve.getName());
+		}
+	}
+
+	/**
+	 * Where the track passes over or through itself, in different segments: two
+	 * parts that overlap in plan, from one side's barrier to the other's, with
+	 * their roads less than MIN_CLEARANCE apart in height (a figure eight without
+	 * a climb, or a track that runs back over itself), as the game builds them
+	 * (see TrackCrossing.findOverlaps). A curve of more than a full turn over
+	 * itself is checkFullTurns'. TORCS's trackgen builds a bridge where the
+	 * centerlines cross at different heights; where it can't, the upper road has
+	 * nothing under it.
+	 */
+	private void checkCrossings()
+	{
+		utils.circuit.GameTrack track;
+		java.util.List<utils.circuit.TrackCrossing.Overlap> overlaps;
+		try
+		{
+			track = utils.circuit.GameTrack.build(trackContext);
+			overlaps = utils.circuit.TrackCrossing.findOverlaps(track, MIN_CLEARANCE);
+		}
+		catch (RuntimeException e)
+		{
+			// a track the game can't build either: the segments' own messages say why
+			return;
+		}
+		if (track == null)
+			return;
+		// the segments next to each folded one: the two either side of a curve that
+		// folds over overlap through it
+		java.util.Set<String> besideFolded = new java.util.HashSet<String>();
+		SegmentVector segments = trackData.getSegments();
+		for (int i = 0; i < segments.size(); i++)
+		{
+			if (!foldedSegments.contains(segments.get(i).getName()))
+				continue;
+			besideFolded.add(pair(segments.get((i + segments.size() - 1) % segments.size()).getName(),
+				segments.get((i + 1) % segments.size()).getName()));
+		}
+		java.util.Set<String> reported = new java.util.HashSet<String>();
+		for (utils.circuit.TrackCrossing.Overlap overlap : overlaps)
+		{
+			String first = overlap.firstSegment, second = overlap.secondSegment;
+			reported.add(pair(first, second));
+			// already reported as folding over or passing through itself
+			if (foldedSegments.contains(first) || foldedSegments.contains(second) || besideFolded.contains(pair(first, second)))
+				continue;
+			report.append("Segments " + first + " and " + second + " overlap around (" + format(overlap.x) + ", " + format(overlap.y)
+				+ ") with their roads only " + format(overlap.heightDifference) + " m apart in height (less than " + format(MIN_CLEARANCE)
+				+ " m), so the road passes through itself\n", segment(second));
+		}
+		if (trackContext.getGameType() != GameType.TORCS)
+			return;
+		utils.circuit.TrackCrossing crossing;
+		try
+		{
+			crossing = new utils.circuit.TrackCrossing(track, trackContext);
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		for (utils.circuit.TrackCrossing.Geometry geometry : crossing.unbuilt)
+		{
+			String upper = segmentName(track, geometry.upperSegmentId), lower = segmentName(track, geometry.lowerSegmentId);
+			// one already reported: too close in height for any bridge
+			if (!reported.add(pair(upper, lower)))
+				continue;
+			String where = "TORCS's trackgen builds no bridge where segment " + upper + " crosses over segment " + lower + " around ("
+				+ format(geometry.crossingX) + ", " + format(geometry.crossingY) + "), so the upper road has nothing under it";
+			if (geometry.tooLow)
+				report.append(where + ". The upper road is only " + format(geometry.minimumUpperZ - geometry.lowerBarrierTopZ)
+					+ " m above the lower one's barriers, and the bridge is " + format(crossing.thickness)
+					+ " m thick (Terrain Generation): raise the upper road or make the bridge thinner.\n", segment(upper));
+			else
+				report.append(where + ": the roads cross too close to parallel, or too near another part of the track, for trackgen to fit one\n", segment(upper));
+		}
+	}
+
+	/** @return the name of the game's segment with the id */
+	private static String segmentName(utils.circuit.GameTrack track, int id)
+	{
+		for (utils.circuit.GameTrack.Seg segment : track.segs)
+		{
+			if (segment.id == id)
+				return segment.name;
+		}
+		return String.valueOf(id);
+	}
+
+	/** @return the two segments' names, the same either way round */
+	private static String pair(String first, String second)
+	{
+		return first.compareTo(second) <= 0 ? first + "\n" + second : second + "\n" + first;
 	}
 
 	/**
@@ -575,7 +687,11 @@ public class TrackChecker
 	{
 		String prefix = "Segment " + segment.getName() + " " + name;
 		for (GameSides.Problem problem : GameSides.problems(segment, previousSegment, right, trackContext))
+		{
 			report.append(prefix + " " + sentences(problem.text) + "\n");
+			if (problem.folds)
+				foldedSegments.add(segment.getName());
+		}
 	}
 
 	/**

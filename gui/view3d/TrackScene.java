@@ -33,6 +33,7 @@ import utils.ac3d.Ac3dSurface;
 import utils.circuit.MainTrack;
 import utils.circuit.RoadTexture;
 import utils.circuit.Surface;
+import utils.circuit.TrackCrossing;
 import utils.circuit.TrackLight;
 import utils.circuit.TurnMarks;
 import utils.circuit.GameTrack;

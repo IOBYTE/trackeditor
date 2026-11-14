@@ -1,0 +1,3 @@
+oval/oval.xml: TORCS's trackgen builds no bridge where segment back crosses over segment front around (50, 0), so the upper road has nothing under it. The upper road is only 2 m above the lower one's barriers, and the bridge is 2.5 m thick (Terrain Generation): raise the upper road or make the bridge thinner.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

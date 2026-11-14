@@ -1,0 +1,4 @@
+oval/oval.xml: Segments front and loop overlap around (83.22, 2.64) with their roads only 0 m apart in height (less than 2.5 m), so the road passes through itself
+oval/oval.xml: Segments loop and turn 1 overlap around (113.63, 0.65) with their roads only 0 m apart in height (less than 2.5 m), so the road passes through itself
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1
