@@ -209,6 +209,12 @@ CASES = [
     ('number-not-a-number', SD, track('oval').replace('<attnum name="lg" unit="m" val="100"/>', '<attnum name="lg" unit="m" val="long"/>', 1)),
     ('key-twice', SD, track('oval').replace('<attnum name="lg" unit="m" val="100"/>', '<attnum name="lg" unit="m" val="100"/>\n        <attnum name="lg" unit="m" val="120"/>', 1)),
 
+    # the track menu's pictures
+    ('menu-map-missing-torcs', '--game torcs oval/oval.xml', track('oval'), {'omit': ['oval.png']}),
+    ('menu-map-not-an-image-torcs', '--game torcs oval/oval.xml', track('oval'), {'omit': ['oval.png'], 'add': {'oval.png': 'not a png\n'}}),
+    ('menu-pictures-missing', SD, track('oval'), {'omit': ['oval.png', 'outline.png']}),
+    ('menu-preview-jpg', SD, track('oval'), {'omit': ['oval.png'], 'add': {'oval.jpg': 'not a jpg\n'}}),
+
     # the checker's options
     ('option-unknown', '--game sd --bogus oval/oval.xml', track('oval')),
     ('option-game-unknown', '--game monaco oval/oval.xml', track('oval')),
@@ -228,7 +234,9 @@ if __name__ == '__main__':
         options = entry[3] if len(entry) > 3 else {}
         assert case not in names, case
         names.add(case)
-        files = [f for f in ('road.png', 'grass.png', 'curb.png', 'wall.png') if f not in options.get('omit', ())]
+        # the textures, and the track menu's pictures: TORCS's map oval.png (also Speed Dreams' and CSR's
+        # preview) and Speed Dreams' and CSR's outline.png
+        files = [f for f in ('road.png', 'grass.png', 'curb.png', 'wall.png', 'oval.png', 'outline.png') if f not in options.get('omit', ())]
         write(case, args, xml, files=files, ac=options.get('ac', True), where=options.get('where', ''),
             out=OUT + '-waiting' if options.get('waiting') else None)
         for file in options.get('green', ()):

@@ -19,6 +19,7 @@ set(_JAVA_SRC
       gui/NewProjectDialog.java
       gui/PreferencesDialog.java
       gui/TrackgenPanel.java
+      gui/TrackMapImage.java
       gui/TrackObjectDialog.java
       gui/properties/CameraProperties.java
       gui/properties/EnvMapProperties.java

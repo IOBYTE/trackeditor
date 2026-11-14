@@ -1,0 +1,3 @@
+oval/oval.xml: Menu preview oval.jpg can't be read: it isn't a valid jpg image, so Speed Dreams' track menu shows a placeholder picture
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

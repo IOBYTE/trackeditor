@@ -111,6 +111,7 @@ public class TrackChecker
 			check(properties("Lights"), this::checkTrackLights);
 		check(properties("Graphic"), this::checkGraphic);
 		check(properties("Graphic 3D"), this::checkGraphic3D);
+		check(null, this::checkMenuImages);
 		check(properties("Pit"), this::checkPits);
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
@@ -1446,6 +1447,63 @@ public class TrackChecker
 		String image = trackData.getGraphic().getBackgroundImage();
 		if (hasText(image))
 			checkTrackTexture("Graphic Background Image ", image);
+	}
+
+	/**
+	 * The pictures the game's track menu shows, from the track's folder, named
+	 * after the folder. TORCS shows the map &lt;name&gt;.png (a PNG), and nothing
+	 * without it. Speed Dreams and CSR show outline.png, and a preview,
+	 * &lt;name&gt;.jpg or else &lt;name&gt;.png; without them they show their own
+	 * placeholders. None is needed to race on the track.
+	 */
+	private void checkMenuImages()
+	{
+		String path = Properties.getInstance().getPath();
+		if (path == null || path.isEmpty() || !new File(path).isDirectory())
+			return;
+		File folder = new File(path);
+		String name = folder.getAbsoluteFile().getName();
+		// the game's name as a possessive: Speed Dreams', TORCS's
+		String gameName = trackContext.getGameType().getName();
+		String game = gameName + (gameName.endsWith("s") ? "'" : "'s");
+		if (trackContext.getGameType() == GameType.TORCS)
+		{
+			checkMenuImage(new File(folder, name + ".png"), "Menu map", game + " track menu shows no map of the track");
+			return;
+		}
+		checkMenuImage(new File(folder, "outline.png"), "Menu outline", game + " track menu shows a placeholder instead of the track's outline");
+		File jpg = new File(folder, name + ".jpg");
+		File png = new File(folder, name + ".png");
+		if (jpg.exists())
+			checkMenuImage(jpg, "Menu preview", game + " track menu shows a placeholder picture");
+		else if (png.exists())
+			checkMenuImage(png, "Menu preview", game + " track menu shows a placeholder picture");
+		else
+			report.append("Menu preview " + jpg.getName() + " or " + png.getName() + " isn't in the track's folder, so " + game
+				+ " track menu shows a placeholder picture\n");
+	}
+
+	/** Reports a picture of the track menu that isn't in the track's folder or can't be read */
+	private void checkMenuImage(File file, String what, String without)
+	{
+		if (!file.isFile())
+		{
+			report.append(what + " " + file.getName() + " isn't in the track's folder, so " + without + "\n");
+			return;
+		}
+		BufferedImage image = null;
+		try
+		{
+			image = ImageIO.read(file);
+		}
+		catch (Exception e)
+		{
+		}
+		if (image == null)
+		{
+			String type = file.getName().endsWith(".jpg") ? "jpg" : "png";
+			report.append(what + " " + file.getName() + " can't be read: it isn't a valid " + type + " image, so " + without + "\n");
+		}
 	}
 
 	/** The AC3D files the game shows the track with: the track's own, and CSR's for each kind of object */

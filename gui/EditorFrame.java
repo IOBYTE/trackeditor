@@ -266,6 +266,8 @@ public class EditorFrame extends JFrame implements TrackContext
 	private JMenuItem			exportAC3E3MenuItem					= null;
 	private JMenuItem			exportAC3E4MenuItem					= null;
 	private JMenuItem			exportAC3RacelineMenuItem			= null;
+	// TORCS's map or Speed Dreams' and CSR's outline for the game's track menu
+	private final TrackMapAction	trackMapAction						= new TrackMapAction();
 	private JMenuItem			propertiesMenuItem					= null;
 
 	private Project				prj;
@@ -2486,6 +2488,7 @@ public class EditorFrame extends JFrame implements TrackContext
 			exportMenu.add(getExportACCWithRacelineMenuItem());
 			exportMenu.addSeparator();
 			exportMenu.add(getExportMenuItem());
+			exportMenu.addSeparator();
 			exportMenu.add(getExportAC3MenuItem());
 			exportMenu.add(getExportAC3E0MenuItem());
 			exportMenu.add(getExportAC3E1MenuItem());
@@ -2493,6 +2496,8 @@ public class EditorFrame extends JFrame implements TrackContext
 			exportMenu.add(getExportAC3E3MenuItem());
 			exportMenu.add(getExportAC3E4MenuItem());
 			exportMenu.add(getExportAC3RacelineMenuItem());
+			exportMenu.addSeparator();
+			exportMenu.add(new JMenuItem(trackMapAction));
 			updateExportMenu();
 		}
 		return exportMenu;
@@ -2545,6 +2550,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		accSeparator.setVisible(acc);
 		getExportACCMenuItem().setVisible(acc);
 		getExportACCWithRacelineMenuItem().setVisible(acc);
+		trackMapAction.update();
 	}
 
 	private JMenuItem getExportAllACCMenuItem()
@@ -4565,6 +4571,80 @@ public class EditorFrame extends JFrame implements TrackContext
 			exportAc3d(" -r", false);
 		}
 	}
+	/**
+	 * Saves the picture of the track the game's track menu shows in the track's
+	 * folder: TORCS's map, &lt;name&gt;.png, or Speed Dreams' and CSR's outline,
+	 * outline.png (see TrackMapImage).
+	 */
+	private class TrackMapAction extends AbstractAction
+	{
+		private static final long	serialVersionUID	= 1L;
+
+		TrackMapAction()
+		{
+			update();
+		}
+
+		/** @return true for TORCS's map, false for Speed Dreams' and CSR's outline */
+		private boolean map()
+		{
+			return gameType == GameType.TORCS;
+		}
+
+		/** Names it for the game */
+		void update()
+		{
+			// before the editor's game is set
+			if (gameType == null)
+				return;
+			putValue(NAME, map() ? "Track Map" : "Track Outline");
+			putValue(SHORT_DESCRIPTION, map() ? "Save the map TORCS's track menu shows, <name>.png, in the track's folder"
+				: "Save the outline " + gameType.getName() + (gameType.getName().endsWith("s") ? "'" : "'s") + " track menu shows, outline.png, in the track's folder");
+		}
+
+		public void actionPerformed(ActionEvent e)
+		{
+			String title = map() ? "Track Map" : "Track Outline";
+			if (trackData == null)
+			{
+				message(title, "Nothing to export");
+				return;
+			}
+			String path = Properties.getInstance().getPath();
+			if (path == null || path.isEmpty() || !new File(path).isDirectory())
+			{
+				message(title, "Save the track first: the picture goes in the track's folder.");
+				return;
+			}
+			File folder = new File(path).getAbsoluteFile();
+			File file = new File(folder, map() ? folder.getName() + ".png" : "outline.png");
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(EditorFrame.this);
+			java.awt.image.BufferedImage image = track == null ? null : TrackMapImage.render(track, map());
+			if (image == null)
+			{
+				message(title, "The track's shape can't be drawn: Check shows what's wrong with its segments.");
+				return;
+			}
+			if (file.exists() && JOptionPane.showConfirmDialog(EditorFrame.this, file.getName() + " is already in the track's folder. Replace it?",
+				title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
+				return;
+			try
+			{
+				utils.AtomicFile.write(file.toPath(), temp ->
+				{
+					if (!javax.imageio.ImageIO.write(image, "png", temp))
+						throw new IOException("no PNG writer");
+				});
+			}
+			catch (IOException ex)
+			{
+				message(title, "Couldn't save " + file.getName() + ": " + utils.FileProblem.reason(ex, file.toPath(), true));
+				return;
+			}
+			message(title, "Saved " + file.getPath());
+		}
+	}
+
 	public class PropertiesAction extends AbstractAction
 	{
 		public PropertiesAction(String text, ImageIcon icon, String desc, Integer mnemonic)

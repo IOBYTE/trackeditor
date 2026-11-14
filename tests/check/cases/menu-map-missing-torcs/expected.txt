@@ -1,0 +1,3 @@
+oval/oval.xml: Menu map oval.png isn't in the track's folder, so TORCS's track menu shows no map of the track
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

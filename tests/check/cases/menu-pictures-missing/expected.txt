@@ -1,0 +1,4 @@
+oval/oval.xml: Menu outline outline.png isn't in the track's folder, so Speed Dreams' track menu shows a placeholder instead of the track's outline
+oval/oval.xml: Menu preview oval.jpg or oval.png isn't in the track's folder, so Speed Dreams' track menu shows a placeholder picture
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1
