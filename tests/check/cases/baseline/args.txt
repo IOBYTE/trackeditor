@@ -1,0 +1,1 @@
+--game sd --baseline known.txt oval/oval.xml

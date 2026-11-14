@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<params name="oval" type="param" mode="mw">
+  <section name="Header">
+    <attstr name="name" val="oval"/>
+    <attstr name="category" val="road"/>
+    <attnum name="version" val="4"/>
+  </section>
+</params>

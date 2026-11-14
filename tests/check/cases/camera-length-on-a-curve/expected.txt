@@ -1,0 +1,3 @@
+oval/oval.xml: Camera cam 1: To Start 40 m is a length, but turn 1 is a curve. The game reads it as 40 radians (2291.83 deg) around the curve, so the camera ends up far from where it should be.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,3 @@
+oval/oval.xml: Segment name "front/a" contains a slash (/). The game reads it as a section nested inside another, so the segment is lost.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,3 @@
+oval/oval.xml: Segment name "turn" is used 2 times. The game can't load a track file that has two sections with the same name (Main Track/Track Segments/turn). Rename all but one.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

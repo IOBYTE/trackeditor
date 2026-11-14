@@ -1,0 +1,3 @@
+Unknown option --bogus
+Try java -jar trackeditor.jar check --help for the options.
+exit 2

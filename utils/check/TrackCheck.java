@@ -503,9 +503,12 @@ public final class TrackCheck
 		if (game.hasLocalTracks())
 		{
 			String local = folder("--local", localOption, preferences, editorGame, 3, "Local folder");
-			localDirectory = TrackFolders.localDirectory(game, local);
+			// not the standard one with --no-prefs: it is in the user's home folder, so the
+			// result would depend on the computer, not only the command line
+			localDirectory = local == null && noPrefs ? null : TrackFolders.localDirectory(game, local);
 			if (local == null)
-				settings.add("Local folder: " + (localDirectory == null ? "none" : localDirectory + " (the standard one)"));
+				settings.add("Local folder: " + (noPrefs ? "none (--no-prefs doesn't use the standard one: give --local)"
+					: localDirectory == null ? "none" : localDirectory + " (the standard one)"));
 		}
 		else if (localOption != null)
 		{
@@ -1461,10 +1464,12 @@ public final class TrackCheck
 			+ "  --data DIR           the game's data folder, which has its tracks folder, for" + n
 			+ "                       tracks elsewhere: like the game, a track in a data folder's" + n
 			+ "                       tracks folder uses that data folder" + n
-			+ "  --local DIR          Speed Dreams' local folder (default: also its standard one)" + n
+			+ "  --local DIR          Speed Dreams' local folder (default: also its standard one," + n
+			+ "                       but not with --no-prefs)" + n
 			+ "  --bin DIR            where trackgen is (default: also the PATH, or TORCS' data folder)" + n
-			+ "  --no-prefs           don't use the editor's preferences: the result depends only on" + n
-			+ "                       the command line (use this in CI)" + n
+			+ "  --no-prefs           don't use the editor's preferences or Speed Dreams' standard" + n
+			+ "                       local folder: the result depends only on the command line" + n
+			+ "                       (use this in CI)" + n
 			+ n
 			+ "Checks:" + n
 			+ "  --trackgen           run trackgen to check the track closes, as Calc does" + n

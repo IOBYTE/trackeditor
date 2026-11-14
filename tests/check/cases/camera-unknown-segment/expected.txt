@@ -1,0 +1,3 @@
+oval/oval.xml: Camera cam 1: segment "hairpin" isn't a segment, so the game puts the camera on the first segment
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

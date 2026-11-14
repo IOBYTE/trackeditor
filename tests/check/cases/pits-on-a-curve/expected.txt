@@ -1,0 +1,4 @@
+oval/oval.xml: Pits on a curve (turn 1: pits 1-16): the game reads a pit's position along a curve as an angle, so it draws the buildings, doors, low walls, or indicators in the wrong place (pit stops still work)
+oval/oval.xml: The last pit ends 2.92 m into back (100.00 m long), not at the end of a segment, past the end of the pit end turn 1, so the pit lane doesn't reach the last pits: Fit Segments in the Pit properties fits the segments to the pits (Apply and Ok also offer this)
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

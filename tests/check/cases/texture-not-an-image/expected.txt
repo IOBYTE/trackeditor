@@ -1,0 +1,4 @@
+oval/oval.xml: Object file tree.ac : texture broken.png can't be read: it isn't a valid png image
+oval/oval.xml: Object file tree.ac has a flat-shaded surface
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

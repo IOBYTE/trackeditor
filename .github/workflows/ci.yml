@@ -1,0 +1,29 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        java: ['8', '21']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - name: Build
+        shell: bash
+        run: cmake -S . -B build && cmake --build build
+      - name: Checker tests
+        shell: bash
+        run: bash tests/check/run.sh trackeditor.jar
+      - name: Keep the output of failed cases
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checker-output-${{ matrix.os }}-java${{ matrix.java }}
+          path: tests/check/cases/*/actual.txt

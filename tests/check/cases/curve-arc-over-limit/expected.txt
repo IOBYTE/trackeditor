@@ -1,0 +1,4 @@
+oval/oval.xml: Segment turn 1: arc is 1980 deg, more than a full turn (360 deg), and the curve's height changes only 0 m per turn (less than 2.5 m), so the road passes through itself
+oval/oval.xml: Segment turn 1: arc 1980 deg is more than the editor allows (1800 deg, five turns)
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

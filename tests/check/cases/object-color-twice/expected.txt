@@ -1,0 +1,3 @@
+oval/oval.xml: Track object 1 tree has the same color as track object 2 bush
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

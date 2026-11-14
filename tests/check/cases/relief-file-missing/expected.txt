@@ -1,0 +1,4 @@
+oval/oval.xml: error: Relief File: oval-relief.ac : the file doesn't exist
+oval/oval.xml: Terrain Generation relief file oval-relief.ac not found
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,6 @@
+::warning file=oval/oval.xml,title=Track check::No cameras. The game's TV views will show the cars from 120 m above the track.
+::warning file=oval/oval.xml,title=Track check::Can't tell whether the track closes: where segment turn 2 ends can't be calculated. Fix the segments reported first.
+::warning file=oval/oval.xml,title=Track check::Segment turn 1: radius is 0, so the curve turns in place
+::warning file=oval/oval.xml,title=Track check::Segment turn 1 Right side and its wall barrier reach 9.75 m in from the middle of the track, past the curve's center (radius 0.00 m), so the game folds the side and its barrier over: make the track narrower and its barrier style to no barrier (a barrier at the center has no length), or set the radius to 9.75 m or more
+1 track checked: 4 messages (closure not checked: add --trackgen)
+exit 1

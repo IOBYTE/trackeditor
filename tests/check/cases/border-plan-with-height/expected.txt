@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front Left border style is plan, but a height of 0.2 is set. The game ignores it and uses 0. Set the border style to curb or wall, or remove the height.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

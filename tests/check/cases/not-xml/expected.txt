@@ -1,0 +1,3 @@
+oval/oval.xml: error: Couldn't read the track: line 1: Content is not allowed in prolog.
+0 tracks checked, 1 track couldn't be read or checked: no messages (closure not checked: add --trackgen)
+exit 2

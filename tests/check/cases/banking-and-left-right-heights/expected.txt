@@ -1,0 +1,5 @@
+oval/oval.xml: Segment front : sets a banking start angle, and its left and right start heights also define a banking
+oval/oval.xml: Segment front : Banking start (5.0) doesn't match the banking from the heights (5.710593137499643)
+oval/oval.xml: Segment turn 2 : end height 0 (calculated, because none is set) doesn't match the start of the first segment front left 0.94 right 0.06
+1 track checked: 3 messages (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,8 @@
+# Bash and the checker's tests read these files as they are, so they keep LF
+# line endings everywhere, also on Windows runners (core.autocrlf true)
+*.sh text eol=lf
+tests/** text eol=lf
+# not text
+*.png binary
+*.gif binary
+*.jar binary

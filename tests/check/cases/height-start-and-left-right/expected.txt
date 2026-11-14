@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front : sets Height Start together with Height Start Left or Right. Use one or the other.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

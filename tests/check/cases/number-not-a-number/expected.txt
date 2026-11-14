@@ -1,0 +1,5 @@
+oval/oval.xml: Track doesn't close: segment turn 2 ends 100.00 m from the start of segment front (100.00 m behind)
+oval/oval.xml: Segment front: length 0: the straight has no length
+oval/oval.xml:107: "lg" has the value "long", which the game reads as 0. It is saved as 0.
+1 track checked: 3 messages (closure not checked: add --trackgen)
+exit 1

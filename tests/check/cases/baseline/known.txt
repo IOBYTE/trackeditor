@@ -1,0 +1,2 @@
+# Track editor check baseline 2: one message per line, the track (the category its file has, its folder and file), a tab, then the message
+road/oval/oval.xml	No cameras. The game's TV views will show the cars from 120 m above the track.

@@ -1,0 +1,7 @@
+oval/oval.xml: Main Track surface road texture /somewhere/else/road.png is a full path, so the track only works on this computer, if it works at all. The game looks for it in the track's folder, data/textures, data/img and the data folder. Put the file there and use its name.
+oval/oval.xml: Segment front Track surface road texture /somewhere/else/road.png is a full path, so the track only works on this computer, if it works at all. The game looks for it in the track's folder, data/textures, data/img and the data folder. Put the file there and use its name.
+oval/oval.xml: Segment turn 1 Track surface road texture /somewhere/else/road.png is a full path, so the track only works on this computer, if it works at all. The game looks for it in the track's folder, data/textures, data/img and the data folder. Put the file there and use its name.
+oval/oval.xml: Segment back Track surface road texture /somewhere/else/road.png is a full path, so the track only works on this computer, if it works at all. The game looks for it in the track's folder, data/textures, data/img and the data folder. Put the file there and use its name.
+oval/oval.xml: Segment turn 2 Track surface road texture /somewhere/else/road.png is a full path, so the track only works on this computer, if it works at all. The game looks for it in the track's folder, data/textures, data/img and the data folder. Put the file there and use its name.
+1 track checked: 5 messages (closure not checked: add --trackgen)
+exit 1

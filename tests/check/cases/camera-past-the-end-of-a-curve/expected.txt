@@ -1,0 +1,3 @@
+oval/oval.xml: Camera cam 1: To Start 270 deg is past the end of curve turn 1 (180 deg). The game places the camera 90 deg past it, on the same circle.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front Right barrier style is fence, but a width of 0.5 is set. The game ignores it and uses 0. Set the barrier style to wall, or remove the width.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

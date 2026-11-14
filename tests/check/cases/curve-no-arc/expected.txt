@@ -1,0 +1,4 @@
+oval/oval.xml: Track doesn't close: segment turn 2 ends 223.61 m from the start of segment front (200.00 m ahead, 100.00 m to the right), heading 180.00 degrees to the right of it
+oval/oval.xml: Segment turn 1: arc is missing. The game reads it as 0, so the curve has no length and doesn't turn.
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

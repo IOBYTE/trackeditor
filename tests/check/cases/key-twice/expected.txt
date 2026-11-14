@@ -1,0 +1,3 @@
+oval/oval.xml:108: "lg" is in its section more than once: like the game, the first one is used, so this one isn't saved.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

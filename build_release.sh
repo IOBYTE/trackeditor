@@ -5,6 +5,5 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
-cd bin
-cp csr-trackeditor-fat.jar ../../trackeditor.jar
-cd ../..
+cd ..
+bash tests/check/run.sh trackeditor.jar

@@ -1,2 +1,3 @@
 *.class
 build
+tests/check/cases/*/actual.txt

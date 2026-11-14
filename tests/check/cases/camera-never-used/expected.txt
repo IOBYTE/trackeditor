@@ -1,0 +1,3 @@
+oval/oval.xml: Camera cam 1 is never used, because cameras later in the list cover its entire range (front to back)
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

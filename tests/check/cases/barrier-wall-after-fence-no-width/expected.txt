@@ -1,0 +1,3 @@
+oval/oval.xml: Segment turn 1 Right barrier style changed from fence to wall, but no new width is set (the game uses 0.0)
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

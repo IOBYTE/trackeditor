@@ -1,0 +1,4 @@
+oval/oval.xml: Read Track: The track has no "Main Track" section, so it has no segments.
+oval/oval.xml: The track has no segments
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,4 @@
+oval/oval.xml: The pit segments are out of order: going around the track from the entry turn 1, Exit turn 2 comes before End front. They have to come in this order: Entry, Start, Start Buildings, Stop Buildings, End, Exit
+oval/oval.xml: The last pit ends at the end of the pit end front (no stop buildings segment is set, so the pit buildings end there), so the game draws front's barrier along its last step (3.85 m), inside the last pit building: the stop buildings segment should be set to turn 1, the next one, cut to one step: Fit Segments in the Pit properties fits the segments to the pits (Apply and Ok also offer this)
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

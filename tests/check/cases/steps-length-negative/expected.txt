@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front: steps length -1 m is negative. It must be 0 (none) or at least 0.1 m. The segment is built in one step.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

@@ -1,0 +1,3 @@
+Unknown game monaco: it's torcs, sd or csr
+Try java -jar trackeditor.jar check --help for the options.
+exit 2

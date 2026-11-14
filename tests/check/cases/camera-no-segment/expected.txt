@@ -1,0 +1,4 @@
+oval/oval.xml: Camera cam 1: segment is missing. The game won't load the track without it.
+oval/oval.xml: No camera covers any segment. The game's TV views will show the cars from 120 m above the track.
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

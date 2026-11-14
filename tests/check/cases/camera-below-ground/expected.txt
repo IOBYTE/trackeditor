@@ -1,0 +1,3 @@
+oval/oval.xml: Camera cam 1: a height of -2 m places it below the ground
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

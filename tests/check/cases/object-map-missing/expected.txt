@@ -1,0 +1,4 @@
+oval/oval.xml: error: Object Map File: object-map1.png : the file doesn't exist
+oval/oval.xml: Terrain Generation object map file object-map1.png not found
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

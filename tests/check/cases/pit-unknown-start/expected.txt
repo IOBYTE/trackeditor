@@ -1,0 +1,3 @@
+oval/oval.xml: Invalid pit start: paddock isn't a segment, so the game has no pits
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

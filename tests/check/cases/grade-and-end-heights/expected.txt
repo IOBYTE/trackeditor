@@ -1,0 +1,4 @@
+oval/oval.xml: Segment front : sets both a grade and left and right end heights
+oval/oval.xml: Segment turn 2 : end height 10.28 (calculated, because none is set) doesn't match the start of the first segment front 0 (no start height is set, so it starts at 0)
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

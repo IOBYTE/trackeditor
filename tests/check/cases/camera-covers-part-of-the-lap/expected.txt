@@ -1,0 +1,3 @@
+oval/oval.xml: No camera covers segments back to turn 2. The game's TV views will show the cars from 120 m above the track there.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

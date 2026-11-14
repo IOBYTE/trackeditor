@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front Left border style "kerb" isn't valid, so the game treats it as a wall
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

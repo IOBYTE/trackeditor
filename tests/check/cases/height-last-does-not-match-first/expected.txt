@@ -1,0 +1,3 @@
+oval/oval.xml: Segment turn 2 : end height 3 doesn't match the start of the first segment front 0 (no start height is set, so it starts at 0)
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

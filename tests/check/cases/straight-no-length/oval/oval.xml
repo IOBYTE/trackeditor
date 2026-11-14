@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A test track for the track checker: written by gen.py -->
+<params name="oval" type="param" mode="mw">
+  <section name="Surfaces">
+    <section name="road">
+      <attnum name="color R1" val="0.5"/>
+      <attnum name="color G1" val="0.5"/>
+      <attnum name="color B1" val="0.5"/>
+      <attstr name="texture name" val="road.png"/>
+      <attstr name="texture type" val="discrete"/>
+      <attnum name="texture size" unit="m" val="10"/>
+      <attnum name="friction" val="1.1"/>
+      <attnum name="rolling resistance" val="0.001"/>
+      <attnum name="roughness" unit="m" val="0"/>
+      <attnum name="roughness wavelength" unit="m" val="1"/>
+    </section>
+    <section name="grass">
+      <attnum name="color R1" val="0.5"/>
+      <attnum name="color G1" val="0.5"/>
+      <attnum name="color B1" val="0.5"/>
+      <attstr name="texture name" val="grass.png"/>
+      <attstr name="texture type" val="discrete"/>
+      <attnum name="texture size" unit="m" val="10"/>
+      <attnum name="friction" val="1.1"/>
+      <attnum name="rolling resistance" val="0.001"/>
+      <attnum name="roughness" unit="m" val="0"/>
+      <attnum name="roughness wavelength" unit="m" val="1"/>
+    </section>
+    <section name="curb">
+      <attnum name="color R1" val="0.5"/>
+      <attnum name="color G1" val="0.5"/>
+      <attnum name="color B1" val="0.5"/>
+      <attstr name="texture name" val="curb.png"/>
+      <attstr name="texture type" val="discrete"/>
+      <attnum name="texture size" unit="m" val="10"/>
+      <attnum name="friction" val="1.1"/>
+      <attnum name="rolling resistance" val="0.001"/>
+      <attnum name="roughness" unit="m" val="0"/>
+      <attnum name="roughness wavelength" unit="m" val="1"/>
+    </section>
+    <section name="wall">
+      <attnum name="color R1" val="0.5"/>
+      <attnum name="color G1" val="0.5"/>
+      <attnum name="color B1" val="0.5"/>
+      <attstr name="texture name" val="wall.png"/>
+      <attstr name="texture type" val="discrete"/>
+      <attnum name="texture size" unit="m" val="10"/>
+      <attnum name="friction" val="1.1"/>
+      <attnum name="rolling resistance" val="0.001"/>
+      <attnum name="roughness" unit="m" val="0"/>
+      <attnum name="roughness wavelength" unit="m" val="1"/>
+    </section>
+  </section>
+  <section name="Objects"/>
+  <section name="Header">
+    <attstr name="name" val="oval"/>
+    <attstr name="category" val="road"/>
+    <attnum name="version" val="4"/>
+    <attstr name="author" val="track checker tests"/>
+    <attstr name="description" val="A test track"/>
+  </section>
+  <section name="Graphic">
+    <attstr name="3d description" val="oval.ac"/>
+    <section name="Terrain Generation"/>
+    <section name="Environment Mapping"/>
+  </section>
+  <section name="Main Track">
+    <attnum name="width" unit="m" val="10"/>
+    <attnum name="profil steps length" unit="m" val="4"/>
+    <attstr name="surface" val="road"/>
+    <section name="Left Side">
+      <attnum name="width" unit="m" val="4"/>
+      <attstr name="surface" val="grass"/>
+    </section>
+    <section name="Left Border">
+      <attnum name="width" unit="m" val="0.5"/>
+      <attnum name="height" unit="m" val="0.05"/>
+      <attstr name="surface" val="curb"/>
+      <attstr name="style" val="curb"/>
+    </section>
+    <section name="Left Barrier">
+      <attnum name="width" unit="m" val="0.25"/>
+      <attnum name="height" unit="m" val="1"/>
+      <attstr name="surface" val="wall"/>
+      <attstr name="style" val="wall"/>
+    </section>
+    <section name="Right Side">
+      <attnum name="width" unit="m" val="4"/>
+      <attstr name="surface" val="grass"/>
+    </section>
+    <section name="Right Border">
+      <attnum name="width" unit="m" val="0.5"/>
+      <attnum name="height" unit="m" val="0.05"/>
+      <attstr name="surface" val="curb"/>
+      <attstr name="style" val="curb"/>
+    </section>
+    <section name="Right Barrier">
+      <attnum name="width" unit="m" val="0.25"/>
+      <attnum name="height" unit="m" val="1"/>
+      <attstr name="surface" val="wall"/>
+      <attstr name="style" val="wall"/>
+    </section>
+    <section name="Pits"/>
+    <section name="Track Segments">
+      <section name="front">
+        <attstr name="type" val="str"/>
+        <attstr name="surface" val="road"/>
+        <section name="Left Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Left Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Left Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+        <section name="Right Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Right Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Right Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+      </section>
+      <section name="turn 1">
+        <attstr name="type" val="rgt"/>
+        <attnum name="arc" unit="deg" val="180"/>
+        <attnum name="radius" unit="m" val="50"/>
+        <attstr name="surface" val="road"/>
+        <section name="Left Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Left Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Left Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+        <section name="Right Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Right Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Right Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+      </section>
+      <section name="back">
+        <attstr name="type" val="str"/>
+        <attnum name="lg" unit="m" val="100"/>
+        <attstr name="surface" val="road"/>
+        <section name="Left Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Left Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Left Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+        <section name="Right Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Right Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Right Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+      </section>
+      <section name="turn 2">
+        <attstr name="type" val="rgt"/>
+        <attnum name="arc" unit="deg" val="180"/>
+        <attnum name="radius" unit="m" val="50"/>
+        <attstr name="surface" val="road"/>
+        <section name="Left Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Left Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Left Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+        <section name="Right Side">
+          <attnum name="start width" unit="m" val="4"/>
+          <attnum name="end width" unit="m" val="4"/>
+          <attstr name="surface" val="grass"/>
+        </section>
+        <section name="Right Border">
+          <attnum name="width" unit="m" val="0.5"/>
+          <attnum name="height" unit="m" val="0.05"/>
+          <attstr name="surface" val="curb"/>
+          <attstr name="style" val="curb"/>
+        </section>
+        <section name="Right Barrier">
+          <attnum name="width" unit="m" val="0.25"/>
+          <attnum name="height" unit="m" val="1"/>
+          <attstr name="surface" val="wall"/>
+          <attstr name="style" val="wall"/>
+        </section>
+      </section>
+    </section>
+  </section>
+  <section name="Cameras">
+    <section name="cam 1">
+      <attstr name="segment" val="front"/>
+      <attnum name="to right" unit="m" val="-5"/>
+      <attnum name="to start" unit="m" val="10"/>
+      <attnum name="height" unit="m" val="5"/>
+      <attstr name="fov start" val="front"/>
+      <attstr name="fov end" val="back"/>
+    </section>
+    <section name="cam 2">
+      <attstr name="segment" val="back"/>
+      <attnum name="to right" unit="m" val="-5"/>
+      <attnum name="to start" unit="m" val="10"/>
+      <attnum name="height" unit="m" val="5"/>
+      <attstr name="fov start" val="back"/>
+      <attstr name="fov end" val="front"/>
+    </section>
+  </section>
+</params>

@@ -1,0 +1,7 @@
+oval/oval.xml: Read Track: 1 segment has a type other than str, lft or rgt and was left out: Speed Dreams doesn't skip such a segment, but builds it with the shape of the segment before it (its type, length, radius and arc). Check lists them.
+oval/oval.xml: Camera cam 1: segment "front" isn't a segment, so the game puts the camera on the first segment
+oval/oval.xml: Camera cam 1: fov start "front" isn't a segment, so the game uses the camera from the first segment
+oval/oval.xml: Camera cam 2: fov end "front" isn't a segment, so the game uses the camera up to the first segment
+oval/oval.xml: Track doesn't close: segment turn 2 ends 100.00 m from the start of segment turn 1 (100.00 m behind)
+1 track checked: 5 messages (closure not checked: add --trackgen)
+exit 1
