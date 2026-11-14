@@ -44,6 +44,9 @@ public interface TrackContext
 	/** @return the game's data directory, or null when not set */
 	String getDataDirectory();
 
+	/** @return the game's local directory (Speed Dreams'), or null when it has none */
+	String getLocalDirectory();
+
 	/** @return the game's default surfaces, from its data/tracks/surfaces.xml */
 	Vector<Surface> getDefaultSurfaces();
 

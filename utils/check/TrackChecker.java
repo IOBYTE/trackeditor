@@ -100,6 +100,7 @@ public class TrackChecker
 		defaultObjects = trackData.getHasObjectsReference() ? trackContext.getDefaultObjects() : new Vector<TrackObject>();
 
 		// what the messages of each check are about, unless they say
+		check(null, this::checkSharedFiles);
 		check(null, this::checkSectionNames);
 		check(null, this::checkTrackHeight);
 		check(null, this::checkSurfaces);
@@ -896,6 +897,33 @@ public class TrackChecker
 			report.append("Camera " + camera.getName() + ": " + sentences(problem) + "\n");
 	}
 
+	/**
+	 * A material name with a space, in an AC3D file: TORCS's loader reads the
+	 * name with sscanf("%s rgb ..."), which stops at the space, so the material
+	 * isn't set up but still counts, and a surface using it reads a material
+	 * that was never made (grloadac.cpp, do_material and do_mat). CSR's and
+	 * Speed Dreams' loaders and accc read the name up to its closing quote.
+	 */
+	private static final String	SPACE_PROBLEM	= "with a space in its name. TORCS can't read the name, and it may crash when it loads the track.";
+
+	/**
+	 * A default file the track includes (&amp;default-surfaces; or
+	 * &amp;default-objects;) that isn't where the game reads it: the game, and
+	 * trackgen, can't read the track at all (see TrackFolders.missingSharedFiles)
+	 */
+	private void checkSharedFiles()
+	{
+		String trackPath = Properties.getInstance().getPath();
+		java.util.List<String> missing = TrackFolders.missingSharedFiles(trackContext.getLocalDirectory(), dataDirectory, trackPath, trackData);
+		if (missing.isEmpty())
+			return;
+		String where = TrackFolders.isLocalTrack(trackContext.getLocalDirectory(), trackPath) ? "the data folder's data" + sep + "tracks"
+			: "the data" + sep + "tracks folder three folders up from the track";
+		report.append("The track includes the game's default " + (missing.size() == 2 ? "surfaces and objects" : missing.get(0).replace(".xml", ""))
+			+ ", but there's no " + String.join(" or ", missing) + " in " + where
+			+ ", so the game can't read the track. Restore " + (missing.size() == 2 ? "them" : "it") + " from the game's files.\n");
+	}
+
 	/** @return a message of more than one sentence with the last one's period, any other as it is */
 	private static String sentences(String text)
 	{
@@ -1615,12 +1643,10 @@ public class TrackChecker
 					{
 						String name = material.getName();
 
-						if (name != null && !name.isEmpty())
+						// only TORCS's AC3D loader can't read a quoted name with a space (see SPACE_PROBLEM)
+						if (name != null && name.contains(" ") && trackContext.getGameType() == GameType.TORCS)
 						{
-							if (name.contains(" "))
-							{
-								report.append("Terrain Generation relief file " + reliefFile + " : material \"" + name + "\" has a space in its name\n");
-							}
+							report.append("Terrain Generation relief file " + reliefFile + " has a material, \"" + name + "\", " + SPACE_PROBLEM + "\n");
 						}
 					}
 
@@ -2219,12 +2245,10 @@ public class TrackChecker
 			{
 				String name = material.getName();
 
-				if (name != null && !name.isEmpty())
+				// only TORCS's AC3D loader can't read a quoted name with a space (see SPACE_PROBLEM)
+				if (name != null && name.contains(" ") && trackContext.getGameType() == GameType.TORCS)
 				{
-					if (name.contains(" "))
-					{
-						report.append("Object file " + objectFileName(file) + " : material \"" + name + "\" has a space in its name\n");
-					}
+					report.append("Object file " + objectFileName(file) + " has a material, \"" + name + "\", " + SPACE_PROBLEM + "\n");
 				}
 			}
 

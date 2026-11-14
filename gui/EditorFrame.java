@@ -607,6 +607,12 @@ public class EditorFrame extends JFrame implements TrackContext
 	 *         tracks: the one set in Preferences, or the game's standard one when that
 	 *         exists; null for a game without one (see GameType.hasLocalTracks)
 	 */
+	/** @return the local directory of the game in use (see getLocalDirectory(GameType)) */
+	public String getLocalDirectory()
+	{
+		return getLocalDirectory(gameType);
+	}
+
 	public String getLocalDirectory(GameType game)
 	{
 		return TrackFolders.localDirectory(game, getDirectory(game, LOCAL_DIRECTORY));

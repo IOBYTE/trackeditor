@@ -556,10 +556,20 @@ public final class TrackCheck
 	private void dataFolders()
 	{
 		int own = 0;
+		Set<String> owned = new HashSet<String>();
 		for (Track track : tracks)
 		{
-			if (TrackFolders.dataDirectoryOf(track.file.getAbsoluteFile().getParentFile()) != null)
-				own++;
+			String data = TrackFolders.dataDirectoryOf(track.file.getAbsoluteFile().getParentFile());
+			if (data == null)
+				continue;
+			own++;
+			// a data folder of the tracks' own that is missing a default file: say so once
+			if (owned.add(data))
+			{
+				TrackFolders.DataFolderProblem problem = TrackFolders.dataFolderProblem(new File(data));
+				if (problem != null)
+					throw new IllegalArgumentException("Checking " + track.name + ": " + problem.text);
+			}
 		}
 		if (own > 0)
 		{

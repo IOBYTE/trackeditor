@@ -113,8 +113,17 @@ public final class TrackFolders
 			return new DataFolderProblem(folder + " doesn't exist.", null);
 		if (!folder.isDirectory())
 			return new DataFolderProblem(folder + " isn't a folder.", null);
+		String objects = "data" + sep + "tracks" + sep + "objects.xml";
 		if (isDataFolder(folder))
+		{
+			// the games ship both, and a track that includes a missing one can't be read
+			if (!new File(folder, objects).isFile())
+			{
+				return new DataFolderProblem(folder + " has no " + objects + ", the default objects that tracks include. "
+					+ "The game needs it too, so restore it from the game's files.", null);
+			}
 			return null;
+		}
 		File inner = new File(folder, "data");
 		if (isDataFolder(inner))
 			return new DataFolderProblem(folder + " isn't the data folder, but " + inner + " in it is.", inner);
@@ -132,6 +141,48 @@ public final class TrackFolders
 				+ "The game needs it too, so restore it from the game's files.", null);
 		}
 		return new DataFolderProblem(folder + " doesn't look like a data folder because it has no " + surfaces + ".", null);
+	}
+
+	/**
+	 * @return the default files the track includes that the game won't find,
+	 *         "surfaces.xml" and "objects.xml", none when there are none. A track
+	 *         includes them as ../../../data/tracks/surfaces.xml and objects.xml,
+	 *         which the game reads from the track's folder, or for a Speed Dreams
+	 *         track in its local tracks folder from the data folder. Without them
+	 *         it can't read the track at all (params.cpp, xmlExternalEntityRefHandler
+	 *         in each game).
+	 * @param trackPath the track's folder
+	 */
+	/** @return whether the track's folder is in the local directory's tracks folder (Speed Dreams') */
+	public static boolean isLocalTrack(String localDirectory, String trackPath)
+	{
+		if (localDirectory == null || trackPath == null)
+			return false;
+		File category = new File(trackPath).getAbsoluteFile().toPath().normalize().toFile().getParentFile();
+		File tracks = category == null ? null : category.getParentFile();
+		return tracks != null && sameFile(tracks, new File(localDirectory, "tracks"));
+	}
+
+	public static List<String> missingSharedFiles(String localDirectory, String dataDirectory, String trackPath, TrackData trackData)
+	{
+		List<String> missing = new ArrayList<String>();
+		boolean surfaces = trackData.getHasSurfacesReference();
+		boolean objects = trackData.getHasObjectsReference();
+		if ((!surfaces && !objects) || trackPath == null)
+			return missing;
+		File folder = new File(trackPath).getAbsoluteFile().toPath().normalize().toFile();
+		File shared = new File(folder, ".." + sep + ".." + sep + ".." + sep + "data" + sep + "tracks").toPath().normalize().toFile();
+		if (isLocalTrack(localDirectory, trackPath))
+		{
+			if (dataDirectory == null || dataDirectory.isEmpty())
+				return missing;
+			shared = new File(dataDirectory, "data" + sep + "tracks");
+		}
+		if (surfaces && !new File(shared, "surfaces.xml").isFile())
+			missing.add("surfaces.xml");
+		if (objects && !new File(shared, "objects.xml").isFile())
+			missing.add("objects.xml");
+		return missing;
 	}
 
 	/**
