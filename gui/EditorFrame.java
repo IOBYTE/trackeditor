@@ -4619,10 +4619,19 @@ public class EditorFrame extends JFrame implements TrackContext
 			File folder = new File(path).getAbsoluteFile();
 			File file = new File(folder, map() ? folder.getName() + ".png" : "outline.png");
 			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(EditorFrame.this);
-			java.awt.image.BufferedImage image = track == null ? null : TrackMapImage.render(track, map());
-			if (image == null)
+			if (track == null)
 			{
-				message(title, "The track's shape can't be drawn: Check shows what's wrong with its segments.");
+				message(title, "The track has no segments to draw.");
+				return;
+			}
+			java.awt.image.BufferedImage image;
+			try
+			{
+				image = TrackMapImage.render(track, map());
+			}
+			catch (TrackMapImage.NotDrawableException ex)
+			{
+				message(title, ex.getMessage());
 				return;
 			}
 			if (file.exists() && JOptionPane.showConfirmDialog(EditorFrame.this, file.getName() + " is already in the track's folder. Replace it?",

@@ -19,7 +19,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +50,48 @@ public final class TrackMapImage
 	private static final Color	START			= new Color(220, 30, 30);
 	// how far apart the centerline's points are, in meters
 	private static final double	STEP			= 1;
+	// room left for antialiasing beyond the margin, in pixels
+	private static final double	SMOOTHING		= 3;
+
+	/** Why the track can't be drawn, for the user */
+	public static final class NotDrawableException extends Exception
+	{
+		private static final long	serialVersionUID	= 1L;
+
+		NotDrawableException(String message)
+		{
+			super(message);
+		}
+	}
+
+	/** The parts of the start marker, around the start of the track in the picture */
+	private static final class Marker
+	{
+		// filled white with a dark edge (the flag) or filled in red (the start mark)
+		final List<Shape>	parts	= new ArrayList<Shape>();
+		final Color			fill;
+		final BasicStroke	edge;
+
+		Marker(Color fill, BasicStroke edge)
+		{
+			this.fill = fill;
+			this.edge = edge;
+		}
+
+		/** @return what it covers, its edge included */
+		Rectangle2D bounds()
+		{
+			Rectangle2D bounds = null;
+			for (Shape part : parts)
+			{
+				Rectangle2D b = (edge == null ? part : edge.createStrokedShape(part)).getBounds2D();
+				if (edge != null)
+					b = b.createUnion(part.getBounds2D());
+				bounds = bounds == null ? b : bounds.createUnion(b);
+			}
+			return bounds;
+		}
+	}
 
 	private TrackMapImage()
 	{
@@ -53,46 +99,72 @@ public final class TrackMapImage
 
 	/**
 	 * @param map true for TORCS's map, false for Speed Dreams' and CSR's outline
-	 * @return the picture, or null when the track has no shape to draw (a
-	 *         segment the game can't build leaves points that aren't numbers)
+	 * @return the picture
+	 * @throws NotDrawableException when the track has no shape to draw, or
+	 *         doesn't close, so the picture would show a piece of track that
+	 *         isn't there
 	 */
-	public static BufferedImage render(GameTrack track, boolean map)
+	public static BufferedImage render(GameTrack track, boolean map) throws NotDrawableException
 	{
 		List<double[]> points = centerline(track);
 		if (points.size() < 2)
-			return null;
+			throw new NotDrawableException("The track has no segments to draw.");
 		for (double[] p : points)
 		{
 			if (!Double.isFinite(p[0]) || !Double.isFinite(p[1]))
-				return null;
+				throw new NotDrawableException("The track's shape can't be worked out: Check shows what's wrong with its segments.");
 		}
 
 		int size = map ? MAP_SIZE : OUTLINE_SIZE;
 		double line = map ? 22 : 8;
-		double margin = map ? 8 : 12;
+		// as TORCS's maps: max(2, size / 128), plus room for antialiasing
+		double margin = Math.max(2, size / 128.0) + SMOOTHING;
 
-		// where the track starts, and the way it goes
+		// where the track starts, and the way it goes, in the picture (its y goes
+		// down, the track's up)
 		GameTrack.Seg first = track.segs.get(0);
 		double[] start = points.get(0);
-		double dx = Math.cos(first.angleZS), dy = Math.sin(first.angleZS);
+		double ax = Math.cos(first.angleZS), ay = -Math.sin(first.angleZS);
+		double lx = ay, ly = -ax;
+		Marker marker = map ? flag(ax, ay, lx, ly, line) : startMark(lx, ly, line);
+		Rectangle2D markerBounds = marker.bounds();
 
-		// the shape fitted to the picture: its scale is worked out from the
-		// centerline, then the room the line and the start marker need around it
-		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
-		for (double[] p : points)
+		// the largest scale at which the line and the marker fit: the space they
+		// take grows with the scale (it's convex in it), so the scales that fit
+		// are from 0 up to the one looked for
+		double room = size - 2 * margin;
+		double hi = 1;
+		while (span(points, line, start, markerBounds, hi) < room && hi < 1e9)
+			hi *= 2;
+		double lo = 0;
+		if (span(points, line, start, markerBounds, lo) >= room)
+			throw new NotDrawableException("The picture is too small for the track.");
+		for (int i = 0; i < 60; i++)
 		{
-			minX = Math.min(minX, p[0]);
-			maxX = Math.max(maxX, p[0]);
-			minY = Math.min(minY, p[1]);
-			maxY = Math.max(maxY, p[1]);
+			double mid = (lo + hi) / 2;
+			if (span(points, line, start, markerBounds, mid) <= room)
+				lo = mid;
+			else
+				hi = mid;
 		}
-		double extent = Math.max(Math.max(maxX - minX, maxY - minY), 1e-6);
-		// the marker reaches this far from the start, in pixels
-		double marker = map ? line * 3.2 : line * 1.6;
-		double room = size - 2 * margin - line - 2 * marker;
-		if (room <= 0)
-			return null;
-		double scale = room / extent;
+		double scale = lo;
+
+		// a gap the picture would show: the end of the last segment isn't at the start
+		GameTrack.Seg last = track.segs.get(track.segs.size() - 1);
+		float lastAlong = last.type == GameTrack.TR_STR ? last.length : last.arc;
+		float[] end = GameTrack.local2Global(last, lastAlong, GameTrack.width(last, lastAlong) / 2);
+		double gap = Math.hypot(end[0] - start[0], end[1] - start[1]);
+		if (!(gap * scale <= line / 2))
+		{
+			throw new NotDrawableException(String.format(java.util.Locale.US,
+				"The track doesn't close: segment %s ends %.2f m from the start of segment %s, so the picture would show "
+					+ "a piece of track that isn't there. Close the track first: Check shows the gap.",
+				last.name, gap, first.name));
+		}
+
+		// the drawing centered
+		double[] b = bounds(points, line, start, markerBounds, scale);
+		double ox = size / 2.0 - (b[0] + b[2]) / 2, oy = size / 2.0 - (b[1] + b[3]) / 2;
 
 		BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = image.createGraphics();
@@ -101,10 +173,6 @@ public final class TrackMapImage
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
-			// centered; the picture's y goes down, the track's up
-			double cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-			double ox = size / 2.0 - cx * scale, oy = size / 2.0 + cy * scale;
 
 			Path2D.Double path = new Path2D.Double();
 			for (int i = 0; i < points.size(); i++)
@@ -120,13 +188,19 @@ public final class TrackMapImage
 			g.setStroke(new BasicStroke((float) line, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			g.draw(path);
 
-			// the start, and the way along and to the left of the track, in the picture
-			double sx = ox + start[0] * scale, sy = oy - start[1] * scale;
-			double ax = dx, ay = -dy, lx = -dy, ly = -dx;
-			if (map)
-				drawFlag(g, sx, sy, ax, ay, lx, ly, line);
-			else
-				drawStartMark(g, sx, sy, lx, ly, line);
+			AffineTransform at = AffineTransform.getTranslateInstance(ox + start[0] * scale, oy - start[1] * scale);
+			for (Shape part : marker.parts)
+			{
+				Shape placed = at.createTransformedShape(part);
+				g.setColor(marker.fill);
+				g.fill(placed);
+				if (marker.edge != null)
+				{
+					g.setColor(EDGE);
+					g.setStroke(marker.edge);
+					g.draw(placed);
+				}
+			}
 		}
 		finally
 		{
@@ -135,11 +209,58 @@ public final class TrackMapImage
 		return image;
 	}
 
-	/** A flag on a pole at the start line, on the left of the track, pointing the way the cars go */
-	private static void drawFlag(Graphics2D g, double sx, double sy, double ax, double ay, double lx, double ly, double line)
+	/** @return the larger of the drawing's width and height, in pixels, at the scale */
+	private static double span(List<double[]> points, double line, double[] start, Rectangle2D marker, double scale)
+	{
+		double[] b = bounds(points, line, start, marker, scale);
+		return Math.max(b[2] - b[0], b[3] - b[1]);
+	}
+
+	/**
+	 * @return what the line and the marker cover at the scale, before they are
+	 *         placed in the picture: minimum x, minimum y, maximum x, maximum y
+	 */
+	private static double[] bounds(List<double[]> points, double line, double[] start, Rectangle2D marker, double scale)
+	{
+		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+		for (double[] p : points)
+		{
+			double x = p[0] * scale, y = -p[1] * scale;
+			minX = Math.min(minX, x);
+			maxX = Math.max(maxX, x);
+			minY = Math.min(minY, y);
+			maxY = Math.max(maxY, y);
+		}
+		minX -= line / 2;
+		minY -= line / 2;
+		maxX += line / 2;
+		maxY += line / 2;
+		double sx = start[0] * scale, sy = -start[1] * scale;
+		minX = Math.min(minX, sx + marker.getMinX());
+		minY = Math.min(minY, sy + marker.getMinY());
+		maxX = Math.max(maxX, sx + marker.getMaxX());
+		maxY = Math.max(maxY, sy + marker.getMaxY());
+		return new double[] { minX, minY, maxX, maxY };
+	}
+
+	/**
+	 * A flag on a pole at the start line, on the left of the track, pointing the
+	 * way the cars go, around the start
+	 *
+	 * @param ax, ay the way along the track
+	 * @param lx, ly the way to its left
+	 */
+	private static Marker flag(double ax, double ay, double lx, double ly, double line)
 	{
 		double half = line * 0.22, pole = line * 3.0, flag = line * 1.5, flagHeight = line * 0.9;
-		double tx = sx + lx * pole, ty = sy + ly * pole;
+		double tx = lx * pole, ty = ly * pole;
+
+		Path2D.Double poleShape = new Path2D.Double();
+		poleShape.moveTo(-ax * half - lx * line * 0.5, -ay * half - ly * line * 0.5);
+		poleShape.lineTo(ax * half - lx * line * 0.5, ay * half - ly * line * 0.5);
+		poleShape.lineTo(tx + ax * half, ty + ay * half);
+		poleShape.lineTo(tx - ax * half, ty - ay * half);
+		poleShape.closePath();
 
 		Path2D.Double flagShape = new Path2D.Double();
 		flagShape.moveTo(tx - ax * half, ty - ay * half);
@@ -147,30 +268,20 @@ public final class TrackMapImage
 		flagShape.lineTo(tx - ax * half - lx * flagHeight, ty - ay * half - ly * flagHeight);
 		flagShape.closePath();
 
-		Path2D.Double poleShape = new Path2D.Double();
-		poleShape.moveTo(sx - ax * half - lx * line * 0.5, sy - ay * half - ly * line * 0.5);
-		poleShape.lineTo(sx + ax * half - lx * line * 0.5, sy + ay * half - ly * line * 0.5);
-		poleShape.lineTo(tx + ax * half, ty + ay * half);
-		poleShape.lineTo(tx - ax * half, ty - ay * half);
-		poleShape.closePath();
-
-		g.setStroke(new BasicStroke((float) Math.max(2, line / 8), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		for (Path2D.Double part : new Path2D.Double[] { poleShape, flagShape })
-		{
-			g.setColor(LINE);
-			g.fill(part);
-			g.setColor(EDGE);
-			g.draw(part);
-		}
+		Marker marker = new Marker(LINE, new BasicStroke((float) Math.max(2, line / 8), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		marker.parts.add(poleShape);
+		marker.parts.add(flagShape);
+		return marker;
 	}
 
-	/** A red mark across the track at the start line */
-	private static void drawStartMark(Graphics2D g, double sx, double sy, double lx, double ly, double line)
+	/** A red mark across the track at the start line, around the start */
+	private static Marker startMark(double lx, double ly, double line)
 	{
 		double reach = line * 1.4;
-		g.setColor(START);
-		g.setStroke(new BasicStroke((float) Math.max(2, line * 0.6), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-		g.draw(new java.awt.geom.Line2D.Double(sx - lx * reach, sy - ly * reach, sx + lx * reach, sy + ly * reach));
+		BasicStroke stroke = new BasicStroke((float) Math.max(2, line * 0.6), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+		Marker marker = new Marker(START, null);
+		marker.parts.add(stroke.createStrokedShape(new Line2D.Double(-lx * reach, -ly * reach, lx * reach, ly * reach)));
+		return marker;
 	}
 
 	/**
