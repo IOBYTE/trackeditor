@@ -208,8 +208,8 @@ public class TerrainProperties extends PropertyPanel
 		// files that aren't found are shown in red, where Check looks for them
 		String trackFolder = Properties.getInstance().getPath();
 		showFileFound(elevationMapTextField, "in the track's folder", trackFolder);
-		showFileFound(reliefFileTextField, "in the track's folder or the game's data/objects folder",
-			trackFolder, dataFolder("objects"));
+		// like trackgen, only in the track's folder
+		showFileFound(reliefFileTextField, "in the track's folder", trackFolder);
 		addTextField(this, 12, randomSeedTextField, getEditorFrame().getTerrainGeneration().getRandomSeed(), 140, 125);
 
 		this.add(getSurfaceComboBox(), null);
@@ -471,11 +471,10 @@ public class TerrainProperties extends PropertyPanel
 		UIManager.put("FileChooser.readOnly", old);
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			String fileName = fc.getSelectedFile().toString();
-			int index = fileName.lastIndexOf(sep);
-			String pathToFile = fileName.substring(0, index);
-			if (pathToFile.equals(Properties.getInstance().getPath()))
-				fileName = fileName.substring(index + 1);
+			// as the track names its files: from where the game looks for it (see chosenFileName)
+			String fileName = chosenFileName(fc.getSelectedFile(), "elevation maps", false, null, Properties.getInstance().getPath());
+			if (fileName == null)
+				return;
 			elevationMapTextField.setText(fileName);
 		}
 	}
@@ -565,11 +564,10 @@ public class TerrainProperties extends PropertyPanel
 		UIManager.put("FileChooser.readOnly", old);
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			String fileName = fc.getSelectedFile().toString();
-			int index = fileName.lastIndexOf(sep);
-			String pathToFile = fileName.substring(0, index);
-			if (pathToFile.equals(Properties.getInstance().getPath()))
-				fileName = fileName.substring(index + 1);
+			// as the track names its files: from where the game looks for it (see chosenFileName)
+			String fileName = chosenFileName(fc.getSelectedFile(), "relief files", false, null, Properties.getInstance().getPath());
+			if (fileName == null)
+				return;
 			reliefFileTextField.setText(fileName);
 
 			Reliefs reliefs = new Reliefs();
@@ -633,11 +631,10 @@ public class TerrainProperties extends PropertyPanel
 		UIManager.put("FileChooser.readOnly", old);
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			String fileName = fc.getSelectedFile().toString();
-			int index = fileName.lastIndexOf(sep);
-			String pathToFile = fileName.substring(0, index);
-			if (pathToFile.equals(Properties.getInstance().getPath()))
-				fileName = fileName.substring(index + 1);
+			// as the track names its files: from where the game looks for it (see chosenFileName)
+			String fileName = chosenFileName(fc.getSelectedFile(), "tiled files", false, null, Properties.getInstance().getPath());
+			if (fileName == null)
+				return;
 			tiledFileTextField.setText(fileName);
 		}
 	}	

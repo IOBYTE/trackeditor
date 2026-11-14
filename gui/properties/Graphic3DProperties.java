@@ -81,7 +81,6 @@ public class Graphic3DProperties extends PropertyPanel
 	private JTextField			environmentObjectsTextField		= new JTextField();
 	private JButton				environmentObjectsButton		= null;
 	
-	private final String sep = System.getProperty("file.separator");
 
 	/**
 	 *
@@ -673,11 +672,10 @@ public class Graphic3DProperties extends PropertyPanel
 		UIManager.put("FileChooser.readOnly", old);
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			String fileName = fc.getSelectedFile().toString();
-			int index = fileName.lastIndexOf(sep);
-			String pathToFile = fileName.substring(0, index);
-			if (pathToFile.equals(Properties.getInstance().getPath()))
-				fileName = fileName.substring(index + 1);
+			// as the track names its files: from where the game looks for it (see chosenFileName)
+			String fileName = chosenFileName(fc.getSelectedFile(), "3D files", false, null, getEditorFrame().getTrackFolders());
+			if (fileName == null)
+				return;
 			textField.setText(fileName);
 		}
 	}	

@@ -129,9 +129,9 @@ public final class TrackFolders
 		if (new File(folder, "tracks").isDirectory() && new File(folder, "data" + sep + "tracks").isDirectory())
 		{
 			return new DataFolderProblem(folder + " has no " + surfaces + ", the default surfaces every track includes. "
-				+ "The game needs it too: restore it from the game's files.", null);
+				+ "The game needs it too, so restore it from the game's files.", null);
 		}
-		return new DataFolderProblem(folder + " doesn't look like a data folder: it has no " + surfaces + ".", null);
+		return new DataFolderProblem(folder + " doesn't look like a data folder because it has no " + surfaces + ".", null);
 	}
 
 	/**

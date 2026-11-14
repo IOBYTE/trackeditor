@@ -123,17 +123,14 @@ public class TrackChecker
 	}
 
 	/**
-	 * @return the file: the name itself when it has a path that is a file, else
-	 *         the first folder with it, or null
+	 * @return the file as the games find one: the name, with any folder in it,
+	 *         in the first of the folders that has it, or null. A full path isn't
+	 *         found: the games put it after their folders too (see isFullPath).
 	 */
 	public static File findFile(String name, String... folders)
 	{
-		if (name.contains("/") || name.contains("\\"))
-		{
-			File file = new File(name);
-			if (file.isFile())
-				return file;
-		}
+		if (isFullPath(name))
+			return null;
 		for (String folder : folders)
 		{
 			if (folder == null)
@@ -1430,7 +1427,8 @@ public class TrackChecker
 
 	private void checkGraphic3DFile(String what, String file)
 	{
-		if (hasText(file) && findFile(file, trackContext.getTrackFolders()) == null)
+		if (hasText(file) && !reportFullPath("Graphic 3D " + what + " file", file, "the track's folder", false, trackContext.getTrackFolders())
+			&& findFile(file, trackContext.getTrackFolders()) == null)
 			report.append("Graphic 3D " + what + " file " + file + " not found\n");
 	}
 
@@ -1455,8 +1453,8 @@ public class TrackChecker
 	 */
 	private void checkTrackTexture(String description, String texture)
 	{
-		checkTexture(description, texture);
-		if (hasText(texture) && (dataDirectory == null || dataDirectory.isEmpty())
+		checkTexture(description, texture, true);
+		if (hasText(texture) && !isFullPath(texture) && (dataDirectory == null || dataDirectory.isEmpty())
 			&& findFile(texture, Properties.getInstance().getPath()) == null)
 		{
 			report.append(description + " texture " + texture
@@ -1483,8 +1481,16 @@ public class TrackChecker
 		if (!hasText(texture))
 			return;
 
+		if (isFullPath(texture))
+		{
+			// the game loads it from where it is: on this computer only
+			String use = nameIn(texture, dataDirectory);
+			report.append(description + " texture " + texture + " is a full path, so the track only works on this computer. "
+				+ "The game loads light textures from the data folder. " + (use != null ? "Use " + use + " instead."
+					: "Put the file in its data" + sep + "textures folder and use data/textures/" + new File(texture).getName() + ".") + "\n");
+		}
 		// without the game's data folder, a texture that isn't the track's can't be found
-		if (dataDirectory != null && !dataDirectory.isEmpty()
+		else if (dataDirectory != null && !dataDirectory.isEmpty()
 			&& findFile(texture, trackContext.getTrackFolders(dataDirectory,
 				dataDirectory + sep + "data" + sep + "textures")) == null)
 		{
@@ -1582,11 +1588,20 @@ public class TrackChecker
 
 		if (reliefFile != null && !reliefFile.isEmpty())
 		{
-			File file = findObjectFile(reliefFile);
-
-			if (file == null)
+			// like trackgen, in the track's folder only
+			File file;
+			try
 			{
-				report.append("Terrain Generation relief file " + reliefFile + " not found\n");
+				file = trackFolderFile(reliefFile);
+			}
+			catch (java.nio.file.InvalidPathException e)
+			{
+				file = null;
+			}
+
+			if (file == null || !file.exists())
+			{
+				report.append("Terrain Generation relief file " + reliefFile + " not found" + notFoundReason(reliefFile, false) + "\n");
 			}
 			else
 			{
@@ -1676,7 +1691,7 @@ public class TrackChecker
 		{
 			if (findFile(elevationFile, Properties.getInstance().getPath()) == null)
 			{
-				report.append("Terrain Generation elevation file " + elevationFile + " not found\n");
+				report.append("Terrain Generation elevation file " + elevationFile + " not found" + notFoundReason(elevationFile, false) + "\n");
 			}
 		}
 
@@ -1687,7 +1702,7 @@ public class TrackChecker
 		{
 			if (findFile(tiledFile, Properties.getInstance().getPath()) == null)
 			{
-				report.append("Terrain Generation tiled file " + tiledFile + " not found\n");
+				report.append("Terrain Generation tiled file " + tiledFile + " not found" + notFoundReason(tiledFile, false) + "\n");
 			}
 		}
 
@@ -1717,17 +1732,9 @@ public class TrackChecker
 				File file;
 				try
 				{
-					Path filename = Paths.get(objectMapFile);
-					Path trackPath = Paths.get(Properties.getInstance().getPath());
-
-					// check for parent directory
-					if (filename.getParent() == null)
-					{
-						// use track directory
-						filename = Paths.get(trackPath.toString(), filename.toString());
-					}
-
-					file = new File(filename.toString());
+					// like trackgen, in the track's folder, with any folder in the name from there
+					Paths.get(objectMapFile);
+					file = trackFolderFile(objectMapFile);
 				}
 				catch (java.nio.file.InvalidPathException e)
 				{
@@ -1736,9 +1743,9 @@ public class TrackChecker
 					continue;
 				}
 
-				if (!file.exists())
+				if (file == null || !file.exists())
 				{
-					report.append("Terrain Generation object map file " + objectMapFile + " not found\n");
+					report.append("Terrain Generation object map file " + objectMapFile + " not found" + notFoundReason(objectMapFile, false) + "\n");
 				}
 				else
 				{
@@ -1969,34 +1976,150 @@ public class TrackChecker
 		}
 	}
 
+	/**
+	 * Finds a model as the games' trackgen does: the name, with any folder in it,
+	 * in the track's folder, then in the data folder's data/objects. A full path
+	 * isn't found: they put it after those folders too (see isFullPath).
+	 *
+	 * @return the file, or null when the game doesn't find it
+	 */
 	private File findObjectFile(String object)
 	{
-		// check if there is a path
-		if (object.contains(sep))
+		if (isFullPath(object))
+			return null;
+
+		File file = new File(Properties.getInstance().getPath(), object);
+		if (file.isFile())
+			return file;
+
+		if (dataDirectory != null)
 		{
-			File path = new File(object);
-			if (!path.exists())
-			{
-				return null;
-			}
-
-			return path;
+			file = new File(dataDirectory + sep + "data" + sep + "objects", object);
+			if (file.isFile())
+				return file;
 		}
+		return null;
+	}
 
-		// try in track directory
-		File file = new File(Properties.getInstance().getPath() + sep + object);
+	/** @return whether the name is a full path: C:\..., \\server\... or /... */
+	public static boolean isFullPath(String name)
+	{
+		return name.startsWith("/") || name.startsWith("\\") || (name.length() > 1 && name.charAt(1) == ':')
+			|| new File(name).isAbsolute();
+	}
 
-		if (!file.exists())
+	/**
+	 * @param model true for an object's model, which the game also looks for in
+	 *        the data folder's data/objects; false for a relief file or object map
+	 * @return why a file isn't found, after "... not found": a full path that is
+	 *         there isn't where the game looks; TORCS goes on without a model
+	 */
+	private String notFoundReason(String name, boolean model)
+	{
+		String where = model ? "the track's folder and the data folder's data" + sep + "objects" : "the track's folder";
+		if (isFullPath(name) && new File(name).isFile())
+			return ". The game looks for it in " + where + ", so it doesn't find a file given by its full path.";
+		if (model && trackContext.getGameType() == GameType.TORCS)
+			return " in " + where + ". TORCS's trackgen doesn't skip it but tries to load it anyway, which can stop trackgen.";
+		return "";
+	}
+
+	/**
+	 * @return the relief file or object map name names as trackgen finds it: in
+	 *         the track's folder, with any folder in the name from there; null
+	 *         for a full path, which it puts after the track's folder too
+	 */
+	private File trackFolderFile(String name)
+	{
+		return isFullPath(name) ? null : new File(Properties.getInstance().getPath(), name);
+	}
+
+	/**
+	 * Reports a file the track names by its full path. Another computer doesn't
+	 * have it there, and the games look for a track's files in their folders,
+	 * so the track only works on this computer, if it works at all.
+	 *
+	 * @param description what names it, as "Surface asphalt texture"
+	 * @param where where the game looks for it, for the message
+	 * @param nameOnly true when the game uses only the file's name, so a file in
+	 *        a folder below those isn't found either
+	 * @param folders where the game looks for it, for the name to use when the
+	 *        file is in one of them
+	 * @return whether the name is a full path
+	 */
+	private boolean reportFullPath(String description, String name, String where, boolean nameOnly, String... folders)
+	{
+		if (!isFullPath(name))
+			return false;
+		String use = nameIn(name, folders);
+		if (nameOnly && use != null && use.contains("/"))
+			use = null;
+		report.append(description + " " + name + " is a full path, so the track only works on this computer, if it works at all. "
+			+ "The game looks for it in " + where + ". " + (use != null ? "Use " + use + " instead." : "Put the file there and use its name.") + "\n");
+		return true;
+	}
+
+	/**
+	 * @return the file's name from the first of the folders it is in, with /, or
+	 *         null when it is in none of them
+	 */
+	private static String nameIn(String fullPath, String... folders)
+	{
+		try
 		{
-			// try in data/objects directory
-			file = new File(dataDirectory + sep + "data" + sep + "objects" + sep + object);
-			if (!file.exists())
+			java.nio.file.Path path = Paths.get(fullPath).toAbsolutePath().normalize();
+			for (String folder : folders)
 			{
-				return null;
+				if (folder == null || folder.isEmpty())
+					continue;
+				java.nio.file.Path base = Paths.get(folder).toAbsolutePath().normalize();
+				if (path.startsWith(base) && !path.equals(base))
+					return base.relativize(path).toString().replace('\\', '/');
 			}
 		}
+		catch (java.nio.file.InvalidPathException e)
+		{
+			// not a path here: no name to give
+		}
+		return null;
+	}
 
-		return file;
+	/** @return where the game looks for textures (and the background image), with the data folder's folders when it is set */
+	private String[] textureFolders()
+	{
+		if (dataDirectory == null || dataDirectory.isEmpty())
+			return trackContext.getTrackFolders();
+		return trackContext.getTrackFolders(dataDirectory + sep + "data" + sep + "textures", dataDirectory + sep + "data" + sep + "img",
+			dataDirectory);
+	}
+
+	/** @return the folders textureFolders gives, for a message */
+	private String textureWhere(boolean image)
+	{
+		String data = "data" + sep + "textures, data" + sep + "img";
+		if (image)
+			data = "data" + sep + "img, data" + sep + "textures";
+		return "the track's folder, " + data + " and the data folder" + (image ? ", using only its file name" : "");
+	}
+
+	/**
+	 * @return the object file as messages name it: from the track's folder
+	 *         ("pits.ac", "objects\tree.ac"), from the data folder's data/objects
+	 *         ("tree3.ac in the data folder's data\objects"), else its path
+	 */
+	private String objectFileName(File file)
+	{
+		java.nio.file.Path path = file.toPath().toAbsolutePath().normalize();
+		java.nio.file.Path track = Paths.get(Properties.getInstance().getPath()).toAbsolutePath().normalize();
+		if (path.startsWith(track))
+			return track.relativize(path).toString();
+		if (dataDirectory != null)
+		{
+			java.nio.file.Path objects = Paths.get(dataDirectory, "data", "objects").toAbsolutePath().normalize();
+			if (path.startsWith(objects))
+				return objects.relativize(path) + " in the data folder's data" + sep + "objects";
+		}
+		return file.getPath();
 	}
 	private Boolean hasText(String text)
 	{
@@ -2053,7 +2176,7 @@ public class TrackChecker
 		}
 		if (findObjectFile(object) == null)
 		{
-			report.append(type + " object " + trackObject.getName() + " model " + object + " not found\n");
+			report.append(type + " object " + trackObject.getName() + " model " + object + " not found" + notFoundReason(object, true) + "\n");
 			return false;
 		}
 		return true;
@@ -2100,7 +2223,7 @@ public class TrackChecker
 				{
 					if (name.contains(" "))
 					{
-						report.append("Object file " + file.toString() + " : material \"" + name + "\" has a space in its name\n");
+						report.append("Object file " + objectFileName(file) + " : material \"" + name + "\" has a space in its name\n");
 					}
 				}
 			}
@@ -2117,12 +2240,12 @@ public class TrackChecker
 
 			if (doubleSided)
 			{
-				report.append("Object file " + file.toString() + " has a double-sided surface\n");
+				report.append("Object file " + objectFileName(file) + " has a double-sided surface\n");
 			}
 
 			if (flatShaded)
 			{
-				report.append("Object file " + file.toString() + " has a flat-shaded surface\n");
+				report.append("Object file " + objectFileName(file) + " has a flat-shaded surface\n");
 			}
 
 			if (textures.size() > 1)
@@ -2158,17 +2281,13 @@ public class TrackChecker
 				}
 				else if (hasAlpha == 0 || hasAlpha == textures.size() || (textures.size() - hasAlpha > 1) || hasAlpha > 1)
 				{
-					report.append("Object file " + file.toString() + " : has multiple textures\n");
+					report.append("Object file " + objectFileName(file) + " : has multiple textures\n");
 				}
 			}
 		}
-		catch (Ac3dException e)
-		{
-			report.append("Object file " + file.toString() + " line " + e.getLineNumber() + " : " + e.getLocalizedMessage() + "\n");
-		}
 		catch (Exception e)
 		{
-			report.append("Object file " + file.toString() + " : " + e.getLocalizedMessage() + "\n");
+			report.append("Object file " + utils.FileProblem.describe(objectFileName(file), e, file.toPath()) + "\n");
 		}
 	}
 
@@ -2178,12 +2297,12 @@ public class TrackChecker
 		{
 			if (object.getTexture() == null || object.getTexture().isEmpty())
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : an object has no texture\n");
+				report.append("Object file " + objectFileName(file) + " line " + object.getLinenum() + " : an object has no texture\n");
 			}
 
 			if (object.getSurfaces().isEmpty())
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : an object has no surfaces\n");
+				report.append("Object file " + objectFileName(file) + " line " + object.getLinenum() + " : an object has no surfaces\n");
 				return;
 			}
 
@@ -2202,7 +2321,7 @@ public class TrackChecker
 
 				if (surface.getRefs().size() != 3)
 				{
-					report.append("Object file " + file.toString() + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");
+					report.append("Object file " + objectFileName(file) + " line " + surface.getLinenum() + " : surface with " +  surface.getRefs().size() + " vertices\n");
 				}
 
 				types.add(surface.getSurf());
@@ -2238,12 +2357,12 @@ public class TrackChecker
 
 			if (types.size() > 1)
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");
+				report.append("Object file " + objectFileName(file) + " line " + object.getLinenum() + " : object with " + types.size() + " surface types\n");
 			}
 
 			if (mats.size() > 1)
 			{
-				report.append("Object file " + file.toString() + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");
+				report.append("Object file " + objectFileName(file) + " line " + object.getLinenum() + " : object with " + mats.size() + " materials\n");
 			}
 		}
 		else
@@ -2257,6 +2376,15 @@ public class TrackChecker
 
 	private void checkTexture(String description, String texture)
 	{
+		checkTexture(description, texture, false);
+	}
+
+	/**
+	 * @param image true for a texture the game uses by its name only, like the
+	 *        background image or an environment map
+	 */
+	private void checkTexture(String description, String texture, boolean image)
+	{
 		Vector<String> messages = new Vector<String>();
 		if (!hasText(texture))
 		{
@@ -2264,8 +2392,10 @@ public class TrackChecker
 		}
 		else
 		{
-			File textureFile = findTextureFile(texture);
-			if (textureFile == null)
+			// a full path is reported once, as that, not as not found or a path
+			boolean fullPath = reportFullPath(description.trim() + " texture", texture, textureWhere(image), image, textureFolders());
+			File textureFile = fullPath ? null : findTextureFile(texture);
+			if (textureFile == null && !fullPath)
 			{
 				messages.add(" texture " + texture + " not found\n");
 			}
@@ -2282,7 +2412,7 @@ public class TrackChecker
 				messages.add(" texture " + texture + ": " + format + "\n");
 			}
 
-			if (texture.contains("/") || texture.contains("\\"))
+			if (!fullPath && (texture.contains("/") || texture.contains("\\")))
 			{
 				messages.add(" texture " + texture + " should remove path\n");
 			}
@@ -2422,7 +2552,7 @@ public class TrackChecker
 			{
 			}
 			if (alpha == null)
-				report.append("Object file " + objectFile.toString() + " : texture " + textureFile.getName()
+				report.append("Object file " + objectFileName(objectFile) + " : texture " + textureFile.getName()
 					+ " can't be read: it isn't a valid png image\n");
 			imageHasAlpha.put(path, alpha);
 		}

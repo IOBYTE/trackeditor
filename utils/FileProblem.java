@@ -80,6 +80,30 @@ public final class FileProblem
 		return message == null || message.isEmpty() ? e.getClass().getSimpleName() : message;
 	}
 
+	// a fault in a file, as Ac3d.read reports it: "line <n> <what>"
+	private static final java.util.regex.Pattern	FAULT_LINE	= java.util.regex.Pattern.compile("line (\\d+) (.*)", java.util.regex.Pattern.DOTALL);
+
+	/**
+	 * @param name the file as the message names it
+	 * @param file the file, null if it isn't known
+	 * @return why the file couldn't be read, for a message: its name, the line
+	 *         for a fault in it ("relief.ac line 12 : ..."), and why without the
+	 *         file's path (see reason)
+	 */
+	public static String describe(String name, Exception e, Path file)
+	{
+		if (e instanceof utils.ac3d.Ac3dException)
+		{
+			int line = ((utils.ac3d.Ac3dException) e).getLineNumber();
+			return name + (line > 0 ? " line " + line : "") + " : " + e.getLocalizedMessage();
+		}
+		String why = reason(e, file, false);
+		java.util.regex.Matcher fault = FAULT_LINE.matcher(why);
+		if (fault.matches())
+			return name + " line " + fault.group(1) + " : " + fault.group(2);
+		return name + " : " + why;
+	}
+
 	/**
 	 * @return text with its first letter in lower case, unless it starts a
 	 *         word in capitals ("JPEG")

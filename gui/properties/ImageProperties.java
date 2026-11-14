@@ -87,6 +87,8 @@ public class ImageProperties extends PropertyPanel
 
 		addTextField(this, 0, pathTextField, Properties.getInstance().getImage(), 100, 335);
 		// the tool tip says where the image is, or that it isn't found (in red)
+		// the editor's own image, not the track's: it can be anywhere
+		pathTextField.putClientProperty(FULL_PATH_ALLOWED, Boolean.TRUE);
 		showFileFound(pathTextField, "in the track's folder", Properties.getInstance().getPath());
 		addTextField(this, 1, imageScaleTextField, Properties.getInstance().getImageScale(), 100, 125);
 		addTextField(this, 2, imageOffsetXTextField, Properties.getInstance().getImgOffset().getX(), 100, 125);

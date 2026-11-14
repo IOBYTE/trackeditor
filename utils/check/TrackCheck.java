@@ -1070,7 +1070,7 @@ public final class TrackCheck
 					{
 						// its tracks are named by their paths: none of them would match
 						err.println(slashes("The baseline " + baseline + " was written by an earlier version of the checker, which named "
-							+ "tracks by their paths: write it again with --write-baseline"));
+							+ "tracks by their paths. Write it again with --write-baseline."));
 						return FAILED;
 					}
 					if (!line.isEmpty() && !line.startsWith("#"))
@@ -1242,8 +1242,8 @@ public final class TrackCheck
 		String other = baselineNames.putIfAbsent(inBaseline, name);
 		if (other != null && (baseline != null || writeBaseline != null))
 		{
-			err.println(slashes(other + " and " + name + " are both " + inBaseline + " in the baseline: "
-				+ "a message in it for one also matches the other"));
+			err.println(slashes(other + " and " + name + " are both named " + inBaseline + " in the baseline, "
+				+ "so a message in it for one also matches the other."));
 		}
 
 		Result result = Result.CHECKED;

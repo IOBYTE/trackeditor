@@ -110,6 +110,122 @@ public class PropertyPanel extends JPanel
 	}
 
 	/**
+	 * A field's client property: set, a full path is taken as it is, for a file
+	 * that isn't the track's (the editor's background image)
+	 */
+	public static final String	FULL_PATH_ALLOWED	= "trackeditor.fullPathAllowed";
+
+	/**
+	 * @return the name a file chosen with Browse gets, as the track names its
+	 *         files: its path from the first of the folders the game looks in
+	 *         that has it, with /. A file elsewhere is copied into the track's
+	 *         folder when the person chooses Copy. Null to leave the field as it
+	 *         is (Cancel).
+	 * @param what the kind of file, for the message, as "textures"
+	 * @param nameOnly the game uses only the file's name, so it has to be right in
+	 *        one of the folders
+	 * @param from what a copy's name is from: null for the track's folder, else
+	 *        a folder the track's folder is in (the data folder, for light
+	 *        textures)
+	 * @param folders where the game looks for it, the track's first; a null one
+	 *        isn't known
+	 */
+	protected String chosenFileName(java.io.File chosen, String what, boolean nameOnly, String from, String... folders)
+	{
+		java.nio.file.Path path = chosen.toPath().toAbsolutePath().normalize();
+		for (String folder : folders)
+		{
+			if (folder == null || folder.isEmpty())
+				continue;
+			java.nio.file.Path base = java.nio.file.Paths.get(folder).toAbsolutePath().normalize();
+			if (path.startsWith(base) && !path.equals(base))
+			{
+				java.nio.file.Path name = base.relativize(path);
+				if (!nameOnly || name.getNameCount() == 1)
+					return name.toString().replace('\\', '/');
+			}
+		}
+
+		String trackFolder = utils.Properties.getInstance().getPath();
+		java.io.File target = new java.io.File(trackFolder, chosen.getName());
+		String name = chosen.getName();
+		if (from != null)
+		{
+			java.nio.file.Path base = java.nio.file.Paths.get(from).toAbsolutePath().normalize();
+			java.nio.file.Path copy = target.toPath().toAbsolutePath().normalize();
+			if (!copy.startsWith(base))
+			{
+				JOptionPane.showMessageDialog(this, chosen.getPath() + " isn't where the game looks for the track's " + what
+					+ ".\nThe track's folder isn't either, so a copy there wouldn't be found.", "Browse", JOptionPane.WARNING_MESSAGE);
+				return null;
+			}
+			name = base.relativize(copy).toString().replace('\\', '/');
+		}
+
+		String[] options = { "Copy", "Cancel" };
+		int choice = JOptionPane.showOptionDialog(this, chosen.getPath() + " isn't where the game looks for the track's " + what
+			+ ",\nso the track would only work on this computer, if it worked at all.\n\nDo you want to copy it into the track's folder and use "
+			+ name + "?", "Browse", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+		if (choice != 0)
+			return null;
+		if (target.exists())
+		{
+			String[] replace = { "Replace", "Use the one there", "Cancel" };
+			choice = JOptionPane.showOptionDialog(this, chosen.getName() + " is already in the track's folder.\n\nDo you want to replace it with "
+				+ chosen.getPath() + "?", "Browse", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, replace, replace[0]);
+			if (choice == 1)
+				return name;
+			if (choice != 0)
+				return null;
+		}
+		try
+		{
+			java.nio.file.Files.copy(chosen.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (java.io.IOException | RuntimeException e)
+		{
+			JOptionPane.showMessageDialog(this, "Couldn't copy " + chosen.getName() + " into the track's folder because "
+				+ utils.FileProblem.reason(e, target.toPath(), true) + ".", "Browse", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		return name;
+	}
+
+	/** @return where the game looks for textures: the track's folders, then the data folder's data/textures, data/img and itself */
+	protected String[] textureFolders(boolean image)
+	{
+		String data = getEditorFrame().getDataDirectory();
+		if (data == null || data.isEmpty())
+			return getEditorFrame().getTrackFolders();
+		String sep = System.getProperty("file.separator");
+		String textures = data + sep + "data" + sep + "textures";
+		String img = data + sep + "data" + sep + "img";
+		return image ? getEditorFrame().getTrackFolders(img, textures, data) : getEditorFrame().getTrackFolders(textures, img, data);
+	}
+
+	/**
+	 * @return the name a light texture chosen with Browse gets: the game loads
+	 *         light textures from the data folder, so its path from there (see
+	 *         chosenFileName)
+	 */
+	protected String chosenLightTexture(java.io.File chosen)
+	{
+		String data = getEditorFrame().getDataDirectory();
+		if (data == null || data.isEmpty())
+			return chosenFileName(chosen, "light textures", false, null, utils.Properties.getInstance().getPath());
+		return chosenFileName(chosen, "light textures", false, data, data);
+	}
+
+	/** @return where the game looks for models: the track's folder, then the data folder's data/objects */
+	protected String[] objectFolders()
+	{
+		String data = getEditorFrame().getDataDirectory();
+		String sep = System.getProperty("file.separator");
+		return new String[] { utils.Properties.getInstance().getPath(),
+			data == null || data.isEmpty() ? null : data + sep + "data" + sep + "objects" };
+	}
+
+	/**
 	 * Shows a file name field in red while there is no such file, with a tool
 	 * tip saying where it was looked for, and keeps it up to date as the name
 	 * changes. An empty field is never red. When the file is found, the tool tip
@@ -137,13 +253,20 @@ public class PropertyPanel extends JPanel
 		final Runnable show = () ->
 		{
 			String name = field.getText().trim();
-			java.io.File file = name.isEmpty() ? null : findFile(name, folders);
-			boolean unknown = java.util.Arrays.asList(folders).contains(null);
+			// a full path: the games look for a track's files in their folders (see TrackChecker.findFile)
+			boolean fullPath = !name.isEmpty() && utils.check.TrackChecker.isFullPath(name);
+			boolean allowed = fullPath && field.getClientProperty(FULL_PATH_ALLOWED) != null;
+			java.io.File file = name.isEmpty() ? null : allowed ? (new java.io.File(name).isFile() ? new java.io.File(name) : null)
+				: findFile(name, folders);
+			boolean unknown = java.util.Arrays.asList(folders).contains(null) && !fullPath;
 			boolean found = name.isEmpty() || file != null || unknown;
 			String format = name.isEmpty() || problem == null ? null : problem.apply(name);
 			field.setForeground(found && format == null ? javax.swing.UIManager.getColor("TextField.foreground") : Color.RED);
 			if (name.isEmpty())
 				field.setToolTipText(null);
+			else if (fullPath && !allowed)
+				field.setToolTipText(name + " is a full path, so the track only works on this computer, if it works at all. "
+					+ "The game looks for it " + where + ". Use Browse to get the name to use.");
 			else if (format != null && found)
 				field.setToolTipText(name + ": " + format);
 			else if (file != null)

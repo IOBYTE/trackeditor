@@ -325,7 +325,6 @@ public class ObjectProperties extends PropertyPanel
 		private double				lastScaleMin			= 0.5;
 		private double				lastScaleMax			= 2.0;
 
-		private final String sep = System.getProperty("file.separator");
 
 		/**
 		 *
@@ -651,14 +650,10 @@ public class ObjectProperties extends PropertyPanel
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
-				String fileName = fc.getSelectedFile().toString();
-				int index = fileName.lastIndexOf(sep);
-				String pathToFile = fileName.substring(0, index);
-				String pathToObjects = getEditorFrame().getDataDirectory() + sep + "data" + sep + "objects";
-				if (pathToFile.equals(Properties.getInstance().getPath()))
-					fileName = fileName.substring(index + 1);
-				else if (pathToFile.equals(pathToObjects))
-					fileName = fileName.substring(pathToObjects.length() + 1);
+				// as the track names its files: from where the game looks for it (see chosenFileName)
+				String fileName = chosenFileName(fc.getSelectedFile(), "models", false, null, objectFolders());
+				if (fileName == null)
+					return;
 				objectTextField.setText(fileName);
 			}
 		}

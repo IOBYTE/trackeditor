@@ -200,7 +200,8 @@ public class ObjectMap
 		try
 		{
 			Path filename = Paths.get(objectMap);
-			if (filename.getParent() == null)
+			// like trackgen, in the track's folder, with any folder in the name from there
+			if (!filename.isAbsolute())
 				filename = Paths.get(Properties.getInstance().getPath(), objectMap);
 			return filename;
 		}

@@ -159,7 +159,6 @@ public class EnvMapProperties extends PropertyPanel
 		private JTextField	envMapTextField	= new JTextField();
 		private JButton		envMapButton	= null;
 
-		private final String sep = System.getProperty("file.separator");
 
 		/**
 		 *
@@ -233,11 +232,10 @@ public class EnvMapProperties extends PropertyPanel
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
-				String fileName = fc.getSelectedFile().toString();
-				int index = fileName.lastIndexOf(sep);
-				String pathToFile = fileName.substring(0, index);
-				if (pathToFile.equals(Properties.getInstance().getPath()))
-					fileName = fileName.substring(index + 1);
+				// as the track names its files: from where the game looks for it (see chosenFileName)
+				String fileName = chosenFileName(fc.getSelectedFile(), "images", true, null, textureFolders(true));
+				if (fileName == null)
+					return;
 				envMapTextField.setText(fileName);
 			}
 		}

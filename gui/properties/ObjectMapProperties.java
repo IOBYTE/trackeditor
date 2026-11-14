@@ -342,12 +342,10 @@ public class ObjectMapProperties extends PropertyPanel
 			UIManager.put("FileChooser.readOnly", old);
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
-				String selectedFile = fc.getSelectedFile().toString();
-				String fileName = selectedFile;
-				int index = selectedFile.lastIndexOf(sep);
-				String pathToFile = selectedFile.substring(0, index);
-				if (pathToFile.equals(Properties.getInstance().getPath()))
-					fileName = selectedFile.substring(index + 1);
+				// as the track names its files: from where the game looks for it (see chosenFileName)
+				String fileName = chosenFileName(fc.getSelectedFile(), "object maps", false, null, Properties.getInstance().getPath());
+				if (fileName == null)
+					return;
 				// the field's listener reads it
 				objectMapTextField.setText(fileName);
 			}
@@ -415,9 +413,9 @@ public class ObjectMapProperties extends PropertyPanel
 
 		/**
 		 * Says why the image fileName names can't be read now, as the Check
-		 * dialog does: "not found", in the track's folder for a name without a
-		 * folder, when there is no such file. when, if not null, says when it
-		 * couldn't be read.
+		 * dialog does: "not found", in the track's folder unless it's a full path,
+		 * when there is no such file. when, if not null, says when it couldn't be
+		 * read.
 		 */
 		private String cantRead(String fileName, String when)
 		{
@@ -431,7 +429,7 @@ public class ObjectMapProperties extends PropertyPanel
 				return "Can't read " + fileName + ": " + reason(e) + ".";
 			}
 			if (!java.nio.file.Files.exists(file))
-				return fileName + " not found" + (java.nio.file.Paths.get(fileName).getParent() == null ? " in the track's folder." : ".");
+				return fileName + " not found" + (java.nio.file.Paths.get(fileName).isAbsolute() ? "." : " in the track's folder.");
 			try
 			{
 				ObjectMap.readImageFile(file);

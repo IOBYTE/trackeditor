@@ -152,12 +152,9 @@ public class Reliefs
 		{
 			Path filename = Paths.get(name);
 
-			// check for parent directory
-			if (filename.getParent() == null)
-			{
-				// use track directory
-				filename = Paths.get(Properties.getInstance().getPath(), filename.toString());
-			}
+			// like trackgen, in the track's folder, with any folder in the name from there
+			if (!filename.isAbsolute())
+				filename = Paths.get(Properties.getInstance().getPath(), name);
 			return filename;
 		}
 		catch (java.nio.file.InvalidPathException e)
@@ -165,9 +162,6 @@ public class Reliefs
 			throw new IOException("it isn't a valid file name");
 		}
 	}
-
-	// a fault in the file, as Ac3d.read reports it: "line <n> <what>"
-	private static final java.util.regex.Pattern	FAULT_LINE	= java.util.regex.Pattern.compile("line (\\d+) (.*)", java.util.regex.Pattern.DOTALL);
 
 	/**
 	 * @return why the relief file fileName couldn't be read, for a message: its
@@ -177,11 +171,6 @@ public class Reliefs
 	 */
 	public static String problem(String fileName, Exception e)
 	{
-		if (e instanceof Ac3dException)
-		{
-			int line = ((Ac3dException) e).getLineNumber();
-			return fileName + (line > 0 ? " line " + line : "") + " : " + e.getLocalizedMessage();
-		}
 		Path file = null;
 		try
 		{
@@ -191,11 +180,7 @@ public class Reliefs
 		{
 			// not a file name: the reason says so
 		}
-		String reason = utils.FileProblem.reason(e, file, false);
-		java.util.regex.Matcher fault = FAULT_LINE.matcher(reason);
-		if (fault.matches())
-			return fileName + " line " + fault.group(1) + " : " + fault.group(2);
-		return fileName + " : " + reason;
+		return utils.FileProblem.describe(fileName, e, file);
 	}
 
 	public void readFile() throws IOException, Ac3dException, Exception
