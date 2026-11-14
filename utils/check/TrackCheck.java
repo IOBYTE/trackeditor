@@ -1240,7 +1240,8 @@ public final class TrackCheck
 		}
 		catch (Exception e)
 		{
-			String reason = e.getLocalizedMessage();
+			String reason = e instanceof org.jdom2.input.JDOMParseException ? parseProblem((org.jdom2.input.JDOMParseException) e, track.file)
+				: e.getLocalizedMessage();
 			error(name, "Couldn't read the track: " + (reason == null || reason.isEmpty() || e instanceof RuntimeException ? e.toString() : reason));
 			return Result.NOT_READ;
 		}
@@ -1343,6 +1344,26 @@ public final class TrackCheck
 		File folder = file.getParentFile();
 		String name = (folder == null ? "" : folder.getName() + "/") + file.getName();
 		return category == null || category.trim().isEmpty() ? name : category.trim() + "/" + name;
+	}
+
+	/**
+	 * @return what the XML parser found wrong, as line 12: ..., without the
+	 *         file's full path the parser's own message has, which is different on
+	 *         every computer; with the file's name when it is one the track includes
+	 */
+	private static String parseProblem(org.jdom2.input.JDOMParseException e, File trackFile)
+	{
+		Throwable cause = e.getCause();
+		String what = cause != null && cause.getLocalizedMessage() != null ? cause.getLocalizedMessage() : e.getLocalizedMessage();
+		String id = e.getSystemId();
+		String included = "";
+		if (id != null)
+		{
+			String fileName = id.substring(Math.max(id.lastIndexOf('/'), id.lastIndexOf('\\')) + 1);
+			if (!fileName.isEmpty() && !fileName.equals(trackFile.getName()))
+				included = " of " + fileName;
+		}
+		return (e.getLineNumber() > 0 ? "line " + e.getLineNumber() + included + ": " : "") + what;
 	}
 
 	/** Reports a problem that stopped a track being checked, right away */
