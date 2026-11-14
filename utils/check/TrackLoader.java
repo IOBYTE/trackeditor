@@ -176,6 +176,29 @@ public class TrackLoader
 	}
 
 	/**
+	 * @return why the game's default surfaces or objects couldn't be read: for a
+	 *         file that isn't there, what's wrong with the data folder, and the one
+	 *         that was likely meant (see TrackFolders.dataFolderProblem); else why
+	 *         reading it failed, naming it from the data folder
+	 */
+	static String defaultsProblem(String dataDirectory, String fileName, Exception e)
+	{
+		File file = new File(fileName);
+		if (!file.isFile())
+		{
+			TrackFolders.DataFolderProblem problem = TrackFolders.dataFolderProblem(new File(dataDirectory));
+			if (problem != null)
+				return problem.text + (problem.suggestion == null ? "" : " Use " + problem.suggestion + " as the data folder.");
+		}
+		String name = "data" + sep + "tracks" + sep + file.getName();
+		String message = e.getLocalizedMessage();
+		// a fault in the file: XmlReader names it by its path first
+		if (message != null && message.startsWith(fileName + " : "))
+			return name + " in the data folder " + dataDirectory + " : " + message.substring(fileName.length() + 3);
+		return name + " in the data folder " + dataDirectory + " : " + utils.FileProblem.reason(e, file.toPath(), false);
+	}
+
+	/**
 	 * Reads the game's default surfaces (data/tracks/surfaces.xml in its data
 	 * directory) into the vector, when the data directory is set.
 	 */
@@ -191,7 +214,7 @@ public class TrackLoader
 			}
 			catch (Exception e)
 			{
-				notices.notice("Opening Default Surfaces", e.getLocalizedMessage(), true);
+				notices.notice("Opening Default Surfaces", defaultsProblem(dataDirectory, defaultSurfaceFile, e), true);
 			}
 		}
 	}
@@ -212,7 +235,10 @@ public class TrackLoader
 			}
 			catch (Exception e)
 			{
-				notices.notice("Opening Default Objects", e.getLocalizedMessage(), true);
+				// a data folder without either file: the default surfaces' message says what's wrong
+				if (new File(defaultObjectFile).isFile()
+					|| new File(dataDirectory + sep + "data" + sep + "tracks" + sep + "surfaces.xml").isFile())
+					notices.notice("Opening Default Objects", defaultsProblem(dataDirectory, defaultObjectFile, e), true);
 			}
 		}
 	}
