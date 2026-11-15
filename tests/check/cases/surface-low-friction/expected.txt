@@ -1,0 +1,3 @@
+oval/oval.xml: Surface road: friction 0.1 is less than 0.3, so cars on it slide as if on ice (about 0.1). The least that the default surfaces cars drive on have is 0.6 (sand and gravel). It is used by Main Track and 4 other parts of the track.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

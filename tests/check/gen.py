@@ -32,6 +32,13 @@ def surface(name, texture):
         text('texture name', texture), text('texture type', 'discrete'), num('texture size', 10, 'm'),
         num('friction', 1.1), num('rolling resistance', 0.001), num('roughness', 0, 'm'), num('roughness wavelength', 1, 'm'))
 
+def grip(name, texture, friction=1.1, rolling=0.001, roughness=0, wavelength=1):
+    """a surface with the given grip values; None leaves one out"""
+    values = [('friction', friction, None), ('rolling resistance', rolling, None), ('roughness', roughness, 'm'), ('roughness wavelength', wavelength, 'm')]
+    return section(name, num('color R1', 0.5), num('color G1', 0.5), num('color B1', 0.5),
+        text('texture name', texture), text('texture type', 'discrete'), num('texture size', 10, 'm'),
+        *[num(key, val, unit) for key, val, unit in values if val is not None])
+
 def side(which, start=4, end=4, border=None, barrier=None):
     return [section(which + ' Side', num('start width', start, 'm'), num('end width', end, 'm'), text('surface', 'grass')),
         section(which + ' Border', *(border or [num('width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')])),
@@ -164,6 +171,15 @@ CASES = [
         front=straight('front', right=side('Right', barrier=[num('height', 1, 'm'), text('surface', 'wall'), text('style', 'fence')])),
         turn1=curve('turn 1', right=side('Right', barrier=[num('height', 1, 'm'), text('surface', 'wall'), text('style', 'wall')]))))),
     ('side-reaches-curve-center', SD, track('oval', oval(turn1=curve('turn 1', radius=8, right=side('Right', start=10, end=10))))),
+    # grip: a barrier with no grip isn't reported, a road with none is
+    ('surface-no-grip', SD, track('oval', surfaces=[grip('road', 'road.png', friction=0), surface('grass', 'grass.png'),
+        surface('curb', 'curb.png'), grip('wall', 'wall.png', friction=0)])),
+    ('surface-low-friction', SD, track('oval', surfaces=[grip('road', 'road.png', friction=0.1), surface('grass', 'grass.png'),
+        surface('curb', 'curb.png'), grip('wall', 'wall.png', friction=0.1)])),
+    ('surface-no-friction', SD, track('oval', surfaces=[surface('road', 'road.png'), grip('grass', 'grass.png', friction=None, rolling=None),
+        grip('curb', 'curb.png', rolling=None), surface('wall', 'wall.png')])),
+    ('surface-absurd-grip-values', SD, track('oval', surfaces=[grip('road', 'road.png', rolling=2), grip('grass', 'grass.png', roughness=-1, wavelength=0),
+        grip('curb', 'curb.png', rolling=-0.1), surface('wall', 'wall.png')])),
     ('surface-not-defined', SD, track('oval', oval(front=section('front', text('type', 'str'), num('lg', 100, 'm'), text('surface', 'gravel'), *side('Left'), *side('Right'))))),
 
     # names
@@ -239,6 +255,10 @@ CASES = [
     ('profile-too-steep-dirt', SD, track('oval', hill(45), category='dirt')),
     ('profile-steep-dirt', SD, track('oval', hill(25), category='dirt')),
     ('profile-crest-and-dip', SD, track('oval', hill(15, linear=True))),
+    # the back straight banks to 20 degrees and back again in 10 m each way
+    ('profile-banking-changes-fast', SD, track('oval', [straight('front'), curve('turn 1'), straight('back', 80),
+        straight('bank', 10, extra=[num('banking start', 0, 'deg'), num('banking end', 20, 'deg')]),
+        straight('unbank', 10, extra=[num('banking start', 20, 'deg'), num('banking end', 0, 'deg')]), curve('turn 2')])),
     ('profile-banking', SD, track('oval', oval(turn1=curve('turn 1', extra=[num('banking start', 40, 'deg'), num('banking end', 40, 'deg')])))),
 
     # the track menu's pictures

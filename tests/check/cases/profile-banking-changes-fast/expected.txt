@@ -1,0 +1,4 @@
+oval/oval.xml: Segment bank: the banking changes by as much as 21 deg in 10 m (more than 15 deg), so it rolls cars over more sharply than real tracks do
+oval/oval.xml: Segment unbank: the banking changes by as much as 21 deg in 10 m (more than 15 deg), so it rolls cars over more sharply than real tracks do
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

@@ -1,4 +1,5 @@
 oval/oval.xml: Segment turn 2 : end height left 4.2 right -4.2 (calculated, because none is set) doesn't match the start of the first segment front 0 (no start height is set, so it starts at 0)
 oval/oval.xml: Segment turn 1: the road is banked as much as 40 deg (more than 37 deg), more than real tracks are
-1 track checked: 2 messages (closure not checked: add --trackgen)
+oval/oval.xml: Segment turn 1: the banking changes by as much as 41 deg in 10 m (more than 15 deg), so it rolls cars over more sharply than real tracks do
+1 track checked: 3 messages (closure not checked: add --trackgen)
 exit 1

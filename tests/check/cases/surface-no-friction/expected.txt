@@ -1,0 +1,4 @@
+oval/oval.xml: Surface curb has no rolling resistance, so the game uses 0.001, whatever the surface is. It is used by Segment front Left Border and 7 other parts of the track.
+oval/oval.xml: Surface grass has no friction and no rolling resistance, so the game uses 0.8 and 0.001, whatever the surface is. It is used by Segment front Left Side and 7 other parts of the track.
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

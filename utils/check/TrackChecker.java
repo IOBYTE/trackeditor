@@ -24,9 +24,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -571,18 +574,22 @@ public class TrackChecker
 	// what real tracks stay within (measured on about 220 of the games' tracks:
 	// the steepest road climbs 24%, the steepest dirt track 29%, the most banked
 	// 30 degrees, against 37 on the most banked real ones; no road, circuit, oval
-	// or speedway has a crest or dip tighter than 67 m)
+	// or speedway has a crest or dip tighter than 67 m, and none changes its banking
+	// by more than 10 degrees in 10 m)
 	private static final double	MAX_GRADE			= 0.30;
 	private static final double	MAX_DIRT_GRADE		= 0.40;
 	private static final double	MAX_BANKING_DEG		= 37;
 	private static final double	MIN_VERTICAL_RADIUS	= 50;
+	// degrees per meter: 15 degrees in 10 m
+	private static final double	MAX_BANKING_CHANGE	= 1.5;
 	// the length the grade is measured over: about a car's
 	private static final double	PROFILE_STEP		= 5;
 	private static final double	GRAVITY				= 9.81;
 
 	/**
 	 * Whether the track can be driven, not only whether its heights agree: a
-	 * grade or banking steeper than real tracks have, and on tracks other than
+	 * grade or banking steeper than real tracks have, banking that changes faster
+	 * than on real tracks (it rolls cars over sharply), and on tracks other than
 	 * dirt tracks (which jump on purpose) a crest that throws cars into the air
 	 * or a dip that bottoms them out, as tight as real tracks never are. The
 	 * road's middle and edges are sampled every meter as the game builds them
@@ -608,6 +615,8 @@ public class TrackChecker
 
 		// along the lap: where, the road's height in its middle, and its segment
 		java.util.List<Double> distances = new java.util.ArrayList<Double>(), heights = new java.util.ArrayList<Double>();
+		// the banking, in degrees: positive when the left edge is higher
+		java.util.List<Double> banks = new java.util.ArrayList<Double>();
 		java.util.List<String> names = new java.util.ArrayList<String>();
 		java.util.Map<String, Double> banking = new java.util.LinkedHashMap<String, Double>();
 		double lap = 0;
@@ -629,6 +638,7 @@ public class TrackChecker
 				banking.merge(seg.name, bank, Math::max);
 				distances.add(lap + along);
 				heights.add(middle);
+				banks.add(Math.toDegrees(Math.atan2(left - right, width)));
 				names.add(seg.name);
 			}
 			lap += seg.length;
@@ -641,6 +651,7 @@ public class TrackChecker
 		java.util.Map<String, Double> grades = new java.util.LinkedHashMap<String, Double>();
 		java.util.Map<String, Double> crests = new java.util.LinkedHashMap<String, Double>();
 		java.util.Map<String, Double> dips = new java.util.LinkedHashMap<String, Double>();
+		java.util.Map<String, Double> bankingChanges = new java.util.LinkedHashMap<String, Double>();
 		// a crest or dip tighter than MIN_VERTICAL_RADIUS, while the road goes over or
 		// through it: it goes to the segment where it is tightest, once
 		int bend = 0;
@@ -659,6 +670,7 @@ public class TrackChecker
 			double gradeBefore = (heights.get(i) - heights.get(before)) / back;
 			double gradeAfter = (heights.get(after) - heights.get(i)) / ahead;
 			grades.merge(names.get(i), Math.abs(gradeAfter), Math::max);
+			bankingChanges.merge(names.get(i), Math.abs(banks.get(after) - banks.get(before)) / (back + ahead), Math::max);
 			double change = gradeAfter - gradeBefore;
 			// the radius of the curve the road goes over (a crest) or through (a dip)
 			double radius = Math.abs(change) < 1e-9 ? Double.POSITIVE_INFINITY : (back + ahead) / 2 / Math.abs(change);
@@ -694,6 +706,10 @@ public class TrackChecker
 			if (bank != null && bank > MAX_BANKING_DEG)
 				report.append("Segment " + name + ": the road is banked as much as " + Math.round(bank) + " deg (more than "
 					+ Math.round(MAX_BANKING_DEG) + " deg), more than real tracks are\n", where);
+			Double bankingChange = bankingChanges.get(name);
+			if (bankingChange != null && bankingChange > MAX_BANKING_CHANGE)
+				report.append("Segment " + name + ": the banking changes by as much as " + Math.round(bankingChange * 10) + " deg in 10 m (more than "
+					+ Math.round(MAX_BANKING_CHANGE * 10) + " deg), so it rolls cars over more sharply than real tracks do\n", where);
 			Double crest = crests.get(name);
 			if (crest != null && crest < MIN_VERTICAL_RADIUS)
 				report.append("Segment " + name + ": a crest with a radius of only " + Math.round(crest) + " m (less than "
@@ -3085,5 +3101,142 @@ public class TrackChecker
 				checkSurface(trackData.getGraphic().getTerrainGeneration().getCrossingBridgeSurface(i),
 					"Terrain Bridges " + TerrainGeneration.CROSSING_BRIDGE_SURFACE_NAMES[i], properties("Terrain", "Bridges"));
 		}
+		checkGrip();
+	}
+
+	// what every game's track loader uses for a value that a surface doesn't have
+	private static final double	DEFAULT_FRICTION			= 0.8;
+	private static final double	DEFAULT_ROLLING_RESISTANCE	= 0.001;
+	// less than any surface that the games' default surfaces have for driving on: sand
+	// and gravel are 0.6, and only barriers and walls are less. Ice is about 0.1.
+	private static final double	LOW_FRICTION				= 0.3;
+	private static final double	LEAST_DEFAULT_FRICTION		= 0.6;
+	// the most that the games' default surfaces have: gravel
+	private static final double	MOST_ROLLING_RESISTANCE		= 0.15;
+	private static final double	ABSURD_ROLLING_RESISTANCE	= 0.5;
+
+	/**
+	 * Checks the grip of the surfaces that cars drive on: the track, and the borders
+	 * and sides that the game gives a width (GameSides). A barrier, or a border that
+	 * is a wall, has no grip on purpose, so those aren't checked.
+	 */
+	private void checkGrip()
+	{
+		Map<String, List<String>>	uses		= new LinkedHashMap<String, List<String>>();
+		Map<String, Subject>		firstUse	= new HashMap<String, Subject>();
+
+		addUse(uses, firstUse, trackData.getMainTrack().getSurface(), "Main Track", properties("Track"));
+		for (int i = 0; i < trackData.getSegments().size(); i++)
+		{
+			Segment	segment	= trackData.getSegments().get(i);
+			String	name	= "Segment " + segment.getName();
+
+			addUse(uses, firstUse, segment.getSurface(), name + " Track", segment(segment));
+			for (int j = 0; j < 2; j++)
+			{
+				boolean			right	= j == 1;
+				String			side	= right ? "Right" : "Left";
+				GameSides.State	state	= GameSides.of(segment, right, trackContext);
+
+				if (state.borderWidth > 0 && !"wall".equals(state.borderStyle))
+					addUse(uses, firstUse, state.borderSurface, name + " " + side + " Border", segment(segment, side));
+				if (state.sideStartWidth > 0 || state.sideEndWidth > 0)
+					addUse(uses, firstUse, state.sideSurface, name + " " + side + " Side", segment(segment, side));
+			}
+		}
+
+		for (Map.Entry<String, List<String>> use : uses.entrySet())
+		{
+			String	name	= use.getKey();
+			Surface	surface	= findSurface(trackData.getSurfaces(), name);
+			Subject	target	= properties("Surfaces", name);
+
+			if (surface == null)
+			{
+				// a default surface can't be changed here, so the message is about what uses it
+				surface = findSurface(defaultSurfaces, name);
+				target = firstUse.get(name);
+			}
+			// (a surface that isn't found is reported by checkSurface)
+			if (surface == null)
+				continue;
+
+			List<String>	where	= use.getValue();
+			String			usedBy	= " It is used by " + where.get(0)
+				+ (where.size() == 1 ? "" : " and " + (where.size() - 1) + (where.size() == 2 ? " other part" : " other parts") + " of the track")
+				+ ".\n";
+			String			what	= "Surface " + name;
+
+			double	friction			= surface.getFriction();
+			double	rollingResistance	= surface.getRollingResistance();
+
+			if (Double.isNaN(friction) && Double.isNaN(rollingResistance))
+				report.append(what + " has no friction and no rolling resistance, so the game uses " + format(DEFAULT_FRICTION)
+					+ " and " + formatSmall(DEFAULT_ROLLING_RESISTANCE) + ", whatever the surface is." + usedBy, target);
+			else if (Double.isNaN(friction))
+				report.append(what + " has no friction, so the game uses " + format(DEFAULT_FRICTION) + ", whatever the surface is." + usedBy, target);
+			else if (Double.isNaN(rollingResistance))
+				report.append(what + " has no rolling resistance, so the game uses " + formatSmall(DEFAULT_ROLLING_RESISTANCE)
+					+ ", whatever the surface is." + usedBy, target);
+
+			if (!Double.isNaN(friction) && !(friction > 0 && !Double.isInfinite(friction)))
+				report.append(what + " has no grip: its friction is " + formatSmall(friction)
+					+ ", so cars on it can't steer, brake or accelerate. Friction must be greater than 0." + usedBy, target);
+			else if (friction < LOW_FRICTION)
+				report.append(what + ": friction " + formatSmall(friction) + " is less than " + format(LOW_FRICTION)
+					+ ", so cars on it slide as if on ice (about 0.1). The least that the default surfaces cars drive on have is "
+					+ format(LEAST_DEFAULT_FRICTION) + " (sand and gravel)." + usedBy, target);
+
+			if (rollingResistance < 0)
+				report.append(what + ": rolling resistance " + formatSmall(rollingResistance)
+					+ " is less than 0, so it would push cars forward." + usedBy, target);
+			else if (rollingResistance > ABSURD_ROLLING_RESISTANCE)
+				report.append(what + ": rolling resistance " + formatSmall(rollingResistance) + " would hold back a car rolling on it by more than "
+					+ "half its weight. The most that the default surfaces have is " + format(MOST_ROLLING_RESISTANCE) + " (gravel)." + usedBy, target);
+
+			double	roughness	= surface.getRoughness();
+			double	wavelength	= surface.getRoughnessWavelength();
+
+			if (roughness < 0 || Double.isInfinite(roughness))
+				report.append(what + ": roughness " + formatSmall(roughness) + " m must be 0 or more." + usedBy, target);
+			if (!Double.isNaN(wavelength) && !(wavelength > 0 && !Double.isInfinite(wavelength)))
+				report.append(what + ": roughness wavelength " + formatSmall(wavelength)
+					+ " m must be greater than 0, because the game divides by it." + usedBy, target);
+		}
+	}
+
+	private static void addUse(Map<String, List<String>> uses, Map<String, Subject> firstUse, String surface, String description, Subject where)
+	{
+		if (surface == null || surface.isEmpty())
+			return;
+
+		List<String> list = uses.get(surface);
+		if (list == null)
+		{
+			list = new ArrayList<String>();
+			uses.put(surface, list);
+			firstUse.put(surface, where);
+		}
+		list.add(description);
+	}
+
+	private static Surface findSurface(List<Surface> surfaces, String name)
+	{
+		for (int i = 0; i < surfaces.size(); i++)
+		{
+			if (name.equals(surfaces.get(i).getName()))
+				return surfaces.get(i);
+		}
+		return null;
+	}
+
+	/** @return a number with at most 3 significant digits, as 0.001 or 1.5 */
+	private static String formatSmall(double value)
+	{
+		if (Double.isInfinite(value))
+			return value > 0 ? "too big to be a number" : "too small to be a number";
+		if (Double.isNaN(value))
+			return "not a number";
+		return new java.math.BigDecimal(value).round(new java.math.MathContext(3)).stripTrailingZeros().toPlainString();
 	}
 }

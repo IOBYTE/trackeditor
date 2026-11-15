@@ -1,0 +1,6 @@
+oval/oval.xml: Surface road: rolling resistance 2 would hold back a car rolling on it by more than half its weight. The most that the default surfaces have is 0.15 (gravel). It is used by Main Track and 4 other parts of the track.
+oval/oval.xml: Surface curb: rolling resistance -0.1 is less than 0, so it would push cars forward. It is used by Segment front Left Border and 7 other parts of the track.
+oval/oval.xml: Surface grass: roughness -1 m must be 0 or more. It is used by Segment front Left Side and 7 other parts of the track.
+oval/oval.xml: Surface grass: roughness wavelength 0 m must be greater than 0, because the game divides by it. It is used by Segment front Left Side and 7 other parts of the track.
+1 track checked: 4 messages (closure not checked: add --trackgen)
+exit 1
