@@ -718,6 +718,7 @@ public class PitProperties extends PropertyPanel
 						getLengthsCheckBox().setSelected(false);
 						setLengthsEnabled(false);
 						addTabs();
+						refreshFromTrack();
 					}
 					setButtonsVisible(addPitsCheckBox.isSelected());
 				}
@@ -1385,6 +1386,7 @@ public class PitProperties extends PropertyPanel
 						addTabs();
 					}
 					setLengthsEnabled(lengthsCheckBox.isSelected());
+					refreshFromTrack();
 					setButtonsVisible(lengthsCheckBox.isSelected());
 				}
 			});
@@ -1460,6 +1462,8 @@ public class PitProperties extends PropertyPanel
 			int count = pitsLength > 0 ? (int) Math.floor(pitsLength / pitLength() + 1e-6) : 0;
 			pitsLengthUnitsLabel.setText(pitsLength > 0 ? "m (" + count + (count == 1 ? " pit)" : " pits)") : "m");
 		}
+		// using lengths, the entry's and exit's sides go on from where they'll be
+		refreshFromTrack();
 	}
 
 	/** @return where each segment starts along the track from the start line, and at the end the track's length */
@@ -2138,6 +2142,10 @@ public class PitProperties extends PropertyPanel
 				fromPart(generator.getPits(), pitsPitInfo);
 				fromPart(generator.getExit(), exitPitInfo);
 				pavePitInfos();
+				// the entry's and exit's sides go on from the track's, not the one
+				// the generator had last (see refreshSideSurfaces)
+				entryPitInfo.surface = null;
+				exitPitInfo.surface = null;
 				return;
 			}
 			SegmentVector data = getEditorFrame().getTrackData().getSegments();
@@ -2229,6 +2237,9 @@ public class PitProperties extends PropertyPanel
 				if (side.getHasBorder())
 				{
 					readBorderValues(side, pitsPitInfo);
+					// a border without a width is none
+					if (pitsPitInfo.borderWidth == 0)
+						pitsPitInfo.borderType = "none";
 				}
 				else
 				{
@@ -2300,7 +2311,6 @@ public class PitProperties extends PropertyPanel
 			// the entry's and exit's sides go on from the track's (see refreshSideSurfaces)
 			entryPitInfo.surface = null;
 			exitPitInfo.surface = null;
-			wideBorderSurfaces();
 			if (pitEntry != null)
 			{
 				Segment outside = pitEntry.getPreviousShape();
@@ -2369,29 +2379,88 @@ public class PitProperties extends PropertyPanel
 		widths[6] = 0;
 		if (data.isEmpty())
 			return widths;
-		String side = getSideComboBox().getSelectedIndex() <= 0 ? pits.getSide() : (String) getSideComboBox().getSelectedItem();
-		boolean right = side == null || side.equals("right");
-		Segment pitEntry = data.getSegmentFromName(entryTextField.getText().trim());
-		if (pitEntry != null)
+		boolean right = dialogRight();
+		Segment[] neighbors = neighbors();
+		if (neighbors[0] != null)
 		{
-			Segment previous = pitEntry.getPreviousShape();
-			if (previous == null)
-				previous = data.get(data.size() - 1);
-			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(previous, right, getEditorFrame());
+			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(neighbors[0], right, getEditorFrame());
 			widths[0] = width(state.borderEndWidth);
 			widths[2] = width(state.sideEndWidth);
 		}
-		Segment pitExit = data.getSegmentFromName(exitTextField.getText().trim());
-		if (pitExit != null)
+		if (neighbors[1] != null)
 		{
-			Segment next = pitExit.getNextShape();
-			if (next == null)
-				next = data.get(0);
-			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(next, right, getEditorFrame());
+			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(neighbors[1], right, getEditorFrame());
 			widths[5] = width(state.borderStartWidth);
 			widths[7] = width(state.sideStartWidth);
 		}
 		return widths;
+	}
+
+	/**
+	 * @return whether the pits are on the right with the side chosen in the
+	 *         dialog: no side is right, as in the games
+	 */
+	private boolean dialogRight()
+	{
+		int index = getSideComboBox().getSelectedIndex();
+		if (index < 0)
+			return !onLeft(getEditorFrame().getPits());
+		return index == 0 || "right".equals(getSideComboBox().getSelectedItem());
+	}
+
+	/**
+	 * @return the segment before the pit entry and the one after the pit exit,
+	 *         for the pits in the dialog: using lengths, the segments where the
+	 *         entry will start and the exit will end, as the pit segments are
+	 *         only made on Apply; null for one that isn't found
+	 */
+	private Segment[] neighbors()
+	{
+		Segment[] neighbors = new Segment[2];
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		int n = data.size();
+		if (n == 0)
+			return neighbors;
+		if (getLengthsCheckBox().isSelected())
+		{
+			double[] pos = positions(data);
+			double trackLength = pos[n];
+			double entry = getDouble(entryLengthTextField.getText());
+			double pitsLength = getDouble(pitsLengthTextField.getText());
+			double offset = centered() ? -pitsLength / 2 : getDouble(pitsOffsetTextField.getText());
+			double exit = getDouble(exitLengthTextField.getText());
+			if (!(trackLength > 0) || !(entry > 0) || !(pitsLength > 0) || !(exit > 0) || Double.isNaN(offset))
+				return neighbors;
+			// just before the entry and just after the exit
+			neighbors[0] = segmentOver(wrap(offset - entry - 0.02, trackLength), pos);
+			neighbors[1] = segmentOver(wrap(offset + pitsLength + exit + 0.02, trackLength), pos);
+			return neighbors;
+		}
+		Segment pitEntry = data.getSegmentFromName(entryTextField.getText().trim());
+		if (pitEntry != null)
+		{
+			neighbors[0] = pitEntry.getPreviousShape();
+			if (neighbors[0] == null)
+				neighbors[0] = data.get(n - 1);
+		}
+		Segment pitExit = data.getSegmentFromName(exitTextField.getText().trim());
+		if (pitExit != null)
+		{
+			neighbors[1] = pitExit.getNextShape();
+			if (neighbors[1] == null)
+				neighbors[1] = data.get(0);
+		}
+		return neighbors;
+	}
+
+	/** @return the segment over a distance along the track, given where the segments start */
+	private Segment segmentOver(double at, double[] pos)
+	{
+		SegmentVector data = getEditorFrame().getTrackData().getSegments();
+		for (int i = 0; i < data.size(); i++)
+			if (at >= pos[i] && at < pos[i + 1])
+				return data.get(i);
+		return data.isEmpty() ? null : data.get(data.size() - 1);
 	}
 
 	/**
@@ -2434,24 +2503,15 @@ public class PitProperties extends PropertyPanel
 		SegmentVector data = getEditorFrame().getTrackData().getSegments();
 		if (data.isEmpty())
 			return surfaces;
-		String side = getSideComboBox().getSelectedIndex() <= 0 ? pits.getSide() : (String) getSideComboBox().getSelectedItem();
-		boolean right = side == null || side.equals("right");
-		Segment pitEntry = data.getSegmentFromName(entryTextField.getText().trim());
-		if (pitEntry != null)
-		{
-			Segment previous = pitEntry.getPreviousShape();
-			if (previous == null)
-				previous = data.get(data.size() - 1);
-			surfaces[0] = right ? previous.getValidRightSideSurface(getEditorFrame()) : previous.getValidLeftSideSurface(getEditorFrame());
-		}
-		Segment pitExit = data.getSegmentFromName(exitTextField.getText().trim());
-		if (pitExit != null)
-		{
-			Segment next = pitExit.getNextShape();
-			if (next == null)
-				next = data.get(0);
-			surfaces[1] = right ? next.getValidRightSideSurface(getEditorFrame()) : next.getValidLeftSideSurface(getEditorFrame());
-		}
+		// using lengths without variable-width borders, the entry and exit are paved
+		if (pavedByDefault())
+			return new String[] {SegmentSide.DEFAULT_PIT_ENTRY_SURFACE, SegmentSide.DEFAULT_PIT_EXIT_SURFACE};
+		boolean right = dialogRight();
+		Segment[] neighbors = neighbors();
+		if (neighbors[0] != null)
+			surfaces[0] = right ? neighbors[0].getValidRightSideSurface(getEditorFrame()) : neighbors[0].getValidLeftSideSurface(getEditorFrame());
+		if (neighbors[1] != null)
+			surfaces[1] = right ? neighbors[1].getValidRightSideSurface(getEditorFrame()) : neighbors[1].getValidLeftSideSurface(getEditorFrame());
 		return surfaces;
 	}
 
@@ -2467,6 +2527,22 @@ public class PitProperties extends PropertyPanel
 		String[] surfaces = neighborSideSurfaces();
 		((PitPanel) tabbedPane.getComponentAt(0)).showSideSurface(surfaces[0]);
 		((PitPanel) tabbedPane.getComponentAt(2)).showSideSurface(surfaces[1]);
+		// the border has the dotted line when the entry and exit are paved by default
+		String border = pavedByDefault() ? DOTTED_BORDER_SURFACE : SegmentSide.DEFAULT_PIT_ENTRY_BORDER_SURFACE;
+		((PitPanel) tabbedPane.getComponentAt(0)).showBorderSurface(border);
+		((PitPanel) tabbedPane.getComponentAt(2)).showBorderSurface(border);
+	}
+
+	/** The pit entry's and exit's border with a dotted line along the track */
+	private static final String	DOTTED_BORDER_SURFACE	= "b-asphalt-l1p";
+
+	/**
+	 * @return whether the entry and exit get an asphalt side and a dotted line
+	 *         border by default: using lengths, without variable-width borders
+	 */
+	private boolean pavedByDefault()
+	{
+		return getLengthsCheckBox().isSelected() && !getEditorFrame().getVariableBorderWidth();
 	}
 
 	/** Refreshes the entry's and exit's widths and side surfaces when what they come from changes */
@@ -2499,20 +2575,11 @@ public class PitProperties extends PropertyPanel
 		});
 	}
 
-	/**
-	 * With variable-width borders, the entry's and exit's borders widen into the
-	 * pit lane: the default pit border's line is stretched across the width, so
-	 * they get the wide one in its place when the game has it
-	 */
-	private void wideBorderSurfaces()
+	/** @return the side surface chosen in a tab, or the track's next to it when none is */
+	private static String sideSurface(PitPanel panel, String trackSurface)
 	{
-		if (!getEditorFrame().getVariableBorderWidth()
-			|| utils.circuit.RoadTexture.findSurface(getEditorFrame(), SegmentSide.DEFAULT_PIT_WIDE_BORDER_SURFACE) == null)
-			return;
-		for (PitInfo info : new PitInfo[] {entryPitInfo, exitPitInfo})
-			if (info.borderSurface == null || info.borderSurface.equals(SegmentSide.DEFAULT_PIT_ENTRY_BORDER_SURFACE)
-				|| info.borderSurface.equals(SegmentSide.DEFAULT_PIT_EXIT_BORDER_SURFACE))
-				info.borderSurface = SegmentSide.DEFAULT_PIT_WIDE_BORDER_SURFACE;
+		Object surface = panel.getSurfaceComboBox().getSelectedItem();
+		return surface == null ? trackSurface : surface.toString();
 	}
 
 	/** @return a width to show, to the millimeter */
@@ -2615,7 +2682,11 @@ public class PitProperties extends PropertyPanel
 				.append(side.getSideStartWidth()).append('|').append(side.getSideEndWidth()).append('|')
 				.append(side.getBorderStyle()).append('|').append(side.getBorderSurface()).append('|')
 				.append(side.getBorderWidth()).append('|').append(side.getBorderHeight()).append('|')
-				.append(side.getBarrierHeight()).append('|').append(side.getBarrierWidth()).append('\n');
+				.append(side.getBarrierHeight()).append('|').append(side.getBarrierWidth());
+			// only when set, so the keys of tracks without them stay as they were
+			if (!Double.isNaN(side.getBorderStartWidth()) || !Double.isNaN(side.getBorderEndWidth()))
+				key.append('|').append(side.getBorderStartWidth()).append('|').append(side.getBorderEndWidth());
+			key.append('\n');
 			if (i == to)
 				break;
 		}
@@ -2655,10 +2726,12 @@ public class PitProperties extends PropertyPanel
 			// entry/exit: always "plan" with height 0 (driveable surface)
 			part.setBorderType("plan");
 			part.setBorderHeight(0);
-			part.setBorderStartWidth(getDouble(panel.getBorderStartWidthTextField().getText()));
-			part.setBorderEndWidth(getDouble(panel.getBorderEndWidthTextField().getText()));
-			part.setSideStartWidth(getDouble(panel.getSideStartWidthTextField().getText()));
-			part.setSideEndWidth(getDouble(panel.getSideEndWidthTextField().getText()));
+			// only the widths typed: those shown from the track go on following it
+			double[] typed = panel.typedTaperWidths();
+			part.setBorderStartWidth(typed[0]);
+			part.setBorderEndWidth(typed[1]);
+			part.setSideStartWidth(typed[2]);
+			part.setSideEndWidth(typed[3]);
 		}
 		return part;
 	}
@@ -2734,6 +2807,8 @@ public class PitProperties extends PropertyPanel
 		private String[] shownTaperWidths = new String[4];
 		/** the side surface from the track last shown */
 		private String shownSideSurface = null;
+		/** the default border surface last shown */
+		private String shownBorderSurface = null;
 
 		/**
 		 * @param pitInfo the pit zone info
@@ -3012,6 +3087,23 @@ public class PitProperties extends PropertyPanel
 		}
 
 		/**
+		 * Shows the default border surface, when nothing is chosen or a default
+		 * is shown: one chosen is kept
+		 */
+		private void showBorderSurface(String surface)
+		{
+			Object selected = borderSurfaceComboBox.getSelectedItem();
+			boolean isDefault = selected == null || selected.equals(shownBorderSurface)
+				|| shownBorderSurface == null && selected.equals(SegmentSide.DEFAULT_PIT_ENTRY_BORDER_SURFACE);
+			if (!isDefault)
+				return;
+			if (((javax.swing.DefaultComboBoxModel<String>) borderSurfaceComboBox.getModel()).getIndexOf(surface) < 0)
+				borderSurfaceComboBox.addItem(surface);
+			borderSurfaceComboBox.setSelectedItem(surface);
+			shownBorderSurface = surface;
+		}
+
+		/**
 		 * Shows widths from the track in the start and end width fields that are
 		 * empty or still show the ones shown before: those typed are kept
 		 */
@@ -3026,6 +3118,22 @@ public class PitProperties extends PropertyPanel
 				setTextField(fields[i], widths[i]);
 				shownTaperWidths[i] = fields[i].getText();
 			}
+		}
+
+		/**
+		 * @return the start and end widths typed, NaN for those empty or still
+		 *         showing the width from the track
+		 */
+		private double[] typedTaperWidths()
+		{
+			JTextField[] fields = {borderStartWidthTextField, borderEndWidthTextField, sideStartWidthTextField, sideEndWidthTextField};
+			double[] typed = new double[fields.length];
+			for (int i = 0; i < fields.length; i++)
+			{
+				String text = fields[i].getText().trim();
+				typed[i] = text.equals(shownTaperWidths[i]) ? Double.NaN : getDouble(text);
+			}
+			return typed;
 		}
 
 		/**
@@ -3067,7 +3175,9 @@ public class PitProperties extends PropertyPanel
 			String problem = null;
 			if (panel.getSurfaceComboBox().getItemCount() == 0)
 				problem = "the track needs surfaces: tick Default Surfaces on the Surfaces tab, or add some there, then reopen the properties";
-			else if (panel.getSurfaceComboBox().getSelectedItem() == null)
+			// the entry's and exit's sides are the track's next to them when none is
+			// chosen: from lengths, that is only known once the segments are placed
+			else if (panel.getSurfaceComboBox().getSelectedItem() == null && panel.isPitZone)
 				problem = "choose a surface";
 			else if (panel.isPitZone)
 			{
@@ -3458,7 +3568,7 @@ public class PitProperties extends PropertyPanel
 			side.setBorderSurface(exitBorderSurface == null ? null : exitBorderSurface.toString());
 			side.setBorderHeight(0);
 			side.setBorderWidth(getDouble(exitPanel.getBorderWidthTextField().getText()));
-			side.setSideSurface(exitPanel.getSurfaceComboBox().getSelectedItem().toString());
+			side.setSideSurface(sideSurface(exitPanel, after.getSideSurface()));
 			side.setBarrierHeight(barrierHeightAfter);
 			side.setBarrierWidth(barrierWidthAfter);
 		}
@@ -3523,6 +3633,8 @@ public class PitProperties extends PropertyPanel
 		}
 
 		PitPanel entryPanel = (PitPanel) tabbedPane.getComponentAt(0);
+		// its side surface was set above to the one the game uses
+		SegmentSide before = onLeft(pits) ? previousSegment.getLeft() : previousSegment.getRight();
 		start = data.indexOf(pitEntry);
 		end = data.indexOf(pitStart);
 		if (start > end)
@@ -3547,7 +3659,7 @@ public class PitProperties extends PropertyPanel
 			side.setBorderSurface(entryBorderSurface == null ? null : entryBorderSurface.toString());
 			side.setBorderHeight(0);
 			side.setBorderWidth(getDouble(entryPanel.getBorderWidthTextField().getText()));
-			side.setSideSurface(entryPanel.getSurfaceComboBox().getSelectedItem().toString());
+			side.setSideSurface(sideSurface(entryPanel, before.getSideSurface()));
 			// the barrier goes on from the segment before the entry
 			side.setBarrierHeight(Double.NaN);
 			side.setBarrierWidth(Double.NaN);
@@ -3571,7 +3683,9 @@ public class PitProperties extends PropertyPanel
 
 		PitPanel pitPanel = (PitPanel) tabbedPane.getComponentAt(1);
 		String boxSurface = pitPanel.getSurfaceComboBox().getSelectedItem().toString();
-		String laneSurface = laneSurface(boxSurface, entryPanel.getSurfaceComboBox().getSelectedItem().toString());
+		// the entry's side can be the track's grass or sand now: the lane is paved
+		String entrySurface = sideSurface(entryPanel, before.getSideSurface());
+		String laneSurface = laneSurface(boxSurface, roadSurface(entrySurface) ? entrySurface : SegmentSide.DEFAULT_PIT_ENTRY_SURFACE);
 		start = data.indexOf(pitStart);
 		end = data.indexOf(pitEnd);
 		if (start > end)
@@ -3594,10 +3708,12 @@ public class PitProperties extends PropertyPanel
 			String borderType = pitPanel.getBorderTypeComboBox().getSelectedItem().toString();
 			if (borderType.equals("none"))
 			{
-				side.setBorderHeight(SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT);
-				side.setBorderWidth(SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH);
-				side.setBorderSurface(SegmentSide.DEFAULT_PIT_PITS_BORDER_SURFACE);
-				side.setBorderStyle(SegmentSide.DEFAULT_PIT_PITS_BORDER_STYLE);
+				// no border: one without a width, set so the entry's isn't inherited;
+				// the side is the whole pit lane
+				side.setBorderHeight(0);
+				side.setBorderWidth(0);
+				side.setBorderSurface(boxSurface);
+				side.setBorderStyle("plan");
 			}
 			else
 			{
