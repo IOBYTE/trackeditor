@@ -98,6 +98,15 @@ def figure_eight(climb=0):
     return [straight('front', extra=heights(0, 0)), curve('turn 1', arc=270, kind='lft', extra=heights(0, climb)),
         straight('back', extra=heights(climb, climb)), curve('turn 2', arc=270, extra=heights(climb, 0))]
 
+def hill(grade, linear=False):
+    """an oval whose front climbs the grade (%) on average over its 100 m and whose back comes down again. The
+    game's spline profile is steepest halfway, at one and a half times the average; a linear one keeps the grade
+    and bends where each straight meets a curve: a crest at the top, a dip at the bottom"""
+    profil = [text('profil', 'linear')] if linear else []
+    heights = lambda start, end: [num('z start', start, 'm'), num('z end', end, 'm')] + profil
+    return oval(front=straight('front', extra=heights(0, grade)), turn1=curve('turn 1', extra=heights(grade, grade)),
+        back=straight('back', extra=heights(grade, 0)), turn2=curve('turn 2', extra=heights(0, 0)))
+
 def pit_section(**changes):
     values = {'side': 'right', 'entry': 'turn 2', 'start': 'front', 'end': 'front', 'exit': 'turn 1',
         'length': 10, 'width': 5, 'pit style': 1}
@@ -225,6 +234,12 @@ CASES = [
     # a loop of exactly a full turn, flat, between front and turn 1: it ends where it starts
     ('crossing-full-turn', SD, track('oval', [straight('front'), curve('loop', arc=360, radius=30, kind='lft'), curve('turn 1'),
         straight('back'), curve('turn 2')])),
+
+    # whether it can be driven: grade, banking, crests and dips
+    ('profile-too-steep-dirt', SD, track('oval', hill(45), category='dirt')),
+    ('profile-steep-dirt', SD, track('oval', hill(25), category='dirt')),
+    ('profile-crest-and-dip', SD, track('oval', hill(15, linear=True))),
+    ('profile-banking', SD, track('oval', oval(turn1=curve('turn 1', extra=[num('banking start', 40, 'deg'), num('banking end', 40, 'deg')])))),
 
     # the track menu's pictures
     ('menu-map-missing-torcs', '--game torcs oval/oval.xml', track('oval'), {'omit': ['oval.png']}),

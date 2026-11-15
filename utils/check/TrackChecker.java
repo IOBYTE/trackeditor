@@ -78,6 +78,9 @@ public class TrackChecker
 	// through themselves: an overlap of one, or of the two next to it, is the same
 	// problem (see checkCrossings)
 	private final Set<String>	foldedSegments	= new HashSet<String>();
+	// the segments whose heights Check reports as not agreeing: a steep grade or
+	// a crest at one, or next to one, is the same problem (see checkProfile)
+	private final Set<String>	heightProblems	= new HashSet<String>();
 	private TrackData			trackData		= null;
 	private Map<String,Boolean>	imageHasAlpha	= new HashMap<String, Boolean>();
 
@@ -106,7 +109,18 @@ public class TrackChecker
 		// what the messages of each check are about, unless they say
 		check(null, this::checkSharedFiles);
 		check(null, this::checkSectionNames);
-		check(null, this::checkTrackHeight);
+		check(null, () ->
+		{
+			int before = messages.size();
+			checkTrackHeight();
+			// the segments whose heights it reports, for checkProfile
+			for (int i = before; i < messages.size(); i++)
+			{
+				Segment segment = messages.get(i).getSubject() == null ? null : messages.get(i).getSubject().getSegment();
+				if (segment != null)
+					heightProblems.add(segment.getName());
+			}
+		});
 		check(null, this::checkSurfaces);
 		check(properties("Objects"), this::checkObjects);
 		check(properties("Terrain"), this::checkTerrainGeneration);
@@ -120,6 +134,7 @@ public class TrackChecker
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
 		check(null, this::checkCrossings);
+		check(null, this::checkProfile);
 		check(properties("General"), this::checkHeader);
 		check(properties("Georeference"), this::checkGeoreference);
 		// lines of the file: what saving drops isn't in the editor to show
@@ -551,6 +566,164 @@ public class TrackChecker
 			else
 				report.append(where + ": the roads cross too close to parallel, or too near another part of the track, for trackgen to fit one\n", segment(upper));
 		}
+	}
+
+	// what real tracks stay within (measured on about 220 of the games' tracks:
+	// the steepest road climbs 24%, the steepest dirt track 29%, the most banked
+	// 30 degrees, against 37 on the most banked real ones; no road, circuit, oval
+	// or speedway has a crest or dip tighter than 67 m)
+	private static final double	MAX_GRADE			= 0.30;
+	private static final double	MAX_DIRT_GRADE		= 0.40;
+	private static final double	MAX_BANKING_DEG		= 37;
+	private static final double	MIN_VERTICAL_RADIUS	= 50;
+	// the length the grade is measured over: about a car's
+	private static final double	PROFILE_STEP		= 5;
+	private static final double	GRAVITY				= 9.81;
+
+	/**
+	 * Whether the track can be driven, not only whether its heights agree: a
+	 * grade or banking steeper than real tracks have, and on tracks other than
+	 * dirt tracks (which jump on purpose) a crest that throws cars into the air
+	 * or a dip that bottoms them out, as tight as real tracks never are. The
+	 * road's middle and edges are sampled every meter as the game builds them
+	 * (see GameTrack.heightL); each segment gets one message of each kind, at its
+	 * worst. Not a segment whose heights don't agree, or next to one: those
+	 * messages come first.
+	 */
+	private void checkProfile()
+	{
+		utils.circuit.GameTrack track;
+		try
+		{
+			track = utils.circuit.GameTrack.build(trackContext);
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (track == null)
+			return;
+		boolean dirt = "dirt".equals(trackData.getHeader().getCategory());
+		double maxGrade = dirt ? MAX_DIRT_GRADE : MAX_GRADE;
+
+		// along the lap: where, the road's height in its middle, and its segment
+		java.util.List<Double> distances = new java.util.ArrayList<Double>(), heights = new java.util.ArrayList<Double>();
+		java.util.List<String> names = new java.util.ArrayList<String>();
+		java.util.Map<String, Double> banking = new java.util.LinkedHashMap<String, Double>();
+		double lap = 0;
+		for (utils.circuit.GameTrack.Seg seg : track.segs)
+		{
+			if (!(seg.length > 0) || Double.isInfinite(seg.length))
+				continue;
+			int steps = (int) Math.ceil(seg.length);
+			for (int i = 0; i < steps; i++)
+			{
+				double along = seg.length * i / steps;
+				float toStart = (float) (seg.type == utils.circuit.GameTrack.TR_STR ? along : along / seg.radius);
+				float width = utils.circuit.GameTrack.width(seg, toStart);
+				double right = track.heightL(seg, toStart, 0), left = track.heightL(seg, toStart, width);
+				double middle = track.heightL(seg, toStart, width / 2);
+				if (!Double.isFinite(right) || !Double.isFinite(left) || !Double.isFinite(middle) || !(width > 0))
+					continue;
+				double bank = Math.toDegrees(Math.atan2(Math.abs(left - right), width));
+				banking.merge(seg.name, bank, Math::max);
+				distances.add(lap + along);
+				heights.add(middle);
+				names.add(seg.name);
+			}
+			lap += seg.length;
+		}
+		int count = distances.size();
+		int window = (int) PROFILE_STEP;
+		if (count < 2 * window + 1)
+			return;
+
+		java.util.Map<String, Double> grades = new java.util.LinkedHashMap<String, Double>();
+		java.util.Map<String, Double> crests = new java.util.LinkedHashMap<String, Double>();
+		java.util.Map<String, Double> dips = new java.util.LinkedHashMap<String, Double>();
+		// a crest or dip tighter than MIN_VERTICAL_RADIUS, while the road goes over or
+		// through it: it goes to the segment where it is tightest, once
+		int bend = 0;
+		double tightest = Double.NaN;
+		String tightestAt = null;
+		for (int i = 0; i <= count; i++)
+		{
+			if (i == count)
+			{
+				endBend(bend, tightest, tightestAt, crests, dips);
+				break;
+			}
+			// the lap goes on past the start line
+			int before = (i - window + count) % count, after = (i + window) % count;
+			double back = distance(distances, before, i, lap), ahead = distance(distances, i, after, lap);
+			double gradeBefore = (heights.get(i) - heights.get(before)) / back;
+			double gradeAfter = (heights.get(after) - heights.get(i)) / ahead;
+			grades.merge(names.get(i), Math.abs(gradeAfter), Math::max);
+			double change = gradeAfter - gradeBefore;
+			// the radius of the curve the road goes over (a crest) or through (a dip)
+			double radius = Math.abs(change) < 1e-9 ? Double.POSITIVE_INFINITY : (back + ahead) / 2 / Math.abs(change);
+			int kind = dirt || !(radius < MIN_VERTICAL_RADIUS) ? 0 : change < 0 ? -1 : 1;
+			if (kind != bend)
+			{
+				endBend(bend, tightest, tightestAt, crests, dips);
+				bend = kind;
+				tightest = Double.NaN;
+			}
+			if (kind != 0 && !(radius >= tightest))
+			{
+				tightest = radius;
+				tightestAt = names.get(i);
+			}
+		}
+
+		SegmentVector segments = trackData.getSegments();
+		for (int i = 0; i < segments.size(); i++)
+		{
+			Segment segment = segments.get(i);
+			String name = segment.getName();
+			// one whose heights don't agree with its own or its neighbors' has a step there
+			if (heightProblems.contains(name) || heightProblems.contains(segments.get((i + 1) % segments.size()).getName())
+				|| heightProblems.contains(segments.get((i + segments.size() - 1) % segments.size()).getName()))
+				continue;
+			Subject where = segment(segment);
+			Double grade = grades.get(name);
+			if (grade != null && grade > maxGrade)
+				report.append("Segment " + name + ": the road is as steep as " + Math.round(grade * 100) + "% (more than "
+					+ Math.round(maxGrade * 100) + "%" + (dirt ? " on a dirt track" : "") + "), steeper than real tracks get\n", where);
+			Double bank = banking.get(name);
+			if (bank != null && bank > MAX_BANKING_DEG)
+				report.append("Segment " + name + ": the road is banked as much as " + Math.round(bank) + " deg (more than "
+					+ Math.round(MAX_BANKING_DEG) + " deg), more than real tracks are\n", where);
+			Double crest = crests.get(name);
+			if (crest != null && crest < MIN_VERTICAL_RADIUS)
+				report.append("Segment " + name + ": a crest with a radius of only " + Math.round(crest) + " m (less than "
+					+ Math.round(MIN_VERTICAL_RADIUS) + " m) throws cars into the air above " + kmh(crest) + " km/h\n", where);
+			Double dip = dips.get(name);
+			if (dip != null && dip < MIN_VERTICAL_RADIUS)
+				report.append("Segment " + name + ": a dip with a radius of only " + Math.round(dip) + " m (less than "
+					+ Math.round(MIN_VERTICAL_RADIUS) + " m) doubles the load on cars' suspension above " + kmh(dip)
+					+ " km/h, so they bottom out\n", where);
+		}
+	}
+
+	/** Keeps a crest (-1) or dip (1) that has ended at the segment where it is tightest, the tightest of the segment's */
+	private static void endBend(int kind, double radius, String at, java.util.Map<String, Double> crests, java.util.Map<String, Double> dips)
+	{
+		if (kind != 0 && at != null)
+			(kind < 0 ? crests : dips).merge(at, radius, Math::min);
+	}
+
+	/** @return how far it is along the lap from one sample to another, ahead of it */
+	private static double distance(java.util.List<Double> distances, int from, int to, double lap)
+	{
+		double d = distances.get(to) - distances.get(from);
+		return d > 0 ? d : d + lap;
+	}
+
+	/** @return the speed at which a crest or dip of the radius pulls a car with the force of gravity (km/h) */
+	private static long kmh(double radius)
+	{
+		return Math.round(Math.sqrt(GRAVITY * radius) * 3.6);
 	}
 
 	/** @return the name of the game's segment with the id */

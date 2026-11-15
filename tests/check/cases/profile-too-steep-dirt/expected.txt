@@ -1,0 +1,4 @@
+oval/oval.xml: Segment front: the road is as steep as 67% (more than 40% on a dirt track), steeper than real tracks get
+oval/oval.xml: Segment back: the road is as steep as 67% (more than 40% on a dirt track), steeper than real tracks get
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

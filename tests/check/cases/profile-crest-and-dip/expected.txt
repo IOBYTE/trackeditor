@@ -1,0 +1,6 @@
+oval/oval.xml: Segment front: a dip with a radius of only 33 m (less than 50 m) doubles the load on cars' suspension above 65 km/h, so they bottom out
+oval/oval.xml: Segment turn 1: a crest with a radius of only 33 m (less than 50 m) throws cars into the air above 65 km/h
+oval/oval.xml: Segment back: a crest with a radius of only 33 m (less than 50 m) throws cars into the air above 65 km/h
+oval/oval.xml: Segment turn 2: a dip with a radius of only 33 m (less than 50 m) doubles the load on cars' suspension above 65 km/h, so they bottom out
+1 track checked: 4 messages (closure not checked: add --trackgen)
+exit 1
