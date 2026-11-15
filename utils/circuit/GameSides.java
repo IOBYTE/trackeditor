@@ -29,6 +29,11 @@ import utils.check.TrackContext;
  * <li>A "plan" border has height 0, and that 0 carries on to later segments (not in
  *     TORCS: it keeps the height, which a later border without one uses).</li>
  * <li>A border style other than "plan" or "curb" is a wall.</li>
+ * <li>CSR's version 4 loader (experimental in the editor, see
+ *     TrackContext.getVariableBorderWidth): a segment's border "width" sets both of its
+ *     widths; without one, a "start width" that isn't set is the previous end width,
+ *     and an "end width" that isn't set is the start width. The Main Track only has
+ *     "width".</li>
  * <li>A fence has width 0 and "no barrier" has width and height 0; both carry on.
  *     A barrier style the game doesn't know is ignored (in TORCS, any style other
  *     than a fence is a wall). On the Main Track, any barrier style other than a
@@ -44,6 +49,10 @@ public final class GameSides
 		public String	sideSurface;
 
 		public double	borderWidth;
+		// the border's widths at the segment's start and end: both borderWidth unless
+		// borders can vary (TrackContext.getVariableBorderWidth)
+		public double	borderStartWidth;
+		public double	borderEndWidth;
 		public double	borderHeight;
 		public String	borderSurface;
 		public String	borderStyle;
@@ -65,6 +74,7 @@ public final class GameSides
 	{
 		GameType game = trackContext.getGameType();
 		boolean version3 = trackContext.getTrackData().getHeader().getVersion() == 3;
+		boolean variable = trackContext.getVariableBorderWidth();
 		MainTrack mainTrack = trackContext.getTrackData().getMainTrack();
 		State state = start(right ? mainTrack.getRight() : mainTrack.getLeft(), game, version3);
 
@@ -77,7 +87,7 @@ public final class GameSides
 		for (int i = chain.size() - 1; i >= 0; i--)
 		{
 			Segment s = chain.get(i);
-			apply(state, right ? s.getRight() : s.getLeft(), game, version3);
+			apply(state, right ? s.getRight() : s.getLeft(), game, version3, variable);
 		}
 
 		return state;
@@ -93,6 +103,8 @@ public final class GameSides
 		s.sideSurface = text(main.getSideSurface(), "grass");
 
 		s.borderWidth = number(main.getBorderWidth(), 0.0);
+		s.borderStartWidth = s.borderWidth;
+		s.borderEndWidth = s.borderWidth;
 		s.borderHeight = number(main.getBorderHeight(), 0.0);
 		s.borderSurface = text(main.getBorderSurface(), "grass");
 		setBorderStyle(s, text(main.getBorderStyle(), "plan"), game);
@@ -116,7 +128,7 @@ public final class GameSides
 		return s;
 	}
 
-	private static void apply(State s, SegmentSide side, GameType game, boolean version3)
+	private static void apply(State s, SegmentSide side, GameType game, boolean version3, boolean variable)
 	{
 		// side
 		double start = side.getSideStartWidth();
@@ -126,7 +138,18 @@ public final class GameSides
 		s.sideSurface = text(side.getSideSurface(), s.sideSurface);
 
 		// border
-		s.borderWidth = number(side.getBorderWidth(), s.borderWidth);
+		if (variable && Double.isNaN(side.getBorderWidth()))
+		{
+			s.borderStartWidth = number(side.getBorderStartWidth(), s.borderEndWidth);
+			s.borderEndWidth = number(side.getBorderEndWidth(), s.borderStartWidth);
+			s.borderWidth = s.borderStartWidth;
+		}
+		else
+		{
+			s.borderWidth = number(side.getBorderWidth(), s.borderWidth);
+			s.borderStartWidth = s.borderWidth;
+			s.borderEndWidth = s.borderWidth;
+		}
 		// in TORCS version 3, a segment without a border height has a height of 0
 		s.borderHeight = number(side.getBorderHeight(), version3 && game == GameType.TORCS ? 0.0 : s.borderHeight);
 		s.borderSurface = text(side.getBorderSurface(), s.borderSurface);
@@ -230,7 +253,9 @@ public final class GameSides
 		if (!(segment instanceof Curve) || right != segment.getType().equals("rgt"))
 			return;
 		Curve curve = (Curve) segment;
-		double toBorder = trackContext.getTrackData().getMainTrack().getValidWidth() / 2 + state.borderWidth;
+		double halfWidth = trackContext.getTrackData().getMainTrack().getValidWidth() / 2;
+		// a border's width can change along the segment (CSR, experimental)
+		double[] borders = { state.borderStartWidth, state.borderEndWidth };
 		// the games whose segments can have no barrier (version 3 tracks take the barrier from the Main Track)
 		boolean noBarrier = !trackContext.getGameType().otherBarrierStylesAreWalls()
 			&& trackContext.getTrackData().getHeader().getVersion() != 3;
@@ -240,16 +265,17 @@ public final class GameSides
 		for (int i = 0; i < 2; i++)
 		{
 			// the same radius at both ends is reported once, at the end that is wider
-			if (i == 0 && radii[0] == radii[1] && sides[1] >= sides[0])
+			if (i == 0 && radii[0] == radii[1] && sides[1] + borders[1] >= sides[0] + borders[0])
 				continue;
-			if (i == 1 && radii[0] == radii[1] && sides[0] > sides[1])
+			if (i == 1 && radii[0] == radii[1] && sides[0] + borders[0] > sides[1] + borders[1])
 				continue;
+			double toBorder = halfWidth + borders[i];
 			double side = toBorder + sides[i];
 			double reach = side + state.barrierWidth;
 			if (!(reach > radii[i]))
 				continue;
 			boolean sideReaches = side > radii[i];
-			String at = radii[0] == radii[1] ? "" : " at its " + ends[i];
+			String at = radii[0] == radii[1] && borders[0] == borders[1] ? "" : " at its " + ends[i];
 			String radius = radii[0] == radii[1] ? "radius" : ends[i] + " radius";
 			String widthName = "the side's " + (sides[0] == sides[1] ? "" : ends[i] + " ") + "width";
 			String fix;
@@ -257,14 +283,14 @@ public final class GameSides
 			{
 				// a side that ends at the center leaves its barrier no length: the style for that is no barrier
 				fix = sideReaches
-					? narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder) + " and its barrier style to no barrier (a barrier at the center has no length), "
+					? narrower(widthName, sides[i], borders[i], radii[i] - toBorder) + " and its barrier style to no barrier (a barrier at the center has no length), "
 						+ larger(radius, reach)
-					: "set its barrier style to no barrier, or " + narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder - state.barrierWidth)
+					: "set its barrier style to no barrier, or " + narrower(widthName, sides[i], borders[i], radii[i] - toBorder - state.barrierWidth)
 						+ ", " + larger(radius, reach);
 			}
 			else
 			{
-				fix = narrower(widthName, sides[i], state.borderWidth, radii[i] - toBorder - state.barrierWidth) + ", " + larger(radius, reach);
+				fix = narrower(widthName, sides[i], borders[i], radii[i] - toBorder - state.barrierWidth) + ", " + larger(radius, reach);
 			}
 			String text = String.format(java.util.Locale.US, "%s %.2f m in from the middle of the track%s, past the curve's center "
 				+ "(%s %.2f m), so the game folds the side and its barrier over: %s",

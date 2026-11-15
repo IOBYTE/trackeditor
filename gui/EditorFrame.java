@@ -294,6 +294,9 @@ public class EditorFrame extends JFrame implements TrackContext
 	// Speed Dreams: make acc files with accc like TORCS and CSR, not with trackgen -A
 	private boolean				speedDreamsAccWithAccc				= false;
 	private final static String	SPEED_DREAMS_ACC_WITH_ACCC			= "SpeedDreamsAccWithAccc";
+	// experimental, CSR only: a segment's border can have a start and an end width
+	private boolean				variableBorderWidth					= false;
+	private final static String	VARIABLE_BORDER_WIDTH				= "VariableBorderWidth";
 
 	private GameType			gameType							= GameType.SPEED_DREAMS;
 	private final static String	GAME_TYPE							= "GameType";
@@ -452,6 +455,7 @@ public class EditorFrame extends JFrame implements TrackContext
 		cursorNames = preferences.getBoolean(CURSOR_NAMES, false);
 		checkDefaultObjects = preferences.getBoolean(CHECK_DEFAULT_OBJECTS, false);
 		speedDreamsAccWithAccc = preferences.getBoolean(SPEED_DREAMS_ACC_WITH_ACCC, false);
+		variableBorderWidth = preferences.getBoolean(VARIABLE_BORDER_WIDTH, false);
 		// the game type is one preference shared by every way the editor is run
 		// (sd2-trackeditor, csr-trackeditor, Eclipse); the app name only supplies
 		// the default until a game type has been chosen
@@ -933,6 +937,19 @@ public class EditorFrame extends JFrame implements TrackContext
 		speedDreamsAccWithAccc = value;
 
 		preferences.putBoolean(SPEED_DREAMS_ACC_WITH_ACCC, speedDreamsAccWithAccc);
+	}
+
+	/** @return whether the experimental CSR preference for variable-width borders is on */
+	public boolean getVariableBorderWidthPreference()
+	{
+		return variableBorderWidth;
+	}
+
+	public void setVariableBorderWidthPreference(boolean value)
+	{
+		variableBorderWidth = value;
+
+		preferences.putBoolean(VARIABLE_BORDER_WIDTH, variableBorderWidth);
 	}
 
 	/**
@@ -2357,6 +2374,8 @@ public class EditorFrame extends JFrame implements TrackContext
 			setCursorNames(preferencesDialog.getCursorNames());
 			setCheckDefaultObjects(preferencesDialog.getCheckDefaultObjects());
 			setSpeedDreamsAccWithAccc(preferencesDialog.getSpeedDreamsAccWithAccc());
+			// (redrawn below: the borders, and the segment dialog's fields for them)
+			setVariableBorderWidthPreference(preferencesDialog.getVariableBorderWidth());
 			readDefaultSurfaces();
 			readDefaultObjects();
 			// an open Default Surfaces or Default Objects window shows the new ones

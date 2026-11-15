@@ -1471,6 +1471,18 @@ public class Segment implements Cloneable
 		return GameSides.of(this, false, trackContext).borderWidth;
     }
 
+    /** @return the left border's width at the segment's end: its width unless it can vary (CSR, experimental) */
+    public double getValidLeftBorderEndWidth(TrackContext trackContext)
+    {
+		return GameSides.of(this, false, trackContext).borderEndWidth;
+    }
+
+    /** @return the right border's width at the segment's end: its width unless it can vary (CSR, experimental) */
+    public double getValidRightBorderEndWidth(TrackContext trackContext)
+    {
+		return GameSides.of(this, true, trackContext).borderEndWidth;
+    }
+
     public double getValidRightBorderWidth(TrackContext trackContext)
     {
 		// what the game uses, see GameSides
@@ -1900,8 +1912,21 @@ public class Segment implements Cloneable
 		if (all || !same(now.sideSurface, want.sideSurface))
 			side.setSideSurface(want.sideSurface);
 
-		if (all || differ(now.borderWidth, want.borderWidth))
+		if (differ(want.borderStartWidth, want.borderEndWidth) || differ(now.borderStartWidth, now.borderEndWidth))
+		{
+			// a border whose width changes along the segment (CSR, experimental)
+			if (all || differ(now.borderStartWidth, want.borderStartWidth) || differ(now.borderEndWidth, want.borderEndWidth))
+			{
+				boolean varies = differ(want.borderStartWidth, want.borderEndWidth);
+				side.setBorderWidth(varies ? Double.NaN : want.borderStartWidth);
+				side.setBorderStartWidth(varies ? want.borderStartWidth : Double.NaN);
+				side.setBorderEndWidth(varies ? want.borderEndWidth : Double.NaN);
+			}
+		}
+		else if (all || differ(now.borderWidth, want.borderWidth))
+		{
 			side.setBorderWidth(want.borderWidth);
+		}
 		if (all || differ(now.borderHeight, want.borderHeight))
 			side.setBorderHeight(want.borderHeight);
 		if (all || !same(now.borderSurface, want.borderSurface))

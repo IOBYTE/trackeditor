@@ -38,6 +38,7 @@ public class LoadedTrack implements TrackContext
 	private final Vector<Surface>		defaultSurfaces		= new Vector<Surface>();
 	private final Vector<TrackObject>	defaultObjects		= new Vector<TrackObject>();
 	private boolean						checkDefaultObjects	= false;
+	private boolean						variableBorderWidth	= false;
 	private TrackData					trackData			= null;
 	private List<String>				numberWarnings		= new ArrayList<String>();
 
@@ -97,6 +98,17 @@ public class LoadedTrack implements TrackContext
 	public void setCheckDefaultObjects(boolean checkDefaultObjects)
 	{
 		this.checkDefaultObjects = checkDefaultObjects;
+	}
+
+	public boolean getVariableBorderWidthPreference()
+	{
+		return variableBorderWidth;
+	}
+
+	/** Sets whether borders can have a start and an end width (CSR), as the editor's experimental preference does */
+	public void setVariableBorderWidthPreference(boolean variableBorderWidth)
+	{
+		this.variableBorderWidth = variableBorderWidth;
 	}
 
 	public String[] getTrackFolders(String... more)

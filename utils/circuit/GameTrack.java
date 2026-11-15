@@ -103,6 +103,11 @@ public class GameTrack
 		 */
 		public float		headingZS;
 		public float		Kzl, Kzw, Kyl;
+		/**
+		 * CSR: how much the inner edge drifts along the segment, for a side outside a
+		 * border whose width changes (the border's Kyl); 0 otherwise
+		 */
+		public float		Kyi;
 		/** corners: TR_SL, TR_SR, TR_EL, TR_ER; x, y, z */
 		public final float[][]	vertex	= new float[4][3];
 		public String		surface;
@@ -298,10 +303,14 @@ public class GameTrack
 		boolean right = side == TR_SIDE_RGT;
 		Seg inner = m;
 
-		float bw = (float) state.borderWidth;
-		if (bw != 0)
+		// a border's width can change along the segment (CSR, experimental), like a side's
+		float bsw0 = (float) state.borderStartWidth, bew0 = (float) state.borderEndWidth;
+		float kbw = (bew0 - bsw0) / (float) steps;
+		float bsw = bsw0 + (float) step * kbw;
+		float bew = bsw0 + (float) (step + 1) * kbw;
+		if (bsw != 0 || bew != 0)
 		{
-			Seg b = element(m, inner, right ? TR_RBORDER : TR_LBORDER, type, bw, bw,
+			Seg b = element(m, inner, right ? TR_RBORDER : TR_LBORDER, type, bsw, bew,
 				points[o + (right ? RIGHT_BORDER_START_RIGHT : LEFT_BORDER_START_LEFT)],
 				points[o + (right ? RIGHT_BORDER_END_RIGHT : LEFT_BORDER_END_LEFT)]);
 			b.height = (float) state.borderHeight;
@@ -331,6 +340,9 @@ public class GameTrack
 				points[o + (right ? RIGHT_SIDE_END_RIGHT : LEFT_SIDE_END_LEFT)]);
 			s.style = TR_PLAN;
 			setSurface(s, state.sideSurface);
+			// CSR: its inner edge is the border's outer edge, which drifts if the border tapers
+			if (game == GameType.CARS_SPORTS_RACING)
+				s.Kyi = inner.Kyl + inner.Kyi;
 		}
 
 		Barrier barrier = new Barrier();
@@ -1126,7 +1138,10 @@ public class GameTrack
 		return Math.abs(seg.startWidth + toStart * seg.Kyl);
 	}
 
-	/** RtTrackLocal2Global with TR_TORIGHT: toStart is a length on a straight and an angle in a curve. */
+	/**
+	 * RtTrackLocal2Global with TR_TORIGHT: toStart is a length on a straight and an angle
+	 * in a curve. Kyi is CSR's: the inner edge of a side outside a tapered border drifts.
+	 */
 	public static float[] local2Global(Seg seg, float toStart, float toRight)
 	{
 		boolean leftKind = seg.type2 == TR_MAIN || seg.type2 == TR_LSIDE || seg.type2 == TR_LBORDER;
@@ -1136,7 +1151,7 @@ public class GameTrack
 		{
 		case TR_STR:
 		{
-			float tr = leftKind ? toRight : rightKind ? toRight - seg.Kyl * toStart : 0;
+			float tr = leftKind ? toRight + seg.Kyi * toStart : rightKind ? toRight - (seg.Kyl + seg.Kyi) * toStart : 0;
 			float cos = (float) Math.cos(seg.angleZS), sin = (float) Math.sin(seg.angleZS);
 			x = seg.vertex[TR_SR][0] + toStart * cos - tr * sin;
 			y = seg.vertex[TR_SR][1] + toStart * sin + tr * cos;
@@ -1145,7 +1160,8 @@ public class GameTrack
 		case TR_LFT:
 		{
 			float a = seg.angleZS + toStart;
-			float r = leftKind ? seg.radiusr - toRight : rightKind ? seg.radiusl + seg.startWidth + seg.Kyl * toStart - toRight : 0;
+			float r = leftKind ? seg.radiusr - seg.Kyi * toStart - toRight
+				: rightKind ? seg.radiusl + seg.Kyi * toStart + seg.startWidth + seg.Kyl * toStart - toRight : 0;
 			x = seg.centerX + r * (float) Math.sin(a);
 			y = seg.centerY - r * (float) Math.cos(a);
 			break;
@@ -1153,7 +1169,8 @@ public class GameTrack
 		default:
 		{
 			float a = seg.angleZS - toStart;
-			float r = leftKind ? seg.radiusr + toRight : rightKind ? seg.radiusl - seg.startWidth - seg.Kyl * toStart + toRight : 0;
+			float r = leftKind ? seg.radiusr + seg.Kyi * toStart + toRight
+				: rightKind ? seg.radiusl - seg.Kyi * toStart - seg.startWidth - seg.Kyl * toStart + toRight : 0;
 			x = seg.centerX - r * (float) Math.sin(a);
 			y = seg.centerY + r * (float) Math.cos(a);
 			break;
@@ -1162,14 +1179,18 @@ public class GameTrack
 		return new float[] { x, y };
 	}
 
-	/** RtTrackHeightL: the height of the road or side, with the surface's roughness and a curb's height. */
+	/**
+	 * RtTrackHeightL: the height of the road or side, with the surface's roughness and a
+	 * curb's height. CSR's uses a border's width where the point is (it can taper).
+	 */
 	public float heightL(Seg seg, float toStart, float toRight)
 	{
+		boolean csr = game == GameType.CARS_SPORTS_RACING;
 		float tr = toRight;
 		if (tr < 0 && seg.rside != null)
 		{
 			seg = seg.rside;
-			tr += seg.width;
+			tr += csr ? width(seg, toStart) : seg.width;
 			if (tr < 0 && seg.rside != null)
 			{
 				seg = seg.rside;
@@ -1180,7 +1201,7 @@ public class GameTrack
 		{
 			tr -= seg.width;
 			seg = seg.lside;
-			if (tr > seg.width && seg.lside != null)
+			if (tr > (csr ? width(seg, toStart) : seg.width) && seg.lside != null)
 			{
 				tr -= width(seg, toStart);
 				seg = seg.lside;
@@ -1202,14 +1223,18 @@ public class GameTrack
 		}
 		if (seg.style == TR_CURB)
 		{
-			float slope = (float) Math.atan2(seg.height, seg.width);
+			// CSR: a curb can taper, so its width where the point is
+			float w = csr ? width(seg, toStart) : seg.width;
+			if (csr && w < 0.001f)
+				return base + tr * (float) Math.tan(angle);
+			float slope = (float) Math.atan2(seg.height, w);
 			if (seg.type2 == TR_RBORDER)
 			{
-				float alpha = seg.width - tr;
-				float noise = seg.kRoughness * (float) Math.sin(seg.kRoughWaveLen * lg) * alpha / seg.width;
+				float alpha = w - tr;
+				float noise = seg.kRoughness * (float) Math.sin(seg.kRoughWaveLen * lg) * alpha / w;
 				return base + tr * (float) Math.tan(angle) + alpha * slope + noise;
 			}
-			return base + tr * ((float) Math.tan(angle) + slope) + seg.kRoughness * (float) Math.sin(seg.kRoughWaveLen * lg) * tr / seg.width;
+			return base + tr * ((float) Math.tan(angle) + slope) + seg.kRoughness * (float) Math.sin(seg.kRoughWaveLen * lg) * tr / w;
 		}
 		return base + tr * (float) Math.tan(angle) + seg.kRoughness * (float) Math.sin(seg.kRoughWaveLen * tr) * (float) Math.sin(seg.kRoughWaveLen * lg);
 	}

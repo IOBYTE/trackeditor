@@ -396,6 +396,8 @@ public class SegmentSplitter
 				original.getValidLeftSideStartWidth(editorFrame), original.getValidLeftSideEndWidth(editorFrame), t);
 		splitSide(original, original.getRight(), piece1.getRight(), piece2.getRight(),
 				original.getValidRightSideStartWidth(editorFrame), original.getValidRightSideEndWidth(editorFrame), t);
+		splitBorder(original, original.getLeft(), piece1.getLeft(), piece2.getLeft(), false, t);
+		splitBorder(original, original.getRight(), piece1.getRight(), piece2.getRight(), true, t);
 
 		// banking changes linearly over the steps
 		double bankingStart = original.getValidBankingStart(editorFrame);
@@ -542,5 +544,28 @@ public class SegmentSplitter
 		side2.setBarrierSurface(side.getBarrierSurface());
 		side2.setBarrierHeight(side.getBarrierHeight());
 		side2.setBarrierWidth(side.getBarrierWidth());
+	}
+
+	/**
+	 * A border whose width changes along the segment (CSR, experimental): each piece
+	 * has the part of the change along it, so the border keeps its shape
+	 */
+	private void splitBorder(Segment original, SegmentSide side, SegmentSide side1, SegmentSide side2, boolean right, double t)
+	{
+		side2.setBorderStartWidth(side.getBorderStartWidth());
+		side2.setBorderEndWidth(side.getBorderEndWidth());
+		if (!editorFrame.getVariableBorderWidth())
+			return;
+
+		utils.circuit.GameSides.State state = utils.circuit.GameSides.of(original, right, editorFrame);
+		if (!differ(state.borderStartWidth, state.borderEndWidth))
+			return;
+		double width = state.borderStartWidth + (state.borderEndWidth - state.borderStartWidth) * t;
+		side1.setBorderWidth(Double.NaN);
+		side1.setBorderStartWidth(state.borderStartWidth);
+		side1.setBorderEndWidth(width);
+		side2.setBorderWidth(Double.NaN);
+		side2.setBorderStartWidth(width);
+		side2.setBorderEndWidth(state.borderEndWidth);
 	}
 }

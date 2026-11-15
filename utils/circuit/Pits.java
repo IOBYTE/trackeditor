@@ -333,6 +333,11 @@ public class Pits {
 		private String	borderSurface	= null;
 		private double	borderWidth		= Double.NaN;
 		private double	borderHeight	= Double.NaN;
+		// entry and exit, with variable-width borders: NaN is from the track
+		private double	borderStartWidth	= Double.NaN;
+		private double	borderEndWidth		= Double.NaN;
+		private double	sideStartWidth		= Double.NaN;
+		private double	sideEndWidth		= Double.NaN;
 
 		public GeneratorPart copy()
 		{
@@ -342,6 +347,10 @@ public class Pits {
 			part.borderSurface = borderSurface;
 			part.borderWidth = borderWidth;
 			part.borderHeight = borderHeight;
+			part.borderStartWidth = borderStartWidth;
+			part.borderEndWidth = borderEndWidth;
+			part.sideStartWidth = sideStartWidth;
+			part.sideEndWidth = sideEndWidth;
 			return part;
 		}
 
@@ -384,6 +393,38 @@ public class Pits {
 		public void setBorderHeight(double borderHeight)
 		{
 			this.borderHeight = borderHeight;
+		}
+		public double getBorderStartWidth()
+		{
+			return borderStartWidth;
+		}
+		public void setBorderStartWidth(double borderStartWidth)
+		{
+			this.borderStartWidth = borderStartWidth;
+		}
+		public double getBorderEndWidth()
+		{
+			return borderEndWidth;
+		}
+		public void setBorderEndWidth(double borderEndWidth)
+		{
+			this.borderEndWidth = borderEndWidth;
+		}
+		public double getSideStartWidth()
+		{
+			return sideStartWidth;
+		}
+		public void setSideStartWidth(double sideStartWidth)
+		{
+			this.sideStartWidth = sideStartWidth;
+		}
+		public double getSideEndWidth()
+		{
+			return sideEndWidth;
+		}
+		public void setSideEndWidth(double sideEndWidth)
+		{
+			this.sideEndWidth = sideEndWidth;
 		}
 	}
 

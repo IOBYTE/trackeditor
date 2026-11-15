@@ -58,6 +58,8 @@ public class SegmentSlider extends JPanel
 	private JCheckBox		checkBox		= null;
 	private boolean			enabled			= true;
 	private boolean			optional		= false;
+	// ticks and unticks the check box as the user does (see the focus listener)
+	private SliderLink		link			= null;
 
 	private String			section;
 	private String			attr;
@@ -67,6 +69,10 @@ public class SegmentSlider extends JPanel
 	private double			resolution;
 	private String			method;
 	private double			value			= Double.NaN;
+	// what the game uses when the value isn't set (NaN when not shown): shown greyed
+	// out, with why in the box's tool tip, and the value ticking the box starts from
+	private double			inherited		= Double.NaN;
+	private String			inheritedTip	= null;
 	private NumberFormat	nf;
 	private boolean			integerFormat	= false;
 
@@ -81,7 +87,7 @@ public class SegmentSlider extends JPanel
 		this.defaultValue = defaultValue;
 		this.resolution = resolution;
 		initialize();
-		new SliderLink();
+		link = new SliderLink();
 	}
 
 	public SegmentSlider(double min, double max, double defaultValue, double resolution, double value, String section, String attr, String method, boolean optional, boolean integerFormat)
@@ -98,7 +104,7 @@ public class SegmentSlider extends JPanel
 		this.optional = optional;
 		this.integerFormat = integerFormat;
 		initialize();
-		new SliderLink();
+		link = new SliderLink();
 		setValue(value);
 		setOptional(optional);
 	}
@@ -234,7 +240,6 @@ public class SegmentSlider extends JPanel
 								{
 									try
 									{
-										double oldValue = value;
 										double tmp = Double.parseDouble(getTextField().getText());
 										// a value outside the limits isn't used: the box says why,
 										// and leaving it puts the value back
@@ -242,13 +247,9 @@ public class SegmentSlider extends JPanel
 										showRefused(refused);
 										if (refused != null)
 											return;
-										setValueInternal(tmp);
 										// any change typed is the segment's, even one finer than
-										// the slider's steps: the box shows it, so it must apply
-										if (Double.compare(oldValue, value) != 0)
-										{
-											valueChanged();
-										}
+										// the slider's steps: setValueInternal tells the listeners
+										setValueInternal(tmp);
 									}
 									catch (Exception ex)
 									{
@@ -266,14 +267,22 @@ public class SegmentSlider extends JPanel
 					SwingUtilities.invokeLater(doHighlight);
 				}
 			});
-			// left cleared or with only a minus: show the value it still has
+			// left cleared or with only a minus: an optional value is unset, as when
+			// its check box is unticked; another shows the value it still has, as
+			// does one refused
 			textField.addFocusListener(new java.awt.event.FocusAdapter()
 			{
 				@Override
 				public void focusLost(java.awt.event.FocusEvent e)
 				{
 					String s = textField.getText();
-					if ((s.equals("") || s.equals("-") || refusedText != null) && !Double.isNaN(value) && textField.isEnabled())
+					boolean cleared = s.equals("") || s.equals("-");
+					if (cleared && optional && refusedText == null && !Double.isNaN(value) && textField.isEnabled() && link != null)
+					{
+						checkBox.setSelected(false);
+						link.checkBoxChanged();
+					}
+					else if ((cleared || refusedText != null) && !Double.isNaN(value) && textField.isEnabled())
 						setTextQuietly(nf.format(value));
 					showRefused(null);
 				}
@@ -484,6 +493,40 @@ public class SegmentSlider extends JPanel
 		return fileText != null && Double.compare(value, fileValue) == 0;
 	}
 
+	/**
+	 * What the game uses when the value isn't set, shown greyed out in its place
+	 * (as a border's start width carried on from the segment before)
+	 *
+	 * @param value the value used, NaN to show none
+	 * @param tip why it is used, for the box's tool tip
+	 */
+	public void setInherited(double value, String tip)
+	{
+		inherited = value;
+		inheritedTip = tip;
+		if (Double.isNaN(this.value))
+			showInherited();
+	}
+
+	/** Shows the value used instead of the one not set, greyed out */
+	private void showInherited()
+	{
+		if (!Double.isNaN(value) || !enabled)
+			return;
+		if (!Double.isNaN(inherited))
+		{
+			setTextQuietly(nf.format(inherited));
+			getTextField().setCaretPosition(0);
+			setSliderValue(Math.max(getMin(), Math.min(getMax(), inherited)));
+		}
+		else
+		{
+			setTextQuietly("");
+			setSliderValue(defaultValue);
+		}
+		showText();
+	}
+
 	/** @return the text the box shows for the value */
 	private String valueText()
 	{
@@ -499,6 +542,8 @@ public class SegmentSlider extends JPanel
 			+ "</font><br>Type a value to replace it.</body></html>" : null;
 		String tip = refusedText != null ? "<html><body style='width: 300px'><font color=red><b>Not used:</b> "
 			+ refusedText + ".<br>The previous value is restored when you leave the box.</font></body></html>" : problemTip != null ? problemTip : fileTipText;
+		if (tip == null && Double.isNaN(value) && !Double.isNaN(inherited) && inheritedTip != null)
+			tip = inheritedTip;
 		getTextField().setDisabledTextColor(problemTip != null || fileTipText != null ? red : javax.swing.UIManager.getColor("TextField.inactiveForeground"));
 		getTextField().setForeground(tip != null ? red : javax.swing.UIManager.getColor("TextField.foreground"));
 		getTextField().setToolTipText(tip);
@@ -649,6 +694,7 @@ public class SegmentSlider extends JPanel
 			getSlider().setEnabled(false);
 			if (optional)
 				checkBox.setSelected(false);
+			showInherited();
 		}
 		else
 		{
@@ -666,6 +712,7 @@ public class SegmentSlider extends JPanel
 			}
 			setTextQuietly(valueText());
 			getTextField().setCaretPosition(0);
+			showText();
 			if (isEnabled())
 			{
 				getTextField().setEnabled(true);
@@ -750,12 +797,15 @@ public class SegmentSlider extends JPanel
 				e.printStackTrace();
 			}
 		}
-		if (Math.abs(textValue - value) >= 0.001)
+		boolean textDiffers = Math.abs(textValue - value) >= 0.001;
+		if (textDiffers)
 		{
 			setTextQuietly(nf.format(value));
 			getTextField().setCaretPosition(0);
-			valueChanged();
 		}
+		// every new value is the segment's, typed or dragged
+		if (textDiffers || Double.compare(before, value) != 0)
+			valueChanged();
 	}
 
 	public synchronized void removeSliderListener(SliderListener l)
@@ -813,13 +863,7 @@ public class SegmentSlider extends JPanel
 			});
 
 			getTextField().setEnabled(true);
-			getTextField().addKeyListener(new KeyAdapter()
-			{
-				public void keyReleased(KeyEvent e)
-				{
-					textFieldChanged();
-				}
-			});
+			// typing is handled by the text field's document listener (see getTextField)
 
 			getSlider().addChangeListener(new ChangeListener()
 			{
@@ -842,7 +886,8 @@ public class SegmentSlider extends JPanel
 			{
 				if (Double.isNaN(value))
 				{
-					value = defaultValue;
+					// from what the game used without it
+					value = Double.isNaN(inherited) ? defaultValue : inherited;
 				}
 				if (oldValue != value)
 				{
@@ -864,6 +909,7 @@ public class SegmentSlider extends JPanel
 					setSliderValue(defaultValue);
 					getSlider().setEnabled(false);
 					valueChanged();
+					showInherited();
 				}
 			}
 		}
@@ -892,30 +938,5 @@ public class SegmentSlider extends JPanel
 			}
 		}
 
-		/**
-		 *  
-		 */
-		protected void textFieldChanged()
-		{
-			if (!getTextField().getText().equals(""))
-			{
-				if (getTextField().getText().equals("-"))
-				{
-					setValueInternal(defaultValue);
-				}
-				else
-				{
-					try
-					{
-						double tmp = Double.parseDouble(getTextField().getText());
-						setValueInternal(tmp);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
-				}
-			}
-		}
 	}
 } //  @jve:decl-index=0:visual-constraint="10,10"

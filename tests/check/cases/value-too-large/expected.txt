@@ -1,0 +1,9 @@
+oval/oval.xml: Can't tell whether the track closes: where segment turn 2 ends can't be calculated. Fix the segments reported first.
+oval/oval.xml: Segment front: length 1e300 m is longer than the editor allows (10000 m)
+oval/oval.xml: Segment front: the game builds it in 2.5e299 steps, more than the editor's limit of 10,000. The editor draws it in 10,000, and the game may be slow to load it.
+oval/oval.xml: Segment turn 1: radius infinite is larger than the editor allows (10000 m)
+oval/oval.xml: Segment turn 1: the game builds it in infinite steps, more than the editor's limit of 10,000. The editor draws it in 10,000, and the game may be slow to load it.
+oval/oval.xml:111: "pit style" has the value "1e999", too large to be a number: what the game makes of it is undefined. The editor uses 0. Set a real value.
+oval/oval.xml: Camera cam 1: height is infinite, too large to be a number, so the game can't use it. Set a real value.
+1 track checked: 7 messages (closure not checked: add --trackgen)
+exit 1

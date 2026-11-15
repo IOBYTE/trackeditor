@@ -171,6 +171,7 @@ public class TrackLoader
 		track.getDefaultSurfaces().addAll(settings.getDefaultSurfaces());
 		track.getDefaultObjects().addAll(settings.getDefaultObjects());
 		track.setCheckDefaultObjects(settings.getCheckDefaultObjects());
+		track.setVariableBorderWidthPreference(settings.getVariableBorderWidthPreference());
 
 		track.setTrackData(new TrackData());
 		TrackLoader loader = new TrackLoader(track, notices);

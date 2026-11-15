@@ -505,7 +505,23 @@ public class XmlWriter
 		Element side = new Element("section");
 		side.setAttribute(new Attribute("name", sPart + " Border"));
 
-		addContent(side, "width", "m", part.getBorderWidth());
+		// CSR's version 4 loader: a segment's border widths, like a side's (the Main Track
+		// has none): the same at both ends is "width", which the loader reads first
+		double start = part.getBorderStartWidth(), end = part.getBorderEndWidth();
+		if (!Double.isNaN(part.getBorderWidth()) || !trackContext.getCarsSportsRacing()
+			|| trackContext.getTrackData().getHeader().getVersion() != 4)
+		{
+			addContent(side, "width", "m", part.getBorderWidth());
+		}
+		else if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+		{
+			addContent(side, "width", "m", start);
+		}
+		else
+		{
+			addContent(side, "start width", "m", start);
+			addContent(side, "end width", "m", end);
+		}
 		addContent(side, "height", "m", part.getBorderHeight());
 		addContent(side, "surface", part.getBorderSurface());
 		addContent(side, "style", part.getBorderStyle());

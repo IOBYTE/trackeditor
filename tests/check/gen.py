@@ -142,6 +142,18 @@ CASES = [
     ('clean', SD, track('oval')),
     ('clean-torcs', '--game torcs oval/oval.xml', track('oval')),
     ('clean-csr', '--game csr oval/oval.xml', track('oval')),
+    # CSR's version 4 loader: a border can widen along a segment, like a side; the editor uses it with --variable-borders
+    ('border-variable-width-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    ('border-variable-width-off-csr', '--game csr oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # a border's width is both of its widths, so CSR doesn't read a start or end width with it
+    ('border-width-and-start-end-csr', '--game csr --show saving oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 1, 'm'), num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # the right border of the right turn widens to 12 m, so at the turn's end its side reaches past the curve's center
+    ('border-variable-width-past-curve-center-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(turn1=curve('turn 1', radius=20,
+        right=side('Right', border=[num('start width', 0.5, 'm'), num('end width', 12, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')])),
+        turn2=curve('turn 2', radius=20)))),
 
     # segments
     ('straight-no-length', SD, track('oval', oval(front=section('front', text('type', 'str'), text('surface', 'road'), *side('Left'), *side('Right'))))),
@@ -186,6 +198,11 @@ CASES = [
         grip('curb', 'curb.png', rolling=None), surface('wall', 'wall.png')])),
     ('surface-absurd-grip-values', SD, track('oval', surfaces=[grip('road', 'road.png', rolling=2), grip('grass', 'grass.png', roughness=-1, wavelength=0),
         grip('curb', 'curb.png', rolling=-0.1), surface('wall', 'wall.png')])),
+    # a value too large to be a number (1e999: the games read it as infinity too), and a huge one
+    # (a camera's height has no check of its own, and the pit style is a whole number)
+    ('value-too-large', SD, track('oval', oval(front=straight('front', length='1e300'), turn1=curve('turn 1', radius='1e999')),
+        [camera('cam 1', 'front', 'front', 'back', height='1e999'), camera('cam 2', 'back', 'back', 'front')], pits=pit_section(**{'pit style': '1e999'}))),
+    ('value-not-a-number', SD, track('oval', cameras=[camera('cam 1', 'front', 'front', 'back', height='nan'), camera('cam 2', 'back', 'back', 'front')])),
     ('surface-not-defined', SD, track('oval', oval(front=section('front', text('type', 'str'), num('lg', 100, 'm'), text('surface', 'gravel'), *side('Left'), *side('Right'))))),
 
     # names

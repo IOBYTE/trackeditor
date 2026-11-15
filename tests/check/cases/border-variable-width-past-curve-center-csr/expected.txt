@@ -1,0 +1,3 @@
+oval/oval.xml: Segment turn 1 Right side and its wall barrier reach 21.25 m in from the middle of the track at its end, past the curve's center (radius 20.00 m), so the game folds the side and its barrier over: set the side's width to 3.00 m or less (it is 4.00 m) and its barrier style to no barrier (a barrier at the center has no length), or set the radius to 21.25 m or more
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

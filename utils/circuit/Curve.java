@@ -292,6 +292,9 @@ public class Curve extends Segment
 		double	trackWidth = trackContext.getTrackData().getMainTrack().getValidWidth();
 		double	leftBorderWidth = getValidLeftBorderWidth(trackContext);
 		double	rightBorderWidth = getValidRightBorderWidth(trackContext);
+		// a border's width can change along the segment (CSR, experimental)
+		double	leftBorderEndWidth = getValidLeftBorderEndWidth(trackContext);
+		double	rightBorderEndWidth = getValidRightBorderEndWidth(trackContext);
 		double	leftSideStartWidth = getValidLeftSideStartWidth(trackContext);
 		double	leftSideEndWidth = getValidLeftSideEndWidth(trackContext);
 		double	rightSideStartWidth = getValidRightSideStartWidth(trackContext);
@@ -357,6 +360,8 @@ public class Curve extends Segment
 
 		double leftSideDeltaStep = (leftSideEndWidth - leftSideStartWidth) / nbSteps;
 		double rightSideDeltaStep = (rightSideEndWidth - rightSideStartWidth) / nbSteps;
+		double leftBorderDeltaStep = (leftBorderEndWidth - leftBorderWidth) / nbSteps;
+		double rightBorderDeltaStep = (rightBorderEndWidth - rightBorderWidth) / nbSteps;
 
 		double leftHeightDeltaStep = (leftEndHeight - leftStartHeight) / nbSteps;
 		double rightHeightDeltaStep = (rightEndHeight - rightStartHeight) / nbSteps;
@@ -462,13 +467,17 @@ public class Curve extends Segment
 				points[currentSubSeg + TRACK_START_RIGHT].z = curzsr;
 			}
 
+			// the borders' widths at the step's start
+			double leftBorder = leftBorderWidth + leftBorderDeltaStep * nStep;
+			double rightBorder = rightBorderWidth + rightBorderDeltaStep * nStep;
+
 			// left border
 
-			points[currentSubSeg + LEFT_BORDER_START_LEFT].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorderWidth);
-			points[currentSubSeg + LEFT_BORDER_START_LEFT].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorderWidth);
+			points[currentSubSeg + LEFT_BORDER_START_LEFT].x = currentX + cosTransLeft * (trackWidth / 2 + leftBorder);
+			points[currentSubSeg + LEFT_BORDER_START_LEFT].y = currentY + sinTransLeft * (trackWidth / 2 + leftBorder);
 
-			x = points[currentSubSeg + LEFT_BORDER_START_LEFT].x - xCenter;
-			y = points[currentSubSeg + LEFT_BORDER_START_LEFT].y - yCenter;
+			x = points[currentSubSeg + LEFT_BORDER_START_LEFT].x + cosTransLeft * leftBorderDeltaStep - xCenter;
+			y = points[currentSubSeg + LEFT_BORDER_START_LEFT].y + sinTransLeft * leftBorderDeltaStep - yCenter;
 			points[currentSubSeg + LEFT_BORDER_END_LEFT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + LEFT_BORDER_END_LEFT].y = y * cos + x * sin + yCenter;
 
@@ -482,15 +491,15 @@ public class Curve extends Segment
 
 			points[currentSubSeg + LEFT_SIDE_START_LEFT].x = currentX
 					+ cosTransLeft
-					* (trackWidth / 2 + leftBorderWidth + leftSideStartWidth + leftSideDeltaStep
+					* (trackWidth / 2 + leftBorder + leftSideStartWidth + leftSideDeltaStep
 							* nStep);
 			points[currentSubSeg + LEFT_SIDE_START_LEFT].y = currentY
 					+ sinTransLeft
-					* (trackWidth / 2 + leftBorderWidth + leftSideStartWidth + leftSideDeltaStep
+					* (trackWidth / 2 + leftBorder + leftSideStartWidth + leftSideDeltaStep
 							* nStep);
 
-			x = points[currentSubSeg + LEFT_SIDE_START_LEFT].x + cosTransLeft * leftSideDeltaStep - xCenter;
-			y = points[currentSubSeg + LEFT_SIDE_START_LEFT].y + sinTransLeft * leftSideDeltaStep - yCenter;
+			x = points[currentSubSeg + LEFT_SIDE_START_LEFT].x + cosTransLeft * (leftSideDeltaStep + leftBorderDeltaStep) - xCenter;
+			y = points[currentSubSeg + LEFT_SIDE_START_LEFT].y + sinTransLeft * (leftSideDeltaStep + leftBorderDeltaStep) - yCenter;
 			points[currentSubSeg + LEFT_SIDE_END_LEFT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + LEFT_SIDE_END_LEFT].y = y * cos + x * sin + yCenter;
 
@@ -503,12 +512,12 @@ public class Curve extends Segment
 			// left barrier
 
 			points[currentSubSeg + LEFT_BARRIER_START_LEFT].x = currentX + cosTransLeft
-					* ((trackWidth / 2) + leftBorderWidth + leftSideStartWidth + leftBarrierWidth + (leftSideDeltaStep * nStep));
+					* ((trackWidth / 2) + leftBorder + leftSideStartWidth + leftBarrierWidth + (leftSideDeltaStep * nStep));
 			points[currentSubSeg + LEFT_BARRIER_START_LEFT].y = currentY + sinTransLeft
-					* ((trackWidth / 2) + leftBorderWidth + leftSideStartWidth + leftBarrierWidth + (leftSideDeltaStep * nStep));
+					* ((trackWidth / 2) + leftBorder + leftSideStartWidth + leftBarrierWidth + (leftSideDeltaStep * nStep));
 
-			x = points[currentSubSeg + LEFT_BARRIER_START_LEFT].x + cosTransLeft * leftSideDeltaStep - xCenter;
-			y = points[currentSubSeg + LEFT_BARRIER_START_LEFT].y + sinTransLeft * leftSideDeltaStep - yCenter;
+			x = points[currentSubSeg + LEFT_BARRIER_START_LEFT].x + cosTransLeft * (leftSideDeltaStep + leftBorderDeltaStep) - xCenter;
+			y = points[currentSubSeg + LEFT_BARRIER_START_LEFT].y + sinTransLeft * (leftSideDeltaStep + leftBorderDeltaStep) - yCenter;
 			points[currentSubSeg + LEFT_BARRIER_END_LEFT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + LEFT_BARRIER_END_LEFT].y = y * cos + x * sin + yCenter;
 
@@ -520,11 +529,11 @@ public class Curve extends Segment
 
 			// right border
 
-			points[currentSubSeg + RIGHT_BORDER_START_RIGHT].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorderWidth);
-			points[currentSubSeg + RIGHT_BORDER_START_RIGHT].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorderWidth);
+			points[currentSubSeg + RIGHT_BORDER_START_RIGHT].x = currentX - cosTransLeft * (trackWidth / 2 + rightBorder);
+			points[currentSubSeg + RIGHT_BORDER_START_RIGHT].y = currentY - sinTransLeft * (trackWidth / 2 + rightBorder);
 
-			x = points[currentSubSeg + RIGHT_BORDER_START_RIGHT].x - xCenter;
-			y = points[currentSubSeg + RIGHT_BORDER_START_RIGHT].y - yCenter;
+			x = points[currentSubSeg + RIGHT_BORDER_START_RIGHT].x - cosTransLeft * rightBorderDeltaStep - xCenter;
+			y = points[currentSubSeg + RIGHT_BORDER_START_RIGHT].y - sinTransLeft * rightBorderDeltaStep - yCenter;
 			points[currentSubSeg + RIGHT_BORDER_END_RIGHT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + RIGHT_BORDER_END_RIGHT].y = y * cos + x * sin + yCenter;
 
@@ -538,15 +547,15 @@ public class Curve extends Segment
 
 			points[currentSubSeg + RIGHT_SIDE_START_RIGHT].x = currentX
 					- cosTransLeft
-					* (trackWidth / 2 + rightBorderWidth + rightSideStartWidth + rightSideDeltaStep
+					* (trackWidth / 2 + rightBorder + rightSideStartWidth + rightSideDeltaStep
 							* nStep);
 			points[currentSubSeg + RIGHT_SIDE_START_RIGHT].y = currentY
 					- sinTransLeft
-					* (trackWidth / 2 + rightBorderWidth + rightSideStartWidth + rightSideDeltaStep
+					* (trackWidth / 2 + rightBorder + rightSideStartWidth + rightSideDeltaStep
 							* nStep);
 
-			x = points[currentSubSeg + RIGHT_SIDE_START_RIGHT].x - cosTransLeft * rightSideDeltaStep - xCenter;
-			y = points[currentSubSeg + RIGHT_SIDE_START_RIGHT].y - sinTransLeft * rightSideDeltaStep - yCenter;
+			x = points[currentSubSeg + RIGHT_SIDE_START_RIGHT].x - cosTransLeft * (rightSideDeltaStep + rightBorderDeltaStep) - xCenter;
+			y = points[currentSubSeg + RIGHT_SIDE_START_RIGHT].y - sinTransLeft * (rightSideDeltaStep + rightBorderDeltaStep) - yCenter;
 			points[currentSubSeg + RIGHT_SIDE_END_RIGHT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + RIGHT_SIDE_END_RIGHT].y = y * cos + x * sin + yCenter;
 
@@ -559,12 +568,12 @@ public class Curve extends Segment
 			// right barrier
 
 			points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].x = currentX - cosTransLeft
-					* ((trackWidth / 2) + rightBorderWidth + rightSideStartWidth + rightBarrierWidth + (rightSideDeltaStep * nStep));
+					* ((trackWidth / 2) + rightBorder + rightSideStartWidth + rightBarrierWidth + (rightSideDeltaStep * nStep));
 			points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].y = currentY - sinTransLeft
-					* (trackWidth / 2 + rightBorderWidth + rightSideStartWidth + rightBarrierWidth + (rightSideDeltaStep * nStep));
+					* (trackWidth / 2 + rightBorder + rightSideStartWidth + rightBarrierWidth + (rightSideDeltaStep * nStep));
 
-			x = points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].x - cosTransLeft * rightSideDeltaStep - xCenter;
-			y = points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].y - sinTransLeft * rightSideDeltaStep - yCenter;
+			x = points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].x - cosTransLeft * (rightSideDeltaStep + rightBorderDeltaStep) - xCenter;
+			y = points[currentSubSeg + RIGHT_BARRIER_START_RIGHT].y - sinTransLeft * (rightSideDeltaStep + rightBorderDeltaStep) - yCenter;
 			points[currentSubSeg + RIGHT_BARRIER_END_RIGHT].x = x * cos - y * sin + xCenter;
 			points[currentSubSeg + RIGHT_BARRIER_END_RIGHT].y = y * cos + x * sin + yCenter;
 

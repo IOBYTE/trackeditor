@@ -1,0 +1,3 @@
+oval/oval.xml: Segment front's border has a start or end width, which CSR uses, but the editor draws and checks the track with one width for each border. Turn on "CSR: variable-width borders (experimental)" in Preferences to edit and see them.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

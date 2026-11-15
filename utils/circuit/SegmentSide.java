@@ -59,6 +59,8 @@ public class SegmentSide implements Cloneable
 	public static final String	DEFAULT_PIT_ENTRY_BORDER_SURFACE	= "b-asphalt-l1p";
 	public static final double	DEFAULT_PIT_ENTRY_BORDER_HEIGHT		= 0.0;
 	public static final double	DEFAULT_PIT_ENTRY_BORDER_WIDTH		= 1.0;
+	/** CSR's, for a border that widens into the pit lane: its line isn't stretched */
+	public static final String	DEFAULT_PIT_WIDE_BORDER_SURFACE		= "b-asphalt-l1p-wide";
 	
 	public static final String	DEFAULT_PIT_PITS_SURFACE			= "asphalt-pits";
 	public static final double	DEFAULT_PIT_PITS_BORDER_WIDTH		= 0.5;
@@ -92,6 +94,11 @@ public class SegmentSide implements Cloneable
 	// Border
 	private boolean				hasBorder					= false;
 	protected double			borderWidth					= Double.NaN;
+	// CSR's version 4 loader (experimental in the editor): a segment's "start width" and
+	// "end width", used when it has no "width" (see TrackContext.getVariableBorderWidth).
+	// A border has a width or these, never both: setting one clears the other.
+	protected double			borderStartWidth			= Double.NaN;
+	protected double			borderEndWidth				= Double.NaN;
 	protected double			borderHeight				= Double.NaN;
 	protected String			borderSurface				= null;
 	protected String			borderStyle					= null;
@@ -115,6 +122,8 @@ public class SegmentSide implements Cloneable
 		borderStyle = side.borderStyle;
 		borderSurface = side.borderSurface;
 		borderWidth = side.borderWidth;
+		borderStartWidth = side.borderStartWidth;
+		borderEndWidth = side.borderEndWidth;
 		sideBankingType = side.sideBankingType;
 		sideEndWidth = side.sideEndWidth;
 		sideStartWidth = side.sideStartWidth;
@@ -262,6 +271,8 @@ public class SegmentSide implements Cloneable
 	{
 		hasBorder = !Double.isNaN(borderHeight) ||
 				    !Double.isNaN(borderWidth) ||
+				    !Double.isNaN(borderStartWidth) ||
+				    !Double.isNaN(borderEndWidth) ||
 				    (borderSurface != null && !borderSurface.isEmpty()) ||
 				    (borderStyle != null && !borderStyle.isEmpty());
 	}
@@ -331,6 +342,40 @@ public class SegmentSide implements Cloneable
 	public void setBorderWidth(double borderWidth)
 	{
 		this.borderWidth = borderWidth;
+		// the width is both of the border's widths
+		if (!Double.isNaN(borderWidth))
+		{
+			borderStartWidth = Double.NaN;
+			borderEndWidth = Double.NaN;
+		}
+		checkHasBorder();
+	}
+
+	/** @return the border's "start width" (CSR), or NaN when not set */
+	public double getBorderStartWidth()
+	{
+		return borderStartWidth;
+	}
+
+	public void setBorderStartWidth(double borderStartWidth)
+	{
+		this.borderStartWidth = borderStartWidth;
+		if (!Double.isNaN(borderStartWidth))
+			borderWidth = Double.NaN;
+		checkHasBorder();
+	}
+
+	/** @return the border's "end width" (CSR), or NaN when not set */
+	public double getBorderEndWidth()
+	{
+		return borderEndWidth;
+	}
+
+	public void setBorderEndWidth(double borderEndWidth)
+	{
+		this.borderEndWidth = borderEndWidth;
+		if (!Double.isNaN(borderEndWidth))
+			borderWidth = Double.NaN;
 		checkHasBorder();
 	}
 
@@ -455,6 +500,8 @@ public class SegmentSide implements Cloneable
 			s.borderStyle = this.borderStyle;
 			s.borderSurface = this.borderSurface;
 			s.borderWidth = this.borderWidth;
+			s.borderStartWidth = this.borderStartWidth;
+			s.borderEndWidth = this.borderEndWidth;
 			s.sideBankingType = this.sideBankingType;
 			s.sideEndWidth = this.sideEndWidth;
 			s.sideStartWidth = this.sideStartWidth;

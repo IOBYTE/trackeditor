@@ -120,6 +120,11 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	private SegmentSlider		sideEndWidthSlider		= null;
 	private SegmentSlider		barrierWidthSlider		= null;
 	private SegmentSlider		borderHeightSlider		= null;
+	// CSR, experimental: the border's start and end widths (see TrackContext.getVariableBorderWidth)
+	private SegmentSlider		borderStartWidthSlider	= null;
+	private SegmentSlider		borderEndWidthSlider	= null;
+	// where the border's label and its height and width sliders are with one width
+	private int					borderLabelX, borderHeightX, borderWidthX;
 
 	/**
 	 *
@@ -241,6 +246,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel.add(getSideEndWidthSlider(), null);
 			panel.add(getBarrierWidthSlider(), null);
 			panel.add(getBorderHeightSlider(), null);
+			panel.add(getBorderStartWidthSlider(), null);
+			panel.add(getBorderEndWidthSlider(), null);
 
 			// laid out as the track is seen from above: the left side goes barrier,
 			// side, border towards the track, and the right side border, side,
@@ -256,6 +263,10 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					getBorderSurfaceComboBox(), getBorderStyleComboBox(), getBorderHeightSlider(), getBorderWidthSlider() })
 					c.setLocation(c.getX() - shift, c.getY());
 			}
+			borderLabelX = borderLabel.getX();
+			borderHeightX = getBorderHeightSlider().getX();
+			borderWidthX = getBorderWidthSlider().getX();
+			layOutBorder();
 		}
 		return panel;
 	}
@@ -326,6 +337,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 						side.setBorderSurface(null);
 						side.setBorderHeight(Double.NaN);
 						side.setBorderWidth(Double.NaN);
+						side.setBorderStartWidth(Double.NaN);
+						side.setBorderEndWidth(Double.NaN);
 						getBorderSurfaceComboBox().setSelectedIndex(-1);
 						getBorderSurfaceComboBox().setEnabled(false);
 						getBorderHeightSlider().setValue(side.getBorderHeight());
@@ -381,6 +394,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 						getBorderWidthSlider().setValue(side.getBorderWidth());
 						break;
 					}
+					layOutBorder();
 					parent.sideChanged();
 				}
 			});
@@ -755,7 +769,7 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	{
 		if (borderWidthSlider == null)
 		{
-			borderWidthSlider = new SegmentSlider(0, 5, 0, 0.001, side.getBorderWidth(), "Width", "", "BorderWidth", true, false);
+			borderWidthSlider = new SegmentSlider(0, 20, 0, 0.001, side.getBorderWidth(), "Width", "", "BorderWidth", true, false);
 			borderWidthSlider.setBounds(720, 25, 50, 290);
 			borderWidthSlider.addSliderListener(this);
 		}
@@ -812,6 +826,87 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			borderHeightSlider.addSliderListener(this);
 		}
 		return borderHeightSlider;
+	}
+
+	/**
+	 * CSR, experimental: a border's start and end widths, which take the place of its
+	 * width, as a side's do: a border has a width or a start and end width, and the
+	 * same at both ends is saved as its width.
+	 */
+	private SegmentSlider getBorderStartWidthSlider()
+	{
+		if (borderStartWidthSlider == null)
+		{
+			borderStartWidthSlider = new SegmentSlider(0, 20, 0, 0.001, side.getBorderStartWidth(), "Width", "Start", "BorderStartWidth", true, false);
+			borderStartWidthSlider.setBounds(720, 25, 50, 290);
+			borderStartWidthSlider.addSliderListener(this);
+			borderStartWidthSlider.setVisible(false);
+		}
+		return borderStartWidthSlider;
+	}
+
+	private SegmentSlider getBorderEndWidthSlider()
+	{
+		if (borderEndWidthSlider == null)
+		{
+			borderEndWidthSlider = new SegmentSlider(0, 20, 0, 0.001, side.getBorderEndWidth(), "Width", "End", "BorderEndWidth", true, false);
+			borderEndWidthSlider.setBounds(775, 25, 50, 290);
+			borderEndWidthSlider.addSliderListener(this);
+			borderEndWidthSlider.setVisible(false);
+		}
+		return borderEndWidthSlider;
+	}
+
+	/** @return whether the border's start and end widths are shown: CSR's, with the experimental preference on */
+	private boolean variableBorder()
+	{
+		return parent.editorFrame.getVariableBorderWidth();
+	}
+
+	/**
+	 * Shows the border's width, or its start and end widths in its place, and places
+	 * its sliders: the left side's border is next to the track at the right, so its
+	 * sliders move left to make room
+	 */
+	private void layOutBorder()
+	{
+		if (panel == null)
+			return;
+		boolean variable = variableBorder();
+		int slider = 55;
+		int move = variable && !side.isRight() ? -slider : 0;
+		borderLabel.setLocation(borderLabelX + (variable ? (side.isRight() ? slider / 2 : -slider / 2) : 0), borderLabel.getY());
+		getBorderHeightSlider().setLocation(borderHeightX + move, getBorderHeightSlider().getY());
+		getBorderStartWidthSlider().setLocation(borderWidthX + move, getBorderStartWidthSlider().getY());
+		getBorderEndWidthSlider().setLocation(borderWidthX + move + slider, getBorderEndWidthSlider().getY());
+		getBorderWidthSlider().setVisible(!variable);
+		getBorderStartWidthSlider().setVisible(variable);
+		getBorderEndWidthSlider().setVisible(variable);
+		boolean enabled = getBorderWidthSlider().isEnabled();
+		getBorderStartWidthSlider().setEnabled(enabled);
+		getBorderEndWidthSlider().setEnabled(enabled);
+		showBorderWidths();
+	}
+
+	/**
+	 * Shows the border's widths: a width is both its start and its end width. A start
+	 * width that isn't set is the previous segment's end width, and an end width that
+	 * isn't set is the start width: those show greyed out.
+	 */
+	private void showBorderWidths()
+	{
+		if (segment != null && variableBorder())
+		{
+			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(segment, side.isRight(), parent.editorFrame);
+			getBorderStartWidthSlider().setInherited(state.borderStartWidth,
+				"Not set: the border starts as wide as the previous segment's border ends. Check the box to set it.");
+			getBorderEndWidthSlider().setInherited(state.borderEndWidth,
+				"Not set: the border ends as wide as it starts. Check the box to set it.");
+		}
+		double width = side.getBorderWidth();
+		getBorderWidthSlider().setValue(width);
+		getBorderStartWidthSlider().setValue(Double.isNaN(width) ? side.getBorderStartWidth() : width);
+		getBorderEndWidthSlider().setValue(Double.isNaN(width) ? side.getBorderEndWidth() : width);
 	}
 
 	public void update()
@@ -1017,7 +1112,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			getBorderWidthSlider().setValue(side.getBorderWidth());
 			break;
 		}
-		
+		layOutBorder();
+
 		// update barrier
 		if (isVersion3())
 		{
@@ -1529,6 +1625,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			line.set("side", side);
 
 			String method = slider.getMethod();
+			// (setting a start or end width clears the width)
+			double widthBefore = side.getBorderWidth();
 
 			if (Double.isNaN(slider.getValue()))
 				command = "side.set" + method + "(Double.NaN)";
@@ -1537,6 +1635,25 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 
 			line.eval(command);
 			side = (SegmentSide) line.get("side");
+
+			// a start or end width takes the place of the width, which was both; the same
+			// at both ends is the width again (SegmentSide keeps one or the other)
+			if (method.equals("BorderStartWidth") || method.equals("BorderEndWidth"))
+			{
+				if (!Double.isNaN(widthBefore))
+				{
+					if (method.equals("BorderStartWidth"))
+						side.setBorderEndWidth(widthBefore);
+					else
+						side.setBorderStartWidth(widthBefore);
+				}
+				double start = side.getBorderStartWidth(), end = side.getBorderEndWidth();
+				if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+					side.setBorderWidth(start);
+				else
+					side.setBorderWidth(Double.NaN);
+				showBorderWidths();
+			}
 		} catch (EvalError e)
 		{
 			// TODO Auto-generated catch block

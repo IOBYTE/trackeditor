@@ -43,6 +43,7 @@ public class PreferencesDialog extends JDialog
 	private JCheckBox			cursorNamesCheckBox			= null;
 	private JCheckBox			checkDefaultObjectsCheckBox	= null;
 	private JCheckBox			speedDreamsAccCheckBox		= null;
+	private JCheckBox			variableBorderCheckBox		= null;
 	private JLabel				gameTypeLabel				= null;
 	private JComboBox<GameType>	gameTypeComboBox			= null;
 	private JButton				okButton					= null;
@@ -78,7 +79,7 @@ public class PreferencesDialog extends JDialog
 	{
 		this.setContentPane(getJPanel());
 		// the panel's width plus the dialog's borders
-		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 389);
+		this.setSize(fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP + 16, 411);
 		this.setModal(true);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -142,6 +143,7 @@ public class PreferencesDialog extends JDialog
 			jPanel.add(getCheckDefaultObjectsCheckBox(), null);
 			jPanel.add(getGameTypeComboBox(), null);
 			jPanel.add(getSpeedDreamsAccCheckBox(), null);
+			jPanel.add(getVariableBorderCheckBox(), null);
 			jPanel.add(getOkButton(), null);
 			jPanel.add(getCancelButton(), null);
 			updateGameLabels();
@@ -194,6 +196,8 @@ public class PreferencesDialog extends JDialog
 		localDirectoryLabel.setEnabled(local);
 		getLocalDirectoryTextField().setEnabled(local);
 		getLocalDirectoryButton().setEnabled(local);
+		// only CSR's track loader reads a border's start and end widths
+		getVariableBorderCheckBox().setEnabled(getGameType() == GameType.CARS_SPORTS_RACING);
 	}
 
 	private JTextField getDataDirectoryTextField()
@@ -483,6 +487,21 @@ public class PreferencesDialog extends JDialog
 		return speedDreamsAccCheckBox;
 	}
 
+	/** CSR only, experimental: a segment's borders can have a start and an end width */
+	private JCheckBox getVariableBorderCheckBox()
+	{
+		if (variableBorderCheckBox == null)
+		{
+			variableBorderCheckBox = new JCheckBox();
+			variableBorderCheckBox.setBounds(fieldX, 304, 400, 23);
+			variableBorderCheckBox.setText("CSR: variable-width borders (experimental)");
+			variableBorderCheckBox.setToolTipText("A segment's borders can have a start and an end width, as CSR's version 4 "
+				+ "track loader reads them: the segment dialog shows both, and the track is drawn and checked with them");
+			variableBorderCheckBox.setSelected(editorFrame.getVariableBorderWidthPreference());
+		}
+		return variableBorderCheckBox;
+	}
+
 	private JComboBox<GameType> getGameTypeComboBox()
 	{
 		if (gameTypeComboBox == null)
@@ -524,7 +543,7 @@ public class PreferencesDialog extends JDialog
 			okButton = new JButton();
 			// Ok and Cancel centered under the fields
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			okButton.setBounds(middle - 78 - 40, 314, 78, 25);
+			okButton.setBounds(middle - 78 - 40, 336, 78, 25);
 			okButton.setText("Ok");
 			okButton.addActionListener(new ActionListener()
 			{
@@ -543,7 +562,7 @@ public class PreferencesDialog extends JDialog
 		{
 			cancelButton = new JButton();
 			int middle = (fieldX + FIELD_WIDTH + 5 + BUTTON_WIDTH + GAP) / 2;
-			cancelButton.setBounds(middle + 40, 314, 78, 25);
+			cancelButton.setBounds(middle + 40, 336, 78, 25);
 			cancelButton.setText("Cancel");
 			cancelButton.addActionListener(new ActionListener()
 			{
@@ -710,6 +729,11 @@ public class PreferencesDialog extends JDialog
 	public boolean getSpeedDreamsAccWithAccc()
 	{
 		return getSpeedDreamsAccCheckBox().isSelected();
+	}
+
+	public boolean getVariableBorderWidth()
+	{
+		return getVariableBorderCheckBox().isSelected();
 	}
 
 	public GameType getGameType()

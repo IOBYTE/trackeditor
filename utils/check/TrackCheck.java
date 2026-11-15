@@ -76,6 +76,7 @@ public final class TrackCheck
 	private static final String	GAME_TYPE				= "GameType";
 	private static final String	CARS_SPORTS_RACING		= "CarsSportsRacing";
 	private static final String	CHECK_DEFAULT_OBJECTS	= "CheckDefaultObjects";
+	private static final String	VARIABLE_BORDER_WIDTH	= "VariableBorderWidth";
 	private static final String[]	DIRECTORY_KEYS		= { "DataDirectory", "BinDirectory", "LibDirectory", "LocalDirectory" };
 
 	// a message about a line of the file, as Check says it, and as reading says it
@@ -174,6 +175,7 @@ public final class TrackCheck
 	private String					binOption		= null;
 	private boolean					noPrefs			= false;
 	private boolean					checkDefaultObjectsOption	= false;
+	private boolean					variableBordersOption		= false;
 	private boolean					trackgen		= false;
 	// how long trackgen may take for a track before it's stopped, 0 for as long as it takes
 	private long					trackgenTimeout	= 300;
@@ -190,6 +192,7 @@ public final class TrackCheck
 	private String					localDirectory	= null;
 	private String					binDirectory	= null;
 	private boolean					checkDefaultObjects	= false;
+	private boolean					variableBorderWidth	= false;
 	private final List<String>		settings		= new ArrayList<String>();
 	// the editor's preferences and game, null when not used
 	private Preferences				preferences		= null;
@@ -387,6 +390,10 @@ public final class TrackCheck
 				noValue(name, value);
 				checkDefaultObjectsOption = true;
 				break;
+			case "--variable-borders":
+				noValue(name, value);
+				variableBordersOption = true;
+				break;
 			case "--show":
 				for (String kind : (value != null ? value : next(args, ++i, name)).split(","))
 					show(kind.trim());
@@ -528,6 +535,25 @@ public final class TrackCheck
 		else
 		{
 			settings.add("Check the default objects' models: no");
+		}
+
+		// experimental, and only CSR's track loader reads them
+		if (game == GameType.CARS_SPORTS_RACING)
+		{
+			if (variableBordersOption)
+			{
+				variableBorderWidth = true;
+				settings.add("Variable-width borders: yes (--variable-borders)");
+			}
+			else if (preferences != null && preferences.getBoolean(VARIABLE_BORDER_WIDTH, false))
+			{
+				variableBorderWidth = true;
+				settings.add("Variable-width borders: yes (the editor's preferences)");
+			}
+		}
+		else if (variableBordersOption)
+		{
+			err.println(slashes("--variable-borders isn't used: only CSR's track loader reads a border's start and end widths"));
 		}
 
 		if (trackgen)
@@ -1108,6 +1134,7 @@ public final class TrackCheck
 				continue;
 			LoadedTrack shared = new LoadedTrack(game, data, localDirectory);
 			shared.setCheckDefaultObjects(checkDefaultObjects);
+			shared.setVariableBorderWidthPreference(variableBorderWidth);
 			TrackLoader.readDefaults(shared, (title, message, error) -> reports.add(new Report("", 0, title, oneLine(message), error)));
 			sharedByData.put(data, shared);
 		}
@@ -1486,6 +1513,8 @@ public final class TrackCheck
 			+ "  --check-default-objects" + n
 			+ "                       check the default objects' models too (default: the editor's" + n
 			+ "                       preference)" + n
+			+ "  --variable-borders   CSR: borders can have a start and an end width (experimental;" + n
+			+ "                       default: the editor's preference)" + n
 			+ n
 			+ "Output:" + n
 			+ "  --format FORMAT      text (default), or github: annotations for GitHub Actions," + n

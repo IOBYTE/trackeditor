@@ -1,0 +1,4 @@
+oval/oval.xml: Camera cam 1: height is missing, so the game places it on the ground
+oval/oval.xml:270: "height" has the value "nan", which isn't a number, so the game can't use it, and the editor takes it as not set. Set a real value.
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

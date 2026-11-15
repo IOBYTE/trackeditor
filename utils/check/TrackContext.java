@@ -106,4 +106,22 @@ public interface TrackContext
 	{
 		return getGameType() == GameType.CARS_SPORTS_RACING;
 	}
+
+	/** @return whether the experimental preference for variable-width borders is on */
+	default boolean getVariableBorderWidthPreference()
+	{
+		return false;
+	}
+
+	/**
+	 * @return whether a segment's borders can have a start and an end width: CSR's
+	 *         version 4 track loader reads "start width" and "end width" in a segment's
+	 *         Border (like a side's), and the editor uses them when the experimental
+	 *         preference is on
+	 */
+	default boolean getVariableBorderWidth()
+	{
+		return getCarsSportsRacing() && getVariableBorderWidthPreference() && getTrackData() != null
+			&& getTrackData().getHeader().getVersion() == 4;
+	}
 }

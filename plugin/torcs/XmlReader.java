@@ -211,6 +211,8 @@ public class XmlReader
                     unreadKeys.add(new FileKey(line, childPath, false, 1, child.getName()));
                 else if (read.contains(child))
                     readKeys.add(new FileKey(line, childPath, false, 1, null));
+                else if (ignoredKeys.containsKey(child))
+                    unreadKeys.add(new FileKey(line, childPath, false, 1, null, ignoredKeys.get(child)));
                 else if (reportedDuplicates.contains(child))
                     unreadKeys.add(new FileKey(line, childPath, false, 1, null,
                         "is in its section more than once: like the game, the first one is used, so saving removes this one"));
@@ -1480,6 +1482,28 @@ public class XmlReader
         if (el != null)
         {
             part.setBorderWidth(getAttrNumValue(el, "width", "m"));
+			// CSR's version 4 loader reads a segment's border widths like a side's, when it
+			// has no "width" (then they aren't read, so saving reports and removes them):
+			// kept even when the editor's (experimental) preference doesn't use them
+			if (!mainTrack && trackContext.getCarsSportsRacing() && trackContext.getTrackData().getHeader().getVersion() == 4)
+			{
+				if (Double.isNaN(part.getBorderWidth()))
+				{
+					part.setBorderStartWidth(getAttrNumValue(el, "start width", "m"));
+					part.setBorderEndWidth(getAttrNumValue(el, "end width", "m"));
+				}
+				else
+				{
+					// (found without reading them, so they stay unread)
+					for (Object o : el.getChildren())
+					{
+						Element key = (Element) o;
+						String name = key.getAttributeValue("name");
+						if ("start width".equals(name) || "end width".equals(name))
+							ignoredKeys.put(key, "CSR doesn't use it, because the border has a width, so saving removes it");
+					}
+				}
+			}
             part.setBorderHeight(getAttrNumValue(el, "height", "m"));
             part.setBorderSurface(getAttrStrValue(el, "surface"));
             part.setBorderStyle(getAttrStrValue(el, "style"));
@@ -1569,6 +1593,8 @@ public class XmlReader
 	private final java.util.Set<String>		duplicateWarnings	= new java.util.HashSet<String>();
 	// the segments skipped because they have no type the game knows, and why
 	private final java.util.Map<Element, String>	skippedSegments	= new java.util.IdentityHashMap<Element, String>();
+	// keys the game ignores, with why: saving removes them
+	private final java.util.Map<Element, String>	ignoredKeys		= new java.util.IdentityHashMap<Element, String>();
 
 	/**
 	 * @return what the game does with a segment whose type isn't str, lft or rgt:
@@ -1660,6 +1686,11 @@ public class XmlReader
                 ". It is saved as " + format(value) + ".");
             warningTexts.put(warning, text == null ? "" : text);
         }
+        // the game reads "nan" as a number that isn't one (its value is then undefined)
+        else if (Double.isNaN(value))
+        {
+            warn(e, "has the value \"" + text + "\", which isn't a number, so the game can't use it, and the editor takes it as not set. Set a real value.");
+        }
 
         return value;
     }
@@ -1747,6 +1778,10 @@ public class XmlReader
 
 			if (Double.isNaN(value) || Double.isInfinite(value))
     		{
+				// (a "nan" is reported by readNumber)
+				if (Double.isInfinite(value))
+					warn(e, "has the value \"" + e.getAttributeValue("val") + "\", too large to be a number: what the game makes of it is "
+						+ "undefined. The editor uses 0. Set a real value.");
 				out = 0;
     		}
 			else

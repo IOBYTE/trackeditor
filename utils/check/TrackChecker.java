@@ -136,12 +136,15 @@ public class TrackChecker
 		check(properties("Pit"), this::checkPits);
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
+		check(null, this::checkVariableBorders);
 		check(null, this::checkCrossings);
 		check(null, this::checkProfile);
 		check(properties("General"), this::checkHeader);
 		check(properties("Georeference"), this::checkGeoreference);
 		// lines of the file: what saving drops isn't in the editor to show
 		check(null, this::checkUnusedKeys);
+		// last: the values no other check has reported
+		check(null, this::checkNumbers);
 
 		report.append("Checking complete!\n");
 		return new java.util.ArrayList<CheckMessage>(messages);
@@ -940,6 +943,123 @@ public class TrackChecker
 			report.append(kind[0] + " name \"" + slash[1] + "\" contains a slash (/). The game reads it as a section nested inside "
 				+ "another, so the " + kind[1] + " is lost.\n", sectionTarget(slash[0], slash[1]));
 		}
+	}
+
+	/**
+	 * CSR's version 4 loader reads a segment's border "start width" and "end width"
+	 * (when it has no "width"). The editor uses them only with its experimental
+	 * preference on; without it, it draws and checks the track with one width.
+	 */
+	private void checkVariableBorders()
+	{
+		if (!trackContext.getCarsSportsRacing() || trackData.getHeader().getVersion() != 4 || trackContext.getVariableBorderWidth())
+			return;
+		Segment first = null;
+		int count = 0;
+		for (int i = 0; i < trackData.getSegments().size(); i++)
+		{
+			Segment segment = trackData.getSegments().get(i);
+			for (SegmentSide side : new SegmentSide[] { segment.getLeft(), segment.getRight() })
+			{
+				if (Double.isNaN(side.getBorderWidth()) && (!Double.isNaN(side.getBorderStartWidth()) || !Double.isNaN(side.getBorderEndWidth())))
+				{
+					if (first == null)
+						first = segment;
+					count++;
+					break;
+				}
+			}
+		}
+		if (first == null)
+			return;
+		report.append((count == 1 ? "Segment " + first.getName() + "'s border has" : count + " segments' borders have, from " + first.getName() + ",")
+			+ " a start or end width, which CSR uses, but the editor draws and checks the track with one width for each border. "
+			+ "Turn on \"CSR: variable-width borders (experimental)\" in Preferences to edit and see them.\n", segment(first));
+	}
+
+	/**
+	 * The values too large for the game, as saving would write them: it keeps numbers
+	 * as floats, so one beyond about 3.4e38 (Float.MAX_VALUE) is infinite to it, like
+	 * 1e999 is to both. A value that another check has reported already, for the same
+	 * item, isn't reported again.
+	 */
+	private void checkNumbers()
+	{
+		org.jdom2.Document document;
+		try
+		{
+			document = new plugin.torcs.XmlWriter(trackContext).getDocument("");
+		}
+		catch (Exception e)
+		{
+			return;
+		}
+		java.util.List<String[]> found = new java.util.ArrayList<String[]>();
+		findHugeNumbers(document.getRootElement(), "", found);
+
+		int reported = messages.size();
+		for (String[] value : found)
+		{
+			String	section	= value[0];
+			String	key		= value[1];
+			double	number	= Double.parseDouble(value[2]);
+			Subject	target	= keyTarget(section + "/" + key, null);
+			String	shown	= CheckMessage.readableNumbers(number + (Double.isInfinite(number) ? " m" : ""));
+
+			boolean known = false;
+			for (int i = 0; i < reported && !known; i++)
+			{
+				CheckMessage message = messages.get(i);
+				known = sameItem(message.getSubject(), target) && message.getText().contains(shown);
+			}
+			if (known)
+				continue;
+
+			report.append(placeOf(section) + ": " + key + " is " + shown
+				+ (Double.isInfinite(number) ? ", too large to be a number, so the game can't use it"
+					: ", more than the largest number the game keeps (about 3.4e38), so it reads it as infinite")
+				+ ". Set a real value.\n", target == null ? NONE : target);
+		}
+	}
+
+	/** @return whether both are about one item: a segment on any of its dialog's tabs */
+	private static boolean sameItem(Subject one, Subject other)
+	{
+		if (one != null && other != null && one.getKind() == Subject.Kind.SEGMENT && other.getKind() == Subject.Kind.SEGMENT)
+			return one.getSegment() == other.getSegment();
+		return java.util.Objects.equals(one, other);
+	}
+
+	/** Adds the attnums in element, with their section's path, whose values the game can't keep */
+	private static void findHugeNumbers(org.jdom2.Element element, String path, java.util.List<String[]> found)
+	{
+		for (org.jdom2.Element child : element.getChildren())
+		{
+			String name = child.getAttributeValue("name", "");
+			if (child.getName().equals("section"))
+			{
+				findHugeNumbers(child, path.isEmpty() ? name : path + "/" + name, found);
+			}
+			else if (child.getName().equals("attnum"))
+			{
+				double value = plugin.torcs.GfParmNumbers.parse(child.getAttributeValue("val"), new boolean[1]);
+				if (Double.isInfinite(value) || Math.abs(value) > Float.MAX_VALUE)
+					found.add(new String[] { path, name, Double.toString(value) });
+			}
+		}
+	}
+
+	/** @return how the messages name a section: "Segment front Left Side", "Surface road", "Main Track Pits" */
+	private static String placeOf(String section)
+	{
+		for (String list : LISTS)
+		{
+			if (!section.startsWith(list + "/"))
+				continue;
+			String rest = section.substring(list.length() + 1);
+			return sectionKind(list)[0] + " " + rest.replace("/", " ");
+		}
+		return section.replace("/", " ");
 	}
 
 	/** Counts the full names of the sections in element, and notes the names with a / */
