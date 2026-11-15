@@ -3150,8 +3150,9 @@ public class TrackChecker
 			String	name	= use.getKey();
 			Surface	surface	= findSurface(trackData.getSurfaces(), name);
 			Subject	target	= properties("Surfaces", name);
+			boolean	isDefault	= surface == null;
 
-			if (surface == null)
+			if (isDefault)
 			{
 				// a default surface can't be changed here, so the message is about what uses it
 				surface = findSurface(defaultSurfaces, name);
@@ -3164,8 +3165,10 @@ public class TrackChecker
 			List<String>	where	= use.getValue();
 			String			usedBy	= " It is used by " + where.get(0)
 				+ (where.size() == 1 ? "" : " and " + (where.size() - 1) + (where.size() == 2 ? " other part" : " other parts") + " of the track")
-				+ ".\n";
-			String			what	= "Surface " + name;
+				+ "."
+				// a default surface is fixed by choosing another one where it is used
+				+ (isDefault ? " Choose another surface there, rather than changing the game's default surfaces.\n" : "\n");
+			String			what	= (isDefault ? "Default surface " : "Surface ") + name;
 
 			double	friction			= surface.getFriction();
 			double	rollingResistance	= surface.getRollingResistance();
@@ -3181,7 +3184,7 @@ public class TrackChecker
 
 			if (!Double.isNaN(friction) && !(friction > 0 && !Double.isInfinite(friction)))
 				report.append(what + " has no grip: its friction is " + formatSmall(friction)
-					+ ", so cars on it can't steer, brake or accelerate. Friction must be greater than 0." + usedBy, target);
+					+ ", so cars on it can't steer, brake or accelerate." + (isDefault ? "" : " Friction must be greater than 0.") + usedBy, target);
 			else if (friction < LOW_FRICTION)
 				report.append(what + ": friction " + formatSmall(friction) + " is less than " + format(LOW_FRICTION)
 					+ ", so cars on it slide as if on ice (about 0.1). The least that the default surfaces cars drive on have is "

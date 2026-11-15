@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- the default surfaces: a barrier has no grip on purpose -->
+<section name="barrier">
+  <attnum name="color R1" val="0.5"/>
+  <attnum name="color G1" val="0.5"/>
+  <attnum name="color B1" val="0.5"/>
+  <attstr name="texture name" val="barrier.png"/>
+  <attstr name="texture type" val="discrete"/>
+  <attnum name="texture size" unit="m" val="10"/>
+  <attnum name="friction" val="0"/>
+  <attnum name="rolling resistance" val="0.001"/>
+  <attnum name="roughness" unit="m" val="0"/>
+  <attnum name="roughness wavelength" unit="m" val="1"/>
+</section>

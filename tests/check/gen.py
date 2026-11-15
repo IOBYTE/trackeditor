@@ -44,8 +44,8 @@ def side(which, start=4, end=4, border=None, barrier=None):
         section(which + ' Border', *(border or [num('width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')])),
         section(which + ' Barrier', *(barrier or [num('width', 0.25, 'm'), num('height', 1, 'm'), text('surface', 'wall'), text('style', 'wall')]))]
 
-def straight(name, length=100, extra=(), left=None, right=None):
-    return section(name, text('type', 'str'), num('lg', length, 'm'), text('surface', 'road'), *extra,
+def straight(name, length=100, extra=(), left=None, right=None, surface='road'):
+    return section(name, text('type', 'str'), num('lg', length, 'm'), text('surface', surface), *extra,
         *(left or side('Left')), *(right or side('Right')))
 
 def curve(name, arc=180, radius=50, kind='rgt', extra=(), left=None, right=None):
@@ -113,6 +113,12 @@ def hill(grade, linear=False):
     heights = lambda start, end: [num('z start', start, 'm'), num('z end', end, 'm')] + profil
     return oval(front=straight('front', extra=heights(0, grade)), turn1=curve('turn 1', extra=heights(grade, grade)),
         back=straight('back', extra=heights(grade, 0)), turn2=curve('turn 2', extra=heights(0, 0)))
+
+def with_default_surfaces(xml):
+    """the track includes the game's default surfaces, as the games' own tracks do"""
+    xml = xml.replace('<params name=', '<!DOCTYPE params SYSTEM "../../../src/libs/tgf/params.dtd" [\n'
+        '<!ENTITY default-surfaces SYSTEM "../../../data/tracks/surfaces.xml">\n]>\n<params name=', 1)
+    return xml.replace('<section name="Surfaces">', '<section name="Surfaces">\n    &default-surfaces;', 1)
 
 def pit_section(**changes):
     values = {'side': 'right', 'entry': 'turn 2', 'start': 'front', 'end': 'front', 'exit': 'turn 1',
@@ -219,6 +225,11 @@ CASES = [
     # in a game's data folder, as the game has it, the surfaces' textures are looked for too
     ('texture-missing', IN_GAME, track('oval'), {'omit': ['grass.png'], 'where': 'game/tracks/road', 'top': DATA_FOLDER}),
     ('texture-in-data-folder', IN_GAME, track('oval'), {'omit': ['grass.png'], 'where': 'game/tracks/road', 'top': dict(DATA_FOLDER, **{'game/data/textures/grass.png': None})}),
+    # a default surface can't be changed in the editor: the message is about the first segment that uses it
+    ('surface-default-no-grip', IN_GAME, with_default_surfaces(track('oval', oval(back=straight('back', surface='barrier')))),
+        {'where': 'game/tracks/road', 'top': dict(DATA_FOLDER, **{'game/data/tracks/surfaces.xml':
+            '<?xml version="1.0" encoding="UTF-8"?>\n<!-- the default surfaces: a barrier has no grip on purpose -->\n'
+            + grip('barrier', 'barrier.png', friction=0) + '\n', 'game/data/textures/barrier.png': None})}),
     ('texture-full-path', SD, track('oval', surfaces=[surface('road', '/somewhere/else/road.png'), surface('grass', 'grass.png'),
         surface('curb', 'curb.png'), surface('wall', 'wall.png')])),
     ('3d-description-missing', SD, track('oval'), {'ac': False}),
