@@ -236,6 +236,8 @@ CASES = [
     ('pit-side-unknown', SD, track('oval', pits=pit_section(side='middle'))),
     ('pit-segments-out-of-order', SD, track('oval', pits=pit_section(entry='turn 1', exit='turn 2'))),
     ('pits-on-a-curve', SD, track('oval', pits=pit_section(entry='front', start='turn 1', end='turn 1', exit='back'))),
+    # the pit side widens along the pits
+    ('pits-not-parallel', SD, track('oval', oval(front=straight('front', right=side('Right', start=4, end=8))), pits=pit_section())),
 
     # files
     ('background-image-missing', SD, track('oval', graphic_extra=[text('background image', 'background.png')])),

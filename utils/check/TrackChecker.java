@@ -1466,6 +1466,7 @@ public class TrackChecker
 		{
 			checkPitCount();
 			checkPitsOnCurves();
+			checkPitsParallel();
 			checkNoBuildingPitLane(pits);
 			checkPitsEnd();
 			checkPitsAtFinishLine();
@@ -1575,6 +1576,122 @@ public class TrackChecker
 		}
 		report.append("Pits on a curve (" + list + "): the game reads a pit's position along a curve as an angle, so it draws "
 			+ "the buildings, doors, low walls, or indicators in the wrong place (pit stops still work)\n", segment(curves.keySet().iterator().next()));
+	}
+
+	/** how far the pit side's width may differ from the first pit's along the pits, in meters */
+	private static final double	PIT_PARALLEL_TOLERANCE	= 0.01;
+
+	/**
+	 * The games assume the pits are parallel to the track: each pit is placed at
+	 * the outer edge of the pit side (its border and side) where the pit starts,
+	 * and laid along the track from there. So from the start of the first pit to
+	 * the end of the last, the pit side should be the same width throughout: one
+	 * that tapers, or changes width from one segment to the next, leaves pits off
+	 * the pit lane's edge.
+	 */
+	private void checkPitsParallel()
+	{
+		utils.circuit.GameTrack.PitLayout layout;
+		try
+		{
+			utils.circuit.GameTrack track = utils.circuit.GameTrack.build(trackContext);
+			layout = track == null ? null : track.pitPlaces();
+		}
+		catch (RuntimeException e)
+		{
+			return;
+		}
+		if (layout == null || layout.pits.isEmpty())
+			return;
+
+		// the pit side's width at the start of the first pit
+		utils.circuit.GameTrack.LocalPos firstPit = layout.pits.get(0);
+		double reference = pitSideWidth(firstPit.seg, layout.side, firstPit.toStart);
+		if (Double.isNaN(reference))
+			return;
+
+		// each pit's narrowest and widest pit side: the widths change linearly
+		// along a step, so its ends and the steps' ends in between are enough
+		double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
+		Map<String, java.util.List<Integer>> segmentsWithPits = new java.util.LinkedHashMap<String, java.util.List<Integer>>();
+		for (int i = 0; i < layout.pits.size(); i++)
+		{
+			utils.circuit.GameTrack.LocalPos pit = layout.pits.get(i);
+			utils.circuit.GameTrack.Seg seg = pit.seg;
+			double toStart = pit.toStart;
+			double left = layout.len;
+			double low = Double.POSITIVE_INFINITY, high = Double.NEGATIVE_INFINITY;
+			boolean offEdge = false;
+			for (int guard = 0; guard < 100000; guard++)
+			{
+				double end = Math.min(seg.length, toStart + left);
+				for (double at : new double[] { toStart, end })
+				{
+					double width = pitSideWidth(seg, layout.side, at);
+					if (Double.isNaN(width))
+						continue;
+					low = Math.min(low, width);
+					high = Math.max(high, width);
+				}
+				left -= end - toStart;
+				if (left <= 0.001)
+					break;
+				seg = seg.next;
+				toStart = 0;
+			}
+			if (low > high)
+				continue;
+			if (Math.abs(low - reference) > PIT_PARALLEL_TOLERANCE || Math.abs(high - reference) > PIT_PARALLEL_TOLERANCE)
+				offEdge = true;
+			if (!offEdge)
+				continue;
+			min = Math.min(min, low);
+			max = Math.max(max, high);
+			segmentsWithPits.computeIfAbsent(pit.seg.name, k -> new java.util.ArrayList<Integer>()).add(i + 1);
+		}
+		if (segmentsWithPits.isEmpty())
+			return;
+
+		StringBuilder list = new StringBuilder();
+		for (Map.Entry<String, java.util.List<Integer>> segment : segmentsWithPits.entrySet())
+		{
+			if (list.length() > 0)
+				list.append("; ");
+			java.util.List<Integer> numbers = segment.getValue();
+			int first = numbers.get(0), last = numbers.get(numbers.size() - 1);
+			list.append(segment.getKey()).append(first == last ? ": pit " + first : ": pits " + first + "-" + last);
+		}
+		String range = Math.abs(max - min) <= PIT_PARALLEL_TOLERANCE ? format(min) : format(min) + "-" + format(max);
+		report.append("Pits not parallel to the track (" + list + "): the pit side (border and side) is " + format(reference)
+			+ " m wide at the first pit but " + range + " m at these pits. The games assume the pits are parallel to the track, "
+			+ "so these pits don't line up with the pit lane's edge.\n",
+			segment(trackData.getSegments().getSegmentFromName(segmentsWithPits.keySet().iterator().next()),
+				layout.side == utils.circuit.GameTrack.TR_RGT ? "Right" : "Left"));
+	}
+
+	/**
+	 * @return how far the outer edge of the pit side (its border and side) is from
+	 *         the edge of the road, toStart meters into the main segment (a length
+	 *         also in a curve); NaN when the segment has no border or side there
+	 */
+	private static double pitSideWidth(utils.circuit.GameTrack.Seg main, int side, double toStart)
+	{
+		boolean right = side == utils.circuit.GameTrack.TR_RGT;
+		double along = main.length > 0 ? Math.max(0, Math.min(1, toStart / main.length)) : 0;
+		double width = 0;
+		boolean any = false;
+		utils.circuit.GameTrack.Seg e = right ? main.rside : main.lside;
+		for (int guard = 0; e != null && guard < 2; guard++)
+		{
+			boolean ours = right ? e.type2 == utils.circuit.GameTrack.TR_RBORDER || e.type2 == utils.circuit.GameTrack.TR_RSIDE
+				: e.type2 == utils.circuit.GameTrack.TR_LBORDER || e.type2 == utils.circuit.GameTrack.TR_LSIDE;
+			if (!ours)
+				break;
+			width += e.startWidth + (e.endWidth - e.startWidth) * along;
+			any = true;
+			e = right ? e.rside : e.lside;
+		}
+		return any ? width : Double.NaN;
 	}
 
 	/**
