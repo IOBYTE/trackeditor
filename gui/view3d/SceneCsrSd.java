@@ -189,8 +189,10 @@ public class SceneCsrSd extends TrackScene
 	/**
 	 * The height of a curb's outer edge where the curb is that wide (trackgen's
 	 * curbHeightAt). CSR: a curb whose start and end widths differ keeps the slope
-	 * of its wide end, so its height, and its back side, taper with its width,
-	 * down to nothing where it narrows to zero; a curb of one width keeps its
+	 * of its wide end, height / width there, so its height, and its back side,
+	 * taper in proportion to its width, from its full height at the wide end down
+	 * to nothing where it narrows to zero, and its top meets a curb of one width
+	 * and the same height at the same slope; a curb of one width keeps its
 	 * height, as it always does in Speed Dreams.
 	 */
 	private float curbHeight(Seg seg, float width)
@@ -199,7 +201,9 @@ public class SceneCsrSd extends TrackScene
 			return seg.height;
 		if (width < 0.001f)
 			return 0;
-		return width * (float) Math.atan2(seg.height, Math.max(seg.startWidth, seg.endWidth));
+		// the slope is a ratio, not an angle: atan2 would leave the wide end short
+		// of the curb's height and give the top a different slope from its neighbor
+		return seg.height * width / Math.max(seg.startWidth, seg.endWidth);
 	}
 
 	/**

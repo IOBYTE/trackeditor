@@ -150,6 +150,12 @@ CASES = [
     # a border's width is both of its widths, so CSR doesn't read a start or end width with it
     ('border-width-and-start-end-csr', '--game csr --show saving oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('width', 1, 'm'), num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # a tapered curb keeps the slope of its wide end: 0.1 m in 1 m here, as the 0.05 m in 0.5 m curb after it
+    ('curb-taper-slope-matches-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('start width', 0.25, 'm'), num('end width', 1, 'm'), num('height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # it narrows from 1 m to 0.5 m, 0.05 m high: 5%, but the 0.05 m in 0.5 m curb after it is 10%
+    ('curb-taper-slope-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        right=side('Right', border=[num('start width', 1, 'm'), num('end width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # the right border of the right turn widens to 12 m, so at the turn's end its side reaches past the curve's center
     ('border-variable-width-past-curve-center-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(turn1=curve('turn 1', radius=20,
         right=side('Right', border=[num('start width', 0.5, 'm'), num('end width', 12, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')])),

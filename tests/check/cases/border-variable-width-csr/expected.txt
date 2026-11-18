@@ -1,2 +1,3 @@
-1 track checked: no messages (closure not checked: add --trackgen)
-exit 0
+oval/oval.xml: Segment front Left curb tapers from 0.5 m to 2 m wide, so its top keeps the slope of its 2 m end: 0.05 m high in 2 m (2.5%). But the left curb of the next segment, turn 1, is 0.05 m high in 0.5 m (10%), so the tops don't meet. Make turn 1's curb 0.0125 m high, or front's 0.2 m high.
+1 track checked: 1 message (closure not checked: add --trackgen)
+exit 1

@@ -393,4 +393,57 @@ public final class GameSides
 		}
 		return problems;
 	}
+
+	/** the tolerance for a curb's widths, in meters, and for two curbs' slopes */
+	private static final double	TAPER_TOLERANCE	= 0.001;
+
+	/**
+	 * CSR: a curb whose start and end widths differ keeps the slope of its wide end
+	 * (height / width there), so its height tapers with its width. The curb after it
+	 * should have the same slope, or their tops don't meet: a curb of one width has
+	 * the slope height / width, and one that tapers that of its own wide end.
+	 *
+	 * @return what is wrong, starting with "curb tapers", when the segment's curb
+	 *         tapers and the next segment's curb has another slope; null otherwise
+	 */
+	public static String curbSlopeMismatch(Segment segment, Segment next, boolean right, TrackContext trackContext)
+	{
+		if (segment == null || next == null || !trackContext.getVariableBorderWidth())
+			return null;
+		State curb = of(segment, right, trackContext);
+		if (!isCurb(curb) || Math.abs(curb.borderStartWidth - curb.borderEndWidth) < TAPER_TOLERANCE)
+			return null;
+		State after = of(next, right, trackContext);
+		// a curb that narrows to nothing, or a border after it that isn't a curb, has no top to meet
+		if (curb.borderEndWidth < TAPER_TOLERANCE || !isCurb(after) || after.borderStartWidth < TAPER_TOLERANCE)
+			return null;
+		double run = curbRun(curb), nextRun = curbRun(after);
+		double slope = curb.borderHeight / run, nextSlope = after.borderHeight / nextRun;
+		if (Math.abs(slope - nextSlope) <= TAPER_TOLERANCE)
+			return null;
+		String side = right ? "right" : "left";
+		return "curb tapers from " + number(curb.borderStartWidth) + " m to " + number(curb.borderEndWidth)
+			+ " m wide, so its top keeps the slope of its " + number(run) + " m end: " + number(curb.borderHeight) + " m high in "
+			+ number(run) + " m (" + number(slope * 100) + "%). But the " + side + " curb of the next segment, " + next.getName()
+			+ ", is " + number(after.borderHeight) + " m high in " + number(nextRun) + " m (" + number(nextSlope * 100)
+			+ "%), so the tops don't meet. Make " + next.getName() + "'s curb " + number(slope * nextRun) + " m high, or "
+			+ segment.getName() + "'s " + number(nextSlope * run) + " m high";
+	}
+
+	private static boolean isCurb(State state)
+	{
+		return "curb".equals(state.borderStyle) && state.borderHeight > 0 && (state.borderStartWidth > 0 || state.borderEndWidth > 0);
+	}
+
+	/** @return the width a curb's slope is taken over: its wide end's when it tapers */
+	private static double curbRun(State curb)
+	{
+		return Math.max(curb.borderStartWidth, curb.borderEndWidth);
+	}
+
+	/** @return a number to at most 3 significant digits */
+	private static String number(double value)
+	{
+		return new java.math.BigDecimal(value).round(new java.math.MathContext(3)).stripTrailingZeros().toPlainString();
+	}
 }

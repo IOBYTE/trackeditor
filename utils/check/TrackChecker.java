@@ -137,6 +137,7 @@ public class TrackChecker
 		check(properties("Cameras"), this::checkCameras);
 		check(null, this::checkTrack);
 		check(null, this::checkVariableBorders);
+		check(null, this::checkTaperedCurbs);
 		check(null, this::checkCrossings);
 		check(null, this::checkProfile);
 		check(properties("General"), this::checkHeader);
@@ -975,6 +976,31 @@ public class TrackChecker
 		report.append((count == 1 ? "Segment " + first.getName() + "'s border has" : count + " segments' borders have, from " + first.getName() + ",")
 			+ " a start or end width, which CSR uses, but the editor draws and checks the track with one width for each border. "
 			+ "Turn on \"CSR: variable-width borders (experimental)\" in Preferences to edit and see them.\n", segment(first));
+	}
+
+	/**
+	 * CSR: a tapered curb keeps the slope of its wide end, and the curb after it
+	 * should have the same slope (GameSides.curbSlopeMismatch: the segment dialog
+	 * shows it too).
+	 */
+	private void checkTaperedCurbs()
+	{
+		SegmentVector segments = trackData.getSegments();
+		int count = segments.size();
+		for (int i = 0; i < count; i++)
+		{
+			Segment segment = segments.get(i);
+			// the track is a loop: the last segment is followed by the first
+			Segment next = segments.get((i + 1) % count);
+			for (int j = 0; j < 2; j++)
+			{
+				boolean right = j == 1;
+				String name = right ? "Right" : "Left";
+				String text = GameSides.curbSlopeMismatch(segment, next, right, trackContext);
+				if (text != null)
+					report.append("Segment " + segment.getName() + " " + name + " " + sentences(text) + "\n", segment(segment, name));
+			}
+		}
 	}
 
 	/**

@@ -992,6 +992,30 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			tip.append("<b>Warning:</b> ").append(Character.toUpperCase(problem.text.charAt(0))).append(problem.text.substring(1)
 				.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
 		}
+		// CSR: a tapered curb and the curb after it should have the same slope; shown
+		// on both segments, as either one's height can be changed
+		if (segments != null && i >= 0)
+		{
+			int count = segments.size();
+			Segment before = segments.get((i - 1 + count) % count);
+			Segment after = segments.get((i + 1) % count);
+			String own = utils.circuit.GameSides.curbSlopeMismatch(segment, after, side.isRight(), parent.editorFrame);
+			String fromBefore = before == segment ? null
+				: utils.circuit.GameSides.curbSlopeMismatch(before, segment, side.isRight(), parent.editorFrame);
+			String[][] warnings = { { "This segment's ", own }, { "Segment " + before.getName() + "'s ", fromBefore } };
+			for (String[] warning : warnings)
+			{
+				if (warning[1] == null)
+					continue;
+				StringBuilder tip = tips.get("border height");
+				if (tip == null)
+					tips.put("border height", tip = new StringBuilder());
+				else
+					tip.append("<br>");
+				tip.append("<b>Warning:</b> ").append(warning[0]).append(warning[1]
+					.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
+			}
+		}
 		getSideStartWidthSlider().setProblem(tip(tips.get("side start width")));
 		getSideEndWidthSlider().setProblem(tip(tips.get("side end width")));
 		getBorderHeightSlider().setProblem(tip(tips.get("border height")));
