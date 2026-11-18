@@ -1,0 +1,4 @@
+oval/oval.xml:117: Main Track/Track Segments/front/Left Border/start height: CSR doesn't use it, because the border has a height, so saving removes it
+oval/oval.xml:118: Main Track/Track Segments/front/Left Border/end height: CSR doesn't use it, because the border has a height, so saving removes it
+1 track checked: 2 messages (closure not checked: add --trackgen)
+exit 1

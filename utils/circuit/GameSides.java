@@ -54,6 +54,12 @@ public final class GameSides
 		public double	borderStartWidth;
 		public double	borderEndWidth;
 		public double	borderHeight;
+		// the border's heights at the segment's start and end: both borderHeight unless
+		// borders can vary (TrackContext.getVariableBorderWidth)
+		public double	borderStartHeight;
+		public double	borderEndHeight;
+		/** a curb with one height whose widths differ: its heights are worked out from its widths */
+		public boolean	borderHeightsFromWidths;
 		public String	borderSurface;
 		public String	borderStyle;
 
@@ -106,6 +112,8 @@ public final class GameSides
 		s.borderStartWidth = s.borderWidth;
 		s.borderEndWidth = s.borderWidth;
 		s.borderHeight = number(main.getBorderHeight(), 0.0);
+		s.borderStartHeight = s.borderHeight;
+		s.borderEndHeight = s.borderHeight;
 		s.borderSurface = text(main.getBorderSurface(), "grass");
 		setBorderStyle(s, text(main.getBorderStyle(), "plan"), game);
 
@@ -150,10 +158,36 @@ public final class GameSides
 			s.borderStartWidth = s.borderWidth;
 			s.borderEndWidth = s.borderWidth;
 		}
-		// in TORCS version 3, a segment without a border height has a height of 0
-		s.borderHeight = number(side.getBorderHeight(), version3 && game == GameType.TORCS ? 0.0 : s.borderHeight);
+		// heights the same way as widths: a missing start height is the previous end height
+		if (variable && Double.isNaN(side.getBorderHeight()))
+		{
+			s.borderStartHeight = number(side.getBorderStartHeight(), s.borderEndHeight);
+			s.borderEndHeight = number(side.getBorderEndHeight(), s.borderStartHeight);
+			s.borderHeight = s.borderStartHeight;
+		}
+		else
+		{
+			// in TORCS version 3, a segment without a border height has a height of 0
+			s.borderHeight = number(side.getBorderHeight(), version3 && game == GameType.TORCS ? 0.0 : s.borderHeight);
+			s.borderStartHeight = s.borderHeight;
+			s.borderEndHeight = s.borderHeight;
+		}
 		s.borderSurface = text(side.getBorderSurface(), s.borderSurface);
 		setBorderStyle(s, text(side.getBorderStyle(), s.borderStyle), game);
+		// CSR: a curb with one height whose widths differ keeps the slope of its wide
+		// end, so its height goes with its width: from its height at the wide end
+		// down in proportion. These are its heights as it is drawn and saved, and the
+		// next segment's border starts as high as this one ends.
+		s.borderHeightsFromWidths = false;
+		if (variable && "curb".equals(s.borderStyle) && Math.abs(s.borderStartHeight - s.borderEndHeight) < TAPER_TOLERANCE
+			&& Math.abs(s.borderStartWidth - s.borderEndWidth) >= TAPER_TOLERANCE)
+		{
+			double wide = Math.max(s.borderStartWidth, s.borderEndWidth);
+			double height = s.borderStartHeight;
+			s.borderStartHeight = height * s.borderStartWidth / wide;
+			s.borderEndHeight = height * s.borderEndWidth / wide;
+			s.borderHeightsFromWidths = true;
+		}
 
 		// the version 3 loaders read the barrier only from the Main Track
 		if (version3)
@@ -188,7 +222,11 @@ public final class GameSides
 		{
 			s.borderStyle = "plan";
 			if (game.planBorderResetsHeight())
+			{
 				s.borderHeight = 0.0;
+				s.borderStartHeight = 0.0;
+				s.borderEndHeight = 0.0;
+			}
 		}
 		else if (style.equals("curb"))
 		{
@@ -339,10 +377,19 @@ public final class GameSides
 			problems.add(new Problem("border style", "border style \"" + borderStyle + "\" isn't valid, so the game treats it as a wall"));
 		}
 		// (TORCS keeps a plan border's height for the borders after it, so it isn't ignored there)
-		if (game.planBorderResetsHeight() &&
-			state.borderStyle.equals("plan") && !Double.isNaN(side.getBorderHeight()) && side.getBorderHeight() != 0)
+		if (game.planBorderResetsHeight() && state.borderStyle.equals("plan"))
 		{
-			problems.add(new Problem("border height", "border style is plan, but a height of " + side.getBorderHeight() + " is set. The game ignores it and uses 0. Set the border style to curb or wall, or remove the height"));
+			// (CSR: a start or end height too)
+			String[] names = { "height", "start height", "end height" };
+			double[] heights = { side.getBorderHeight(), side.getBorderStartHeight(), side.getBorderEndHeight() };
+			for (int i = 0; i < names.length; i++)
+			{
+				if (!Double.isNaN(heights[i]) && heights[i] != 0)
+				{
+					problems.add(new Problem("border height", "border style is plan, but a " + names[i] + " of " + heights[i] + " is set. The game ignores it and uses 0. Set the border style to curb or wall, or remove the " + names[i]));
+					break;
+				}
+			}
 		}
 
 		// barrier
@@ -374,7 +421,8 @@ public final class GameSides
 
 		// a new style takes its size from the previous segment unless it is set
 		State previous = of(previousSegment, right, trackContext);
-		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight()))
+		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight())
+			&& Double.isNaN(side.getBorderStartHeight()) && Double.isNaN(side.getBorderEndHeight()))
 		{
 			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + ", but no new height is set (the game uses " + state.borderHeight + ")"));
 		}
@@ -394,51 +442,97 @@ public final class GameSides
 		return problems;
 	}
 
-	/** the tolerance for a curb's widths, in meters, and for two curbs' slopes */
+	/** the tolerance for a curb's widths and heights, in meters, and for two curbs' slopes */
 	private static final double	TAPER_TOLERANCE	= 0.001;
 
 	/**
-	 * CSR: a curb whose start and end widths differ keeps the slope of its wide end
-	 * (height / width there), so its height tapers with its width. The curb after it
-	 * should have the same slope, or their tops don't meet: a curb of one width has
-	 * the slope height / width, and one that tapers that of its own wide end.
+	 * CSR: where one curb meets the next, their tops should have the same slope
+	 * (height / width), or they don't meet. A curb's height at an end is its start or
+	 * end height when they differ; one with one height whose start and end widths
+	 * differ keeps the slope of its wide end, so its height there tapers with its
+	 * width; otherwise it is its height. Checked only where either curb's widths or
+	 * heights change along it: two curbs of one width and one height each can be
+	 * different heights on purpose.
 	 *
-	 * @return what is wrong, starting with "curb tapers", when the segment's curb
-	 *         tapers and the next segment's curb has another slope; null otherwise
+	 * @return what is wrong, starting with "curb ends", when the segment's curb and
+	 *         the next segment's meet at different slopes; null otherwise
 	 */
 	public static String curbSlopeMismatch(Segment segment, Segment next, boolean right, TrackContext trackContext)
 	{
 		if (segment == null || next == null || !trackContext.getVariableBorderWidth())
 			return null;
 		State curb = of(segment, right, trackContext);
-		if (!isCurb(curb) || Math.abs(curb.borderStartWidth - curb.borderEndWidth) < TAPER_TOLERANCE)
-			return null;
 		State after = of(next, right, trackContext);
-		// a curb that narrows to nothing, or a border after it that isn't a curb, has no top to meet
-		if (curb.borderEndWidth < TAPER_TOLERANCE || !isCurb(after) || after.borderStartWidth < TAPER_TOLERANCE)
+		if (!isCurb(curb) || !isCurb(after) || (!varies(curb) && !varies(after)))
 			return null;
-		double run = curbRun(curb), nextRun = curbRun(after);
-		double slope = curb.borderHeight / run, nextSlope = after.borderHeight / nextRun;
+		// a curb that narrows to nothing, or starts from nothing, has no top to meet
+		double width = curb.borderEndWidth, nextWidth = after.borderStartWidth;
+		if (width < TAPER_TOLERANCE || nextWidth < TAPER_TOLERANCE)
+			return null;
+		double height = curbHeight(curb, true), nextHeight = curbHeight(after, false);
+		double slope = height / width, nextSlope = nextHeight / nextWidth;
 		if (Math.abs(slope - nextSlope) <= TAPER_TOLERANCE)
 			return null;
 		String side = right ? "right" : "left";
-		return "curb tapers from " + number(curb.borderStartWidth) + " m to " + number(curb.borderEndWidth)
-			+ " m wide, so its top keeps the slope of its " + number(run) + " m end: " + number(curb.borderHeight) + " m high in "
-			+ number(run) + " m (" + number(slope * 100) + "%). But the " + side + " curb of the next segment, " + next.getName()
-			+ ", is " + number(after.borderHeight) + " m high in " + number(nextRun) + " m (" + number(nextSlope * 100)
-			+ "%), so the tops don't meet. Make " + next.getName() + "'s curb " + number(slope * nextRun) + " m high, or "
-			+ segment.getName() + "'s " + number(nextSlope * run) + " m high";
+		boolean wideEnd = curb.borderHeightsFromWidths;
+		// the fixes: the next curb starting at this one's slope, or this one ending at
+		// the next one's, each keeping its other end as high as it is now
+		String fixNext = fix(next.getName(), after, slope * nextWidth, curbHeight(after, true), true);
+		String fixThis = fix(segment.getName(), curb, curbHeight(curb, false), nextSlope * width, false);
+		String fixes = fixNext != null && fixThis != null ? "Set " + fixNext + ", or " + fixThis
+			: fixNext != null || fixThis != null ? "Set " + (fixNext != null ? fixNext : fixThis)
+			: "Change their widths or heights so they meet";
+		return "curb ends " + number(width) + " m wide and " + number(height) + " m high, a slope of " + number(slope * 100) + "%"
+			+ (wideEnd ? " (with one height, a curb whose width changes keeps the slope of its wide end)" : "")
+			+ ", but the " + side + " curb of the next segment, " + next.getName() + ", starts " + number(nextWidth) + " m wide and "
+			+ number(nextHeight) + " m high, " + number(nextSlope * 100) + "%, so their tops don't meet. " + fixes;
+	}
+
+	/**
+	 * @return how to give a curb these heights at its start and end: the one that
+	 *         changes when its heights already differ, both otherwise (one alone
+	 *         would leave the other inherited); null when they are the same but its
+	 *         widths differ, as its height would then taper with its width again
+	 */
+	private static String fix(String name, State curb, double start, double end, boolean startChanges)
+	{
+		if (Math.abs(start - end) < TAPER_TOLERANCE / 2)
+			return Math.abs(curb.borderStartWidth - curb.borderEndWidth) >= TAPER_TOLERANCE ? null
+				: name + "'s height to " + number(start) + " m";
+		if (Math.abs(curb.borderStartHeight - curb.borderEndHeight) >= TAPER_TOLERANCE && !curb.borderHeightsFromWidths)
+			return name + "'s " + (startChanges ? "start height to " + number(start) : "end height to " + number(end)) + " m";
+		return name + "'s start height to " + number(start) + " m and end height to " + number(end) + " m";
 	}
 
 	private static boolean isCurb(State state)
 	{
-		return "curb".equals(state.borderStyle) && state.borderHeight > 0 && (state.borderStartWidth > 0 || state.borderEndWidth > 0);
+		return "curb".equals(state.borderStyle) && (state.borderStartHeight > 0 || state.borderEndHeight > 0)
+			&& (state.borderStartWidth > 0 || state.borderEndWidth > 0);
 	}
 
-	/** @return the width a curb's slope is taken over: its wide end's when it tapers */
-	private static double curbRun(State curb)
+	/** @return whether a border's width or height changes along it */
+	private static boolean varies(State border)
 	{
-		return Math.max(curb.borderStartWidth, curb.borderEndWidth);
+		return Math.abs(border.borderStartWidth - border.borderEndWidth) >= TAPER_TOLERANCE
+			|| Math.abs(border.borderStartHeight - border.borderEndHeight) >= TAPER_TOLERANCE;
+	}
+
+	/**
+	 * @return how high a curb is at its end or start (borderHeights)
+	 */
+	public static double curbHeight(State curb, boolean end)
+	{
+		return borderHeights(curb)[end ? 1 : 0];
+	}
+
+	/**
+	 * @return how high a border is at its start and its end, as it is drawn and
+	 *         saved (a curb with one height whose widths differ: worked out from its
+	 *         widths, see apply)
+	 */
+	public static double[] borderHeights(State border)
+	{
+		return new double[] { border.borderStartHeight, border.borderEndHeight };
 	}
 
 	/** @return a number to at most 3 significant digits */

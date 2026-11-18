@@ -279,7 +279,7 @@ public class XmlWriter
 			if (trackContext.getTrackData().getMainTrack().getLeft().getHasSide())
 				track.addContent(getSide(trackContext.getTrackData().getMainTrack().getLeft(), "Left", true));
 			if (trackContext.getTrackData().getMainTrack().getLeft().getHasBorder())
-				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getLeft(), "Left"));
+				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getLeft(), "Left", null, false));
 			if (trackContext.getTrackData().getMainTrack().getLeft().getHasBarrier())
 				track.addContent(getBarrier(trackContext.getTrackData().getMainTrack().getLeft(), "Left"));
 			com = new Comment("End of left part");
@@ -289,7 +289,7 @@ public class XmlWriter
 			if (trackContext.getTrackData().getMainTrack().getRight().getHasSide())
 				track.addContent(getSide(trackContext.getTrackData().getMainTrack().getRight(), "Right", true));
 			if (trackContext.getTrackData().getMainTrack().getRight().getHasBorder())
-				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getRight(), "Right"));
+				track.addContent(getBorder(trackContext.getTrackData().getMainTrack().getRight(), "Right", null, true));
 			if (trackContext.getTrackData().getMainTrack().getRight().getHasBarrier())
 				track.addContent(getBarrier(trackContext.getTrackData().getMainTrack().getRight(), "Right"));
 			com = new Comment("End of right part");
@@ -475,7 +475,7 @@ public class XmlWriter
 			if (shape.getLeft().getHasSide())
 				segment.addContent(getSide(shape.getLeft(), "Left", false));
 			if (shape.getLeft().getHasBorder())
-				segment.addContent(getBorder(shape.getLeft(), "Left"));
+				segment.addContent(getBorder(shape.getLeft(), "Left", shape, false));
 			if (shape.getLeft().getHasBarrier())
 				segment.addContent(getBarrier(shape.getLeft(), "Left"));
 			com = new Comment("End of left part");
@@ -485,7 +485,7 @@ public class XmlWriter
 			if (shape.getRight().getHasSide())
 				segment.addContent(getSide(shape.getRight(), "Right", false));
 			if (shape.getRight().getHasBorder())
-			    segment.addContent(getBorder(shape.getRight(), "Right"));
+			    segment.addContent(getBorder(shape.getRight(), "Right", shape, true));
 			if (shape.getRight().getHasBarrier())
 			    segment.addContent(getBarrier(shape.getRight(), "Right"));
 			com = new Comment("End of right part");
@@ -500,29 +500,61 @@ public class XmlWriter
 	 * @param string
 	 * @return
 	 */
-	private synchronized Element getBorder(SegmentSide part, String sPart)
+	/**
+	 * A border's width or height: the value, or CSR's start and end values when they
+	 * differ (the same at both ends is the value)
+	 */
+	/** @return a height worked out from others, to a tenth of a millimeter, so the file shows e.g. 0.025 */
+	private static double roundHeight(double height)
+	{
+		return Math.round(height * 10000.0) / 10000.0;
+	}
+
+	private void addBorderValues(Element side, boolean csr, String name, double value, double start, double end)
+	{
+		if (!Double.isNaN(value) || !csr)
+		{
+			addContent(side, name, "m", value);
+		}
+		else if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+		{
+			addContent(side, name, "m", start);
+		}
+		else
+		{
+			addContent(side, "start " + name, "m", start);
+			addContent(side, "end " + name, "m", end);
+		}
+	}
+
+	/**
+	 * @param shape the segment the border is part of, null for the Main Track's
+	 */
+	private synchronized Element getBorder(SegmentSide part, String sPart, Segment shape, boolean right)
 	{
 		Element side = new Element("section");
 		side.setAttribute(new Attribute("name", sPart + " Border"));
 
-		// CSR's version 4 loader: a segment's border widths, like a side's (the Main Track
-		// has none): the same at both ends is "width", which the loader reads first
-		double start = part.getBorderStartWidth(), end = part.getBorderEndWidth();
-		if (!Double.isNaN(part.getBorderWidth()) || !trackContext.getCarsSportsRacing()
-			|| trackContext.getTrackData().getHeader().getVersion() != 4)
+		// CSR's version 4 loader: a segment's border widths and heights, like a side's
+		// widths (the Main Track has none): the same at both ends is "width" or
+		// "height", which the loader reads first
+		boolean csr = trackContext.getCarsSportsRacing() && trackContext.getTrackData().getHeader().getVersion() == 4;
+		addBorderValues(side, csr, "width", part.getBorderWidth(), part.getBorderStartWidth(), part.getBorderEndWidth());
+		double height = part.getBorderHeight(), startHeight = part.getBorderStartHeight(), endHeight = part.getBorderEndHeight();
+		if (csr && shape != null && trackContext.getVariableBorderWidth())
 		{
-			addContent(side, "width", "m", part.getBorderWidth());
+			// a curb with one height whose widths differ is saved with the heights it
+			// is drawn with, from its wide end's height down in proportion to its
+			// widths (GameSides.borderHeights), so the file says what it is
+			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(shape, right, trackContext);
+			if (state.borderHeightsFromWidths)
+			{
+				height = Double.NaN;
+				startHeight = roundHeight(state.borderStartHeight);
+				endHeight = roundHeight(state.borderEndHeight);
+			}
 		}
-		else if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
-		{
-			addContent(side, "width", "m", start);
-		}
-		else
-		{
-			addContent(side, "start width", "m", start);
-			addContent(side, "end width", "m", end);
-		}
-		addContent(side, "height", "m", part.getBorderHeight());
+		addBorderValues(side, csr, "height", height, startHeight, endHeight);
 		addContent(side, "surface", part.getBorderSurface());
 		addContent(side, "style", part.getBorderStyle());
 

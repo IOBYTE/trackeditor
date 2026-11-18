@@ -1482,9 +1482,11 @@ public class XmlReader
         if (el != null)
         {
             part.setBorderWidth(getAttrNumValue(el, "width", "m"));
+            part.setBorderHeight(getAttrNumValue(el, "height", "m"));
 			// CSR's version 4 loader reads a segment's border widths like a side's, when it
-			// has no "width" (then they aren't read, so saving reports and removes them):
-			// kept even when the editor's (experimental) preference doesn't use them
+			// has no "width", and its heights the same way, when it has no "height" (then
+			// they aren't read, so saving reports and removes them): kept even when the
+			// editor's (experimental) preference doesn't use them
 			if (!mainTrack && trackContext.getCarsSportsRacing() && trackContext.getTrackData().getHeader().getVersion() == 4)
 			{
 				if (Double.isNaN(part.getBorderWidth()))
@@ -1494,17 +1496,18 @@ public class XmlReader
 				}
 				else
 				{
-					// (found without reading them, so they stay unread)
-					for (Object o : el.getChildren())
-					{
-						Element key = (Element) o;
-						String name = key.getAttributeValue("name");
-						if ("start width".equals(name) || "end width".equals(name))
-							ignoredKeys.put(key, "CSR doesn't use it, because the border has a width, so saving removes it");
-					}
+					ignoreKeys(el, "start width", "end width", "CSR doesn't use it, because the border has a width, so saving removes it");
+				}
+				if (Double.isNaN(part.getBorderHeight()))
+				{
+					part.setBorderStartHeight(getAttrNumValue(el, "start height", "m"));
+					part.setBorderEndHeight(getAttrNumValue(el, "end height", "m"));
+				}
+				else
+				{
+					ignoreKeys(el, "start height", "end height", "CSR doesn't use it, because the border has a height, so saving removes it");
 				}
 			}
-            part.setBorderHeight(getAttrNumValue(el, "height", "m"));
             part.setBorderSurface(getAttrStrValue(el, "surface"));
             part.setBorderStyle(getAttrStrValue(el, "style"));
         }
@@ -1518,6 +1521,18 @@ public class XmlReader
             part.setBarrierStyle(getAttrStrValue(el, "style"));
         }
     }
+
+	/** Reports the keys as ignored (found without reading them, so they stay unread) */
+	private void ignoreKeys(Element section, String first, String second, String why)
+	{
+		for (Object o : section.getChildren())
+		{
+			Element key = (Element) o;
+			String name = key.getAttributeValue("name");
+			if (first.equals(name) || second.equals(name))
+				ignoredKeys.put(key, why);
+		}
+	}
 
     private Element getChildWithName(Element element,
             String name)

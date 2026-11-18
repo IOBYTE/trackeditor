@@ -74,8 +74,8 @@ public class SceneCsrSd extends TrackScene
 					continue;
 				}
 				Seg prev = mseg.prev.side(side);
-				// CSR compares the widths where the border segments meet (a border can taper)
-				if ((lastSeg != null && lastSeg.style != seg.style) || prev == null || !widthsMeet(prev, seg) || prev.height != seg.height)
+				// CSR compares the widths and heights where the border segments meet (a border can taper)
+				if ((lastSeg != null && lastSeg.style != seg.style) || prev == null || !widthsMeet(prev, seg) || !heightsMeet(prev, seg))
 					startNeeded = true;
 				checkDispList(seg.surface, sname, i, mseg.lgfromstart);
 				float curTexSeg = (curTexLink ? mseg.lgfromstart : 0) + curTexOffset;
@@ -87,9 +87,9 @@ public class SceneCsrSd extends TrackScene
 					float texMaxT = texMaxT(GameTrack.width(seg, 0));
 					// CSR: no start cap where the curb starts with zero width (it starts as a triangle)
 					boolean startsCurb = (sd || seg.startWidth > 0) && (prev == null || prev.type2 != borderType ||
-						prev.style != TR_CURB || !widthsMeet(prev, seg) || prev.height != seg.height);
+						prev.style != TR_CURB || !widthsMeet(prev, seg) || !heightsMeet(prev, seg));
 					boolean startsWall = prev == null || prev.type2 != borderType || prev.style != TR_WALL ||
-						prev.height < seg.height || prev.width < seg.width;
+						prev.endHeight < seg.startHeight || prev.width < seg.width;
 					float cap = seg.width / curTexSize;
 					if (right)
 					{
@@ -101,7 +101,7 @@ public class SceneCsrSd extends TrackScene
 						if (seg.style == TR_WALL && j == 2 && startsWall)
 						{
 							float u = sd ? -texLen - cap : texLen - cap;
-							setPoint(u, 0.66f, seg.vertex[TR_SL], seg.height);
+							setPoint(u, 0.66f, seg.vertex[TR_SL], seg.startHeight);
 							setPoint(u, 1.0f, seg.vertex[TR_SL], 0);
 						}
 					}
@@ -115,10 +115,10 @@ public class SceneCsrSd extends TrackScene
 						if (seg.style == TR_WALL && j == 0 && startsWall)
 						{
 							setPoint(texLen - cap, 1.0f, seg.vertex[TR_SR], 0);
-							setPoint(texLen - cap, 0.66f, seg.vertex[TR_SR], seg.height);
+							setPoint(texLen - cap, 0.66f, seg.vertex[TR_SR], seg.startHeight);
 						}
 					}
-					borderSection(seg, right, j, texLen, texMaxT, seg.vertex[TR_SL], seg.vertex[TR_SR], curbHeight(seg, seg.startWidth));
+					borderSection(seg, right, j, texLen, texMaxT, seg.vertex[TR_SL], seg.vertex[TR_SR], borderHeight(seg, 0, seg.startWidth));
 				}
 				texLen += texStep(seg, mseg);
 				float texStep = texStep(seg, mseg);
@@ -127,20 +127,20 @@ public class SceneCsrSd extends TrackScene
 					float w = GameTrack.width(seg, ts);
 					if (seg.style == TR_CURB && !sd)
 						// CSR builds a curb on the ground under it, not on RtTrackHeightL (which has the curb in it)
-						borderSection(seg, right, j, texLen, texMaxT(w), ground(seg, ts, w), ground(seg, ts, 0), curbHeight(seg, w));
+						borderSection(seg, right, j, texLen, texMaxT(w), ground(seg, ts, w), ground(seg, ts, 0), borderHeight(seg, ts, w));
 					else
-						borderSection(seg, right, j, texLen, texMaxT(w), point(seg, ts, w), point(seg, ts, 0), seg.height);
+						borderSection(seg, right, j, texLen, texMaxT(w), point(seg, ts, w), point(seg, ts, 0), borderHeight(seg, ts, w));
 					texLen += texStep;
 				}
 				texLen = (curTexSeg + mseg.length) / curTexSize;
 				float texMaxT = texMaxT(GameTrack.width(seg, endToStart(seg)));
-				borderSection(seg, right, j, texLen, texMaxT, seg.vertex[TR_EL], seg.vertex[TR_ER], curbHeight(seg, seg.endWidth));
+				borderSection(seg, right, j, texLen, texMaxT, seg.vertex[TR_EL], seg.vertex[TR_ER], borderHeight(seg, endToStart(seg), seg.endWidth));
 				Seg next = mseg.next.side(side);
 				// CSR: no end cap where the curb ends with zero width (it ends as a triangle)
 				boolean endsCurb = (sd || seg.endWidth > 0) && next != null && (next.type2 != borderType ||
-					next.style != TR_CURB || !widthsMeet(seg, next) || next.height != seg.height);
+					next.style != TR_CURB || !widthsMeet(seg, next) || !heightsMeet(seg, next));
 				boolean endsWall = next != null && (next.type2 != borderType || next.style != TR_WALL ||
-					next.height < seg.height || next.width < seg.width);
+					next.startHeight < seg.endHeight || next.width < seg.width);
 				float cap = seg.width / curTexSize;
 				if (right)
 				{
@@ -152,7 +152,7 @@ public class SceneCsrSd extends TrackScene
 					if (seg.style == TR_WALL && j == 2 && endsWall)
 					{
 						float u = sd ? -texLen + cap : texLen + cap;
-						setPoint(u, 0.66f, seg.vertex[TR_EL], seg.height);
+						setPoint(u, 0.66f, seg.vertex[TR_EL], seg.endHeight);
 						setPoint(u, 1.0f, seg.vertex[TR_EL], 0);
 					}
 				}
@@ -166,7 +166,7 @@ public class SceneCsrSd extends TrackScene
 					if (seg.style == TR_WALL && j == 0 && endsWall)
 					{
 						setPoint(texLen + cap, 1.0f, seg.vertex[TR_ER], 0);
-						setPoint(texLen + cap, 0.66f, seg.vertex[TR_ER], seg.height);
+						setPoint(texLen + cap, 0.66f, seg.vertex[TR_ER], seg.endHeight);
 					}
 				}
 				startNeeded = false;
@@ -187,23 +187,32 @@ public class SceneCsrSd extends TrackScene
 	}
 
 	/**
-	 * The height of a curb's outer edge where the curb is that wide (trackgen's
-	 * curbHeightAt). CSR: a curb whose start and end widths differ keeps the slope
-	 * of its wide end, height / width there, so its height, and its back side,
-	 * taper in proportion to its width, from its full height at the wide end down
-	 * to nothing where it narrows to zero, and its top meets a curb of one width
-	 * and the same height at the same slope; a curb of one width keeps its
-	 * height, as it always does in Speed Dreams.
+	 * Whether two border segments, one after the other, meet at the same height:
+	 * CSR compares the first's end height with the second's start height, Speed
+	 * Dreams their heights.
 	 */
-	private float curbHeight(Seg seg, float width)
+	private boolean heightsMeet(Seg first, Seg second)
 	{
-		if (sd || Math.abs(seg.startWidth - seg.endWidth) < 0.001f)
+		return sd ? first.height == second.height : first.endHeight == second.startHeight;
+	}
+
+	/**
+	 * The height of a border toStart along it, where it is that wide: for a curb,
+	 * of its outer edge (trackgen's curbHeightAt). CSR: a border's height changes
+	 * along it from its start height to its end height. A curb with one height
+	 * whose start and end widths differ keeps the slope of the segment's wide end,
+	 * height / width there: GameTrack gives each of its steps heights in proportion
+	 * to its widths, so its height, and its back side, taper with its width, from
+	 * its full height at the wide end down to nothing where it narrows to zero. A
+	 * border of one width keeps its height, as it always does in Speed Dreams.
+	 */
+	private float borderHeight(Seg seg, float toStart, float width)
+	{
+		if (sd)
 			return seg.height;
-		if (width < 0.001f)
+		if (seg.style == TR_CURB && width < 0.001f)
 			return 0;
-		// the slope is a ratio, not an angle: atan2 would leave the wide end short
-		// of the curb's height and give the top a different slope from its neighbor
-		return seg.height * width / Math.max(seg.startWidth, seg.endWidth);
+		return GameTrack.height(seg, toStart);
 	}
 
 	/**
@@ -221,11 +230,10 @@ public class SceneCsrSd extends TrackScene
 	/**
 	 * One cross-section of a border strip, from its left point l (toRight is the
 	 * width) to its right point r (toRight 0); the heights are each point's own,
-	 * and curbHeight is how far a curb's outer edge rises above its point.
+	 * and h is how far the border rises above them (borderHeight).
 	 */
-	private void borderSection(Seg seg, boolean right, int j, float texLen, float texMaxT, float[] l, float[] r, float curbHeight)
+	private void borderSection(Seg seg, boolean right, int j, float texLen, float texMaxT, float[] l, float[] r, float h)
 	{
-		float h = seg.style == TR_CURB ? curbHeight : seg.height;
 		switch (seg.style)
 		{
 		case TR_PLAN:

@@ -948,8 +948,9 @@ public class TrackChecker
 
 	/**
 	 * CSR's version 4 loader reads a segment's border "start width" and "end width"
-	 * (when it has no "width"). The editor uses them only with its experimental
-	 * preference on; without it, it draws and checks the track with one width.
+	 * (when it has no "width"), and "start height" and "end height" (when it has no
+	 * "height"). The editor uses them only with its experimental preference on;
+	 * without it, it draws and checks the track with one width and one height.
 	 */
 	private void checkVariableBorders()
 	{
@@ -962,7 +963,8 @@ public class TrackChecker
 			Segment segment = trackData.getSegments().get(i);
 			for (SegmentSide side : new SegmentSide[] { segment.getLeft(), segment.getRight() })
 			{
-				if (Double.isNaN(side.getBorderWidth()) && (!Double.isNaN(side.getBorderStartWidth()) || !Double.isNaN(side.getBorderEndWidth())))
+				if ((Double.isNaN(side.getBorderWidth()) && (!Double.isNaN(side.getBorderStartWidth()) || !Double.isNaN(side.getBorderEndWidth())))
+					|| (Double.isNaN(side.getBorderHeight()) && (!Double.isNaN(side.getBorderStartHeight()) || !Double.isNaN(side.getBorderEndHeight()))))
 				{
 					if (first == null)
 						first = segment;
@@ -974,7 +976,7 @@ public class TrackChecker
 		if (first == null)
 			return;
 		report.append((count == 1 ? "Segment " + first.getName() + "'s border has" : count + " segments' borders have, from " + first.getName() + ",")
-			+ " a start or end width, which CSR uses, but the editor draws and checks the track with one width for each border. "
+			+ " a start or end width or height, which CSR uses, but the editor draws and checks the track with one width and one height for each border. "
 			+ "Turn on \"CSR: variable-width borders (experimental)\" in Preferences to edit and see them.\n", segment(first));
 	}
 

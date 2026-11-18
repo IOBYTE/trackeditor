@@ -908,9 +908,31 @@ public class PitProperties extends PropertyPanel
 	 * generator changes the segments next to it; with variable-width borders
 	 * (CSR) its start and end widths when they differ, so it keeps its taper
 	 */
+	/**
+	 * Sets the border height the game uses on the segment's pit side, before the
+	 * generator changes the segments next to it: with variable-width borders (CSR)
+	 * its start and end heights when they differ, as a start height not set is the
+	 * previous segment's end height. A curb with one height whose widths differ
+	 * keeps its one height: its widths, kept too, give its heights again.
+	 */
+	private void keepBorderHeight(Segment segment, boolean right)
+	{
+		SegmentSide side = right ? segment.getRight() : segment.getLeft();
+		utils.circuit.GameSides.State state = utils.circuit.GameSides.of(segment, right, getEditorFrame());
+		if (getEditorFrame().getVariableBorderWidth() && state.borderStartHeight != state.borderEndHeight && !state.borderHeightsFromWidths)
+		{
+			side.setBorderHeight(Double.NaN);
+			side.setBorderStartHeight(state.borderStartHeight);
+			side.setBorderEndHeight(state.borderEndHeight);
+			return;
+		}
+		side.setBorderHeight(state.borderHeight);
+	}
+
 	private void keepBorderWidth(Segment segment, boolean right)
 	{
 		SegmentSide side = right ? segment.getRight() : segment.getLeft();
+		keepBorderHeight(segment, right);
 		if (getEditorFrame().getVariableBorderWidth())
 		{
 			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(segment, right, getEditorFrame());
@@ -2686,6 +2708,8 @@ public class PitProperties extends PropertyPanel
 			// only when set, so the keys of tracks without them stay as they were
 			if (!Double.isNaN(side.getBorderStartWidth()) || !Double.isNaN(side.getBorderEndWidth()))
 				key.append('|').append(side.getBorderStartWidth()).append('|').append(side.getBorderEndWidth());
+			if (!Double.isNaN(side.getBorderStartHeight()) || !Double.isNaN(side.getBorderEndHeight()))
+				key.append("|h").append(side.getBorderStartHeight()).append('|').append(side.getBorderEndHeight());
 			key.append('\n');
 			if (i == to)
 				break;
@@ -3236,7 +3260,8 @@ public class PitProperties extends PropertyPanel
 	{
 		info.borderType = side.getBorderStyle();
 		info.borderSurface = valueOrDefault(side.getBorderSurface(), SegmentSide.DEFAULT_PIT_PITS_BORDER_SURFACE);
-		info.borderHeight = valueOrDefault(side.getBorderHeight(), SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT);
+		// (CSR: a border with start and end heights in place of its height: its start height)
+		info.borderHeight = valueOrDefault(side.getBorderHeight(), valueOrDefault(side.getBorderStartHeight(), SegmentSide.DEFAULT_PIT_PITS_BORDER_HEIGHT));
 		info.borderWidth = valueOrDefault(side.getBorderWidth(), SegmentSide.DEFAULT_PIT_PITS_BORDER_WIDTH);
 	}
 
@@ -3500,7 +3525,6 @@ public class PitProperties extends PropertyPanel
 		if (onLeft(pits))
 		{
 			keepBorderWidth(nextSegment, false);
-			nextSegment.getLeft().setBorderHeight(nextSegment.getValidLeftBorderHeight(getEditorFrame()));
 			nextSegment.getLeft().setBorderSurface(nextSegment.getValidLeftBorderSurface(getEditorFrame()));
 			nextSegment.getLeft().setBorderStyle(nextSegment.getValidLeftBorderStyle(getEditorFrame()));
 
@@ -3519,7 +3543,6 @@ public class PitProperties extends PropertyPanel
 		else
 		{
 			keepBorderWidth(nextSegment, true);
-			nextSegment.getRight().setBorderHeight(nextSegment.getValidRightBorderHeight(getEditorFrame()));
 			nextSegment.getRight().setBorderSurface(nextSegment.getValidRightBorderSurface(getEditorFrame()));
 			nextSegment.getRight().setBorderStyle(nextSegment.getValidRightBorderStyle(getEditorFrame()));
 
@@ -3596,7 +3619,6 @@ public class PitProperties extends PropertyPanel
 		if (onLeft(pits))
 		{
 			keepBorderWidth(previousSegment, false);
-			previousSegment.getLeft().setBorderHeight(previousSegment.getValidLeftBorderHeight(getEditorFrame()));
 			previousSegment.getLeft().setBorderSurface(previousSegment.getValidLeftBorderSurface(getEditorFrame()));
 			previousSegment.getLeft().setBorderStyle(previousSegment.getValidLeftBorderStyle(getEditorFrame()));
 
@@ -3615,7 +3637,6 @@ public class PitProperties extends PropertyPanel
 		else
 		{
 			keepBorderWidth(previousSegment, true);
-			previousSegment.getRight().setBorderHeight(previousSegment.getValidRightBorderHeight(getEditorFrame()));
 			previousSegment.getRight().setBorderSurface(previousSegment.getValidRightBorderSurface(getEditorFrame()));
 			previousSegment.getRight().setBorderStyle(previousSegment.getValidRightBorderStyle(getEditorFrame()));
 

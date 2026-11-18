@@ -123,8 +123,13 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 	// CSR, experimental: the border's start and end widths (see TrackContext.getVariableBorderWidth)
 	private SegmentSlider		borderStartWidthSlider	= null;
 	private SegmentSlider		borderEndWidthSlider	= null;
+	// and its start and end heights, the same way
+	private SegmentSlider		borderStartHeightSlider	= null;
+	private SegmentSlider		borderEndHeightSlider	= null;
 	// where the border's label and its height and width sliders are with one width
 	private int					borderLabelX, borderHeightX, borderWidthX;
+	private java.awt.Component[]	borderBelow;
+	private int[]				borderBelowX;
 
 	/**
 	 *
@@ -248,6 +253,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			panel.add(getBorderHeightSlider(), null);
 			panel.add(getBorderStartWidthSlider(), null);
 			panel.add(getBorderEndWidthSlider(), null);
+			panel.add(getBorderStartHeightSlider(), null);
+			panel.add(getBorderEndHeightSlider(), null);
 
 			// laid out as the track is seen from above: the left side goes barrier,
 			// side, border towards the track, and the right side border, side,
@@ -264,6 +271,11 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					c.setLocation(c.getX() - shift, c.getY());
 			}
 			borderLabelX = borderLabel.getX();
+			// the border's surface and style, which move with its title
+			borderBelow = new java.awt.Component[] { borderSurfaceLabel, borderStyleLabel, getBorderSurfaceComboBox(), getBorderStyleComboBox() };
+			borderBelowX = new int[borderBelow.length];
+			for (int i = 0; i < borderBelow.length; i++)
+				borderBelowX[i] = borderBelow[i].getX();
 			borderHeightX = getBorderHeightSlider().getX();
 			borderWidthX = getBorderWidthSlider().getX();
 			layOutBorder();
@@ -339,6 +351,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 						side.setBorderWidth(Double.NaN);
 						side.setBorderStartWidth(Double.NaN);
 						side.setBorderEndWidth(Double.NaN);
+						side.setBorderStartHeight(Double.NaN);
+						side.setBorderEndHeight(Double.NaN);
 						getBorderSurfaceComboBox().setSelectedIndex(-1);
 						getBorderSurfaceComboBox().setEnabled(false);
 						getBorderHeightSlider().setValue(side.getBorderHeight());
@@ -857,16 +871,44 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		return borderEndWidthSlider;
 	}
 
-	/** @return whether the border's start and end widths are shown: CSR's, with the experimental preference on */
+	/**
+	 * CSR, experimental: a border's start and end heights, which take the place of its
+	 * height as its start and end widths take the place of its width.
+	 */
+	private SegmentSlider getBorderStartHeightSlider()
+	{
+		if (borderStartHeightSlider == null)
+		{
+			borderStartHeightSlider = new SegmentSlider(0, 5, 0, 0.001, side.getBorderStartHeight(), "Height", "Start", "BorderStartHeight", true, false);
+			borderStartHeightSlider.setBounds(610, 25, 50, 290);
+			borderStartHeightSlider.addSliderListener(this);
+			borderStartHeightSlider.setVisible(false);
+		}
+		return borderStartHeightSlider;
+	}
+
+	private SegmentSlider getBorderEndHeightSlider()
+	{
+		if (borderEndHeightSlider == null)
+		{
+			borderEndHeightSlider = new SegmentSlider(0, 5, 0, 0.001, side.getBorderEndHeight(), "Height", "End", "BorderEndHeight", true, false);
+			borderEndHeightSlider.setBounds(665, 25, 50, 290);
+			borderEndHeightSlider.addSliderListener(this);
+			borderEndHeightSlider.setVisible(false);
+		}
+		return borderEndHeightSlider;
+	}
+
+	/** @return whether the border's start and end widths and heights are shown: CSR's, with the experimental preference on */
 	private boolean variableBorder()
 	{
 		return parent.editorFrame.getVariableBorderWidth();
 	}
 
 	/**
-	 * Shows the border's width, or its start and end widths in its place, and places
-	 * its sliders: the left side's border is next to the track at the right, so its
-	 * sliders move left to make room
+	 * Shows the border's height and width, or its start and end heights and widths
+	 * in their place, and places its sliders: the left side's border is next to the
+	 * track at the right, so its sliders move left to make room
 	 */
 	private void layOutBorder()
 	{
@@ -874,24 +916,40 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			return;
 		boolean variable = variableBorder();
 		int slider = 55;
-		int move = variable && !side.isRight() ? -slider : 0;
-		borderLabel.setLocation(borderLabelX + (variable ? (side.isRight() ? slider / 2 : -slider / 2) : 0), borderLabel.getY());
-		getBorderHeightSlider().setLocation(borderHeightX + move, getBorderHeightSlider().getY());
-		getBorderStartWidthSlider().setLocation(borderWidthX + move, getBorderStartWidthSlider().getY());
-		getBorderEndWidthSlider().setLocation(borderWidthX + move + slider, getBorderEndWidthSlider().getY());
+		// start height, end height, start width, end width in place of height, width
+		int move = variable && !side.isRight() ? -2 * slider : 0;
+		// the title, surface and style stay centred over the sliders: four take the
+		// room of two, so they move by one slider, away from the track's side
+		int centre = variable ? (side.isRight() ? slider : -slider) : 0;
+		borderLabel.setLocation(borderLabelX + centre, borderLabel.getY());
+		for (int i = 0; i < borderBelow.length; i++)
+			borderBelow[i].setLocation(borderBelowX[i] + centre, borderBelow[i].getY());
+		getBorderHeightSlider().setLocation(borderHeightX, getBorderHeightSlider().getY());
+		getBorderStartHeightSlider().setLocation(borderHeightX + move, getBorderStartHeightSlider().getY());
+		getBorderEndHeightSlider().setLocation(borderHeightX + move + slider, getBorderEndHeightSlider().getY());
+		getBorderStartWidthSlider().setLocation(borderHeightX + move + 2 * slider, getBorderStartWidthSlider().getY());
+		getBorderEndWidthSlider().setLocation(borderHeightX + move + 3 * slider, getBorderEndWidthSlider().getY());
+		getBorderHeightSlider().setVisible(!variable);
 		getBorderWidthSlider().setVisible(!variable);
+		getBorderStartHeightSlider().setVisible(variable);
+		getBorderEndHeightSlider().setVisible(variable);
 		getBorderStartWidthSlider().setVisible(variable);
 		getBorderEndWidthSlider().setVisible(variable);
 		boolean enabled = getBorderWidthSlider().isEnabled();
 		getBorderStartWidthSlider().setEnabled(enabled);
 		getBorderEndWidthSlider().setEnabled(enabled);
+		// (a plan border's height is 0: CSR ignores any other)
+		boolean heights = getBorderHeightSlider().isEnabled() && !"plan".equals(side.getBorderStyle());
+		getBorderStartHeightSlider().setEnabled(heights);
+		getBorderEndHeightSlider().setEnabled(heights);
 		showBorderWidths();
 	}
 
 	/**
-	 * Shows the border's widths: a width is both its start and its end width. A start
-	 * width that isn't set is the previous segment's end width, and an end width that
-	 * isn't set is the start width: those show greyed out.
+	 * Shows the border's widths and heights: a width is both its start and its end
+	 * width. A start width that isn't set is the previous segment's end width, and an
+	 * end width that isn't set is the start width: those show greyed out. Heights the
+	 * same way.
 	 */
 	private void showBorderWidths()
 	{
@@ -902,12 +960,31 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 				"Not set: the border starts as wide as the previous segment's border ends. Check the box to set it.");
 			getBorderEndWidthSlider().setInherited(state.borderEndWidth,
 				"Not set: the border ends as wide as it starts. Check the box to set it.");
+			// (a curb with one height whose width changes: its height goes with its width)
+			double[] heights = utils.circuit.GameSides.borderHeights(state);
+			getBorderStartHeightSlider().setInherited(heights[0],
+				"Not set: the border starts as high as the previous segment's border ends. Check the box to set it.");
+			getBorderEndHeightSlider().setInherited(heights[1],
+				"Not set: the border ends as high as it starts. Check the box to set it.");
+			shownHeights = heights;
+		}
+		else
+		{
+			shownHeights = null;
 		}
 		double width = side.getBorderWidth();
 		getBorderWidthSlider().setValue(width);
 		getBorderStartWidthSlider().setValue(Double.isNaN(width) ? side.getBorderStartWidth() : width);
 		getBorderEndWidthSlider().setValue(Double.isNaN(width) ? side.getBorderEndWidth() : width);
+		// one height is both of its heights, or for a curb whose width changes the
+		// heights it is drawn and saved with
+		double height = side.getBorderHeight();
+		getBorderStartHeightSlider().setValue(Double.isNaN(height) ? side.getBorderStartHeight() : shownHeights != null ? shownHeights[0] : height);
+		getBorderEndHeightSlider().setValue(Double.isNaN(height) ? side.getBorderEndHeight() : shownHeights != null ? shownHeights[1] : height);
 	}
+
+	// the border's start and end heights as the sliders show them (showBorderWidths)
+	private double[]			shownHeights;
 
 	public void update()
 	{
@@ -1019,6 +1096,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		getSideStartWidthSlider().setProblem(tip(tips.get("side start width")));
 		getSideEndWidthSlider().setProblem(tip(tips.get("side end width")));
 		getBorderHeightSlider().setProblem(tip(tips.get("border height")));
+		getBorderStartHeightSlider().setProblem(tip(tips.get("border height")));
+		getBorderEndHeightSlider().setProblem(tip(tips.get("border height")));
 		getBarrierWidthSlider().setProblem(tip(tips.get("barrier width")));
 		getBarrierHeightSlider().setProblem(tip(tips.get("barrier height")));
 		// a version 3 track's barrier comes from the Main Track, and says so
@@ -1560,6 +1639,12 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		{
 			return side.getBorderHeight();
 		}
+		// CSR: its start and end heights, in its height's place: one that isn't 0
+		for (double height : new double[] { side.getBorderStartHeight(), side.getBorderEndHeight() })
+		{
+			if (!Double.isNaN(height) && height != 0)
+				return height;
+		}
 		
 		return side.isRight() ? segment.getValidRightBorderHeight(parent.editorFrame) : segment.getValidLeftBorderHeight(parent.editorFrame);
 	}
@@ -1569,6 +1654,10 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		if (!Double.isNaN(side.getBorderHeight()))
 		{
 			return " height " + side.getBorderHeight();
+		}
+		if (!Double.isNaN(side.getBorderStartHeight()) || !Double.isNaN(side.getBorderEndHeight()))
+		{
+			return " start height " + side.getBorderStartHeight() + " end height " + side.getBorderEndHeight();
 		}
 		
 		return " inherited height " + getBorderHeight(segment, side);
@@ -1649,8 +1738,12 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			line.set("side", side);
 
 			String method = slider.getMethod();
-			// (setting a start or end width clears the width)
+			// (setting a start or end width clears the width, and a start or end height the height)
 			double widthBefore = side.getBorderWidth();
+			double heightBefore = side.getBorderHeight();
+			// the other end keeps the height shown: one height, or for a curb whose
+			// width changes the height there (GameSides.borderHeights)
+			double[] heightsBefore = shownHeights;
 
 			if (Double.isNaN(slider.getValue()))
 				command = "side.set" + method + "(Double.NaN)";
@@ -1676,6 +1769,23 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					side.setBorderWidth(start);
 				else
 					side.setBorderWidth(Double.NaN);
+				showBorderWidths();
+			}
+			// the same for heights
+			if (method.equals("BorderStartHeight") || method.equals("BorderEndHeight"))
+			{
+				if (!Double.isNaN(heightBefore))
+				{
+					if (method.equals("BorderStartHeight"))
+						side.setBorderEndHeight(heightsBefore != null ? Math.round(heightsBefore[1] * 10000.0) / 10000.0 : heightBefore);
+					else
+						side.setBorderStartHeight(heightsBefore != null ? Math.round(heightsBefore[0] * 10000.0) / 10000.0 : heightBefore);
+				}
+				double start = side.getBorderStartHeight(), end = side.getBorderEndHeight();
+				if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+					side.setBorderHeight(start);
+				else
+					side.setBorderHeight(Double.NaN);
 				showBorderWidths();
 			}
 		} catch (EvalError e)

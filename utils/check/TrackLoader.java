@@ -330,7 +330,8 @@ public class TrackLoader
 
 	/**
 	 * @return whether the writer keeps the key under another name in its section: a
-	 *         side's equal start and end widths become "width" (and a TORCS end width
+	 *         side's equal start and end widths become "width", and a border's equal
+	 *         start and end heights "height" (and a TORCS end width
 	 *         "width" can become "end width"), and the pits' "type" of some TORCS tracks
 	 *         becomes "pit style", and a curve's end radius equal to its start radius
 	 *         is left out
@@ -351,6 +352,13 @@ public class TrackLoader
 			break;
 		case "width":
 			others = new String[] {"start width", "end width"};
+			break;
+		case "start height":
+		case "end height":
+			others = new String[] {"height"};
+			break;
+		case "height":
+			others = new String[] {"start height", "end height"};
 			break;
 		case "type":
 			others = section.endsWith("Pits/") ? new String[] {"pit style"} : new String[0];

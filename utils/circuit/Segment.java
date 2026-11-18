@@ -1927,8 +1927,21 @@ public class Segment implements Cloneable
 		{
 			side.setBorderWidth(want.borderWidth);
 		}
-		if (all || differ(now.borderHeight, want.borderHeight))
+		if (differ(want.borderStartHeight, want.borderEndHeight) || differ(now.borderStartHeight, now.borderEndHeight))
+		{
+			// a border whose height changes along the segment (CSR, experimental)
+			if (all || differ(now.borderStartHeight, want.borderStartHeight) || differ(now.borderEndHeight, want.borderEndHeight))
+			{
+				boolean varies = differ(want.borderStartHeight, want.borderEndHeight);
+				side.setBorderHeight(varies ? Double.NaN : want.borderStartHeight);
+				side.setBorderStartHeight(varies ? want.borderStartHeight : Double.NaN);
+				side.setBorderEndHeight(varies ? want.borderEndHeight : Double.NaN);
+			}
+		}
+		else if (all || differ(now.borderHeight, want.borderHeight))
+		{
 			side.setBorderHeight(want.borderHeight);
+		}
 		if (all || !same(now.borderSurface, want.borderSurface))
 			side.setBorderSurface(want.borderSurface);
 		if (all || !same(now.borderStyle, want.borderStyle))

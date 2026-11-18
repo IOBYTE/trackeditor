@@ -547,25 +547,38 @@ public class SegmentSplitter
 	}
 
 	/**
-	 * A border whose width changes along the segment (CSR, experimental): each piece
-	 * has the part of the change along it, so the border keeps its shape
+	 * A border whose width or height changes along the segment (CSR, experimental):
+	 * each piece has the part of the change along it, so the border keeps its shape
 	 */
 	private void splitBorder(Segment original, SegmentSide side, SegmentSide side1, SegmentSide side2, boolean right, double t)
 	{
 		side2.setBorderStartWidth(side.getBorderStartWidth());
 		side2.setBorderEndWidth(side.getBorderEndWidth());
+		side2.setBorderStartHeight(side.getBorderStartHeight());
+		side2.setBorderEndHeight(side.getBorderEndHeight());
 		if (!editorFrame.getVariableBorderWidth())
 			return;
 
 		utils.circuit.GameSides.State state = utils.circuit.GameSides.of(original, right, editorFrame);
-		if (!differ(state.borderStartWidth, state.borderEndWidth))
-			return;
-		double width = state.borderStartWidth + (state.borderEndWidth - state.borderStartWidth) * t;
-		side1.setBorderWidth(Double.NaN);
-		side1.setBorderStartWidth(state.borderStartWidth);
-		side1.setBorderEndWidth(width);
-		side2.setBorderWidth(Double.NaN);
-		side2.setBorderStartWidth(width);
-		side2.setBorderEndWidth(state.borderEndWidth);
+		if (differ(state.borderStartWidth, state.borderEndWidth))
+		{
+			double width = state.borderStartWidth + (state.borderEndWidth - state.borderStartWidth) * t;
+			side1.setBorderWidth(Double.NaN);
+			side1.setBorderStartWidth(state.borderStartWidth);
+			side1.setBorderEndWidth(width);
+			side2.setBorderWidth(Double.NaN);
+			side2.setBorderStartWidth(width);
+			side2.setBorderEndWidth(state.borderEndWidth);
+		}
+		if (differ(state.borderStartHeight, state.borderEndHeight))
+		{
+			double height = state.borderStartHeight + (state.borderEndHeight - state.borderStartHeight) * t;
+			side1.setBorderHeight(Double.NaN);
+			side1.setBorderStartHeight(state.borderStartHeight);
+			side1.setBorderEndHeight(height);
+			side2.setBorderHeight(Double.NaN);
+			side2.setBorderStartHeight(height);
+			side2.setBorderEndHeight(state.borderEndHeight);
+		}
 	}
 }

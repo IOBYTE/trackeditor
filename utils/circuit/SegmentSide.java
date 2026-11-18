@@ -98,6 +98,10 @@ public class SegmentSide implements Cloneable
 	protected double			borderStartWidth			= Double.NaN;
 	protected double			borderEndWidth				= Double.NaN;
 	protected double			borderHeight				= Double.NaN;
+	// the same for its height: "start height" and "end height", used when it has no
+	// "height". A border has a height or these, never both: setting one clears the other.
+	protected double			borderStartHeight			= Double.NaN;
+	protected double			borderEndHeight				= Double.NaN;
 	protected String			borderSurface				= null;
 	protected String			borderStyle					= null;
 
@@ -122,6 +126,8 @@ public class SegmentSide implements Cloneable
 		borderWidth = side.borderWidth;
 		borderStartWidth = side.borderStartWidth;
 		borderEndWidth = side.borderEndWidth;
+		borderStartHeight = side.borderStartHeight;
+		borderEndHeight = side.borderEndHeight;
 		sideBankingType = side.sideBankingType;
 		sideEndWidth = side.sideEndWidth;
 		sideStartWidth = side.sideStartWidth;
@@ -268,6 +274,8 @@ public class SegmentSide implements Cloneable
 	private void checkHasBorder()
 	{
 		hasBorder = !Double.isNaN(borderHeight) ||
+				    !Double.isNaN(borderStartHeight) ||
+				    !Double.isNaN(borderEndHeight) ||
 				    !Double.isNaN(borderWidth) ||
 				    !Double.isNaN(borderStartWidth) ||
 				    !Double.isNaN(borderEndWidth) ||
@@ -289,6 +297,40 @@ public class SegmentSide implements Cloneable
 	public void setBorderHeight(double borderHeight)
 	{
 		this.borderHeight = borderHeight;
+		// the height is both of the border's heights
+		if (!Double.isNaN(borderHeight))
+		{
+			borderStartHeight = Double.NaN;
+			borderEndHeight = Double.NaN;
+		}
+		checkHasBorder();
+	}
+
+	/** @return the border's "start height" (CSR), or NaN when not set */
+	public double getBorderStartHeight()
+	{
+		return borderStartHeight;
+	}
+
+	public void setBorderStartHeight(double borderStartHeight)
+	{
+		this.borderStartHeight = borderStartHeight;
+		if (!Double.isNaN(borderStartHeight))
+			borderHeight = Double.NaN;
+		checkHasBorder();
+	}
+
+	/** @return the border's "end height" (CSR), or NaN when not set */
+	public double getBorderEndHeight()
+	{
+		return borderEndHeight;
+	}
+
+	public void setBorderEndHeight(double borderEndHeight)
+	{
+		this.borderEndHeight = borderEndHeight;
+		if (!Double.isNaN(borderEndHeight))
+			borderHeight = Double.NaN;
 		checkHasBorder();
 	}
 
@@ -500,6 +542,8 @@ public class SegmentSide implements Cloneable
 			s.borderWidth = this.borderWidth;
 			s.borderStartWidth = this.borderStartWidth;
 			s.borderEndWidth = this.borderEndWidth;
+			s.borderStartHeight = this.borderStartHeight;
+			s.borderEndHeight = this.borderEndHeight;
 			s.sideBankingType = this.sideBankingType;
 			s.sideEndWidth = this.sideEndWidth;
 			s.sideStartWidth = this.sideStartWidth;

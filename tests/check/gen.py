@@ -156,6 +156,19 @@ CASES = [
     # it narrows from 1 m to 0.5 m, 0.05 m high: 5%, but the 0.05 m in 0.5 m curb after it is 10%
     ('curb-taper-slope-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
         right=side('Right', border=[num('start width', 1, 'm'), num('end width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # a border's height can change along a segment too: 0.05 m to 0.1 m here, meeting the curbs on both sides
+    ('border-variable-height-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')])),
+        turn1=curve('turn 1', left=side('Left', border=[num('width', 0.5, 'm'), num('height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # it rises to 0.1 m, but the 0.05 m curb after it doesn't
+    ('border-variable-height-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        right=side('Right', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # the same start and end height is saved as the height
+    ('border-start-end-height-same-csr', '--game csr --variable-borders --show saving oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # a border's height is both of its heights, so CSR doesn't read a start or end height with it
+    ('border-height-and-start-end-csr', '--game csr --show saving oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 0.5, 'm'), num('height', 0.05, 'm'), num('start height', 0.02, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # the right border of the right turn widens to 12 m, so at the turn's end its side reaches past the curve's center
     ('border-variable-width-past-curve-center-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(turn1=curve('turn 1', radius=20,
         right=side('Right', border=[num('start width', 0.5, 'm'), num('end width', 12, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')])),

@@ -196,7 +196,7 @@ public class PreferencesDialog extends JDialog
 		localDirectoryLabel.setEnabled(local);
 		getLocalDirectoryTextField().setEnabled(local);
 		getLocalDirectoryButton().setEnabled(local);
-		// only CSR's track loader reads a border's start and end widths
+		// only CSR's track loader reads a border's start and end widths and heights
 		getVariableBorderCheckBox().setEnabled(getGameType() == GameType.CARS_SPORTS_RACING);
 	}
 
@@ -487,7 +487,7 @@ public class PreferencesDialog extends JDialog
 		return speedDreamsAccCheckBox;
 	}
 
-	/** CSR only, experimental: a segment's borders can have a start and an end width */
+	/** CSR only, experimental: a segment's borders can have a start and an end width and height */
 	private JCheckBox getVariableBorderCheckBox()
 	{
 		if (variableBorderCheckBox == null)
@@ -495,8 +495,9 @@ public class PreferencesDialog extends JDialog
 			variableBorderCheckBox = new JCheckBox();
 			variableBorderCheckBox.setBounds(fieldX, 304, 400, 23);
 			variableBorderCheckBox.setText("CSR: variable-width borders (experimental)");
-			variableBorderCheckBox.setToolTipText("A segment's borders can have a start and an end width, as CSR's version 4 "
-				+ "track loader reads them: the segment dialog shows both, and the track is drawn and checked with them");
+			variableBorderCheckBox.setToolTipText("A segment's borders can have a start and an end width, and a start and an end "
+				+ "height, as CSR's version 4 track loader reads them: the segment dialog shows them, and the track is drawn and "
+				+ "checked with them");
 			variableBorderCheckBox.setSelected(editorFrame.getVariableBorderWidthPreference());
 		}
 		return variableBorderCheckBox;

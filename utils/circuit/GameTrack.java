@@ -91,6 +91,12 @@ public class GameTrack
 		public float		lgfromstart;
 		public float		width, startWidth, endWidth;
 		public float		height;
+		/**
+		 * CSR: a border's heights at its start and end, which can differ like its
+		 * widths (both height otherwise), and how much its height changes per
+		 * toStart (a length on a straight and an angle in a curve)
+		 */
+		public float		startHeight, endHeight, Kyh;
 		public float		radius, radiusr, radiusl, arc;
 		public float		centerX, centerY;
 		public float		angleZS, angleZE, angleXS, angleXE;
@@ -313,10 +319,18 @@ public class GameTrack
 			Seg b = element(m, inner, right ? TR_RBORDER : TR_LBORDER, type, bsw, bew,
 				points[o + (right ? RIGHT_BORDER_START_RIGHT : LEFT_BORDER_START_LEFT)],
 				points[o + (right ? RIGHT_BORDER_END_RIGHT : LEFT_BORDER_END_LEFT)]);
-			b.height = (float) state.borderHeight;
+			// and its height, the same way (CSR, experimental): a curb with one height
+			// whose widths differ has heights in proportion to its widths, worked out
+			// for the whole segment (GameSides), so each step keeps the segment's slope
+			float bsh0 = (float) state.borderStartHeight, beh0 = (float) state.borderEndHeight;
+			float kbh = (beh0 - bsh0) / (float) steps;
+			b.startHeight = bsh0 + (float) step * kbh;
+			b.endHeight = bsh0 + (float) (step + 1) * kbh;
+			b.height = b.startHeight;
 			b.style = "plan".equals(state.borderStyle) ? TR_PLAN : "curb".equals(state.borderStyle) ? TR_CURB : TR_WALL;
 			if (b.style == TR_PLAN)
-				b.height = 0;
+				b.height = b.startHeight = b.endHeight = 0;
+			b.Kyh = (b.endHeight - b.startHeight) / (m.type == TR_STR ? b.length : b.arc);
 			setSurface(b, state.borderSurface);
 			// the CSR loader links a border back to its main segment
 			if (game == GameType.CARS_SPORTS_RACING)
@@ -1132,6 +1146,12 @@ public class GameTrack
 		return null;
 	}
 
+	/** CSR: a border's height toStart along it (its height elsewhere: start and end are the same) */
+	public static float height(Seg seg, float toStart)
+	{
+		return seg.startHeight + toStart * seg.Kyh;
+	}
+
 	// RtTrackGetWidth
 	public static float width(Seg seg, float toStart)
 	{
@@ -1227,10 +1247,11 @@ public class GameTrack
 			float w = csr ? width(seg, toStart) : seg.width;
 			if (csr && w < 0.001f)
 				return base + tr * (float) Math.tan(angle);
-			// CSR: a curb whose start and end widths differ keeps the slope of its
-			// wide end, so its height tapers with its width (RtTrackHeightL)
-			float run = csr && Math.abs(seg.startWidth - seg.endWidth) >= 0.001f ? Math.max(seg.startWidth, seg.endWidth) : w;
-			float slope = (float) Math.atan2(seg.height, run);
+			// CSR: a curb is as high as it is where the point is, over its width there:
+			// its heights can differ, and one with one height whose widths differ has
+			// heights in proportion to them (addSides), so it keeps the slope of its
+			// wide end
+			float slope = (float) Math.atan2(csr ? height(seg, toStart) : seg.height, w);
 			if (seg.type2 == TR_RBORDER)
 			{
 				float alpha = w - tr;
