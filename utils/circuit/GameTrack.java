@@ -1227,7 +1227,10 @@ public class GameTrack
 			float w = csr ? width(seg, toStart) : seg.width;
 			if (csr && w < 0.001f)
 				return base + tr * (float) Math.tan(angle);
-			float slope = (float) Math.atan2(seg.height, w);
+			// CSR: a curb whose start and end widths differ keeps the slope of its
+			// wide end, so its height tapers with its width (RtTrackHeightL)
+			float run = csr && Math.abs(seg.startWidth - seg.endWidth) >= 0.001f ? Math.max(seg.startWidth, seg.endWidth) : w;
+			float slope = (float) Math.atan2(seg.height, run);
 			if (seg.type2 == TR_RBORDER)
 			{
 				float alpha = w - tr;
