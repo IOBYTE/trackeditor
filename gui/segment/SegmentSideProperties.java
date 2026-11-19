@@ -1742,7 +1742,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			double widthBefore = side.getBorderWidth();
 			double heightBefore = side.getBorderHeight();
 			// the other end keeps the height shown: one height, or for a curb whose
-			// width changes the height there (GameSides.borderHeights)
+			// width changes the height there (GameSides.borderHeights), to a
+			// micrometer as XmlWriter saves it
 			double[] heightsBefore = shownHeights;
 
 			if (Double.isNaN(slider.getValue()))
@@ -1777,9 +1778,9 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 				if (!Double.isNaN(heightBefore))
 				{
 					if (method.equals("BorderStartHeight"))
-						side.setBorderEndHeight(heightsBefore != null ? Math.round(heightsBefore[1] * 10000.0) / 10000.0 : heightBefore);
+						side.setBorderEndHeight(heightsBefore != null ? Math.round(heightsBefore[1] * 1000000.0) / 1000000.0 : heightBefore);
 					else
-						side.setBorderStartHeight(heightsBefore != null ? Math.round(heightsBefore[0] * 10000.0) / 10000.0 : heightBefore);
+						side.setBorderStartHeight(heightsBefore != null ? Math.round(heightsBefore[0] * 1000000.0) / 1000000.0 : heightBefore);
 				}
 				double start = side.getBorderStartHeight(), end = side.getBorderEndHeight();
 				if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)

@@ -424,7 +424,10 @@ public final class GameSides
 		if (!state.borderStyle.equals(previous.borderStyle) && !state.borderStyle.equals("plan") && Double.isNaN(side.getBorderHeight())
 			&& Double.isNaN(side.getBorderStartHeight()) && Double.isNaN(side.getBorderEndHeight()))
 		{
-			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + ", but no new height is set (the game uses " + state.borderHeight + ")"));
+			// (CSR: the heights it takes can differ at its start and end)
+			String uses = Math.abs(state.borderStartHeight - state.borderEndHeight) < TAPER_TOLERANCE ? String.valueOf(state.borderStartHeight)
+				: "a start height of " + number(state.borderStartHeight) + " and an end height of " + number(state.borderEndHeight);
+			problems.add(new Problem("border height", "border style changed from " + previous.borderStyle + " to " + state.borderStyle + ", but no new height is set (the game uses " + uses + ")"));
 		}
 		if (!state.barrierStyle.equals(previous.barrierStyle) && state.barrierStyle.equals("wall") && Double.isNaN(side.getBarrierWidth()))
 		{

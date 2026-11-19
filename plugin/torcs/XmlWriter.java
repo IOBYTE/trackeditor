@@ -504,10 +504,15 @@ public class XmlWriter
 	 * A border's width or height: the value, or CSR's start and end values when they
 	 * differ (the same at both ends is the value)
 	 */
-	/** @return a height worked out from others, to a tenth of a millimeter, so the file shows e.g. 0.025 */
+	/**
+	 * @return a height worked out from others, to a micrometer, so the file shows
+	 *         e.g. 0.025 rather than 0.025000000000000001. A tenth of a millimeter
+	 *         was too coarse for a curb a few centimeters high: saving moved its
+	 *         height by up to 0.05 mm, and so the slope its tops meet at.
+	 */
 	private static double roundHeight(double height)
 	{
-		return Math.round(height * 10000.0) / 10000.0;
+		return Math.round(height * 1000000.0) / 1000000.0;
 	}
 
 	private void addBorderValues(Element side, boolean csr, String name, double value, double start, double end)
