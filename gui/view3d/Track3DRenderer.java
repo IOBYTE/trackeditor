@@ -59,17 +59,12 @@ public class Track3DRenderer implements GLEventListener
 
 	private final Track3DWindow		window;
 	private final GLU				glu			= new GLU();
-	private FloatBuffer				vertices, normals, colors, texCoords, racelineCoords, lines;
 	private int						drawnTriangles;
-	// the triangles are sorted by texture and sidedness: the texture and raceline texture of
-	// each run, its first vertex, its vertex count and whether it is two-sided (1)
-	private final List<Texture>		runTextures		= new ArrayList<Texture>();
-	private final List<Texture>		runRacelines	= new ArrayList<Texture>();
-	private final List<int[]>		runs			= new ArrayList<int[]>();
-	// the strips with textures that can be seen through, drawn one by one
-	private final List<SeeThrough>	seeThrough		= new ArrayList<SeeThrough>();
-	// the start lights, drawn last, each with its on or its off texture
-	private final List<LightRun>	lightRuns		= new ArrayList<LightRun>();
+	// the track's triangles, made again on each change, and the terrain's and
+	// objects' (trackgen's files), made again only when they change: they can be
+	// many times the track's
+	private final Batch				trackBatch		= new Batch();
+	private final Batch				sceneryBatch	= new Batch();
 	// the race's clock while driving from the grid (0 is the start), or NaN: all lights on
 	private volatile double			startClock		= Double.NaN;
 	// where the track's cameras are
@@ -78,7 +73,7 @@ public class Track3DRenderer implements GLEventListener
 	private final Map<String, Texture>	textures	= new HashMap<String, Texture>();
 	// the textures with parts that can be seen through, such as a fence's gaps
 	private final java.util.Set<Texture>	translucent	= new HashSet<Texture>();
-	// the textures that don't repeat (the pit doors' logo)
+	// the textures that don't repeat (the pit doors' logo): both batches'
 	private final java.util.Set<Texture>	clamped		= new HashSet<Texture>();
 	private final Map<String, String>	textureErrors	= new HashMap<String, String>();
 	private float					anisotropy		= 0;
@@ -276,8 +271,13 @@ public class Track3DRenderer implements GLEventListener
 				// dark, on the light sky
 				gl.glColor3f(0.16f, 0.2f, 0.25f);
 				gl.glLineWidth(1);
-				gl.glVertexPointer(3, GL.GL_FLOAT, 0, lines);
-				gl.glDrawArrays(GL.GL_LINES, 0, drawnTriangles * 6);
+				for (Batch batch : new Batch[] { trackBatch, sceneryBatch })
+				{
+					if (batch.triangles == 0)
+						continue;
+					gl.glVertexPointer(3, GL.GL_FLOAT, 0, batch.lines);
+					gl.glDrawArrays(GL.GL_LINES, 0, batch.triangles * 6);
+				}
 				gl.glEnable(GL.GL_DEPTH_TEST);
 			}
 			else
@@ -288,26 +288,27 @@ public class Track3DRenderer implements GLEventListener
 					gl.glDisable(GLLightingFunc.GL_LIGHTING);
 				gl.glEnableClientState(GLPointerFunc.GL_NORMAL_ARRAY);
 				gl.glEnableClientState(GLPointerFunc.GL_COLOR_ARRAY);
-				gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-				gl.glNormalPointer(GL.GL_FLOAT, 0, normals);
-				gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
 				gl.glEnableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
-				gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, texCoords);
 				// a texture's clear parts (a fence's gaps) aren't drawn, and don't hide what is behind
 				gl.glEnable(GL2.GL_ALPHA_TEST);
 				gl.glAlphaFunc(GL.GL_GREATER, 0.02f);
 				// the raceline layer's coordinates, for the second texture unit
 				gl.glClientActiveTexture(GL.GL_TEXTURE1);
 				gl.glEnableClientState(GLPointerFunc.GL_TEXTURE_COORD_ARRAY);
-				gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, racelineCoords);
 				gl.glClientActiveTexture(GL.GL_TEXTURE0);
 				// what can't be seen through first
-				for (int r = 0; r < runs.size(); r++)
+				for (Batch batch : new Batch[] { trackBatch, sceneryBatch })
 				{
-					if (translucent.contains(runTextures.get(r)))
+					if (batch.triangles == 0)
 						continue;
-					bind(gl, runTextures.get(r), runRacelines.get(r), runs.get(r)[2]);
-					gl.glDrawArrays(GL.GL_TRIANGLES, runs.get(r)[0], runs.get(r)[1]);
+					usePointers(gl, batch);
+					for (int r = 0; r < batch.runs.size(); r++)
+					{
+						if (translucent.contains(batch.runTextures.get(r)))
+							continue;
+						bind(gl, batch.runTextures.get(r), batch.runRacelines.get(r), batch.runs.get(r)[2]);
+						gl.glDrawArrays(GL.GL_TRIANGLES, batch.runs.get(r)[0], batch.runs.get(r)[1]);
+					}
 				}
 				// then the strips with textures that can be seen through, blended as the games do
 				// (a fence's wires fade with the distance instead of breaking up), from the
@@ -315,6 +316,8 @@ public class Track3DRenderer implements GLEventListener
 				// objects, so a near one doesn't hide one behind it
 				gl.glEnable(GL.GL_BLEND);
 				gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+				List<SeeThrough> seeThrough = new ArrayList<SeeThrough>(trackBatch.seeThrough);
+				seeThrough.addAll(sceneryBatch.seeThrough);
 				int count = seeThrough.size();
 				Integer[] order = new Integer[count];
 				double[] distance = new double[count];
@@ -327,9 +330,15 @@ public class Track3DRenderer implements GLEventListener
 				}
 				java.util.Arrays.sort(order, (i, j) -> Double.compare(distance[j], distance[i]));
 				SeeThrough bound = null;
+				Batch pointed = null;
 				for (int i : order)
 				{
 					SeeThrough strip = seeThrough.get(i);
+					if (strip.batch != pointed)
+					{
+						usePointers(gl, strip.batch);
+						pointed = strip.batch;
+					}
 					// neighbors often have the same texture: bind only what changes
 					if (bound == null || strip.texture != bound.texture || strip.layer != bound.layer || strip.faces != bound.faces)
 						bind(gl, strip.texture, strip.layer, strip.faces);
@@ -338,9 +347,12 @@ public class Track3DRenderer implements GLEventListener
 				}
 				// the start lights, on or off as the race's clock says; unlit, as in the game
 				double clock = startClock;
-				if (!lightRuns.isEmpty())
+				if (!trackBatch.lightRuns.isEmpty())
+				{
 					gl.glDisable(GLLightingFunc.GL_LIGHTING);
-				for (LightRun light : lightRuns)
+					usePointers(gl, trackBatch);
+				}
+				for (LightRun light : trackBatch.lightRuns)
 				{
 					bind(gl, lightOn(light.role, light.index, clock) ? light.on : light.off, null, DOUBLE_SIDED);
 					gl.glDrawArrays(GL.GL_TRIANGLES, light.first, light.count);
@@ -435,14 +447,54 @@ public class Track3DRenderer implements GLEventListener
 		return point;
 	}
 
-	/** Builds the vertex, normal, color, texture and edge arrays from trackgen's strips. */
+	/**
+	 * The arrays one set of strips is drawn from: their triangles sorted by
+	 * texture and sidedness, in runs.
+	 */
+	private static final class Batch
+	{
+		FloatBuffer		vertices, normals, colors, texCoords, racelineCoords, lines;
+		int				triangles;
+		// the texture and raceline texture of each run, its first vertex, its vertex
+		// count and how it is culled
+		final List<Texture>		runTextures		= new ArrayList<Texture>();
+		final List<Texture>		runRacelines	= new ArrayList<Texture>();
+		final List<int[]>		runs			= new ArrayList<int[]>();
+		// the strips with textures that can be seen through, drawn one by one
+		final List<SeeThrough>	seeThrough		= new ArrayList<SeeThrough>();
+		// the start lights, drawn last, each with its on or its off texture
+		final List<LightRun>	lightRuns		= new ArrayList<LightRun>();
+		final java.util.Set<Texture>	clamped	= new HashSet<Texture>();
+		// what the arrays were made from: the strips, the textures they use, the
+		// coloring, the height exaggeration and the heights colored by
+		List<TrackScene.Strip>	strips;
+		Map<String, Texture>	textures;
+		Coloring				coloring;
+		double					heightScale, minZ, maxZ;
+	}
+
+	/** Points OpenGL at a batch's arrays */
+	private static void usePointers(GL2 gl, Batch batch)
+	{
+		gl.glVertexPointer(3, GL.GL_FLOAT, 0, batch.vertices);
+		gl.glNormalPointer(GL.GL_FLOAT, 0, batch.normals);
+		gl.glColorPointer(3, GL.GL_FLOAT, 0, batch.colors);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, batch.texCoords);
+		gl.glClientActiveTexture(GL.GL_TEXTURE1);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, batch.racelineCoords);
+		gl.glClientActiveTexture(GL.GL_TEXTURE0);
+	}
+
+	/**
+	 * Builds the vertex, normal, color, texture and edge arrays from trackgen's
+	 * strips: the track's each time, the terrain's and objects' only when they
+	 * or how they are drawn changed.
+	 */
 	private void fillBuffers(GL2 gl, RoadMesh mesh)
 	{
 		List<TrackScene.Strip> strips = mesh.scene == null ? new ArrayList<TrackScene.Strip>() : mesh.scene.strips;
-		int triangles = mesh.triangleCount;
-		float[] v = new float[triangles * 9], n = new float[triangles * 9], c = new float[triangles * 9], t = new float[triangles * 6], rt = new float[triangles * 6], l = new float[triangles * 18];
 
-		// the textures, and the strips sorted by texture and sidedness so each is bound and culled once
+		// the textures
 		boolean textured = coloring == Coloring.TEXTURE;
 		Map<String, Texture> stripTextures = new HashMap<String, Texture>();
 		List<String> missing = new ArrayList<String>();
@@ -461,6 +513,49 @@ public class Track3DRenderer implements GLEventListener
 			}
 		}
 		window.texturesMissing(missing);
+
+		List<TrackScene.Strip> track = new ArrayList<TrackScene.Strip>(), scenery = new ArrayList<TrackScene.Strip>();
+		for (TrackScene.Strip strip : strips)
+			(strip.part == TrackScene.Part.TERRAIN || strip.part == TrackScene.Part.OBJECT ? scenery : track).add(strip);
+		fillBatch(trackBatch, track, stripTextures, mesh);
+		if (sceneryChanged(scenery, stripTextures, mesh))
+			fillBatch(sceneryBatch, scenery, stripTextures, mesh);
+		clamped.clear();
+		clamped.addAll(trackBatch.clamped);
+		clamped.addAll(sceneryBatch.clamped);
+		drawnTriangles = trackBatch.triangles + sceneryBatch.triangles;
+	}
+
+	/** @return whether the terrain's and objects' arrays have to be made again */
+	private boolean sceneryChanged(List<TrackScene.Strip> strips, Map<String, Texture> stripTextures, RoadMesh mesh)
+	{
+		Batch b = sceneryBatch;
+		if (b.strips == null || b.strips.size() != strips.size() || b.coloring != coloring || b.heightScale != heightScale)
+			return true;
+		// the same strips: the scene keeps them while their files don't change
+		for (int i = 0; i < strips.size(); i++)
+			if (b.strips.get(i) != strips.get(i))
+				return true;
+		// colored by height between the whole scene's lowest and highest points
+		if (coloring == Coloring.HEIGHT && (b.minZ != mesh.minZ || b.maxZ != mesh.maxZ))
+			return true;
+		// a texture loaded again (another OpenGL context, or its file changed)
+		for (Map.Entry<String, Texture> e : b.textures.entrySet())
+			if (stripTextures.get(e.getKey()) != e.getValue())
+				return true;
+		return false;
+	}
+
+	/** Builds a batch's arrays from its strips. */
+	private void fillBatch(Batch batch, List<TrackScene.Strip> strips, Map<String, Texture> stripTextures, RoadMesh mesh)
+	{
+		boolean textured = coloring == Coloring.TEXTURE;
+		int triangles = 0;
+		for (TrackScene.Strip strip : strips)
+			triangles += strip.triangles().length / 3;
+		float[] v = new float[triangles * 9], n = new float[triangles * 9], c = new float[triangles * 9], t = new float[triangles * 6], rt = new float[triangles * 6], l = new float[triangles * 18];
+
+		// the strips sorted by texture and sidedness so each is bound and culled once
 		List<TrackScene.Strip> sorted = new ArrayList<TrackScene.Strip>(strips);
 		if (textured)
 			sorted.sort((a, b) -> faces(a) != faces(b) ? Integer.compare(faces(a), faces(b)) :
@@ -470,12 +565,13 @@ public class Track3DRenderer implements GLEventListener
 		// the start lights last, out of the runs, as their textures change
 		sorted.sort((a, b) -> Boolean.compare(a.part == TrackScene.Part.TRACK_LIGHT, b.part == TrackScene.Part.TRACK_LIGHT));
 
-		runs.clear();
-		runTextures.clear();
-		runRacelines.clear();
-		seeThrough.clear();
-		lightRuns.clear();
-		clamped.clear();
+		batch.runs.clear();
+		batch.runTextures.clear();
+		batch.runRacelines.clear();
+		batch.seeThrough.clear();
+		batch.lightRuns.clear();
+		batch.clamped.clear();
+		Map<String, Texture> used = new HashMap<String, Texture>();
 		float scale = (float) heightScale;
 		double heightRange = Math.max(1e-6, mesh.maxZ - mesh.minZ);
 		int tri = 0;
@@ -483,28 +579,34 @@ public class Track3DRenderer implements GLEventListener
 		{
 			Texture texture = textured ? stripTextures.get(strip.texture) : null;
 			Texture layer = textured && strip.racelineTexture != null ? stripTextures.get(strip.racelineTexture) : null;
+			if (textured)
+			{
+				used.put(strip.texture, texture);
+				if (strip.racelineTexture != null)
+					used.put(strip.racelineTexture, layer);
+			}
 			if (strip.clamp && texture != null)
-				clamped.add(texture);
+				batch.clamped.add(texture);
 			int[] order = strip.triangles();
 			if (strip.part == TrackScene.Part.TRACK_LIGHT)
 			{
 				Texture off = textured && strip.textureOff != null ? stripTextures.get(strip.textureOff) : null;
 				if (off != null)
-					clamped.add(off);
-				lightRuns.add(new LightRun(texture, off, strip.lightRole, strip.lightIndex, tri * 3, order.length));
+					batch.clamped.add(off);
+				batch.lightRuns.add(new LightRun(texture, off, strip.lightRole, strip.lightIndex, tri * 3, order.length));
 			}
 			else
 			{
-				int last = runs.size() - 1;
-				if (runs.isEmpty() || runTextures.get(last) != texture || runRacelines.get(last) != layer || runs.get(last)[2] != faces(strip))
+				int last = batch.runs.size() - 1;
+				if (batch.runs.isEmpty() || batch.runTextures.get(last) != texture || batch.runRacelines.get(last) != layer || batch.runs.get(last)[2] != faces(strip))
 				{
-					runs.add(new int[] { tri * 3, 0, faces(strip) });
-					runTextures.add(texture);
-					runRacelines.add(layer);
+					batch.runs.add(new int[] { tri * 3, 0, faces(strip) });
+					batch.runTextures.add(texture);
+					batch.runRacelines.add(layer);
 				}
-				runs.get(runs.size() - 1)[1] += order.length;
+				batch.runs.get(batch.runs.size() - 1)[1] += order.length;
 				if (translucent.contains(texture) && order.length > 0)
-					seeThrough.add(new SeeThrough(strip, texture, layer, faces(strip), tri * 3, order.length, scale));
+					batch.seeThrough.add(new SeeThrough(batch, strip, texture, layer, faces(strip), tri * 3, order.length, scale));
 			}
 			boolean flip = texture != null && texture.getMustFlipVertically();
 			boolean flipLayer = layer != null && layer.getMustFlipVertically();
@@ -554,13 +656,19 @@ public class Track3DRenderer implements GLEventListener
 			}
 		}
 
-		vertices = Buffers.newDirectFloatBuffer(v);
-		normals = Buffers.newDirectFloatBuffer(n);
-		colors = Buffers.newDirectFloatBuffer(c);
-		texCoords = Buffers.newDirectFloatBuffer(t);
-		racelineCoords = Buffers.newDirectFloatBuffer(rt);
-		lines = Buffers.newDirectFloatBuffer(l);
-		drawnTriangles = tri;
+		batch.vertices = Buffers.newDirectFloatBuffer(v);
+		batch.normals = Buffers.newDirectFloatBuffer(n);
+		batch.colors = Buffers.newDirectFloatBuffer(c);
+		batch.texCoords = Buffers.newDirectFloatBuffer(t);
+		batch.racelineCoords = Buffers.newDirectFloatBuffer(rt);
+		batch.lines = Buffers.newDirectFloatBuffer(l);
+		batch.triangles = tri;
+		batch.strips = strips;
+		batch.textures = used;
+		batch.coloring = coloring;
+		batch.heightScale = heightScale;
+		batch.minZ = mesh.minZ;
+		batch.maxZ = mesh.maxZ;
 	}
 
 	/**
@@ -677,12 +785,14 @@ public class Track3DRenderer implements GLEventListener
 	/** A strip with a texture that can be seen through: where it is in the arrays, and its middle. */
 	private static final class SeeThrough
 	{
+		final Batch		batch;
 		final Texture	texture, layer;
 		final int		faces, first, count;
 		final float[]	center;
 
-		SeeThrough(TrackScene.Strip strip, Texture texture, Texture layer, int faces, int first, int count, float scale)
+		SeeThrough(Batch batch, TrackScene.Strip strip, Texture texture, Texture layer, int faces, int first, int count, float scale)
 		{
+			this.batch = batch;
 			this.texture = texture;
 			this.layer = layer;
 			this.faces = faces;

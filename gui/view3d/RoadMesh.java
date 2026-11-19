@@ -76,6 +76,8 @@ public class RoadMesh
 		cameras = scene == null ? new ArrayList<GameTrack.CameraView>() : scene.track.cameras(editorFrame.getTrackData().getCameras());
 		cameraMarkers = scene == null ? new ArrayList<CameraMarker>() : cameraMarkers(scene.track, editorFrame.getTrackData().getCameras());
 		List<String> names = new ArrayList<String>();
+		// looked up by name: the terrain and objects can have thousands of strips
+		java.util.Set<String> named = new java.util.HashSet<String>();
 		List<File> files = new ArrayList<File>();
 		double x0 = Double.MAX_VALUE, x1 = -Double.MAX_VALUE, y0 = Double.MAX_VALUE, y1 = -Double.MAX_VALUE;
 		double z0 = Double.MAX_VALUE, z1 = -Double.MAX_VALUE;
@@ -87,7 +89,7 @@ public class RoadMesh
 				triangles += strip.triangles().length / 3;
 				for (String texture : new String[] { strip.texture, strip.racelineTexture, strip.textureOff })
 				{
-					if (texture != null && !texture.isEmpty() && !names.contains(texture))
+					if (texture != null && !texture.isEmpty() && named.add(texture))
 					{
 						names.add(texture);
 						File generated = TrackScene.generatedTexture(texture);

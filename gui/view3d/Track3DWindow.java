@@ -259,6 +259,8 @@ public class Track3DWindow extends JFrame
 			}
 		};
 		editorFrame.getCircuitView().addTrackChangeListener(trackListener);
+		// a terrain or object file read in the background: shown when it is
+		TrackScene.setLoadedListener(trackListener);
 		editorFrame.set3DViewSource(viewSource);
 		addWindowListener(new WindowAdapter()
 		{
@@ -267,6 +269,7 @@ public class Track3DWindow extends JFrame
 				// back to the view from before playing, which is kept
 				player.setActive(false);
 				editorFrame.getCircuitView().removeTrackChangeListener(trackListener);
+				TrackScene.setLoadedListener(null);
 				// the next window shows the track the same way
 				String state = viewState();
 				if (state != null)
@@ -392,7 +395,7 @@ public class Track3DWindow extends JFrame
 		trackgenLabel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
 		trackgenLabel.setForeground(new Color(0xB4, 0x5A, 0x09));
 		left.add(trackgenLabel);
-		regenerateButton.setToolTipText("<html>Save the track and export it again, as Export All does, so trackgen<br>" +
+		regenerateButton.setToolTipText("<html>Save the track and export it again, so trackgen<br>" +
 			"makes the terrain (-msh.ac) and objects (-obj-N.ac) from the track as it is now.</html>");
 		regenerateButton.setMargin(new java.awt.Insets(0, 6, 0, 6));
 		regenerateButton.addActionListener(e -> regenerate());
@@ -862,12 +865,16 @@ public class Track3DWindow extends JFrame
 	{
 		if (mesh.scene == null)
 			return "";
-		String note = "";
+		String note = mesh.scene.loading ? " — reading " + (terrainButton.isSelected() && objectsButton.isSelected() ? "terrain and objects" :
+			terrainButton.isSelected() ? "terrain" : "objects") + "…" : "";
 		if (mesh.scene.terrainFile != null)
 			note += " — terrain from " + mesh.scene.terrainFile.getName();
 		java.util.List<File> objects = mesh.scene.objectFiles;
 		if (!objects.isEmpty())
 			note += (note.isEmpty() ? " — " : ", ") + "objects from " + (objects.size() == 1 ? objects.get(0).getName() : objects.size() + " files");
+		int old = mesh.scene.oldObjectFiles.size();
+		if (old > 0)
+			note += (note.isEmpty() ? " — " : ", ") + old + " object file" + (old == 1 ? "" : "s") + " from an earlier export left out";
 		return note;
 	}
 
@@ -879,14 +886,25 @@ public class Track3DWindow extends JFrame
 	private void trackgenWarning(RoadMesh mesh)
 	{
 		java.util.List<String> problems = new java.util.ArrayList<String>();
-		if (mesh.scene != null)
+		// the files that couldn't be read, and why: in the tooltip
+		java.util.Map<File, String> unreadable = new java.util.LinkedHashMap<File, String>();
+		// none yet while files are still being read: the files found say once they are
+		if (mesh.scene != null && !mesh.scene.loading)
 		{
-			File xml = trackXml();
-			long saved = xml == null ? 0 : xml.lastModified();
+			long saved = trackSaved();
 			if (terrainButton.isSelected())
 			{
 				File file = mesh.scene.terrainFile;
-				if (file == null)
+				File bad = null;
+				for (File f : mesh.scene.unreadableFiles.keySet())
+					if (f.getName().toLowerCase().endsWith("-msh.ac"))
+						bad = f;
+				if (bad != null)
+				{
+					problems.add("can't read the terrain (" + bad.getName() + ")");
+					unreadable.put(bad, mesh.scene.unreadableFiles.get(bad));
+				}
+				else if (file == null)
 					problems.add("no terrain file (-msh.ac)");
 				else if (file.lastModified() < saved)
 					problems.add("the terrain is older than the track");
@@ -894,10 +912,19 @@ public class Track3DWindow extends JFrame
 			if (objectsButton.isSelected())
 			{
 				java.util.List<File> files = mesh.scene.objectFiles;
+				int bad = 0;
+				for (java.util.Map.Entry<File, String> e : mesh.scene.unreadableFiles.entrySet())
+					if (!e.getKey().getName().toLowerCase().endsWith("-msh.ac"))
+					{
+						unreadable.put(e.getKey(), e.getValue());
+						bad++;
+					}
+				if (bad > 0)
+					problems.add("can't read " + (bad == 1 ? "an object file" : bad + " object files"));
 				if (files.isEmpty())
 				{
-					if (hasObjects())
-						problems.add("no object files (-obj-N.ac)");
+					if (bad == 0 && hasObjects())
+						problems.add(mesh.scene.oldObjectFiles.isEmpty() ? "no object files (-obj-N.ac)" : "the object files are from an earlier export than the terrain");
 				}
 				else
 				{
@@ -918,7 +945,11 @@ public class Track3DWindow extends JFrame
 		{
 			String text = String.join(", ", problems);
 			trackgenLabel.setText("⚠ " + Character.toUpperCase(text.charAt(0)) + text.substring(1));
-			trackgenLabel.setToolTipText("<html>They are made by trackgen when the track is exported.<br>Regenerate exports the track again.</html>");
+			StringBuilder tip = new StringBuilder("<html>");
+			for (java.util.Map.Entry<File, String> e : unreadable.entrySet())
+				tip.append(escape(java.util.Collections.singletonList(e.getKey().getName() + ": " + (e.getValue() == null ? "can't be read" : e.getValue())))).append("<br>");
+			tip.append("They are made by trackgen when the track is exported.<br>Regenerate exports the track again.</html>");
+			trackgenLabel.setToolTipText(tip.toString());
 		}
 		regenerateButton.setVisible(!problems.isEmpty());
 	}
@@ -936,12 +967,22 @@ public class Track3DWindow extends JFrame
 		return false;
 	}
 
-	/** @return the track's xml, or null */
-	private File trackXml()
+	/**
+	 * @return when the track was last saved: its xml's time, or that of the
+	 *         xml trackgen reads when it is another (TORCS's in its data folder,
+	 *         see TrackScene.trackgenFolder) and newer; 0 when there is none
+	 */
+	private long trackSaved()
 	{
 		String name = trackName();
 		String path = Properties.getInstance().getPath();
-		return name == null || path == null ? null : new File(path, name + ".xml");
+		if (name == null || path == null)
+			return 0;
+		long saved = new File(path, name + ".xml").lastModified();
+		File folder = TrackScene.trackgenFolder(editorFrame);
+		if (folder != null)
+			saved = Math.max(saved, new File(folder, name + ".xml").lastModified());
+		return saved;
 	}
 
 	/** Exports the track again, so trackgen makes its terrain and objects, then shows them */

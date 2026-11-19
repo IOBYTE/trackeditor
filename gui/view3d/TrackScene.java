@@ -185,6 +185,12 @@ public abstract class TrackScene
 	public File					terrainFile;
 	/** the object files shown with the track (see objects()); empty when they weren't asked for or aren't there */
 	public final List<File>		objectFiles	= new ArrayList<File>();
+	/** object files that are there but not from trackgen's last run (see findObjects), so not shown */
+	public final List<File>		oldObjectFiles	= new ArrayList<File>();
+	/** whether the terrain or objects are still being read (see setLoadedListener): shown once they are */
+	public boolean				loading;
+	/** the terrain or object files that are there but couldn't be read, and why */
+	public final Map<File, String>	unreadableFiles	= new java.util.LinkedHashMap<File, String>();
 
 	protected final GameTrack	track;
 	protected final EditorFrame	editorFrame;
@@ -1010,19 +1016,52 @@ public abstract class TrackScene
 	/** @return an AC3D model's parts, as the game's loader reads it, in the game's axes; null when it can't be read */
 	private static List<AcPart> readAc(File file)
 	{
-		Ac3d ac3d = new Ac3d();
+		return readAc(file, null);
+	}
+
+	/**
+	 * @param error gets why it can't be read, or null
+	 * @return an AC3D model's parts, as the game's loader reads it, in the game's axes; null when it can't be read
+	 */
+	private static List<AcPart> readAc(File file, String[] error)
+	{
 		try
 		{
+			Ac3d ac3d = new Ac3d();
 			ac3d.read(file);
+			List<AcPart> parts = new ArrayList<AcPart>();
+			double[][] identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
+			acParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
+			return parts;
 		}
 		catch (Exception e)
 		{
+			// a surface's vertex that isn't there, a number that isn't one, ...
+			if (error != null)
+				error[0] = readError(e);
 			return null;
 		}
-		List<AcPart> parts = new ArrayList<AcPart>();
-		double[][] identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
-		acParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
-		return parts;
+		catch (OutOfMemoryError e)
+		{
+			if (error != null)
+				error[0] = "too big to read: Java ran out of memory";
+			return null;
+		}
+	}
+
+	/** @return why a model couldn't be read, with the line when it is known */
+	private static String readError(Exception e)
+	{
+		String message = e.getLocalizedMessage();
+		if (message == null || message.isEmpty())
+			message = e.getClass().getSimpleName();
+		// the reader's own errors say the line and what is wrong; others say what they are
+		else if (e.getClass() != Exception.class && e.getClass() != IllegalArgumentException.class &&
+			!(e instanceof utils.ac3d.Ac3dException) && !(e instanceof java.io.IOException))
+			message = e.getClass().getSimpleName() + ": " + message;
+		if (e instanceof utils.ac3d.Ac3dException && ((utils.ac3d.Ac3dException) e).getLineNumber() > 0)
+			message = "line " + ((utils.ac3d.Ac3dException) e).getLineNumber() + ": " + message;
+		return message;
 	}
 
 	/** An object's polygons and its kids', placed by their loc and rot as the game's loader places them */
@@ -1084,6 +1123,9 @@ public abstract class TrackScene
 			int first = part.points.size();
 			for (Ac3dSurface.Ref ref : surface.getRefs())
 			{
+				if (ref.index < 0 || ref.index >= vertices.size())
+					throw new IllegalArgumentException("object " + (object.getName() == null ? "" : "\"" + object.getName() + "\" ") +
+						"has a surface with vertex " + ref.index + ", but only " + vertices.size() + " vertices");
 				double[] v = vertices.get(ref.index);
 				double[] w = new double[3];
 				for (int c = 0; c < 3; c++)
@@ -1112,55 +1154,169 @@ public abstract class TrackScene
 		return array;
 	}
 
-	/** A model trackgen wrote, as last read */
+	/**
+	 * A model trackgen wrote, as last read, and its strips: kept while the file
+	 * doesn't change, so a change to the track doesn't read or copy them again
+	 * (they can be many times the track's), and the renderer can keep their arrays.
+	 */
 	private static final class CachedAc
 	{
 		long			modified, length;
+		/** null when it couldn't be read */
 		List<AcPart>	parts;
+		/** why it couldn't be read */
+		String			error;
+		// its strips, made for a part and an origin
+		Part			part;
+		float[]			origin;
+		List<Strip>		strips;
 	}
 
-	// the terrain and object files last read, kept while they don't change: they can be large
+	// the terrain and object files read, and those being read
 	private static final Map<File, CachedAc>	cachedAc	= new HashMap<File, CachedAc>();
+	private static final java.util.Set<File>	reading		= new java.util.HashSet<File>();
+	// counts the times the cache is emptied, so a file read for another track isn't kept
+	private static int							cacheGeneration;
+	// the track whose models are cached
+	private static File							cachedFolder;
+	private static Runnable						loadedListener;
+	// reads them one at a time, away from the event thread: longjour's objects take seconds
+	private static final java.util.concurrent.ExecutorService	reader	= java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+		Thread thread = new Thread(r, "3D view terrain and objects reader");
+		thread.setDaemon(true);
+		return thread;
+	});
 
 	/**
-	 * @return the terrain trackgen made last for the open track: its
-	 *         &lt;track&gt;-msh.ac in the track's folders, else the only *-msh.ac
-	 *         in the track's folder; null when there is none
+	 * @param listener told on the event thread when a terrain or object file has
+	 *        been read, so the scene can be built again with it; null for none
 	 */
-	public static File findTerrain(EditorFrame editorFrame)
+	public static void setLoadedListener(Runnable listener)
 	{
-		String path = Properties.getInstance().getPath();
-		if (path == null || path.isEmpty())
-			return null;
-		File folder = new File(path);
-		File file = TrackChecker.findFile(folder.getName() + "-msh.ac", editorFrame.getTrackFolders());
-		if (file != null && file.isFile())
-			return file;
-		File[] found = folder.listFiles((dir, name) -> name.toLowerCase().endsWith("-msh.ac"));
-		return found != null && found.length == 1 && found[0].isFile() ? found[0] : null;
+		synchronized (cachedAc)
+		{
+			loadedListener = listener;
+		}
 	}
 
-	/** @return a model's parts, read again only when the file changed; null when it can't be read */
-	private static List<AcPart> cachedParts(File file)
+	/**
+	 * @return a model as it is now, read before; null while it is being read: it
+	 *         is then read in the background, and the listener told when it has been
+	 */
+	private static CachedAc cached(File file)
 	{
 		long modified = file.lastModified(), length = file.length();
 		synchronized (cachedAc)
 		{
 			CachedAc cached = cachedAc.get(file);
-			if (cached == null || cached.modified != modified || cached.length != length)
+			if (cached != null && cached.modified == modified && cached.length == length)
+				return cached;
+			if (reading.add(file))
 			{
-				cached = new CachedAc();
-				cached.parts = readAc(file);
-				cached.modified = modified;
-				cached.length = length;
-				cachedAc.put(file, cached);
+				int generation = cacheGeneration;
+				reader.execute(() -> {
+					CachedAc read = new CachedAc();
+					read.modified = modified;
+					read.length = length;
+					String[] error = { null };
+					read.parts = readAc(file, error);
+					read.error = error[0];
+					Runnable listener;
+					synchronized (cachedAc)
+					{
+						reading.remove(file);
+						if (generation == cacheGeneration)
+							cachedAc.put(file, read);
+						listener = loadedListener;
+					}
+					if (listener != null)
+						javax.swing.SwingUtilities.invokeLater(listener);
+				});
 			}
-			return cached.parts;
+			return null;
 		}
 	}
 
-	// the track whose models are cached
-	private static File	cachedFolder;
+	/** @return a model's strips, made again only when its file, part or origin changed */
+	private static List<Strip> cachedStrips(CachedAc cached, Part part, float[] origin, String name)
+	{
+		synchronized (cachedAc)
+		{
+			if (cached.strips != null && cached.part == part && java.util.Arrays.equals(cached.origin, origin))
+				return cached.strips;
+		}
+		List<Strip> strips = new ArrayList<Strip>();
+		int k = 0;
+		for (AcPart p : cached.parts)
+		{
+			if (p.triangles.isEmpty())
+				continue;
+			Strip strip = new Strip();
+			strip.name = name + "-" + k++;
+			strip.part = part;
+			strip.doubleSided = p.doubleSided;
+			strip.color = p.color;
+			// trackgen puts them in the track's 3D file, so the game finds their
+			// textures as the track's (trackgen itself looks for an object's in the
+			// track's folder, data/textures and data/img, not data/objects)
+			strip.texture = p.texture == null ? "" : p.texture;
+			for (float[] point : p.points)
+				strip.add(point[3], point[4], origin[0] + point[0], origin[1] + point[1], origin[2] + point[2]);
+			strip.triangleList = triangleArray(p.triangles);
+			strips.add(strip);
+		}
+		synchronized (cachedAc)
+		{
+			cached.part = part;
+			cached.origin = origin.clone();
+			cached.strips = java.util.Collections.unmodifiableList(strips);
+			return cached.strips;
+		}
+	}
+
+	/**
+	 * @return the folder trackgen reads the track from and writes its files
+	 *         into: the track's folder for CSR and Speed Dreams, which are given
+	 *         it (-i and -o, see Trackgen.folderArgs); for TORCS its
+	 *         tracks/&lt;category&gt;/&lt;track&gt; in the data folder it runs in.
+	 *         Null when no track is open.
+	 */
+	public static File trackgenFolder(EditorFrame editorFrame)
+	{
+		File folder = trackFolder();
+		if (folder == null || editorFrame.getGameType() != GameType.TORCS)
+			return folder;
+		File data = editorFrame.getTrackgenDirectory();
+		String category = editorFrame.getTrackData() == null ? null : editorFrame.getTrackData().getHeader().getCategory();
+		if (data == null || category == null || category.isEmpty())
+			return folder;
+		return new File(new File(new File(data, "tracks"), category), folder.getName());
+	}
+
+	/** @return the files in a folder whose lower case names pass the test; never null */
+	private static File[] filesNamed(File folder, java.util.function.Predicate<String> name)
+	{
+		File[] files = folder == null ? null : folder.listFiles((dir, n) -> name.test(n.toLowerCase()));
+		return files == null ? new File[0] : files;
+	}
+
+	/**
+	 * @return the terrain trackgen made last for the open track: its
+	 *         &lt;track&gt;-msh.ac in the folder trackgen writes into (see
+	 *         trackgenFolder), else the only *-msh.ac there; null when there is none
+	 */
+	public static File findTerrain(EditorFrame editorFrame)
+	{
+		File folder = trackgenFolder(editorFrame);
+		if (folder == null)
+			return null;
+		String name = folder.getName().toLowerCase() + "-msh.ac";
+		File[] all = filesNamed(folder, n -> n.endsWith("-msh.ac"));
+		for (File file : all)
+			if (file.getName().toLowerCase().equals(name) && file.isFile())
+				return file;
+		return all.length == 1 && all[0].isFile() ? all[0] : null;
+	}
 
 	/** Lets go of the cached models when another track is open */
 	private static void forgetCached(File folder)
@@ -1168,7 +1324,10 @@ public abstract class TrackScene
 		synchronized (cachedAc)
 		{
 			if (folder == null ? cachedFolder != null : !folder.equals(cachedFolder))
+			{
 				cachedAc.clear();
+				cacheGeneration++;
+			}
 			cachedFolder = folder;
 		}
 	}
@@ -1188,64 +1347,80 @@ public abstract class TrackScene
 	private void terrain()
 	{
 		File file = findTerrain(editorFrame);
-		List<AcPart> parts = file == null ? null : cachedParts(file);
-		if (parts == null)
+		CachedAc cached = file == null ? null : cached(file);
+		if (cached == null)
+		{
+			loading |= file != null;
 			return;
+		}
+		if (cached.parts == null)
+		{
+			unreadableFiles.put(file, cached.error);
+			return;
+		}
 		terrainFile = file;
 		// trackgen writes it where the game's loader puts the track, its smallest
 		// x, y and z at 0: here that is the game's origin further
-		float[] origin = track.gameOrigin();
-		int k = 0;
-		for (AcPart part : parts)
-		{
-			if (part.triangles.isEmpty())
-				continue;
-			Strip strip = new Strip();
-			strip.name = "terrain-" + k++;
-			strip.part = Part.TERRAIN;
-			strip.doubleSided = part.doubleSided;
-			strip.color = part.color;
-			strip.texture = part.texture == null ? "" : part.texture;
-			for (float[] p : part.points)
-				strip.add(p[3], p[4], origin[0] + p[0], origin[1] + p[1], origin[2] + p[2]);
-			strip.triangleList = triangleArray(part.triangles);
-			strips.add(strip);
-		}
+		strips.addAll(cachedStrips(cached, Part.TERRAIN, track.gameOrigin(), "terrain"));
 	}
 
+	// a file system's times can be this far apart (FAT keeps two seconds)
+	private static final long	TIME_SLACK	= 2000;
+
 	/**
-	 * @return the objects trackgen placed last for the open track: its
-	 *         &lt;track&gt;-obj-N.ac in its folder, else the *-obj-N.ac there
-	 *         when they are all of one track; in their order
+	 * The objects trackgen placed last for the open track: its
+	 * &lt;track&gt;-obj-N.ac in the folder trackgen writes into (see
+	 * trackgenFolder), else the *-obj-N.ac there when they are all of one
+	 * track. trackgen doesn't remove the files of an earlier run, so only those
+	 * of its last run are used: it writes them numbered from the first, after
+	 * the terrain, so each is no older than the one before it, and the first no
+	 * older than the terrain. The rest are left over.
+	 *
+	 * @param old gets the files left over from an earlier run, or null
+	 * @return the files, in their order
 	 */
-	public static List<File> findObjects(EditorFrame editorFrame)
+	public static List<File> findObjects(EditorFrame editorFrame, List<File> old)
 	{
 		List<File> files = new ArrayList<File>();
-		File folder = trackFolder();
+		File folder = trackgenFolder(editorFrame);
 		if (folder == null)
 			return files;
 		String name = folder.getName().toLowerCase();
-		File[] all = folder.listFiles((dir, n) -> n.toLowerCase().matches(".+-obj(-\\d+)?\\.ac"));
-		if (all == null)
-			return files;
+		File[] all = filesNamed(folder, n -> n.matches(".+-obj(-\\d+)?\\.ac"));
 		java.util.Set<String> tracks = new java.util.HashSet<String>();
+		List<File> found = new ArrayList<File>();
 		for (File file : all)
 		{
 			String n = file.getName().toLowerCase();
 			String track = n.substring(0, n.lastIndexOf("-obj"));
 			tracks.add(track);
 			if (track.equals(name) && file.isFile())
-				files.add(file);
+				found.add(file);
 		}
-		if (files.isEmpty() && tracks.size() == 1)
+		if (found.isEmpty() && tracks.size() == 1)
 			for (File file : all)
 				if (file.isFile())
-					files.add(file);
+					found.add(file);
 		// -obj-2 after -obj-1, -obj-10 after -obj-9
-		files.sort((a, b) -> {
+		found.sort((a, b) -> {
 			int na = objectNumber(a), nb = objectNumber(b);
 			return na != nb ? Integer.compare(na, nb) : a.getName().compareToIgnoreCase(b.getName());
 		});
+		File terrain = findTerrain(editorFrame);
+		long previous = terrain == null ? 0 : terrain.lastModified();
+		boolean last = true;
+		for (File file : found)
+		{
+			long modified = file.lastModified();
+			last = last && modified >= previous - TIME_SLACK;
+			if (last)
+			{
+				files.add(file);
+				previous = modified;
+			}
+			else if (old != null)
+				old.add(file);
+		}
 		return files;
 	}
 
@@ -1267,51 +1442,29 @@ public abstract class TrackScene
 	 * The objects trackgen placed last (&lt;track&gt;-obj-N.ac), as they are in
 	 * the files. Like the terrain they are in the game's coordinates, moved by
 	 * the game's origin, and they don't follow the track's changes until
-	 * trackgen is run again. Their textures are found where the game finds
-	 * them: the track's folders, then the data folder's objects, textures and img.
+	 * trackgen is run again. Their textures are found as the track's are.
 	 */
 	private void objects()
 	{
-		List<File> files = findObjects(editorFrame);
+		List<File> files = findObjects(editorFrame, oldObjectFiles);
 		if (files.isEmpty())
 			return;
 		float[] origin = track.gameOrigin();
-		String[] folders = TrackFolders.pitIndicatorTextureFolders(editorFrame);
-		// each texture looked for once: there can be thousands of objects
-		Map<String, String> textures = new HashMap<String, String>();
-		int k = 0;
 		for (File file : files)
 		{
-			List<AcPart> parts = cachedParts(file);
-			if (parts == null)
-				continue;
-			objectFiles.add(file);
-			for (AcPart part : parts)
+			CachedAc cached = cached(file);
+			if (cached == null)
 			{
-				if (part.triangles.isEmpty())
-					continue;
-				Strip strip = new Strip();
-				strip.name = "object-" + k++;
-				strip.part = Part.OBJECT;
-				strip.doubleSided = part.doubleSided;
-				strip.color = part.color;
-				if (part.texture == null || part.texture.isEmpty())
-					strip.texture = "";
-				else
-				{
-					String texture = textures.get(part.texture);
-					if (texture == null)
-					{
-						texture = foundTexture("object/", part.texture, folders);
-						textures.put(part.texture, texture);
-					}
-					strip.texture = texture;
-				}
-				for (float[] p : part.points)
-					strip.add(p[3], p[4], origin[0] + p[0], origin[1] + p[1], origin[2] + p[2]);
-				strip.triangleList = triangleArray(part.triangles);
-				strips.add(strip);
+				loading = true;
+				continue;
 			}
+			if (cached.parts == null)
+			{
+				unreadableFiles.put(file, cached.error);
+				continue;
+			}
+			objectFiles.add(file);
+			strips.addAll(cachedStrips(cached, Part.OBJECT, origin, file.getName()));
 		}
 	}
 
@@ -1393,8 +1546,7 @@ public abstract class TrackScene
 	/** @return a texture's name as the game knows it, without the prefix of one found here */
 	public static String textureDisplayName(String name)
 	{
-		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/") || name.startsWith("track light/")
-			|| name.startsWith("object/")))
+		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/") || name.startsWith("track light/")))
 			return name.substring(name.indexOf('/') + 1);
 		return name;
 	}
