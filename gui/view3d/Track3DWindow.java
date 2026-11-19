@@ -8,6 +8,7 @@
  */
 package gui.view3d;
 
+import java.io.File;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -76,10 +77,15 @@ public class Track3DWindow extends JFrame
 	private final JLabel			trackLabel		= new JLabel();
 	private final JLabel			frameLabel		= new JLabel();
 	private final JLabel			textureLabel	= new JLabel();
+	// the terrain or objects shown are missing or older than the track
+	private final JLabel			trackgenLabel	= new JLabel();
+	private final JButton			regenerateButton	= new JButton("Regenerate");
 	private final JToggleButton		wireframeButton	= new JToggleButton("Wireframe");
 	private final JToggleButton		lightingButton	= new JToggleButton("Lighting", true);
 	private final JToggleButton		cullingButton	= new JToggleButton("Cull");
 	private final JToggleButton		racelineButton	= new JToggleButton("Raceline");
+	private final JToggleButton		terrainButton	= new JToggleButton("Terrain");
+	private final JToggleButton		objectsButton	= new JToggleButton("Objects");
 	private final JButton			camerasButton	= new JButton("Cameras ▾");
 	private final JToggleButton		showCamerasButton	= new JToggleButton("Show cameras");
 	private final JToggleButton		playButton		= new JToggleButton("Play cameras");
@@ -303,6 +309,12 @@ public class Track3DWindow extends JFrame
 		cullingButton.addActionListener(e -> setCulling(cullingButton.isSelected()));
 		racelineButton.setToolTipText("Show the raceline layer that a raceline export adds to the road (R). On by default when a road surface has a raceline texture.");
 		racelineButton.addActionListener(e -> setRaceline(racelineButton.isSelected()));
+		terrainButton.setToolTipText("<html>Show the terrain trackgen made last (the track's -msh.ac file) (G).<br>" +
+			"It is read from the file, so it doesn't follow your edits until you export the track again.</html>");
+		terrainButton.addActionListener(e -> setTerrain());
+		objectsButton.setToolTipText("<html>Show the objects trackgen placed last (the track's -obj-N.ac files) (O).<br>" +
+			"They are read from the files, so they don't follow your edits until you export the track again.</html>");
+		objectsButton.addActionListener(e -> setTerrain());
 		JButton fit = new JButton("Fit");
 		fit.setToolTipText("Show the whole track from the current direction (F, or double-click)");
 		fit.addActionListener(e -> frame());
@@ -343,6 +355,8 @@ public class Track3DWindow extends JFrame
 		toolBar.add(lightingButton);
 		toolBar.add(cullingButton);
 		toolBar.add(racelineButton);
+		toolBar.add(terrainButton);
+		toolBar.add(objectsButton);
 		toolBar.addSeparator();
 		toolBar.add(fit);
 		toolBar.add(top);
@@ -373,7 +387,18 @@ public class Track3DWindow extends JFrame
 	{
 		JPanel status = new JPanel(new BorderLayout());
 		status.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-		status.add(trackLabel, BorderLayout.WEST);
+		JPanel left = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+		left.add(trackLabel);
+		trackgenLabel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
+		trackgenLabel.setForeground(new Color(0xB4, 0x5A, 0x09));
+		left.add(trackgenLabel);
+		regenerateButton.setToolTipText("<html>Save the track and export it again, as Export All does, so trackgen<br>" +
+			"makes the terrain (-msh.ac) and objects (-obj-N.ac) from the track as it is now.</html>");
+		regenerateButton.setMargin(new java.awt.Insets(0, 6, 0, 6));
+		regenerateButton.addActionListener(e -> regenerate());
+		regenerateButton.setVisible(false);
+		left.add(regenerateButton);
+		status.add(left, BorderLayout.WEST);
 		textureLabel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 0));
 		status.add(textureLabel, BorderLayout.CENTER);
 		status.add(frameLabel, BorderLayout.EAST);
@@ -444,6 +469,14 @@ public class Track3DWindow extends JFrame
 				case KeyEvent.VK_R:
 					racelineButton.setSelected(!racelineButton.isSelected());
 					setRaceline(racelineButton.isSelected());
+					break;
+				case KeyEvent.VK_G:
+					terrainButton.setSelected(!terrainButton.isSelected());
+					setTerrain();
+					break;
+				case KeyEvent.VK_O:
+					objectsButton.setSelected(!objectsButton.isSelected());
+					setTerrain();
 					break;
 				case KeyEvent.VK_N:
 					nextCamera();
@@ -531,6 +564,13 @@ public class Track3DWindow extends JFrame
 		rebuild();
 	}
 
+	/** The terrain or the objects were turned on or off */
+	private void setTerrain()
+	{
+		saveSettings();
+		rebuild();
+	}
+
 	private void setLighting(boolean on)
 	{
 		renderer.setLighting(on);
@@ -549,6 +589,8 @@ public class Track3DWindow extends JFrame
 		lightingButton.setSelected(preferences.getBoolean("View3DLighting", true));
 		cullingButton.setSelected(preferences.getBoolean("View3DCull", false));
 		showCamerasButton.setSelected(preferences.getBoolean("View3DShowCameras", false));
+		terrainButton.setSelected(preferences.getBoolean("View3DTerrain", false));
+		objectsButton.setSelected(preferences.getBoolean("View3DObjects", false));
 		renderer.setShowCameras(showCamerasButton.isSelected());
 		renderer.setWireframe(wireframeButton.isSelected());
 		renderer.setLighting(lightingButton.isSelected());
@@ -569,6 +611,8 @@ public class Track3DWindow extends JFrame
 		preferences.putBoolean("View3DLighting", lightingButton.isSelected());
 		preferences.putBoolean("View3DCull", cullingButton.isSelected());
 		preferences.putBoolean("View3DShowCameras", showCamerasButton.isSelected());
+		preferences.putBoolean("View3DTerrain", terrainButton.isSelected());
+		preferences.putBoolean("View3DObjects", objectsButton.isSelected());
 		preferences.putInt("View3DColor", colorBox.getSelectedIndex());
 		preferences.put("View3DHeightScale", (String) heightBox.getSelectedItem());
 	}
@@ -764,7 +808,7 @@ public class Track3DWindow extends JFrame
 			racelineButton.setSelected(saved != null ? saved[6] != 0 : TrackScene.namesRaceline(editorFrame));
 			renderer.setRaceline(racelineButton.isSelected());
 		}
-		RoadMesh mesh = RoadMesh.build(editorFrame, racelineButton.isSelected());
+		RoadMesh mesh = RoadMesh.build(editorFrame, racelineButton.isSelected(), terrainButton.isSelected(), objectsButton.isSelected());
 		renderer.setMesh(mesh);
 
 		// from where it was last shown, else all of it in view
@@ -779,7 +823,8 @@ public class Track3DWindow extends JFrame
 
 		String name = trackName();
 		setTitle(name == null ? "3D View" : "3D View — " + name);
-		trackLabel.setText(mesh.isEmpty() ? "No track open" : String.format("%,d triangles in %,d segments", mesh.triangleCount, mesh.segmentCount));
+		trackLabel.setText(mesh.isEmpty() ? "No track open" : String.format("%,d triangles in %,d segments", mesh.triangleCount, mesh.segmentCount) + shownNote(mesh));
+		trackgenWarning(mesh);
 		camerasButton.setEnabled(!mesh.cameras.isEmpty());
 		if (newTrack)
 			cameraIndex = -1;
@@ -791,8 +836,119 @@ public class Track3DWindow extends JFrame
 			driveButton.setSelected(false);
 			player.setActive(false);
 		}
+		// paused, a view moved away from the car (turned round, or a track camera's)
+		// stays where it is: only playing or stepping puts it back at the car. One
+		// still at the car follows it, so an edited camera shows its new view.
+		OrbitCamera camera = renderer.camera;
+		double[] paused = player.isActive() && !player.isPlaying() && player.viewMoved() && !mesh.isEmpty() ?
+			new double[] { camera.targetX, camera.targetY, camera.targetZ, camera.yaw, camera.pitch, camera.distance, camera.fov } : null;
 		player.trackChanged();
+		if (paused != null)
+		{
+			camera.targetX = paused[0];
+			camera.targetY = paused[1];
+			camera.targetZ = paused[2];
+			camera.yaw = paused[3];
+			camera.pitch = paused[4];
+			camera.distance = paused[5];
+			camera.fov = paused[6];
+			camera.radius = mesh.getRadius();
+		}
 		requestRedraw();
+	}
+
+	/** @return which of trackgen's files are shown: the terrain's and the objects' */
+	private String shownNote(RoadMesh mesh)
+	{
+		if (mesh.scene == null)
+			return "";
+		String note = "";
+		if (mesh.scene.terrainFile != null)
+			note += " — terrain from " + mesh.scene.terrainFile.getName();
+		java.util.List<File> objects = mesh.scene.objectFiles;
+		if (!objects.isEmpty())
+			note += (note.isEmpty() ? " — " : ", ") + "objects from " + (objects.size() == 1 ? objects.get(0).getName() : objects.size() + " files");
+		return note;
+	}
+
+	/**
+	 * Warns when the terrain or objects asked for aren't there or are older than
+	 * the track's xml, and offers to make them again. A track without objects
+	 * (no object maps or graphic objects) isn't expected to have object files.
+	 */
+	private void trackgenWarning(RoadMesh mesh)
+	{
+		java.util.List<String> problems = new java.util.ArrayList<String>();
+		if (mesh.scene != null)
+		{
+			File xml = trackXml();
+			long saved = xml == null ? 0 : xml.lastModified();
+			if (terrainButton.isSelected())
+			{
+				File file = mesh.scene.terrainFile;
+				if (file == null)
+					problems.add("no terrain file (-msh.ac)");
+				else if (file.lastModified() < saved)
+					problems.add("the terrain is older than the track");
+			}
+			if (objectsButton.isSelected())
+			{
+				java.util.List<File> files = mesh.scene.objectFiles;
+				if (files.isEmpty())
+				{
+					if (hasObjects())
+						problems.add("no object files (-obj-N.ac)");
+				}
+				else
+				{
+					long oldest = Long.MAX_VALUE;
+					for (File file : files)
+						oldest = Math.min(oldest, file.lastModified());
+					if (oldest < saved)
+						problems.add("the objects are older than the track");
+				}
+			}
+		}
+		if (problems.isEmpty())
+		{
+			trackgenLabel.setText("");
+			trackgenLabel.setToolTipText(null);
+		}
+		else
+		{
+			String text = String.join(", ", problems);
+			trackgenLabel.setText("⚠ " + Character.toUpperCase(text.charAt(0)) + text.substring(1));
+			trackgenLabel.setToolTipText("<html>They are made by trackgen when the track is exported.<br>Regenerate exports the track again.</html>");
+		}
+		regenerateButton.setVisible(!problems.isEmpty());
+	}
+
+	/** @return whether trackgen places objects for the track: it has object maps with objects, or graphic objects */
+	private boolean hasObjects()
+	{
+		if (editorFrame.getTrackData() == null)
+			return false;
+		if (!editorFrame.getGraphicObjects().isEmpty())
+			return true;
+		for (utils.circuit.ObjectMap map : editorFrame.getObjectMaps())
+			if (!map.getObjects().isEmpty())
+				return true;
+		return false;
+	}
+
+	/** @return the track's xml, or null */
+	private File trackXml()
+	{
+		String name = trackName();
+		String path = Properties.getInstance().getPath();
+		return name == null || path == null ? null : new File(path, name + ".xml");
+	}
+
+	/** Exports the track again, so trackgen makes its terrain and objects, then shows them */
+	private void regenerate()
+	{
+		editorFrame.regenerateTrackgenFiles();
+		rebuild();
 	}
 
 	private String trackName()

@@ -3507,6 +3507,15 @@ public class EditorFrame extends JFrame implements TrackContext
 
 	private void exportAc3d(String additionalArgs, boolean acc)
 	{
+		exportAc3d(additionalArgs, acc, true);
+	}
+
+	/**
+	 * @param askFileType whether to offer to make the graphic description name
+	 *        the type of file made (false: it is left as it is)
+	 */
+	private void exportAc3d(String additionalArgs, boolean acc, boolean askFileType)
+	{
 		//check for graphic objects with same name
 		Vector<GraphicObject> graphicObjects = trackData.getGraphicObjects();
 		for (int i = 0; i < graphicObjects.size() - 1; i++)
@@ -3546,7 +3555,11 @@ public class EditorFrame extends JFrame implements TrackContext
 			description = path.substring(path.lastIndexOf(sep) + 1) + ".ac";
 		}
 		String newDescription = null;
-		if (acc && description.endsWith(".ac"))
+		if (!askFileType)
+		{
+			// left as it is
+		}
+		else if (acc && description.endsWith(".ac"))
 		{
 			if (JOptionPane.showConfirmDialog(this, "Change graphics file type to acc?", "Exporting ACC", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 			{
@@ -3603,6 +3616,36 @@ public class EditorFrame extends JFrame implements TrackContext
 		TrackgenPanel tg = acccSteps != null ? new TrackgenPanel(this, acccSteps, acc) : new TrackgenPanel(this, newArgs, acc);
 		tg.setModal(true);
 		tg.setVisible(true);
+	}
+
+	/**
+	 * Makes the files the 3D view shows from trackgen again (the terrain,
+	 * &lt;track&gt;-msh.ac, and the objects, &lt;track&gt;-obj-N.ac): writes the
+	 * track xml, then runs trackgen -a, which writes them.
+	 * <ul>
+	 * <li>An acc track made with accc (TORCS, CSR, Speed Dreams when chosen) is
+	 * exported as Export All ACC does, as accc starts from trackgen -a: with the
+	 * raceline layer when the last export made one (&lt;track&gt;-trk-raceline.ac
+	 * is there), so its acc file comes out as before.</li>
+	 * <li>Otherwise the ac export, trackgen -a: Speed Dreams' own acc export
+	 * (--acc) doesn't write the terrain's and objects' files. The graphic
+	 * description isn't changed, so an acc track's 3D file stays its acc.</li>
+	 * </ul>
+	 */
+	public void regenerateTrackgenFiles()
+	{
+		if (trackData == null)
+		{
+			message("No track", "Nothing to export");
+			return;
+		}
+		String description = getTrackData().getGraphic().getDescription();
+		boolean acc = description != null && description.endsWith(".acc") && makesAccWithAccc();
+		String path = Properties.getInstance().getPath();
+		String name = path.substring(path.lastIndexOf(sep) + 1);
+		boolean raceline = acc && new File(path, name + "-trk-raceline.ac").isFile();
+		if (exportTrack())
+			exportAc3d(raceline ? " -r" : null, acc, false);
 	}
 
 	/**

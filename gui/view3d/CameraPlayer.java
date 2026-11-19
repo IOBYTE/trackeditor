@@ -164,6 +164,8 @@ class CameraPlayer
 	private GameTrack				raceLineTrack;
 	// how the view was before playing, to go back to
 	private double[]				savedView;
+	// where the player last put the view, to tell when it has been moved since
+	private double[]				placedView;
 	// the camera in the edit panel, and the unit its "to start" shows in
 	private Camera					edited;
 	private String					shownUnit		= "m";
@@ -672,6 +674,22 @@ class CameraPlayer
 	}
 
 	/** Puts the car where it is, and looks at it from the camera the game uses there. */
+	/** @return the view: where it looks at, its direction, distance and field of view */
+	private double[] view()
+	{
+		OrbitCamera c = renderer.camera;
+		return new double[] { c.targetX, c.targetY, c.targetZ, c.yaw, c.pitch, c.distance, c.fov };
+	}
+
+	/**
+	 * @return whether the view was moved since the player last put it at the
+	 *         car: turned, panned or zoomed, or looking from a track camera
+	 */
+	boolean viewMoved()
+	{
+		return placedView == null || !java.util.Arrays.equals(placedView, view());
+	}
+
 	private void show()
 	{
 		RoadMesh mesh = renderer.getMesh();
@@ -690,6 +708,7 @@ class CameraPlayer
 			double dx = far[0] - eye[0], dy = far[1] - eye[1], dz = far[2] * scale + EYE_HEIGHT - eye[2];
 			renderer.camera.lookFrom(eye, Math.atan2(dy, dx), Math.atan2(dz, Math.hypot(dx, dy)),
 				Math.sqrt(dx * dx + dy * dy + dz * dz), DRIVER_FOV, mesh);
+			placedView = view();
 		}
 		else if (drive)
 		{
@@ -699,6 +718,7 @@ class CameraPlayer
 			double dx = far[0] - eye[0], dy = far[1] - eye[1], dz = far[2] * scale + EYE_HEIGHT - eye[2];
 			renderer.camera.lookFrom(eye, Math.atan2(dy, dx), Math.atan2(dz, Math.hypot(dx, dy)),
 				Math.sqrt(dx * dx + dy * dy + dz * dz), DRIVER_FOV, mesh);
+			placedView = view();
 		}
 		if (drive)
 		{
@@ -727,6 +747,7 @@ class CameraPlayer
 		double dd = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		double fov = zoom ? Math.max(1, Math.min(90, Math.toDegrees(Math.atan2(ZOOM_SIZE, dd)))) : NO_ZOOM_FOV;
 		renderer.camera.lookFrom(eye, Math.atan2(dy, dx), Math.atan2(dz, Math.hypot(dx, dy)), Math.max(1, dd), fov, mesh);
+		placedView = view();
 
 		statusLabel.setText(String.format(Locale.US, "Camera: %s     Segment: %s     %,.0f m of %,.0f m",
 			camera == null ? "none, looking from above" : camera.getName(), seg.name, distance, total));

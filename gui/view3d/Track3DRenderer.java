@@ -749,7 +749,7 @@ public class Track3DRenderer implements GLEventListener
 		return strip.backToBack ? BACK_TO_BACK : strip.doubleSided ? DOUBLE_SIDED : ONE_SIDED;
 	}
 
-	/** Plain colors that tell the road, borders, sides and barriers apart. */
+	/** Plain colors that tell the road, borders, sides, barriers, terrain and objects apart. */
 	private static float[] partColor(TrackScene.Part part)
 	{
 		switch (part == null ? TrackScene.Part.ROAD : part)
@@ -770,6 +770,10 @@ public class Track3DRenderer implements GLEventListener
 			return new float[] { 0.44f, 0.52f, 0.66f };
 		case CROSSING:
 			return new float[] { 0.7f, 0.66f, 0.6f };
+		case TERRAIN:
+			return new float[] { 0.42f, 0.52f, 0.36f };
+		case OBJECT:
+			return new float[] { 0.66f, 0.56f, 0.46f };
 		default:
 			return new float[] { 0.6f, 0.64f, 0.63f };
 		}

@@ -177,10 +177,14 @@ public abstract class TrackScene
 		}
 	}
 
-	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, PIT_DOOR, CROSSING, TRACK_LIGHT };
+	public enum Part { ROAD, BORDER, SIDE, BARRIER, TURN_MARK, START_BRIDGE, PIT_BUILDING, PIT_DOOR, CROSSING, TRACK_LIGHT, TERRAIN, OBJECT };
 
 	/** the strips in the order trackgen makes them; empty ones are left out */
 	public final List<Strip>	strips	= new ArrayList<Strip>();
+	/** the terrain file shown with the track (see terrain()), or null when it wasn't asked for or isn't there */
+	public File					terrainFile;
+	/** the object files shown with the track (see objects()); empty when they weren't asked for or aren't there */
+	public final List<File>		objectFiles	= new ArrayList<File>();
 
 	protected final GameTrack	track;
 	protected final EditorFrame	editorFrame;
@@ -221,12 +225,28 @@ public abstract class TrackScene
 	 */
 	public static TrackScene build(EditorFrame editorFrame, boolean raceline)
 	{
+		return build(editorFrame, raceline, false, false);
+	}
+
+	/**
+	 * @param raceline with the raceline layer a raceline export adds to the road
+	 * @param terrain with the terrain trackgen made last (see terrain())
+	 * @param objects with the objects trackgen placed last (see objects())
+	 * @return the open track's scene as its game's trackgen makes it, or null when there's no track
+	 */
+	public static TrackScene build(EditorFrame editorFrame, boolean raceline, boolean terrain, boolean objects)
+	{
 		GameTrack track = GameTrack.build(editorFrame);
 		if (track == null)
 			return null;
 		TrackScene scene = track.game == GameType.TORCS ? new SceneTorcs(track, editorFrame) : new SceneCsrSd(track, editorFrame);
 		scene.racelineLayer = raceline;
 		scene.generate();
+		forgetCached(trackFolder());
+		if (terrain)
+			scene.terrain();
+		if (objects)
+			scene.objects();
 		// trackgen skips objects that aren't triangles
 		scene.strips.removeIf(s -> s.size() < 3);
 		return scene;
@@ -928,7 +948,7 @@ public abstract class TrackScene
 		float half = pits.len / 2, quarter = pits.len / 4;
 		curDoubleSided = true;
 		curClamp = true;
-		List<IndicatorPart> indicator = pitIndicator();
+		List<AcPart> indicator = pitIndicator();
 		// the game only looks for the wall's texture in data/textures
 		String data = editorFrame.getDataDirectory();
 		String wall = foundTexture("pit wall/", "tr-wall-gr.png", data == null ? null : data + File.separator + "data" + File.separator + "textures");
@@ -959,12 +979,13 @@ public abstract class TrackScene
 		curClamp = false;
 	}
 
-	/** A part of the pit indicator model: an object's polygons with one texture, sidedness and color */
-	private static final class IndicatorPart
+	/** A part of an AC3D model: an object's polygons with one texture, sidedness and color */
+	private static final class AcPart
 	{
 		String			texture;
-		boolean			logo, doubleSided;
+		boolean			doubleSided;
 		float[]			color;
+		/** x, y, z in the game's axes, then u, v, of each point */
 		final List<float[]>	points		= new ArrayList<float[]>();
 		final List<Integer>	triangles	= new ArrayList<Integer>();
 	}
@@ -976,15 +997,19 @@ public abstract class TrackScene
 	 *
 	 * @return its parts, or null when there is none or it can't be read
 	 */
-	private List<IndicatorPart> pitIndicator()
+	private List<AcPart> pitIndicator()
 	{
 		int value = editorFrame.getTrackData().getMainTrack().getPits().getIndicator();
 		if (value == Integer.MAX_VALUE || value < 1)
 			return null;
 		String name = value == 1 ? "pit_indicator.ac" : "normal_pit_indicator.ac";
 		File file = TrackFolders.findPitIndicator(editorFrame, name);
-		if (file == null)
-			return null;
+		return file == null ? null : readAc(file);
+	}
+
+	/** @return an AC3D model's parts, as the game's loader reads it, in the game's axes; null when it can't be read */
+	private static List<AcPart> readAc(File file)
+	{
 		Ac3d ac3d = new Ac3d();
 		try
 		{
@@ -994,14 +1019,14 @@ public abstract class TrackScene
 		{
 			return null;
 		}
-		List<IndicatorPart> parts = new ArrayList<IndicatorPart>();
+		List<AcPart> parts = new ArrayList<AcPart>();
 		double[][] identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 0, 0, 0 } };
-		indicatorParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
+		acParts(ac3d.getRoot(), identity, ac3d.getMaterials(), parts);
 		return parts;
 	}
 
 	/** An object's polygons and its kids', placed by their loc and rot as the game's loader places them */
-	private void indicatorParts(Ac3dObject object, double[][] parent, java.util.Vector<Ac3dMaterial> materials, List<IndicatorPart> parts)
+	private static void acParts(Ac3dObject object, double[][] parent, java.util.Vector<Ac3dMaterial> materials, List<AcPart> parts)
 	{
 		if (object == null)
 			return;
@@ -1026,7 +1051,13 @@ public abstract class TrackScene
 			}
 
 		String texture = object.getTexture();
-		Map<String, IndicatorPart> byKind = new HashMap<String, IndicatorPart>();
+		if (Ac3d.NO_TEXTURE.equals(texture))
+			texture = null;
+		// the loader repeats and moves the texture by the object's texrep and texoff
+		double[] texrep = object.getTexrep(), texoff = object.getTexoff();
+		float repU = texrep != null && texrep.length == 2 ? (float) texrep[0] : 1, repV = texrep != null && texrep.length == 2 ? (float) texrep[1] : 1;
+		float offU = texoff != null && texoff.length == 2 ? (float) texoff[0] : 0, offV = texoff != null && texoff.length == 2 ? (float) texoff[1] : 0;
+		Map<String, AcPart> byKind = new HashMap<String, AcPart>();
 		java.util.Vector<double[]> vertices = object.getVertices();
 		for (Ac3dSurface surface : object.getSurfaces())
 		{
@@ -1035,12 +1066,11 @@ public abstract class TrackScene
 			boolean doubleSided = surface.isDoubleSided();
 			int mat = surface.getMat();
 			String key = doubleSided + " " + mat;
-			IndicatorPart part = byKind.get(key);
+			AcPart part = byKind.get(key);
 			if (part == null)
 			{
-				part = new IndicatorPart();
+				part = new AcPart();
 				part.texture = texture;
-				part.logo = texture != null && texture.toLowerCase().startsWith("logo");
 				part.doubleSided = doubleSided;
 				if ((texture == null || texture.isEmpty()) && mat >= 0 && mat < materials.size())
 				{
@@ -1059,7 +1089,8 @@ public abstract class TrackScene
 				for (int c = 0; c < 3; c++)
 					w[c] = v[0] * matrix[0][c] + v[1] * matrix[1][c] + v[2] * matrix[2][c] + matrix[3][c];
 				// AC3D's y is up: the game's x, y, z are its x, -z, y
-				part.points.add(new float[] { (float) w[0], (float) -w[2], (float) w[1], (float) ref.coord[0], (float) ref.coord[1] });
+				part.points.add(new float[] { (float) w[0], (float) -w[2], (float) w[1],
+					(float) ref.coord[0] * repU + offU, (float) ref.coord[1] * repV + offV });
 			}
 			// a fan, as the game's loader makes polygons into triangles
 			for (int k = 1; k + 1 < surface.getRefs().size(); k++)
@@ -1070,17 +1101,228 @@ public abstract class TrackScene
 			}
 		}
 		for (Ac3dObject kid : object.getKids())
-			indicatorParts(kid, matrix, materials, parts);
+			acParts(kid, matrix, materials, parts);
+	}
+
+	private static int[] triangleArray(List<Integer> triangles)
+	{
+		int[] array = new int[triangles.size()];
+		for (int i = 0; i < array.length; i++)
+			array[i] = triangles.get(i);
+		return array;
+	}
+
+	/** A model trackgen wrote, as last read */
+	private static final class CachedAc
+	{
+		long			modified, length;
+		List<AcPart>	parts;
+	}
+
+	// the terrain and object files last read, kept while they don't change: they can be large
+	private static final Map<File, CachedAc>	cachedAc	= new HashMap<File, CachedAc>();
+
+	/**
+	 * @return the terrain trackgen made last for the open track: its
+	 *         &lt;track&gt;-msh.ac in the track's folders, else the only *-msh.ac
+	 *         in the track's folder; null when there is none
+	 */
+	public static File findTerrain(EditorFrame editorFrame)
+	{
+		String path = Properties.getInstance().getPath();
+		if (path == null || path.isEmpty())
+			return null;
+		File folder = new File(path);
+		File file = TrackChecker.findFile(folder.getName() + "-msh.ac", editorFrame.getTrackFolders());
+		if (file != null && file.isFile())
+			return file;
+		File[] found = folder.listFiles((dir, name) -> name.toLowerCase().endsWith("-msh.ac"));
+		return found != null && found.length == 1 && found[0].isFile() ? found[0] : null;
+	}
+
+	/** @return a model's parts, read again only when the file changed; null when it can't be read */
+	private static List<AcPart> cachedParts(File file)
+	{
+		long modified = file.lastModified(), length = file.length();
+		synchronized (cachedAc)
+		{
+			CachedAc cached = cachedAc.get(file);
+			if (cached == null || cached.modified != modified || cached.length != length)
+			{
+				cached = new CachedAc();
+				cached.parts = readAc(file);
+				cached.modified = modified;
+				cached.length = length;
+				cachedAc.put(file, cached);
+			}
+			return cached.parts;
+		}
+	}
+
+	// the track whose models are cached
+	private static File	cachedFolder;
+
+	/** Lets go of the cached models when another track is open */
+	private static void forgetCached(File folder)
+	{
+		synchronized (cachedAc)
+		{
+			if (folder == null ? cachedFolder != null : !folder.equals(cachedFolder))
+				cachedAc.clear();
+			cachedFolder = folder;
+		}
+	}
+
+	/** @return the open track's folder, or null */
+	private static File trackFolder()
+	{
+		String path = Properties.getInstance().getPath();
+		return path == null || path.isEmpty() ? null : new File(path);
+	}
+
+	/**
+	 * The terrain trackgen made last (&lt;track&gt;-msh.ac), as it is in the file.
+	 * It is in the game's coordinates, so it is moved by the game's origin as
+	 * the start lights are, and it doesn't follow the track's changes until trackgen is run again.
+	 */
+	private void terrain()
+	{
+		File file = findTerrain(editorFrame);
+		List<AcPart> parts = file == null ? null : cachedParts(file);
+		if (parts == null)
+			return;
+		terrainFile = file;
+		// trackgen writes it where the game's loader puts the track, its smallest
+		// x, y and z at 0: here that is the game's origin further
+		float[] origin = track.gameOrigin();
+		int k = 0;
+		for (AcPart part : parts)
+		{
+			if (part.triangles.isEmpty())
+				continue;
+			Strip strip = new Strip();
+			strip.name = "terrain-" + k++;
+			strip.part = Part.TERRAIN;
+			strip.doubleSided = part.doubleSided;
+			strip.color = part.color;
+			strip.texture = part.texture == null ? "" : part.texture;
+			for (float[] p : part.points)
+				strip.add(p[3], p[4], origin[0] + p[0], origin[1] + p[1], origin[2] + p[2]);
+			strip.triangleList = triangleArray(part.triangles);
+			strips.add(strip);
+		}
+	}
+
+	/**
+	 * @return the objects trackgen placed last for the open track: its
+	 *         &lt;track&gt;-obj-N.ac in its folder, else the *-obj-N.ac there
+	 *         when they are all of one track; in their order
+	 */
+	public static List<File> findObjects(EditorFrame editorFrame)
+	{
+		List<File> files = new ArrayList<File>();
+		File folder = trackFolder();
+		if (folder == null)
+			return files;
+		String name = folder.getName().toLowerCase();
+		File[] all = folder.listFiles((dir, n) -> n.toLowerCase().matches(".+-obj(-\\d+)?\\.ac"));
+		if (all == null)
+			return files;
+		java.util.Set<String> tracks = new java.util.HashSet<String>();
+		for (File file : all)
+		{
+			String n = file.getName().toLowerCase();
+			String track = n.substring(0, n.lastIndexOf("-obj"));
+			tracks.add(track);
+			if (track.equals(name) && file.isFile())
+				files.add(file);
+		}
+		if (files.isEmpty() && tracks.size() == 1)
+			for (File file : all)
+				if (file.isFile())
+					files.add(file);
+		// -obj-2 after -obj-1, -obj-10 after -obj-9
+		files.sort((a, b) -> {
+			int na = objectNumber(a), nb = objectNumber(b);
+			return na != nb ? Integer.compare(na, nb) : a.getName().compareToIgnoreCase(b.getName());
+		});
+		return files;
+	}
+
+	private static int objectNumber(File file)
+	{
+		String n = file.getName().toLowerCase();
+		n = n.substring(n.lastIndexOf("-obj") + 4, n.length() - 3);
+		try
+		{
+			return n.startsWith("-") ? Integer.parseInt(n.substring(1)) : 0;
+		}
+		catch (NumberFormatException e)
+		{
+			return 0;
+		}
+	}
+
+	/**
+	 * The objects trackgen placed last (&lt;track&gt;-obj-N.ac), as they are in
+	 * the files. Like the terrain they are in the game's coordinates, moved by
+	 * the game's origin, and they don't follow the track's changes until
+	 * trackgen is run again. Their textures are found where the game finds
+	 * them: the track's folders, then the data folder's objects, textures and img.
+	 */
+	private void objects()
+	{
+		List<File> files = findObjects(editorFrame);
+		if (files.isEmpty())
+			return;
+		float[] origin = track.gameOrigin();
+		String[] folders = TrackFolders.pitIndicatorTextureFolders(editorFrame);
+		// each texture looked for once: there can be thousands of objects
+		Map<String, String> textures = new HashMap<String, String>();
+		int k = 0;
+		for (File file : files)
+		{
+			List<AcPart> parts = cachedParts(file);
+			if (parts == null)
+				continue;
+			objectFiles.add(file);
+			for (AcPart part : parts)
+			{
+				if (part.triangles.isEmpty())
+					continue;
+				Strip strip = new Strip();
+				strip.name = "object-" + k++;
+				strip.part = Part.OBJECT;
+				strip.doubleSided = part.doubleSided;
+				strip.color = part.color;
+				if (part.texture == null || part.texture.isEmpty())
+					strip.texture = "";
+				else
+				{
+					String texture = textures.get(part.texture);
+					if (texture == null)
+					{
+						texture = foundTexture("object/", part.texture, folders);
+						textures.put(part.texture, texture);
+					}
+					strip.texture = texture;
+				}
+				for (float[] p : part.points)
+					strip.add(p[3], p[4], origin[0] + p[0], origin[1] + p[1], origin[2] + p[2]);
+				strip.triangleList = triangleArray(part.triangles);
+				strips.add(strip);
+			}
+		}
 	}
 
 	/**
 	 * A pit's indicator at a point, not turned, as the game puts it; its logo
 	 * is the pit's number.
 	 */
-	private void addPitIndicator(List<IndicatorPart> parts, float[] at, int number)
+	private void addPitIndicator(List<AcPart> parts, float[] at, int number)
 	{
 		int k = 0;
-		for (IndicatorPart part : parts)
+		for (AcPart part : parts)
 		{
 			if (part.triangles.isEmpty())
 				continue;
@@ -1091,7 +1333,7 @@ public abstract class TrackScene
 			strip.color = part.color;
 			// the logo's band (v 0 to 0.33) gets the pit's number
 			float vScale = 1;
-			if (part.logo)
+			if (part.texture != null && part.texture.toLowerCase().startsWith("logo"))
 			{
 				strip.texture = pitNumberTexture(number, 2);
 				strip.clamp = true;
@@ -1151,7 +1393,8 @@ public abstract class TrackScene
 	/** @return a texture's name as the game knows it, without the prefix of one found here */
 	public static String textureDisplayName(String name)
 	{
-		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/") || name.startsWith("track light/")))
+		if (name != null && (name.startsWith("pit wall/") || name.startsWith("pit indicator/") || name.startsWith("track light/")
+			|| name.startsWith("object/")))
 			return name.substring(name.indexOf('/') + 1);
 		return name;
 	}

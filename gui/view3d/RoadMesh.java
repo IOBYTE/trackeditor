@@ -128,7 +128,18 @@ public class RoadMesh
 	 */
 	public static RoadMesh build(EditorFrame editorFrame, boolean raceline)
 	{
-		TrackScene scene = TrackScene.build(editorFrame, raceline);
+		return build(editorFrame, raceline, false, false);
+	}
+
+	/**
+	 * @param raceline with the road's raceline layer
+	 * @param terrain with the terrain trackgen made last (&lt;track&gt;-msh.ac), when there is one
+	 * @param objects with the objects trackgen placed last (&lt;track&gt;-obj-N.ac), when there are some
+	 * @return what the open track looks like, empty when there is none
+	 */
+	public static RoadMesh build(EditorFrame editorFrame, boolean raceline, boolean terrain, boolean objects)
+	{
+		TrackScene scene = TrackScene.build(editorFrame, raceline, terrain, objects);
 		int segments = editorFrame.getTrackData() == null || editorFrame.getTrackData().getSegments() == null ? 0 : editorFrame.getTrackData().getSegments().size();
 		return new RoadMesh(scene, segments, editorFrame);
 	}
