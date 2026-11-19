@@ -199,8 +199,8 @@ public class SceneCsrSd extends TrackScene
 	/**
 	 * The height of a border toStart along it, where it is that wide: for a curb,
 	 * of its outer edge (trackgen's curbHeightAt). CSR: a border's height changes
-	 * along it from its start height to its end height. A curb with one height
-	 * whose start and end widths differ keeps the slope of the segment's wide end,
+	 * along it from its start height to its end height. A curb whose segment sets
+	 * "height" and whose start and end widths differ keeps the slope of its wide end,
 	 * height / width there: GameTrack gives each of its steps heights in proportion
 	 * to its widths, so its height, and its back side, taper with its width, from
 	 * its full height at the wide end down to nothing where it narrows to zero. A

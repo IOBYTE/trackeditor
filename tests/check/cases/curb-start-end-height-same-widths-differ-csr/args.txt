@@ -1,0 +1,1 @@
+--game csr --variable-borders --show saving oval/oval.xml

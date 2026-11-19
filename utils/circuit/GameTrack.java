@@ -319,8 +319,8 @@ public class GameTrack
 			Seg b = element(m, inner, right ? TR_RBORDER : TR_LBORDER, type, bsw, bew,
 				points[o + (right ? RIGHT_BORDER_START_RIGHT : LEFT_BORDER_START_LEFT)],
 				points[o + (right ? RIGHT_BORDER_END_RIGHT : LEFT_BORDER_END_LEFT)]);
-			// and its height, the same way (CSR, experimental): a curb with one height
-			// whose widths differ has heights in proportion to its widths, worked out
+			// and its height, the same way (CSR, experimental): a curb whose segment sets
+			// "height" and whose widths differ has heights in proportion to its widths, worked out
 			// for the whole segment (GameSides), so each step keeps the segment's slope
 			float bsh0 = (float) state.borderStartHeight, beh0 = (float) state.borderEndHeight;
 			float kbh = (beh0 - bsh0) / (float) steps;
@@ -1248,9 +1248,9 @@ public class GameTrack
 			if (csr && w < 0.001f)
 				return base + tr * (float) Math.tan(angle);
 			// CSR: a curb is as high as it is where the point is, over its width there:
-			// its heights can differ, and one with one height whose widths differ has
-			// heights in proportion to them (addSides), so it keeps the slope of its
-			// wide end
+			// its heights can differ, and one whose segment sets "height" and whose
+			// widths differ has heights in proportion to them (addSides), so it keeps
+			// the slope of its wide end
 			float slope = (float) Math.atan2(csr ? height(seg, toStart) : seg.height, w);
 			if (seg.type2 == TR_RBORDER)
 			{

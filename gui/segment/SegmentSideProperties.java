@@ -960,12 +960,12 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 				"Not set: the border starts as wide as the previous segment's border ends. Check the box to set it.");
 			getBorderEndWidthSlider().setInherited(state.borderEndWidth,
 				"Not set: the border ends as wide as it starts. Check the box to set it.");
-			// (a curb with one height whose width changes: its height goes with its width)
+			// (a curb whose "height" is set and whose width changes: its height goes with its width)
 			double[] heights = utils.circuit.GameSides.borderHeights(state);
 			getBorderStartHeightSlider().setInherited(heights[0],
-				"Not set: the border starts as high as the previous segment's border ends. Check the box to set it.");
+				"Not set: the border starts as high as the previous segment's border ends, or 0 high where it has no width. Check the box to set it.");
 			getBorderEndHeightSlider().setInherited(heights[1],
-				"Not set: the border ends as high as it starts. Check the box to set it.");
+				"Not set: the border ends as high as it starts, or 0 high where it has no width. Check the box to set it.");
 			shownHeights = heights;
 		}
 		else
@@ -976,8 +976,8 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 		getBorderWidthSlider().setValue(width);
 		getBorderStartWidthSlider().setValue(Double.isNaN(width) ? side.getBorderStartWidth() : width);
 		getBorderEndWidthSlider().setValue(Double.isNaN(width) ? side.getBorderEndWidth() : width);
-		// one height is both of its heights, or for a curb whose width changes the
-		// heights it is drawn and saved with
+		// one height is both of its heights, or for a curb whose width changes, which
+		// that height makes taper, the heights it is drawn and saved with
 		double height = side.getBorderHeight();
 		getBorderStartHeightSlider().setValue(Double.isNaN(height) ? side.getBorderStartHeight() : shownHeights != null ? shownHeights[0] : height);
 		getBorderEndHeightSlider().setValue(Double.isNaN(height) ? side.getBorderEndHeight() : shownHeights != null ? shownHeights[1] : height);
@@ -1782,8 +1782,17 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 					else
 						side.setBorderStartHeight(heightsBefore != null ? Math.round(heightsBefore[0] * 1000000.0) / 1000000.0 : heightBefore);
 				}
+				// the same at both ends is the height, but not for a border whose
+				// widths differ: CSR makes a curb with a "height" taper with its
+				// width, and these say it is that high all along
 				double start = side.getBorderStartHeight(), end = side.getBorderEndHeight();
-				if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+				boolean widthsDiffer = false;
+				if (segment != null)
+				{
+					utils.circuit.GameSides.State state = utils.circuit.GameSides.of(segment, side.isRight(), parent.editorFrame);
+					widthsDiffer = state.borderStartWidth != state.borderEndWidth;
+				}
+				if (!Double.isNaN(start) && !Double.isNaN(end) && start == end && !widthsDiffer)
 					side.setBorderHeight(start);
 				else
 					side.setBorderHeight(Double.NaN);

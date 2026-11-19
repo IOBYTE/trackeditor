@@ -912,14 +912,16 @@ public class PitProperties extends PropertyPanel
 	 * Sets the border height the game uses on the segment's pit side, before the
 	 * generator changes the segments next to it: with variable-width borders (CSR)
 	 * its start and end heights when they differ, as a start height not set is the
-	 * previous segment's end height. A curb with one height whose widths differ
-	 * keeps its one height: its widths, kept too, give its heights again.
+	 * previous segment's end height, or when its widths differ, as CSR makes a curb
+	 * with a "height" taper with its width. A curb whose "height" tapers with its
+	 * width keeps that height: its widths, kept too, give its heights again.
 	 */
 	private void keepBorderHeight(Segment segment, boolean right)
 	{
 		SegmentSide side = right ? segment.getRight() : segment.getLeft();
 		utils.circuit.GameSides.State state = utils.circuit.GameSides.of(segment, right, getEditorFrame());
-		if (getEditorFrame().getVariableBorderWidth() && state.borderStartHeight != state.borderEndHeight && !state.borderHeightsFromWidths)
+		if (getEditorFrame().getVariableBorderWidth() && !state.borderHeightsFromWidths
+			&& (state.borderStartHeight != state.borderEndHeight || state.borderStartWidth != state.borderEndWidth))
 		{
 			side.setBorderHeight(Double.NaN);
 			side.setBorderStartHeight(state.borderStartHeight);

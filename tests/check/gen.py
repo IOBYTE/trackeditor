@@ -150,7 +150,7 @@ CASES = [
     # a border's width is both of its widths, so CSR doesn't read a start or end width with it
     ('border-width-and-start-end-csr', '--game csr --show saving oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('width', 1, 'm'), num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
-    # a tapered curb keeps the slope of its wide end: 0.1 m in 1 m here, as the 0.05 m in 0.5 m curb after it
+    # a tapered curb whose segment sets "height" keeps the slope of its wide end: 0.1 m in 1 m here, as the 0.05 m in 0.5 m curb after it
     ('curb-taper-slope-matches-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('start width', 0.25, 'm'), num('end width', 1, 'm'), num('height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # it narrows from 1 m to 0.5 m, 0.05 m high: 5%, but the 0.05 m in 0.5 m curb after it is 10%
@@ -163,6 +163,10 @@ CASES = [
     # it rises to 0.1 m, but the 0.05 m curb after it doesn't
     ('border-variable-height-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
         right=side('Right', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # a start and an end height are used as they are, even the same and with widths that differ: 0.05 m all along,
+    # which at 1 m wide is 5%, not the 10% of the curb after it; saved as start and end heights, as a height would taper
+    ('curb-start-end-height-same-widths-differ-csr', '--game csr --variable-borders --show saving oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('start width', 0.5, 'm'), num('end width', 1, 'm'), num('start height', 0.05, 'm'), num('end height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # the same start and end height is saved as the height
     ('border-start-end-height-same-csr', '--game csr --variable-borders --show saving oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),

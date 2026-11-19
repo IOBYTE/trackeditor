@@ -981,7 +981,7 @@ public class TrackChecker
 	}
 
 	/**
-	 * CSR: a tapered curb keeps the slope of its wide end, and the curb after it
+	 * CSR: a tapered curb whose segment sets "height" keeps the slope of its wide end, and the curb after it
 	 * should have the same slope (GameSides.curbSlopeMismatch: the segment dialog
 	 * shows it too).
 	 */

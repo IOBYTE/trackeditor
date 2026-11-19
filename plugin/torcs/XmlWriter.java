@@ -515,13 +515,19 @@ public class XmlWriter
 		return Math.round(height * 1000000.0) / 1000000.0;
 	}
 
-	private void addBorderValues(Element side, boolean csr, String name, double value, double start, double end)
+	/**
+	 * @param keepEnds whether start and end values that are the same are still
+	 *        written as start and end values: CSR reads a curb's "height" as one
+	 *        that tapers with its width when its widths differ, so a curb of one
+	 *        height whatever its width keeps its start and end heights
+	 */
+	private void addBorderValues(Element side, boolean csr, String name, double value, double start, double end, boolean keepEnds)
 	{
 		if (!Double.isNaN(value) || !csr)
 		{
 			addContent(side, name, "m", value);
 		}
-		else if (!Double.isNaN(start) && !Double.isNaN(end) && start == end)
+		else if (!keepEnds && !Double.isNaN(start) && !Double.isNaN(end) && start == end)
 		{
 			addContent(side, name, "m", start);
 		}
@@ -544,14 +550,17 @@ public class XmlWriter
 		// widths (the Main Track has none): the same at both ends is "width" or
 		// "height", which the loader reads first
 		boolean csr = trackContext.getCarsSportsRacing() && trackContext.getTrackData().getHeader().getVersion() == 4;
-		addBorderValues(side, csr, "width", part.getBorderWidth(), part.getBorderStartWidth(), part.getBorderEndWidth());
+		addBorderValues(side, csr, "width", part.getBorderWidth(), part.getBorderStartWidth(), part.getBorderEndWidth(), false);
 		double height = part.getBorderHeight(), startHeight = part.getBorderStartHeight(), endHeight = part.getBorderEndHeight();
+		boolean keepEnds = false;
 		if (csr && shape != null && trackContext.getVariableBorderWidth())
 		{
-			// a curb with one height whose widths differ is saved with the heights it
-			// is drawn with, from its wide end's height down in proportion to its
-			// widths (GameSides.borderHeights), so the file says what it is
+			// a curb whose segment sets "height" and whose widths differ is saved with
+			// the heights it is drawn with, from its wide end's height down in
+			// proportion to its widths (GameSides.borderHeights), so the file says
+			// what it is
 			utils.circuit.GameSides.State state = utils.circuit.GameSides.of(shape, right, trackContext);
+			keepEnds = state.borderStartWidth != state.borderEndWidth;
 			if (state.borderHeightsFromWidths)
 			{
 				height = Double.NaN;
@@ -559,7 +568,7 @@ public class XmlWriter
 				endHeight = roundHeight(state.borderEndHeight);
 			}
 		}
-		addBorderValues(side, csr, "height", height, startHeight, endHeight);
+		addBorderValues(side, csr, "height", height, startHeight, endHeight, keepEnds);
 		addContent(side, "surface", part.getBorderSurface());
 		addContent(side, "style", part.getBorderStyle());
 
