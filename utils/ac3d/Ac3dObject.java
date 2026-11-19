@@ -13,6 +13,12 @@ public class Ac3dObject
 	private String				name;
 	private String				data;
 	private String				texture;
+	/**
+	 * A multi-texture (.acc) object's texture layers, in order: the texture and
+	 * the layer it is (base, tiled, skids, shad, normal, specular), as accc
+	 * writes them; empty for an object with one texture
+	 */
+	private Vector<String[]>	textureLayers	= new Vector<String[]>();
 	private double[]			texrep;
 	private double[]			texoff;
 	private Integer				subdiv;
@@ -132,7 +138,16 @@ public class Ac3dObject
 			file.write("name \"" + name + "\"\n");
 		}
 
-		if (texture != null && !texture.isEmpty())
+		if (!textureLayers.isEmpty())
+		{
+			// as they were read; accc writes an empty layer's placeholder unquoted
+			for (String[] layer : textureLayers)
+			{
+				String name = Ac3d.NO_TEXTURE.equals(layer[0]) ? layer[0] : "\"" + layer[0] + "\"";
+				file.write("texture " + name + " " + layer[1] + "\n");
+			}
+		}
+		else if (texture != null && !texture.isEmpty())
 		{
 			file.write("texture \"" + texture + "\"\n");
 		}
@@ -256,8 +271,34 @@ public class Ac3dObject
 		return texture;
 	}
 
+	/**
+	 * Adds a layer of a multi-texture (.acc) object. Its texture is the base
+	 * layer's (the first layer's if it has none), the one the game draws it with.
+	 */
+	public void addTextureLayer(String texture, String layer)
+	{
+		textureLayers.add(new String[] { texture, layer });
+		if ("base".equals(layer) || (textureLayers.size() == 1 && this.texture == null))
+			this.texture = texture;
+	}
+
+	/** @return the texture layers of a multi-texture (.acc) object: texture and layer; empty otherwise */
+	public java.util.List<String[]> getTextureLayers()
+	{
+		return java.util.Collections.unmodifiableList(textureLayers);
+	}
+
 	public void setTexture(String texture)
 	{
+		// a multi-texture object's texture is its base layer's
+		for (String[] layer : textureLayers)
+		{
+			if (layer[0].equals(this.texture))
+			{
+				layer[0] = texture;
+				break;
+			}
+		}
 		this.texture = texture;
 	}
 
@@ -485,6 +526,9 @@ public class Ac3dObject
 	public void copySettings(Ac3dObject from)
 	{
 		texture = from.texture;
+		textureLayers.clear();
+		for (String[] layer : from.textureLayers)
+			textureLayers.add(layer.clone());
 		texrep = from.texrep == null ? null : from.texrep.clone();
 		texoff = from.texoff == null ? null : from.texoff.clone();
 		crease = from.crease;

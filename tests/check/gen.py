@@ -276,6 +276,15 @@ CASES = [
     ('object-model-missing', SD, track('oval', objects=section('tree', text('object', 'tree.ac'), num('color', '0x00FF00'), text('orientation type', 'random')))),
     ('object-color-twice', SD, track('oval', objects=section('tree', text('object', 'tree.ac'), num('color', '0x00FF00')) + '\n'
         + section('bush', text('object', 'tree.ac'), num('color', '0x00FF00'))), {'add': {'tree.ac': 'AC3Db\nOBJECT world\nkids 0\n'}}),
+    # a multi-texture (.acc) model, as accc writes it: its texture is the base layer's (missing here); the empty
+    # layers are accc's unquoted placeholder, and the games draw neither normal nor specular layers
+    # an .acc object's base layer is its texture, not the last layer, and placeholder layers aren't textures
+    ('texture-layers-acc', '--game sd --show objects oval/oval.xml', track('oval', objects=section('tree', text('object', 'tree.acc'), num('color', '0x00FF00')),
+        terrain=section('Object Maps', section('map 1', text('object map', 'object-map1.png')))),
+        {'green': ['object-map1.png'], 'add': {'broken.png': 'not a png\n', 'tree.acc': 'AC3Db\nMATERIAL "m" rgb 1 1 1 amb 1 1 1 emis 0 0 0 spec 0 0 0 shi 0 trans 0\nOBJECT world\nkids 1\n'
+            'OBJECT poly\nname "leaf"\ntexture "broken.png" base\ntexture empty_texture_no_mapping tiled\ntexture empty_texture_no_mapping skids\n'
+            'texture empty_texture_no_mapping shad\ntexture empty_texture_no_mapping normal\ntexture empty_texture_no_mapping specular\n'
+            'numvert 3\n0 0 0\n1 0 0\n0 1 0\nnumsurf 1\nSURF 0x20\nmat 0\nrefs 3\n0 0 0\n1 1 0\n2 0 1\nkids 0\n'}}),
     ('texture-not-an-image', '--game sd --show objects oval/oval.xml', track('oval', objects=section('tree', text('object', 'tree.ac'), num('color', '0x00FF00')),
         terrain=section('Object Maps', section('map 1', text('object map', 'object-map1.png')))),
         {'green': ['object-map1.png'], 'add': {'broken.png': 'not a png\n', 'tree.ac': 'AC3Db\nMATERIAL "m" rgb 1 1 1 amb 1 1 1 emis 0 0 0 spec 0 0 0 shi 0 trans 0\nOBJECT world\nkids 1\n'

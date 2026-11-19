@@ -19,6 +19,29 @@ public class Ac3d
 	private Vector<Ac3dMaterial>	materials	= new Vector<Ac3dMaterial>();
 	private Ac3dObject				root		= null;
 
+	/** accc's placeholder for a multi-texture object's empty layer */
+	public static final String		NO_TEXTURE	= "empty_texture_no_mapping";
+
+	/**
+	 * @return a texture line's texture and, for a multi-texture (.acc) object's
+	 *         layer, the layer (base, tiled, skids, shad, normal, specular; null
+	 *         otherwise); null when it isn't a texture line
+	 */
+	public static String[] textureLine(String line)
+	{
+		try
+		{
+			String[] tokens = new Ac3d().tokenizeLine(line);
+			if (tokens.length < 2 || !tokens[0].equals("texture"))
+				return null;
+			return new String[] { tokens[1], tokens.length > 2 ? tokens[2] : null };
+		}
+		catch (Ac3dException e)
+		{
+			return null;
+		}
+	}
+
     private String[] tokenizeLine(String text)  throws Ac3dException
     {
         List<String> result;
@@ -240,7 +263,12 @@ public class Ac3d
 			}
 			else if (tokens[0].equals("texture"))
 			{
-				object.setTexture(tokens[1]);
+				// a multi-texture (.acc) object has a line for each layer, with the
+				// layer after the texture: its texture is the base layer's
+				if (tokens.length > 2)
+					object.addTextureLayer(tokens[1], tokens[2]);
+				else
+					object.setTexture(tokens[1]);
 			}
 			else if (tokens[0].equals("texrep"))
 			{

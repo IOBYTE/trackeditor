@@ -2871,11 +2871,14 @@ public class TrackChecker
 
 			while ((line = br.readLine()) != null)
 			{
-				if (line.startsWith("texture"))
-				{
-					String texture = line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\""));
-					checkTexture(type + " object " + trackObject.getName() + " model " + object, texture);
-				}
+				// a multi-texture (.acc) model has a line for each layer, with the
+				// layer after the texture: an empty layer is accc's placeholder
+				// (unquoted), and the games draw neither normal nor specular layers
+				String[] texture = utils.ac3d.Ac3d.textureLine(line);
+				if (texture == null || utils.ac3d.Ac3d.NO_TEXTURE.equals(texture[0])
+					|| "normal".equals(texture[1]) || "specular".equals(texture[1]))
+					continue;
+				checkTexture(type + " object " + trackObject.getName() + " model " + object, texture[0]);
 			}
 		}
 		catch (Exception e)
