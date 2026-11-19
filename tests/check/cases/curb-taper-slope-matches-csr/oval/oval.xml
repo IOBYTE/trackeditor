@@ -115,7 +115,7 @@
           <attnum name="start width" unit="m" val="0.25"/>
           <attnum name="end width" unit="m" val="1"/>
           <attnum name="height" unit="m" val="0.1"/>
-          <attstr name="surface" val="curb"/>
+          <attstr name="surface" val="grass"/>
           <attstr name="style" val="curb"/>
         </section>
         <section name="Left Barrier">

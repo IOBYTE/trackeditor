@@ -981,9 +981,11 @@ public class TrackChecker
 	}
 
 	/**
-	 * CSR: a tapered curb whose segment sets "height" keeps the slope of its wide end, and the curb after it
-	 * should have the same slope (GameSides.curbSlopeMismatch: the segment dialog
-	 * shows it too).
+	 * CSR: where a border meets the next segment's of the same surface, its width and
+	 * height shouldn't step (GameSides.borderStep); and a tapered curb whose segment
+	 * sets "height" keeps the slope of its wide end, and the curb after it should
+	 * have the same slope (GameSides.curbSlopeMismatch). The segment dialog shows
+	 * both too.
 	 */
 	private void checkTaperedCurbs()
 	{
@@ -998,7 +1000,9 @@ public class TrackChecker
 			{
 				boolean right = j == 1;
 				String name = right ? "Right" : "Left";
-				String text = GameSides.curbSlopeMismatch(segment, next, right, trackContext);
+				String text = GameSides.borderStep(segment, next, right, trackContext);
+				if (text == null)
+					text = GameSides.curbSlopeMismatch(segment, next, right, trackContext);
 				if (text != null)
 					report.append("Segment " + segment.getName() + " " + name + " " + sentences(text) + "\n", segment(segment, name));
 			}

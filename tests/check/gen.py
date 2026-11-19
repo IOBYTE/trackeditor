@@ -151,11 +151,12 @@ CASES = [
     ('border-width-and-start-end-csr', '--game csr --show saving oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('width', 1, 'm'), num('start width', 0.5, 'm'), num('end width', 2, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # a tapered curb whose segment sets "height" keeps the slope of its wide end: 0.1 m in 1 m here, as the 0.05 m in 0.5 m curb after it
+    # (of another surface, so it is another border: one of the same surface would step from 1 m to 0.5 m)
     ('curb-taper-slope-matches-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
-        left=side('Left', border=[num('start width', 0.25, 'm'), num('end width', 1, 'm'), num('height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
-    # it narrows from 1 m to 0.5 m, 0.05 m high: 5%, but the 0.05 m in 0.5 m curb after it is 10%
+        left=side('Left', border=[num('start width', 0.25, 'm'), num('end width', 1, 'm'), num('height', 0.1, 'm'), text('surface', 'grass'), text('style', 'curb')]))))),
+    # it narrows from 1 m to 0.5 m, 0.05 m high: 5%, but the 0.05 m in 0.5 m curb (of another surface) after it is 10%
     ('curb-taper-slope-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
-        right=side('Right', border=[num('start width', 1, 'm'), num('end width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+        right=side('Right', border=[num('start width', 1, 'm'), num('end width', 0.5, 'm'), num('height', 0.05, 'm'), text('surface', 'grass'), text('style', 'curb')]))))),
     # a border's height can change along a segment too: 0.05 m to 0.1 m here, meeting the curbs on both sides
     ('border-variable-height-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
         left=side('Left', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')])),
@@ -163,6 +164,18 @@ CASES = [
     # it rises to 0.1 m, but the 0.05 m curb after it doesn't
     ('border-variable-height-differs-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
         right=side('Right', border=[num('width', 0.5, 'm'), num('start height', 0.05, 'm'), num('end height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # CSR: a border that meets the next segment's of the same surface shouldn't step: 1 m wide here, the curbs either side 0.5 m
+    ('border-step-width-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 1, 'm'), num('height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # 0.1 m high here, the curbs either side 0.05 m
+    ('border-step-height-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 0.5, 'm'), num('height', 0.1, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
+    # the same, but a border of another surface is another border: no step
+    ('border-step-other-surface-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('width', 1, 'm'), num('height', 0.1, 'm'), text('surface', 'grass'), text('style', 'curb')]))))),
+    # it widens from 0.5 m to 1 m, so it meets the 0.5 m curb before it but steps at the one after it
+    ('border-step-tapered-csr', '--game csr --variable-borders oval/oval.xml', track('oval', oval(front=straight('front',
+        left=side('Left', border=[num('start width', 0.5, 'm'), num('end width', 1, 'm'), num('start height', 0.05, 'm'), num('end height', 0.05, 'm'), text('surface', 'curb'), text('style', 'curb')]))))),
     # a start and an end height are used as they are, even the same and with widths that differ: 0.05 m all along,
     # which at 1 m wide is 5%, not the 10% of the curb after it; saved as start and end heights, as a height would taper
     ('curb-start-end-height-same-widths-differ-csr', '--game csr --variable-borders --show saving oval/oval.xml', track('oval', oval(front=straight('front',

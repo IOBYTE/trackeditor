@@ -459,6 +459,51 @@ public final class GameSides
 	private static final double	TAPER_TOLERANCE	= 0.001;
 
 	/**
+	 * CSR: where a segment's border meets the next segment's and both have the same
+	 * surface, it is one border, and a width or a height that changes there is a step
+	 * in it. The widths and heights are the ones the game uses (see apply): a height
+	 * matters only where both have a width.
+	 *
+	 * @return what is wrong, starting with "border ends", when the border's width or
+	 *         height steps where it meets the next segment's; null otherwise
+	 */
+	public static String borderStep(Segment segment, Segment next, boolean right, TrackContext trackContext)
+	{
+		if (segment == null || next == null || segment == next || !trackContext.getVariableBorderWidth())
+			return null;
+		State border = of(segment, right, trackContext);
+		State after = of(next, right, trackContext);
+		if (border.borderSurface == null || !border.borderSurface.equals(after.borderSurface))
+			return null;
+		double width = border.borderEndWidth, nextWidth = after.borderStartWidth;
+		// no border on either side of the joint
+		if (width < TAPER_TOLERANCE && nextWidth < TAPER_TOLERANCE)
+			return null;
+		double height = border.borderEndHeight, nextHeight = after.borderStartHeight;
+		boolean widthSteps = Math.abs(width - nextWidth) >= TAPER_TOLERANCE;
+		boolean heightSteps = width >= TAPER_TOLERANCE && nextWidth >= TAPER_TOLERANCE && Math.abs(height - nextHeight) >= TAPER_TOLERANCE;
+		if (!widthSteps && !heightSteps)
+			return null;
+
+		String side = right ? "right" : "left";
+		String what = widthSteps && heightSteps ? "its width and height step" : widthSteps ? "its width steps" : "its height steps";
+		String fixNext = next.getName() + "'s " + values("start", widthSteps, width, heightSteps, height);
+		String fixThis = segment.getName() + "'s " + values("end", widthSteps, nextWidth, heightSteps, nextHeight);
+		return "border ends " + number(width) + " m wide and " + number(height) + " m high, but the " + side
+			+ " border of the next segment, " + next.getName() + ", which has the same surface (" + border.borderSurface + "), starts "
+			+ number(nextWidth) + " m wide and " + number(nextHeight) + " m high, so " + what + " there. Set " + fixNext + ", or " + fixThis;
+	}
+
+	/** @return "start width to 1 m and start height to 0.05 m", for the values that step */
+	private static String values(String end, boolean width, double widthValue, boolean height, double heightValue)
+	{
+		String text = width ? end + " width to " + number(widthValue) + " m" : "";
+		if (height)
+			text += (width ? " and " : "") + end + " height to " + number(heightValue) + " m";
+		return text;
+	}
+
+	/**
 	 * CSR: where one curb meets the next, their tops should have the same slope
 	 * (height / width), or they don't meet. A curb's height at an end is its start or
 	 * end height when they differ; one whose segment sets "height" and whose start
@@ -473,6 +518,10 @@ public final class GameSides
 	public static String curbSlopeMismatch(Segment segment, Segment next, boolean right, TrackContext trackContext)
 	{
 		if (segment == null || next == null || !trackContext.getVariableBorderWidth())
+			return null;
+		// borders of one surface that step where they meet: borderStep says so (and
+		// one that doesn't step meets at the same slope)
+		if (borderStep(segment, next, right, trackContext) != null)
 			return null;
 		State curb = of(segment, right, trackContext);
 		State after = of(next, right, trackContext);

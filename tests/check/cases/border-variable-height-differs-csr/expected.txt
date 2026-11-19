@@ -1,3 +1,3 @@
-oval/oval.xml: Segment front Right curb ends 0.5 m wide and 0.1 m high, a slope of 20%, but the right curb of the next segment, turn 1, starts 0.5 m wide and 0.05 m high, 10%, so their tops don't meet. Set turn 1's start height to 0.1 m and end height to 0.05 m, or front's height to 0.05 m.
+oval/oval.xml: Segment front Right border ends 0.5 m wide and 0.1 m high, but the right border of the next segment, turn 1, which has the same surface (curb), starts 0.5 m wide and 0.05 m high, so its height steps there. Set turn 1's start height to 0.1 m, or front's end height to 0.05 m.
 1 track checked: 1 message (closure not checked: add --trackgen)
 exit 1

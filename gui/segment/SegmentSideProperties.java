@@ -1076,23 +1076,40 @@ public class SegmentSideProperties extends JPanel implements SliderListener
 			int count = segments.size();
 			Segment before = segments.get((i - 1 + count) % count);
 			Segment after = segments.get((i + 1) % count);
-			String own = utils.circuit.GameSides.curbSlopeMismatch(segment, after, side.isRight(), parent.editorFrame);
-			String fromBefore = before == segment ? null
+			// and a border that steps where it meets one of the same surface
+			// (GameSides.borderStep): shown on its widths, its heights or both
+			String ownStep = utils.circuit.GameSides.borderStep(segment, after, side.isRight(), parent.editorFrame);
+			String fromBeforeStep = before == segment ? null
+				: utils.circuit.GameSides.borderStep(before, segment, side.isRight(), parent.editorFrame);
+			String own = ownStep != null ? ownStep : utils.circuit.GameSides.curbSlopeMismatch(segment, after, side.isRight(), parent.editorFrame);
+			String fromBefore = fromBeforeStep != null ? fromBeforeStep : before == segment ? null
 				: utils.circuit.GameSides.curbSlopeMismatch(before, segment, side.isRight(), parent.editorFrame);
 			String[][] warnings = { { "This segment's ", own }, { "Segment " + before.getName() + "'s ", fromBefore } };
 			for (String[] warning : warnings)
 			{
 				if (warning[1] == null)
 					continue;
-				StringBuilder tip = tips.get("border height");
-				if (tip == null)
-					tips.put("border height", tip = new StringBuilder());
-				else
-					tip.append("<br>");
-				tip.append("<b>Warning:</b> ").append(warning[0]).append(warning[1]
-					.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
+				boolean step = warning[1] == ownStep || warning[1] == fromBeforeStep;
+				java.util.List<String> keys = new java.util.ArrayList<String>();
+				if (!step || warning[1].contains("so its height") || warning[1].contains("width and height step"))
+					keys.add("border height");
+				if (step && warning[1].contains("so its width"))
+					keys.add("border width");
+				for (String key : keys)
+				{
+					StringBuilder tip = tips.get(key);
+					if (tip == null)
+						tips.put(key, tip = new StringBuilder());
+					else
+						tip.append("<br>");
+					tip.append("<b>Warning:</b> ").append(warning[0]).append(warning[1]
+						.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")).append('.');
+				}
 			}
 		}
+		getBorderWidthSlider().setProblem(tip(tips.get("border width")));
+		getBorderStartWidthSlider().setProblem(tip(tips.get("border width")));
+		getBorderEndWidthSlider().setProblem(tip(tips.get("border width")));
 		getSideStartWidthSlider().setProblem(tip(tips.get("side start width")));
 		getSideEndWidthSlider().setProblem(tip(tips.get("side end width")));
 		getBorderHeightSlider().setProblem(tip(tips.get("border height")));
